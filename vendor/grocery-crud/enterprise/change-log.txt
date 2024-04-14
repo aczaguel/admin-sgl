@@ -1,0 +1,65 @@
+3.0.19
+    - GC-519: When remember_filters_upon_refresh is false and we have CSRF on, then "Something went wrong!" message appears for no reason.
+3.0.18
+    - GC-518: hasActionButtonsMultiple is also showing the delete button.
+3.0.17
+    - GC-516: Create 3 new functions: requiredAddFields, requiredEditFields and requiredCloneFields which specifies the required fields only for specific operations.
+    - GC-517: Introducing `groceryCrudSetQuickSearchValue` which you can set a quick search on datagrid externally with JavaScript.
+3.0.16
+    - GC-514: While inserting show loading overlay so the user can't click on the save button twice.
+    - GC-515: Send Master Id on add/edit/clone form record when it comes from the detail page
+3.0.15
+    - GC-510: Configuration for publish_events = true doesn't work on master-detail datagrid.
+    - GC-511: Insert/Add Form doesn't work when the relationNtoN is in the field list.
+    - GC-512: By changing the table name while we are developing a CRUD, some columns are getting disappeared due to browser cache.
+    - GC-513: Date Format to be automatically detected from the default language and region of the browser.
+3.0.14
+   - GC-507: Add button "Remove Filters" when we have a quick search text on any column.
+   - GC-508: On Multigrid when we have more than 2 CRUDs the subject is wrong on add/edit form.
+   - GC-509: New configuration `remember_filters_upon_refresh` which we can exclude the filters in local storage if set to false.
+3.0.13
+   - GC-505: Configuration `default_per_page` doesn't work.
+   - GC-506: filter for setRelationNtoN doesn't work.
+3.0.12
+    - GC-504: Replacing default uploader with dropzone uploader and "Undo" button on accidental deletion of the file (before "Save").
+3.0.11
+    - GC-501: "Read" operation doesn't work on "views" table.
+    - GC-502: fieldType "invisible" doesn't work as expected.
+    - GC-503: newTab = true doesn't work on setActionButton when it isn't in a dropdown.
+3.0.10
+    - GC-498: Where statement using Lamina-Db Where object doesn't work as expected when we filter.
+    - GC-499: requiredFields doesn't work with upload data.
+    - GC-500: Adding multiple where statements with $crud->where.
+3.0.9
+    - GC-494: Introducing a new PHP function `unsetSortingColumns` which you can unset the Sorting for the specified columns in the datagrid.
+    - GC-495: A new implementation for `callbackBeforeUpload`, `callbackUpload` and `callbackAfterUpload` methods.
+    - GC-496: setRelationNtoN is returning empty data on edit for PHP version 8.x.
+    - GC-497: Third Party CSS (like datepicker) doesn't load on master detail forms.
+3.0.8
+    - GC-427: Ability to fully redirect after a CRUD operation.
+    - GC-493: Introducing new PHP configuration `remember_state_upon_refresh`. Default value is `true`.
+3.0.7
+    - GC-490: Introducing `groceryCrudSetFieldValue` which you can set a form value externally with JavaScript.
+    - GC-491: Enabling the `show_image_preview` configuration to work as expected.
+    - GC-492: Fixing issue with error throwing when date or date time has invalid zero value such as '0000-00-00'.
+3.0.6
+    - GC-488: Multiple delete is throwing an error when using setRelation with where statement when we have an ambiguous primary field.
+    - GC-489: Issue with number of rows when we have a where statement on a setRelation
+    - GC-485: German locale is throwing an error when date and datetime field types are used.
+3.0.5
+    - GC-485: Spanish locale is throwing an error when date and datetime field types are used.
+    - GC-486: readOnlyAddFields, readOnlyEditFields and readOnlyCloneFields method doesn't work.
+    - GC-487: Delete button doesn't work on SQL view tables.
+3.0.4
+    - GC-483: Adding where functionality to setRelationDynamic
+    - GC-484: Fixing Inconsistent date and date time format and value from datagrid to CRUD form.
+3.0.3
+    - GC-481: When date columns are hidden and you press filtering with a date, React DatePicker doesn't appear correctly.
+    - GC-482: Issue with date and date-time values showing the wrong data within datagrid.
+3.0.2
+    - Fixing issue with failure error to appear as a simple popup message to the end user.
+    - GC-480 - MySQL Views doesn't consider the id from setPrimaryKey function on edit and delete.
+3.0.1
+    - Introducing new method `setDatagridButton` which we can apply extra datagrid buttons on top or bottom of the datagrid.
+3.0.0
+    - First official stable release of Grocery CRUD Enterprise v3.0.0.

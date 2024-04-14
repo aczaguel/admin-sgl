@@ -35,7 +35,7 @@
 		<div class="container-fluid d-flex justify-content-between align-items-center">
 			<div class="brand-logo">
 				<a href="login.html">
-					<img src="vendors/images/deskapp-logo.svg" alt="">
+					<img src="vendors/images/logoes_sgt.jpg" alt="">
 				</a>
 			</div>
 			<div class="login-menu">

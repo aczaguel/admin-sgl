@@ -1,0 +1,11 @@
+CRITICAL - 2024-03-31 23:10:57 --> Undefined variable: valor_nuevo
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Views/deskapp/ui/grocery_timeline.php(136): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined varia...', '/Users/miguelan...', 136, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/View/View.php(223): include('/Users/miguelan...')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/Common.php(1213): CodeIgniter\View\View->render('/deskapp/ui/gro...', Array, true)
+#3 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(75): view('/deskapp/ui/gro...', Array)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(64): App\Controllers\Deskapp\Bitacora->_example_output(Array)
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Bitacora->index('11111')
+#6 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Bitacora))
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#9 {main}

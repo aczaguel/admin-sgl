@@ -1,0 +1,27 @@
+{
+	"name": "grocery-crud/enterprise",
+	"version": "3.0.19",
+	"keywords" : [],
+	"require" : {
+		"laminas/laminas-db": "^2.15",
+		"php": "^7.3|^8.0",
+		"scoumbourdis/phpexcel": "^1.9.6",
+		"scoumbourdis/upload": "^1.3.3",
+		"vlucas/valitron": "^1.4.10"
+	},
+	"autoload" : {
+		"psr-0" : {
+			"GroceryCrud" : "src/"
+		}
+	},
+	"archive": {
+		"exclude": ["/vendor", "/.idea", "/composer.lock"]
+	},
+	"extra": {
+		"laravel": {
+			"providers": [
+				"GroceryCrud\\LaravelAssetsServiceProvider"
+			]
+		}
+	}
+}

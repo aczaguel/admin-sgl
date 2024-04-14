@@ -38,7 +38,7 @@
 		<div class="container-fluid d-flex justify-content-between align-items-center">
 			<div class="brand-logo">
 				<a href="<?php echo base_url('deskapp/login') ?>">
-					<img src="<?php echo base_url(); ?>/assets/vendors/images/deskapp-logo.svg" alt="">
+					<img src="<?php echo base_url(); ?>/assets/vendors/images/logoes_sgt.jpg" alt="">
 				</a>
 			</div>
 			<div class="login-menu">

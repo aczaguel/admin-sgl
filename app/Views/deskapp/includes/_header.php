@@ -1,6 +1,6 @@
 <div class="pre-loader">
 	<div class="pre-loader-box">
-		<div class="loader-logo"><img src="<?php echo base_url(); ?>/assets/vendors/images/deskapp-logo.svg" alt=""></div>
+		<div class="loader-logo"><img src="<?php echo base_url(); ?>/assets/vendors/images/logoes_sgt.jpg" alt=""></div>
 		<div class='loader-progress' id="progress_div">
 			<div class='bar' id='bar1'></div>
 		</div>
@@ -133,8 +133,9 @@
 				</div>
 			</div>
 		</div>
-		<div class="github-link">
-			<a href="https://github.com/dropways/deskapp" target="_blank"><img src="<?php echo base_url(); ?>/assets/vendors/images/github.svg" alt=""></a>
+		<div class="github-link__">
+			<!-- <a href="https://github.com/dropways/deskapp" target="_blank"><img src="<?php echo base_url(); ?>/assets/vendors/images/github.svg" alt=""></a> -->
+			&nbsp;
 		</div>
 	</div>
 </div>

@@ -1,0 +1,11 @@
+CRITICAL - 2024-02-14 22:44:46 --> Undefined index: url
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(79): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined index...', '/Users/miguelan...', 79, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(1003): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Object(ArrayObject))
+#2 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/DatagridState.php(332): GroceryCrud\Core\State\StateAbstract->enhanceColumnResults(Array)
+#3 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\DatagridState->render()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(100): GroceryCrud\Core\GroceryCrud->render()
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#6 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#9 {main}

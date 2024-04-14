@@ -33,7 +33,7 @@
 <body>
 	<div class="pre-loader">
 		<div class="pre-loader-box">
-			<div class="loader-logo"><img src="<?php echo base_url(); ?>/assets/vendors/images/deskapp-logo.svg" alt=""></div>
+			<div class="loader-logo"><img src="<?php echo base_url(); ?>/assets/vendors/images/logoes_sgt.jpg" alt=""></div>
 			<div class='loader-progress' id="progress_div">
 				<div class='bar' id='bar1'></div>
 			</div>
@@ -249,8 +249,8 @@
 	<div class="left-side-bar">
 		<div class="brand-logo">
 			<a href="index.html">
-				<img src="<?php echo base_url(); ?>/assets/vendors/images/deskapp-logo.svg" alt="" class="dark-logo">
-				<img src="<?php echo base_url(); ?>/assets/vendors/images/deskapp-logo-white.svg" alt="" class="light-logo">
+				<img src="<?php echo base_url(); ?>/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo">
+				<img src="<?php echo base_url(); ?>/assets/vendors/images/logoes_sgt_white.png" alt="" class="light-logo">
 			</a>
 			<div class="close-sidebar" data-toggle="left-sidebar-close">
 				<i class="ion-close-round"></i>

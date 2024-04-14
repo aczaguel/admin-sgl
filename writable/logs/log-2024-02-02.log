@@ -1,0 +1,28 @@
+CRITICAL - 2024-02-02 01:54:04 --> SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tra_tipos.tra_tipos_id' in 'on clause'
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/laminas/laminas-db/src/Adapter/Driver/Pdo/Connection.php(376): PDO->query('SELECT `tra_tip...')
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/laminas/laminas-db/src/Adapter/Adapter.php(194): Laminas\Db\Adapter\Driver\Pdo\Connection->execute('SELECT `tra_tip...')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/Model.php(1135): Laminas\Db\Adapter\Adapter->query('SELECT `tra_tip...', 'execute')
+#3 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/Model.php(1392): GroceryCrud\Core\Model->getResultsFromSelect(Object(Laminas\Db\Sql\Select), Object(Laminas\Db\Sql\Sql))
+#4 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/DatagridState.php(320): GroceryCrud\Core\Model->getList()
+#5 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/DatagridState.php(331): GroceryCrud\Core\State\DatagridState->getData()
+#6 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\DatagridState->render()
+#7 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(141): GroceryCrud\Core\GroceryCrud->render()
+#8 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->documentos('add')
+#9 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#10 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#12 {main}
+CRITICAL - 2024-02-02 02:05:39 --> SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tra_tipos.tra_tipos_id' in 'on clause'
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/laminas/laminas-db/src/Adapter/Driver/Pdo/Connection.php(376): PDO->query('SELECT `tra_tip...')
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/laminas/laminas-db/src/Adapter/Adapter.php(194): Laminas\Db\Adapter\Driver\Pdo\Connection->execute('SELECT `tra_tip...')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/Model.php(1135): Laminas\Db\Adapter\Adapter->query('SELECT `tra_tip...', 'execute')
+#3 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/Model.php(1392): GroceryCrud\Core\Model->getResultsFromSelect(Object(Laminas\Db\Sql\Select), Object(Laminas\Db\Sql\Sql))
+#4 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/DatagridState.php(320): GroceryCrud\Core\Model->getList()
+#5 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/DatagridState.php(331): GroceryCrud\Core\State\DatagridState->getData()
+#6 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\DatagridState->render()
+#7 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(84): GroceryCrud\Core\GroceryCrud->render()
+#8 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tipo()
+#9 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#10 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#11 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#12 {main}

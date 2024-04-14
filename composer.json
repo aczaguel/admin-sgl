@@ -10,6 +10,7 @@
 		"ext-intl": "*",
 		"ext-json": "*",
 		"ext-mbstring": "*",
+		"grocery-crud/enterprise": "^3.0.19",
 		"kint-php/kint": "^3.3",
 		"laminas/laminas-escaper": "^2.6",
 		"psr/log": "^1.1"
@@ -58,5 +59,11 @@
 		"forum": "http://forum.codeigniter.com/",
 		"source": "https://github.com/codeigniter4/CodeIgniter4",
 		"slack": "https://codeigniterchat.slack.com"
+	},
+	"repositories": {
+		"grocery-crud": {
+			"type": "composer",
+			"url": "https://composer.grocerycrud.com/"
+		}
 	}
 }

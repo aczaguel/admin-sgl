@@ -1,0 +1,21 @@
+CRITICAL - 2024-02-16 01:25:21 --> Undefined property: App\Controllers\Deskapp\Tramites::$input
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(161): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined prope...', '/Users/miguelan...', 161, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->documentostatus('1')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#5 {main}
+CRITICAL - 2024-02-16 01:34:00 --> Undefined property: App\Controllers\Deskapp\Tramites::$uri
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(161): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined prope...', '/Users/miguelan...', 161, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->documentostatus('1')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#5 {main}
+CRITICAL - 2024-02-16 01:58:52 --> Undefined property: App\Controllers\Deskapp\Tramites::$uri
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(161): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined prope...', '/Users/miguelan...', 161, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->documentostatus('1')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#5 {main}

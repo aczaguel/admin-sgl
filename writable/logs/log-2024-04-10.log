@@ -1,0 +1,6 @@
+CRITICAL - 2024-04-10 01:33:12 --> Call to undefined method CodeIgniter\Session\Session::isStarted()
+#0 /Users/miguelangelhernandez/Sites/php/sgt/system/Filters/Filters.php(181): App\Filters\Auth->before(Object(CodeIgniter\HTTP\IncomingRequest), NULL)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(402): CodeIgniter\Filters\Filters->run('deskapp/login', 'before')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#3 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#4 {main}

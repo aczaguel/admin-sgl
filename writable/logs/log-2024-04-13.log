@@ -1,0 +1,26 @@
+CRITICAL - 2024-04-13 15:02:51 --> Undefined property: stdClass::$isJSONResponse
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(597): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined prope...', '/Users/miguelan...', 597, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(25): App\Controllers\Deskapp\Tramites->_example_output(Object(stdClass))
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->index()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#5 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#6 {main}
+CRITICAL - 2024-04-13 17:47:49 --> Call to undefined method App\Controllers\Deskapp\Tramites::readOnlyFields()
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/EditFormState.php(87): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Object(ArrayObject))
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\EditFormState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(255): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}
+CRITICAL - 2024-04-13 17:48:11 --> Call to undefined method App\Controllers\Deskapp\Tramites::readOnlyFields()
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/EditFormState.php(87): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Object(ArrayObject))
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\EditFormState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(254): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}

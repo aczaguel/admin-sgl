@@ -1,0 +1,35 @@
+CRITICAL - 2024-01-21 15:06:40 --> SQLSTATE[42S22]: Column not found: 1054 Unknown column 'tramite' in 'order clause'
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/laminas/laminas-db/src/Adapter/Driver/Pdo/Connection.php(376): PDO->query('SELECT `t`.* FR...')
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/laminas/laminas-db/src/Adapter/Adapter.php(194): Laminas\Db\Adapter\Driver\Pdo\Connection->execute('SELECT `t`.* FR...')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/Model.php(269): Laminas\Db\Adapter\Adapter->query('SELECT `t`.* FR...', 'execute')
+#3 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(1313): GroceryCrud\Core\Model->getRelationData('tramite', 'tramite', NULL, 'tramite', 'tramite_id')
+#4 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(1398): GroceryCrud\Core\State\StateAbstract->getRelationalData('tramite', 'tramite', NULL, 'tramite', 'tramite_id')
+#5 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/InitialState.php(75): GroceryCrud\Core\State\StateAbstract->getFieldTypes()
+#6 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/InitialState.php(13): GroceryCrud\Core\State\InitialState->showInitData()
+#7 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\InitialState->render()
+#8 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(126): GroceryCrud\Core\GroceryCrud->render()
+#9 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->documentos()
+#10 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#11 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#12 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#13 {main}
+CRITICAL - 2024-01-21 22:54:26 --> There were some validation errors with the upload:
+- The upload directory specified does not exist
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/InsertState.php(82): GroceryCrud\Core\State\StateAbstract->uploadOneData(Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\InsertState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Documentos.php(51): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Documentos->documento()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Documentos))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}
+CRITICAL - 2024-01-21 22:54:48 --> There were some validation errors with the upload:
+- The upload directory specified does not exist
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/InsertState.php(82): GroceryCrud\Core\State\StateAbstract->uploadOneData(Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\InsertState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Documentos.php(51): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Documentos->documento()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Documentos))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}

@@ -1,8 +1,8 @@
 <div class="left-side-bar">
 		<div class="brand-logo">
-			<a href="<?php echo base_url('deskapp/dashboard'); ?>">
-				<img src="<?php echo base_url(); ?>/assets/vendors/images/deskapp-logo.svg" alt="" class="dark-logo">
-				<img src="<?php echo base_url(); ?>/assets/vendors/images/deskapp-logo-white.svg" alt="" class="light-logo">
+			<a href="<?php echo base_url('deskapp/tramites'); ?>">
+				<img src="<?php echo base_url(); ?>/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo">
+				<img src="<?php echo base_url(); ?>/assets/vendors/images/logoes_sgt_white.png" alt="" class="light-logo">
 			</a>
 			<div class="close-sidebar" data-toggle="left-sidebar-close">
 				<i class="ion-close-round"></i>
@@ -13,37 +13,64 @@
 				<ul id="accordion-menu">
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
-							<span class="micon dw dw-house-1"></span><span class="mtext">Home</span>
+							<span class="micon dw dw-house-1"></span><span class="mtext">Trámites</span>
 						</a>
 						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/dashboard'); ?>">Dashboard style 1</a></li>
-							<li><a href="<?php echo base_url('deskapp/dashboard/two'); ?>">Dashboard style 2</a></li>
-							<li><a href="<?php echo base_url('deskapp/dashboard/three'); ?>">Dashboard style 3</a></li>
+							<li><a href="<?php echo base_url('deskapp/tramites/tramite'); ?>">Trámite</a></li>
+							<li><a href="<?php echo base_url('deskapp/tramites/tipo'); ?>">Tipo de Trámite</a></li>
+							<li><a href="<?php echo base_url('deskapp/tramites/status'); ?>">Estatuses de Trámite</a></li>
 						</ul>
 					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
-							<span class="micon dw dw-edit2"></span><span class="mtext">Forms</span>
+							<span class="micon dw dw-library"></span><span class="mtext">Seguimiento</span>
 						</a>
 						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/forms/basic'); ?>">Form Basic</a></li>
-							<li><a href="<?php echo base_url('deskapp/forms/advance'); ?>">Advanced Components</a></li>
-							<li><a href="<?php echo base_url('deskapp/forms/wizard') ?>">Form Wizard</a></li>
+							<li><a href="<?php echo base_url('deskapp/tradocstatus/documento'); ?>">Documentos del trámite</a></li>
+						</ul>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon dw dw-house-1"></span><span class="mtext">Proceso Final</span>
+						</a>
+						<ul class="submenu">
+							<li><a href="<?php echo base_url('deskapp/proceso/final'); ?>">Finalizando</a></li>
+						</ul>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon dw dw-edit2"></span><span class="mtext">Documentos</span>
+						</a>
+						<ul class="submenu">
+							<li><a href="<?php echo base_url('deskapp/documentos/documento'); ?>">Documento</a></li>
+							<li><a href="<?php echo base_url('deskapp/documentos/status'); ?>">Estatus</a></li>
+							<!-- <li><a href="<?php echo base_url('deskapp/forms/wizard') ?>">Form Wizard</a></li>
 							<li><a href="<?php echo base_url('deskapp/forms/html5Editor'); ?>">HTML5 Editor</a></li>
 							<li><a href="<?php echo base_url('deskapp/forms/pickers'); ?>">Form Pickers</a></li>
 							<li><a href="<?php echo base_url('deskapp/forms/imageCropper'); ?>">Image Cropper</a></li>
-							<li><a href="<?php echo base_url('deskapp/forms/imageDropZone'); ?>">Image Dropzone</a></li>
+							<li><a href="<?php echo base_url('deskapp/forms/imageDropZone'); ?>">Image Dropzone</a></li> -->
 						</ul>
 					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
-							<span class="micon dw dw-library"></span><span class="mtext">Tables</span>
+							<span class="micon dw dw-library"></span><span class="mtext">Gestores</span>
 						</a>
 						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/tables/basic'); ?>">Basic Tables</a></li>
-							<li><a href="<?php echo base_url('deskapp/tables/datatable'); ?>">DataTables</a></li>
+							<li><a href="<?php echo base_url('deskapp/gestores/gestores'); ?>">Empresa Gestora</a></li>
+							<li><a href="<?php echo base_url('deskapp/gestores/gestor'); ?>">Gestor</a></li>
 						</ul>
 					</li>
+					
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon dw dw-library"></span><span class="mtext">Clientes</span>
+						</a>
+						<ul class="submenu">
+							<li><a href="<?php echo base_url('deskapp/clidirecto/clidirecto'); ?>">Cliente Directo</a></li>
+							<li><a href="<?php echo base_url('deskapp/clidirecto/ejecutivo'); ?>">Ejecutivo</a></li>
+						</ul>
+					</li>
+					
 					<li>
 						<a href="<?php echo base_url('deskapp/calendar'); ?>" class="dropdown-toggle no-arrow">
 							<span class="micon dw dw-calendar1"></span><span class="mtext">Calendar</span>
@@ -157,7 +184,7 @@
 							<li><a href="javascript:;">Level 1</a></li>
 						</ul>
 					</li>
-					<li>
+					<!-- <li>
 						<a href="<?php echo base_url('deskapp/sitemap'); ?>" class="dropdown-toggle no-arrow">
 							<span class="micon dw dw-diagram"></span><span class="mtext">Sitemap</span>
 						</a>
@@ -171,7 +198,7 @@
 						<a href="<?php echo base_url('deskapp/invoice/'); ?>" class="dropdown-toggle no-arrow">
 							<span class="micon dw dw-invoice"></span><span class="mtext">Invoice</span>
 						</a>
-					</li>
+					</li> -->
 					<li>
 						<div class="dropdown-divider"></div>
 					</li>

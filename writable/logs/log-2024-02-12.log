@@ -1,0 +1,147 @@
+CRITICAL - 2024-02-12 00:55:13 --> Undefined variable: myid
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(87): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined varia...', '/Users/miguelan...', 87, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php(59): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Array)
+#2 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\AddFormState->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(118): GroceryCrud\Core\GroceryCrud->render()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#6 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#7 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#8 {main}
+CRITICAL - 2024-02-12 02:11:56 --> Statement could not be executed (22007 - 1292 - Incorrect datetime value: 'CURRENT_TIMESTAMP' for column 'created_at' at row 1)
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/Model.php(515): Laminas\Db\Adapter\Driver\Pdo\Statement->execute()
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/InsertState.php(94): GroceryCrud\Core\Model->insert(Array)
+#2 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(1179): GroceryCrud\Core\State\InsertState->GroceryCrud\Core\State\{closure}(Object(stdClass))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(333): GroceryCrud\Core\State\StateAbstract->stateOperation(NULL, Object(stdClass), Object(Closure))
+#4 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/InsertState.php(104): GroceryCrud\Core\State\StateAbstract->stateOperationWithCallbacks(Object(stdClass), 'Insert', Object(Closure))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\InsertState->render()
+#6 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(120): GroceryCrud\Core\GroceryCrud->render()
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#8 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#9 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#11 {main}
+CRITICAL - 2024-02-12 02:13:17 --> Undefined variable: myid
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(99): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined varia...', '/Users/miguelan...', 99, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(1182): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Object(stdClass))
+#2 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(333): GroceryCrud\Core\State\StateAbstract->stateOperation(Object(Closure), Object(stdClass), Object(Closure))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/InsertState.php(104): GroceryCrud\Core\State\StateAbstract->stateOperationWithCallbacks(Object(stdClass), 'Insert', Object(Closure))
+#4 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\InsertState->render()
+#5 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(120): GroceryCrud\Core\GroceryCrud->render()
+#6 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite('add')
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#8 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#9 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#10 {main}
+CRITICAL - 2024-02-12 02:14:22 --> Too few arguments to function App\Controllers\Deskapp\Tramites::App\Controllers\Deskapp\{closure}(), 1 passed in /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php on line 1182 and exactly 2 expected
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(1182): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Object(stdClass))
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(333): GroceryCrud\Core\State\StateAbstract->stateOperation(Object(Closure), Object(stdClass), Object(Closure))
+#2 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/InsertState.php(104): GroceryCrud\Core\State\StateAbstract->stateOperationWithCallbacks(Object(stdClass), 'Insert', Object(Closure))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\InsertState->render()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(120): GroceryCrud\Core\GroceryCrud->render()
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite('add')
+#6 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#9 {main}
+CRITICAL - 2024-02-12 02:23:23 --> Too few arguments to function App\Controllers\Deskapp\Tramites::App\Controllers\Deskapp\{closure}(), 1 passed in /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php on line 1182 and exactly 2 expected
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(1182): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Object(stdClass))
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(333): GroceryCrud\Core\State\StateAbstract->stateOperation(Object(Closure), Object(stdClass), Object(Closure))
+#2 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/InsertState.php(104): GroceryCrud\Core\State\StateAbstract->stateOperationWithCallbacks(Object(stdClass), 'Insert', Object(Closure))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\InsertState->render()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(120): GroceryCrud\Core\GroceryCrud->render()
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#6 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#9 {main}
+CRITICAL - 2024-02-12 02:36:45 --> Too few arguments to function App\Controllers\Deskapp\Tramites::App\Controllers\Deskapp\{closure}(), 1 passed in /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php on line 59 and exactly 2 expected
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php(59): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\AddFormState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(120): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}
+CRITICAL - 2024-02-12 02:37:06 --> Too few arguments to function App\Controllers\Deskapp\Tramites::App\Controllers\Deskapp\{closure}(), 1 passed in /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php on line 59 and exactly 2 expected
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php(59): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\AddFormState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(120): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}
+CRITICAL - 2024-02-12 02:38:12 --> Too few arguments to function App\Controllers\Deskapp\Tramites::App\Controllers\Deskapp\{closure}(), 1 passed in /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php on line 59 and exactly 2 expected
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php(59): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\AddFormState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(120): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}
+CRITICAL - 2024-02-12 02:43:31 --> Too few arguments to function App\Controllers\Deskapp\Tramites::App\Controllers\Deskapp\{closure}(), 1 passed in /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php on line 59 and exactly 2 expected
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php(59): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\AddFormState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(120): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite('add')
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}
+CRITICAL - 2024-02-12 02:43:32 --> Too few arguments to function App\Controllers\Deskapp\Tramites::App\Controllers\Deskapp\{closure}(), 1 passed in /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php on line 59 and exactly 2 expected
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php(59): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\AddFormState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(120): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite('add')
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}
+CRITICAL - 2024-02-12 02:47:46 --> Undefined variable: myid
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(27): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined varia...', '/Users/miguelan...', 27, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#5 {main}
+CRITICAL - 2024-02-12 02:51:42 --> Too few arguments to function App\Controllers\Deskapp\Tramites::App\Controllers\Deskapp\{closure}(), 1 passed in /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php on line 59 and exactly 2 expected
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php(59): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\AddFormState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(123): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}
+CRITICAL - 2024-02-12 03:04:52 --> Too few arguments to function App\Controllers\Deskapp\Tramites::App\Controllers\Deskapp\{closure}(), 1 passed in /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php on line 59 and exactly 2 expected
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/AddFormState.php(59): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\AddFormState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(123): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}
+CRITICAL - 2024-02-12 03:22:22 --> Cannot use object of type stdClass as array
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(1182): App\Controllers\Deskapp\Tramites->App\Controllers\Deskapp\{closure}(Object(stdClass))
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/StateAbstract.php(333): GroceryCrud\Core\State\StateAbstract->stateOperation(Object(Closure), Object(stdClass), Object(Closure))
+#2 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/InsertState.php(104): GroceryCrud\Core\State\StateAbstract->stateOperationWithCallbacks(Object(stdClass), 'Insert', Object(Closure))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\InsertState->render()
+#4 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(119): GroceryCrud\Core\GroceryCrud->render()
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite()
+#6 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#9 {main}
+CRITICAL - 2024-02-12 03:24:53 --> Undefined property: stdClass::$insertId
+#0 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/State/InsertState.php(112): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined prope...', '/Users/miguelan...', 112, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/vendor/grocery-crud/enterprise/src/GroceryCrud/Core/GroceryCrud.php(2932): GroceryCrud\Core\State\InsertState->render()
+#2 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(119): GroceryCrud\Core\GroceryCrud->render()
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->tramite('add')
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#7 {main}

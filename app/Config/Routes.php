@@ -34,6 +34,57 @@ $routes->setAutoRoute(true);
 // route since we don't have to scan directories.
 $routes->get('/', 'Deskapp/Login::index');
 $routes->get('/deskapp/dashboard','Deskapp/Dashboard::index',['filter' => 'auth']);
+$routes->post('/deskapp/dashboard','Deskapp/Dashboard::index');
+
+
+// $routes->add('/example/customers', 'Deskapp/Example::customers');
+// $routes->add('/example/customers/(:segment)(/(:segment))?', 'Deskapp/Example::customers/$1/$2');
+
+$routes->get('/tramites/tramite', 'Deskapp/Tramites::tramite',['filter' => 'auth']);
+$routes->post('/tramites/tramite', 'Deskapp/Tramites::tramite');
+
+$routes->get('/tramites/tipo', 'Deskapp/Tramites::tipo',['filter' => 'auth']);
+$routes->post('/tramites/tipo', 'Deskapp/Tramites::tipo');
+
+$routes->get('/tramites/status', 'Deskapp/Tramites::status',['filter' => 'auth']);
+$routes->post('/tramites/status', 'Deskapp/Tramites::status');
+
+$routes->get('/tramites/documentostatus/(:tramite_id)', 'Deskapp/Tramites::documentostatus/$1',['filter' => 'auth']);
+$routes->post('/tramites/documentostatus/(:tramite_id)', 'Deskapp/Tramites::documentostatus/$1');
+
+$routes->get('/tramites/evidencias/(:tramite_id)', 'Deskapp/Tramites::evidencias/$1',['filter' => 'auth']);
+$routes->post('/tramites/evidencias/(:tramite_id)', 'Deskapp/Tramites::evidencias/$1');
+
+
+$routes->get('/documentos/documento', 'Deskapp/Documentos::documento',['filter' => 'auth']);
+$routes->post('/documentos/status', 'Deskapp/Documentos::status');
+
+
+
+$routes->get('/gestores/gestores', 'Deskapp/Gestores:gestores',['filter' => 'auth']);
+$routes->post('/gestores/gestor', 'Deskapp/Gestores::gestor');
+
+$routes->get('/clidirecto/clidirecto', 'Deskapp/Clidirecto:clidirecto',['filter' => 'auth']);
+$routes->post('/clidirecto/clidirecto', 'Deskapp/Clidirecto::clidirecto');
+
+$routes->get('/clidirecto/ejecutivo', 'Deskapp/Clidirecto:ejecutivo',['filter' => 'auth']);
+$routes->post('/clidirecto/ejecutivo', 'Deskapp/Clidirecto::ejecutivo');
+
+
+$routes->get('/tradocstatus/documento', 'Deskapp/Tradocstatus:documento',['filter' => 'auth']);
+$routes->post('/tradocstatus/documento', 'Deskapp/Tradocstatus::documento');
+
+
+$routes->get('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora:index',['filter' => 'auth']);
+$routes->post('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora::index');
+
+
+
+$routes->get('/proceso/final', 'Deskapp/Proceso::final',['filter' => 'auth']);
+$routes->post('/proceso/final', 'Deskapp/Proceso::final');
+
+
+
 
 /*
  * --------------------------------------------------------------------

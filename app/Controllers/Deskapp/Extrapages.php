@@ -19,6 +19,16 @@
  			$data['username'] = $session->get('user_name');
 			return view('deskapp/extra-pages/blog',$data);
 		}
+
+		public function grocery_page()
+		{	
+			echo "AQUI";
+			$session = session();
+			$data['session'] = \Config\Services::session();
+ 			$data['username'] = $session->get('user_name');
+			return view('deskapp/extra-pages/grocery_page',$data);
+		}
+
 		public function blog_detail()
 		{	
 			$session = session();

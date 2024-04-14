@@ -1,0 +1,92 @@
+CRITICAL - 2024-02-26 00:30:11 --> Undefined index: created_at
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Views/deskapp/ui/grocery_timeline.php(68): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined index...', '/Users/miguelan...', 68, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/View/View.php(223): include('/Users/miguelan...')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/Common.php(1213): CodeIgniter\View\View->render('/deskapp/ui/gro...', Array, true)
+#3 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(51): view('/deskapp/ui/gro...', Array)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(40): App\Controllers\Deskapp\Bitacora->_example_output(Array)
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Bitacora->index()
+#6 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Bitacora))
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#9 {main}
+CRITICAL - 2024-02-26 00:36:03 --> Undefined index: tipo
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Views/deskapp/ui/grocery_timeline.php(72): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined index...', '/Users/miguelan...', 72, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/View/View.php(223): include('/Users/miguelan...')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/Common.php(1213): CodeIgniter\View\View->render('/deskapp/ui/gro...', Array, true)
+#3 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(51): view('/deskapp/ui/gro...', Array)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(40): App\Controllers\Deskapp\Bitacora->_example_output(Array)
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Bitacora->index()
+#6 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Bitacora))
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#9 {main}
+CRITICAL - 2024-02-26 00:36:20 --> Undefined index: user_id
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Views/deskapp/ui/grocery_timeline.php(86): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined index...', '/Users/miguelan...', 86, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/View/View.php(223): include('/Users/miguelan...')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/Common.php(1213): CodeIgniter\View\View->render('/deskapp/ui/gro...', Array, true)
+#3 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(51): view('/deskapp/ui/gro...', Array)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(40): App\Controllers\Deskapp\Bitacora->_example_output(Array)
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Bitacora->index()
+#6 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Bitacora))
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#9 {main}
+CRITICAL - 2024-02-26 02:26:16 --> Undefined variable: self
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(316): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined varia...', '/Users/miguelan...', 316, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->documentostatus('1111148', '55')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#5 {main}
+CRITICAL - 2024-02-26 02:29:25 --> Undefined variable: self
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Tramites.php(316): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined varia...', '/Users/miguelan...', 316, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Tramites->documentostatus('1111148', '55')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Tramites))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#5 {main}
+ERROR - 2024-02-26 19:08:44 --> mysqli_sql_exception: Unknown column 'id' in 'field list' in /Users/miguelangelhernandez/Sites/php/sgt/system/Database/MySQLi/Connection.php:314
+Stack trace:
+#0 /Users/miguelangelhernandez/Sites/php/sgt/system/Database/MySQLi/Connection.php(314): mysqli->query('SELECT `id`, `d...')
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/Database/BaseConnection.php(715): CodeIgniter\Database\MySQLi\Connection->execute('SELECT `id`, `d...')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/Database/BaseConnection.php(643): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT `id`, `d...')
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/Database/BaseBuilder.php(1866): CodeIgniter\Database\BaseConnection->query('SELECT `id`, `d...', Array, false)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/Model.php(213): CodeIgniter\Database\BaseBuilder->get()
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/BaseModel.php(583): CodeIgniter\Model->doFindAll(0, 0)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(30): CodeIgniter\BaseModel->findAll()
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Bitacora->index('1111148')
+#8 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Bitacora))
+#9 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#11 {main}
+CRITICAL - 2024-02-26 19:08:44 --> Unknown column 'id' in 'field list'
+#0 /Users/miguelangelhernandez/Sites/php/sgt/system/Database/MySQLi/Connection.php(314): mysqli->query('SELECT `id`, `d...')
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/Database/BaseConnection.php(715): CodeIgniter\Database\MySQLi\Connection->execute('SELECT `id`, `d...')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/Database/BaseConnection.php(643): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT `id`, `d...')
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/Database/BaseBuilder.php(1866): CodeIgniter\Database\BaseConnection->query('SELECT `id`, `d...', Array, false)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/system/Model.php(213): CodeIgniter\Database\BaseBuilder->get()
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/BaseModel.php(583): CodeIgniter\Model->doFindAll(0, 0)
+#6 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(30): CodeIgniter\BaseModel->findAll()
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Bitacora->index('1111148')
+#8 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Bitacora))
+#9 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#10 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#11 {main}
+CRITICAL - 2024-02-26 19:13:10 --> Undefined variable: arreglo_original
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(34): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined varia...', '/Users/miguelan...', 34, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Bitacora->index('1111148')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Bitacora))
+#3 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#5 {main}
+CRITICAL - 2024-02-26 19:18:16 --> Undefined index: documento_id
+#0 /Users/miguelangelhernandez/Sites/php/sgt/app/Views/deskapp/ui/grocery_timeline.php(91): CodeIgniter\Debug\Exceptions->errorHandler(8, 'Undefined index...', '/Users/miguelan...', 91, Array)
+#1 /Users/miguelangelhernandez/Sites/php/sgt/system/View/View.php(223): include('/Users/miguelan...')
+#2 /Users/miguelangelhernandez/Sites/php/sgt/system/Common.php(1213): CodeIgniter\View\View->render('/deskapp/ui/gro...', Array, true)
+#3 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(70): view('/deskapp/ui/gro...', Array)
+#4 /Users/miguelangelhernandez/Sites/php/sgt/app/Controllers/Deskapp/Bitacora.php(59): App\Controllers\Deskapp\Bitacora->_example_output(Array)
+#5 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(935): App\Controllers\Deskapp\Bitacora->index('1111148')
+#6 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(431): CodeIgniter\CodeIgniter->runController(Object(App\Controllers\Deskapp\Bitacora))
+#7 /Users/miguelangelhernandez/Sites/php/sgt/system/CodeIgniter.php(332): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 /Users/miguelangelhernandez/Sites/php/sgt/public/index.php(44): CodeIgniter\CodeIgniter->run()
+#9 {main}

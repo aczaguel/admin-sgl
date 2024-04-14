@@ -11,7 +11,7 @@
     	
 	    	public function index()
 	    {
-	        helper(['form']);
+					helper(['form']);
 	        echo view('deskapp/auth/login');
 	    } 
 
@@ -28,7 +28,7 @@
 	            if($verify_pass){
 	                $ses_data = [
 	                    'id'       => $data['id'],
-	                    'username'     => $data['username'],
+	                    'username' => $data['username'],
 	                    'email'    => $data['email'],
 	                    'firstname' => $data['firstname'],
 	                    'lastname' => $data['lastname'],
