@@ -9,7 +9,7 @@ class MockRealDatabaseModel extends Model {
 
     public function setDatabaseConnection($configDb) {
         $this->adapter = new Adapter([
-            'driver' => 'Pdo_Mysql',
+            'driver' => 'mysqli',
             'database' => 'database',
             'username' => 'username',
             'password' => 'password',

@@ -98,7 +98,7 @@ class Documentos extends BaseController
         $db = (new ConfigDatabase())->default;
         return [
             'adapter' => [
-                'driver' => 'Pdo_Mysql',
+                'driver' => 'mysqli',
                 'host'     => $db['hostname'],
                 'database' => $db['database'],
                 'username' => $db['username'],
