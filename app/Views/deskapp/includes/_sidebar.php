@@ -71,7 +71,7 @@
 						</ul>
 					</li>
 					
-					<li>
+					<!-- <li>
 						<a href="<?php echo base_url('deskapp/calendar'); ?>" class="dropdown-toggle no-arrow">
 							<span class="micon dw dw-calendar1"></span><span class="mtext">Calendar</span>
 						</a>
@@ -183,7 +183,7 @@
 							<li><a href="javascript:;">Level 1</a></li>
 							<li><a href="javascript:;">Level 1</a></li>
 						</ul>
-					</li>
+					</li> -->
 					<!-- <li>
 						<a href="<?php echo base_url('deskapp/sitemap'); ?>" class="dropdown-toggle no-arrow">
 							<span class="micon dw dw-diagram"></span><span class="mtext">Sitemap</span>
