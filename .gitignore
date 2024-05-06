@@ -30,6 +30,7 @@ composer.lock
 /writable/session/*
 /writable/tests/*
 /writable/uploads/*
+/writable/*
 
 # Ignorar archivos de IDE/editor
 *.swp  # Archivos temporales de Vim

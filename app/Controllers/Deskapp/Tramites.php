@@ -40,6 +40,30 @@ class Tramites extends BaseController
 
             $crud->setTable('tramite');
             $crud->setSubject('tramite', 'Tramites');
+
+            $crud->columns([
+                'folio','contrato','unidad','serie', 
+                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
+                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
+                'contrato','tra_status_id','cobro_status_id',
+                'observaciones', 'status'
+            ]);
+
+            $crud->fields([
+                'folio','contrato','unidad','serie', 
+                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
+                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
+                'contrato','tra_status_id','cobro_status_id',
+                'observaciones', 'status'
+            ]); 
+
+            /*
+                
+                'costo_gestoria','impuesto_gestoria',
+                'derechos_tramite','comision_derechos','numero_factura','numero_refactura',
+                'costo_total','reembolso_status_id',
+            */ 
+
             $crud->unsetDeleteMultiple();
             $crud->fieldType('user_id','hidden');
             $crud->fieldType('created_at','hidden');
@@ -79,8 +103,8 @@ class Tramites extends BaseController
             $crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
             
             /* SELECT Se configura el gestor*/
-            $crud->setRelation('reembolso_status_id', 'reembolso_status', 'reembolso_status');
-            $crud->displayAs('reembolso_status_id','Estatus de Reembolso');
+            // $crud->setRelation('reembolso_status_id', 'reembolso_status', 'reembolso_status');
+            // $crud->displayAs('reembolso_status_id','Estatus de Reembolso');
 
             // $crud->setRule('folio', 'integer');
 
@@ -95,20 +119,23 @@ class Tramites extends BaseController
                 return '/deskapp//bitacora/index/' . $row->folio ;
             }, true);
             
-            $crud->callbackAddForm(function ($data) {
+            $crud->callbackAddForm(function ($data) use ($self){
                 $session = session();
                 $myid = $session->get('id');
                 
-                $data['folio'] = time();
+                $data['folio'] = $self->ultimos_seis_digitos();
                 $data['user_id'] = $myid;
                 $data['contrato'] = 'CONT010203';
                 $data['tra_status_id'] = 11;
-                $data['costo_gestoria'] = 12121;
-                $data['impuesto_gestoria'] = 12121;
-                $data['derechos_tramite'] = 12121;
-                $data['comision_derechos'] = 12121;
-                $data['numero_factura'] = 12121;
-                $data['costo_total'] = 212121;
+                
+                // $data['costo_gestoria'] = 12121;
+                // $data['impuesto_gestoria'] = 12121;
+                // $data['derechos_tramite'] = 12121;
+                // $data['comision_derechos'] = 12121;
+
+                // $data['numero_factura'] = 12121;
+                // $data['costo_total'] = 212121;
+
                 $data['unidad'] = "ASDF123";
                 $data['serie'] = "MVI1234QE242";
                 $data['placas'] = "972ADS";
@@ -116,35 +143,8 @@ class Tramites extends BaseController
                 return $data;
             });
 
-            $crud->fieldType('costo_gestoria', 'input', array('onclick' => 'miFuncion("event")'));
-            $crud->readOnlyFields(["folio"]);
             $crud->callbackEditForm(function ($data) use ($self, $crud){
-                // if($data['tra_status_id'] == '20' || $data['tra_status_id'] == '21'){
-                //     $crud->readOnlyFields(["folio",
-                //     "contrato",
-                //     "unidad",
-                //     "serie",
-                //     "placas",
-                //     "tra_tipos_id",
-                //     // "ent_municipio_id",
-                //     "cli_directo_id",
-                //     "cli_directo_ejecutivo_id",
-                //     "empresa_gestora_id",
-                //     "gestor_id",
-                //     "fecha_asignacion",
-                //     "fecha_conclusion",
-                //     "costo_gestoria",
-                //     "impuesto_gestoria",
-                //     "derechos_tramite",
-                //     "comision_derechos",
-                //     "numero_factura",
-                //     "numero_refactura",
-                //     "costo_total",
-                //     "reembolso_status_id",
-                //     "tra_status_id",
-                //     "observaciones",
-                //     "status"]);
-                // }
+                
                 $crud->unsetEdit();
                 $session = session();
                 $data2 = $data;
@@ -153,6 +153,7 @@ class Tramites extends BaseController
                 $session->set('data_tramite_before_update',  $flatArray);
                 $session->set('tramite_id',  $flatArray["id"]);
                 return $data;
+
             });
 
             $crud->callbackBeforeInsert(function ($stateParameters) {
@@ -248,8 +249,6 @@ class Tramites extends BaseController
                     "status" => 1
                 ];
                 $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
-
-                
             });
 
             $salida = $crud->render();
@@ -264,6 +263,20 @@ class Tramites extends BaseController
             exit($e->getMessage());
         }
     }
+
+    public function ultimos_seis_digitos() {
+        // Obtener el valor de time()
+        $tiempo = time();
+        
+        // Convertir el tiempo a cadena
+        $tiempo_str = (string) $tiempo;
+        
+        // Tomar los últimos 6 caracteres
+        $ultimos_seis = substr($tiempo_str, -6);
+        
+        return $ultimos_seis;
+    }
+
     public function encontrarDiferencias($datos1, $datos2) {
         $diferencias = [];
         foreach ($datos1 as $clave => $valor) {
