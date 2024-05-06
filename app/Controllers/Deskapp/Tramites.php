@@ -45,7 +45,7 @@ class Tramites extends BaseController
                 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
-                'contrato','tra_status_id','cobro_status_id',
+                'tra_status_id','cobro_status_id',
                 'observaciones', 'status'
             ]);
 
@@ -53,7 +53,7 @@ class Tramites extends BaseController
                 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
-                'contrato','tra_status_id','cobro_status_id',
+                'tra_status_id','cobro_status_id',
                 'observaciones', 'status'
             ]); 
 
@@ -127,7 +127,7 @@ class Tramites extends BaseController
                 $data['user_id'] = $myid;
                 $data['contrato'] = 'CONT010203';
                 $data['tra_status_id'] = 11;
-                
+
                 // $data['costo_gestoria'] = 12121;
                 // $data['impuesto_gestoria'] = 12121;
                 // $data['derechos_tramite'] = 12121;
