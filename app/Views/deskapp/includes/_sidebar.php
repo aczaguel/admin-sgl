@@ -66,6 +66,7 @@
 							<span class="micon dw dw-library"></span><span class="mtext">Clientes</span>
 						</a>
 						<ul class="submenu">
+							<li><a href="<?php echo base_url('deskapp/cliente/cliente'); ?>">Clientes</a></li>
 							<li><a href="<?php echo base_url('deskapp/clidirecto/clidirecto'); ?>">Cliente Directo</a></li>
 							<li><a href="<?php echo base_url('deskapp/clidirecto/ejecutivo'); ?>">Ejecutivo</a></li>
 						</ul>
