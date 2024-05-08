@@ -64,6 +64,9 @@ $routes->post('/documentos/status', 'Deskapp/Documentos::status');
 $routes->get('/gestores/gestores', 'Deskapp/Gestores:gestores',['filter' => 'auth']);
 $routes->post('/gestores/gestor', 'Deskapp/Gestores::gestor');
 
+$routes->get('/cliente/cliente', 'Deskapp/cliente:cliente',['filter' => 'auth']);
+$routes->post('/cliente/cliente', 'Deskapp/cliente::cliente');
+
 $routes->get('/clidirecto/clidirecto', 'Deskapp/Clidirecto:clidirecto',['filter' => 'auth']);
 $routes->post('/clidirecto/clidirecto', 'Deskapp/Clidirecto::clidirecto');
 
