@@ -23,7 +23,7 @@ class App extends BaseConfig
 	 *
 	 * @var string
 	 */
-	public $baseURL = 'http://sgt/';
+	public $baseURL = 'http://admin-sgl/';
 	public $displayErrorDetails = true;
 	/**
 	 * --------------------------------------------------------------------------
