@@ -32,6 +32,7 @@ $(document).ready(function() {
   });
 });
 
+
 // // Obtener el elemento padre estático
 // var contenedor = document.getElementById('contenedor');
 
