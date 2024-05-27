@@ -23,6 +23,7 @@ class App extends BaseConfig
 	 *
 	 * @var string
 	 */
+
 	public $baseURL = 'http://18.206.55.94:8080/public/';
 	public $displayErrorDetails = true;
 	/**
