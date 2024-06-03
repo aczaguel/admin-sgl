@@ -43,6 +43,9 @@ $routes->post('/deskapp/dashboard','Deskapp/Dashboard::index');
 $routes->get('/tramites/tramite', 'Deskapp/Tramites::tramite',['filter' => 'auth']);
 $routes->post('/tramites/tramite', 'Deskapp/Tramites::tramite');
 
+$routes->get('/tramites/mios', 'Deskapp/Tramites::mios',['filter' => 'auth']);
+$routes->post('/tramites/mios', 'Deskapp/Tramites::mios');
+
 $routes->get('/tramites/tipo', 'Deskapp/Tramites::tipo',['filter' => 'auth']);
 $routes->post('/tramites/tipo', 'Deskapp/Tramites::tipo');
 
