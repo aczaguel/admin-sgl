@@ -16,7 +16,8 @@
 							<span class="micon dw dw-house-1"></span><span class="mtext">Trámites</span>
 						</a>
 						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/tramites/tramite'); ?>">Trámite</a></li>
+							<li><a href="<?php echo base_url('deskapp/tramites/tramite'); ?>">Trámites</a></li>
+							<li><a href="<?php echo base_url('deskapp/tramites/mios'); ?>">Mis Trámites</a></li>
 							<li><a href="<?php echo base_url('deskapp/tramites/tipo'); ?>">Tipo de Trámite</a></li>
 							<li><a href="<?php echo base_url('deskapp/tramites/status'); ?>">Estatuses de Trámite</a></li>
 						</ul>

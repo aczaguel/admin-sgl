@@ -10,6 +10,7 @@ use GroceryCrud\Core\GroceryCrud;
 use Config\Database;
 
 use App\Models\TraDocStatusModel;
+use App\Models\TramiteAfterInsert;
 use App\Models\BitacoraModel;
 
 class Tramites extends BaseController
@@ -40,7 +41,225 @@ class Tramites extends BaseController
 
             $crud->setTable('tramite');
             $crud->setSubject('tramite', 'Tramites');
+            $crud->defaultOrdering('tramite.id', 'desc');
+            
+            $crud->columns([
+                'id', 'folio','contrato','unidad','serie', 
+                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
+                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
+                'tra_status_id','cobro_status_id',
+                'observaciones', 'status'
+            ]);
 
+            $crud->fields([
+                'folio','contrato','unidad','serie', 
+                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
+                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
+                'tra_status_id','cobro_status_id',
+                'observaciones', 'status'
+            ]); 
+            $crud->readOnlyFields(["folio"]);
+            $crud->unsetDeleteMultiple();
+            $crud->fieldType('user_id','hidden');
+            $crud->fieldType('created_at','hidden');
+            $crud->fieldType('updated_at','hidden');
+            $crud->fieldType('cobro_status_id','hidden');
+            
+            /* SELECT Se configura el tipo de tramite */
+            $crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
+            $crud->displayAs('tra_tipos_id','Tipo de Tramite');
+
+            /* SELECT Se configura el estatus del tramite */
+            $crud->setRelation('tra_status_id', 'tra_status', 'tra_status');
+            $crud->displayAs('tra_status_id','Estatus del Tramite');
+
+            /* SELECT Se configura el cliente final o cliente directo */
+            $crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            $crud->displayAs('cli_directo_id','Cliente Directo');
+            
+            /* SELECT Se configura el ejecutivo del cliente */
+            $crud->setRelation('cli_directo_ejecutivo_id', 'cli_directo_ejecutivo', 'nombre');
+            $crud->displayAs('cli_directo_ejecutivo_id','Ejecutivo del Cliente');
+
+            $crud->setDependentRelation('cli_directo_ejecutivo_id','cli_directo_id','cli_directo_id');
+
+            /* SELECT Se configura el municipio */
+            $crud->setRelation('ent_municipio_id', 'rel_ent_municipio', 'ent_municipality');
+            $crud->displayAs('ent_municipio_id','Municipio');
+
+            /* SELECT Se configura la empresa gestora */
+            $crud->setRelation('empresa_gestora_id', 'ges_empresa_gestora', 'razon_social');
+            $crud->displayAs('empresa_gestora_id','Empresa Gestora');
+
+            /* SELECT Se configura el gestor*/
+            $crud->setRelation('gestor_id', 'ges_gestor', 'nombre');
+            $crud->displayAs('gestor_id','Gestor');
+
+            $crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
+
+            $crud->setActionButton('Documentos', 'fa fa-file', function ($row) {
+                return '/deskapp/tramites/documentostatus/' . $row->folio . '/' . $row->id;
+            }, true);
+            $crud->setActionButton('Evidencias', 'fa fa-tasks', function ($row) {
+                return '/deskapp/tramites/evidencias/' . $row->folio . '/' . $row->id;
+            }, true);
+
+            $crud->setActionButton('Bitacora', 'icon-copy dw dw-open-book-2', function ($row) {
+                return '/deskapp/bitacora/index/' . $row->folio ;
+            }, true);
+            
+            $crud->callbackAddForm(function ($data) use ($self){
+                $session = session();
+                $myid = $session->get('id');
+                
+                $data['folio'] = $self->ultimos_seis_digitos();
+                $data['user_id'] = $myid;
+                $data['contrato'] = 'CONT010203';
+                $data['tra_status_id'] = 11;
+                $data['unidad'] = "ASDF123";
+                $data['serie'] = "MVI1234QE242";
+                $data['placas'] = "972ADS";
+
+                return $data;
+            });
+
+            $crud->callbackEditForm(function ($data) use ($self, $crud){
+                
+                $crud->unsetEdit();
+                $session = session();
+                $data2 = $data;
+                $data3 = $data2->getArrayCopy();
+                $flatArray = $self->flattenObject($data3);
+                $session->set('data_tramite_before_update',  $flatArray);
+                $session->set('tramite_id',  $flatArray["id"]);
+                return $data;
+
+            });
+
+            $crud->callbackBeforeInsert(function ($stateParameters) {
+                $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
+                $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
+                return $stateParameters;
+            });
+
+            $crud->callbackBeforeUpdate(function ($stateParameters) {
+                $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
+                return $stateParameters;
+            });
+            $tramiteAfterInsert = new TramiteAfterInsert($this->_getDbData());
+            $crud->callbackAfterInsert(function ($stateParameters) use ($self, $tramiteAfterInsert){
+                // if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
+                    $parameters = $stateParameters;
+                    $db = Database::connect();
+                    $db2 = $this->_getDbData();
+                    $data = $parameters->data;
+                    $tramite_id = $parameters->insertId;
+                    $newfolio = $tramiteAfterInsert->updateFolioTramite($tramite_id, $data["cli_directo_id"]);
+
+                    $tra_tipos_id = $data["tra_tipos_id"];
+                    $condition = ['tra_tipos_id' => $tra_tipos_id];
+                    $query = $db->table('tra_tipo_documentos')->where($condition)->get();
+                    $resultados = $query->getResultArray();
+
+                    $session = session();
+                    $myid = $session->get('id');
+                    
+                    $traDocStatusModel = new TraDocStatusModel($db2);
+
+                    foreach ($resultados as $elemento) {
+                        // Inserta cada elemento en la tabla tra_doc_status
+                        $insert_data = [
+                            "id"=>null,
+                            "folio_tramite" => $newfolio,
+                            "tramite_id" => (int)$tramite_id,
+                            "documento_id" => (int)$elemento['documento_id'],
+                            "status_documento_id" => 11,
+                            "file" => null,
+                            "comentario" => null,
+                            "user_id" => (int)$myid,
+                            "created_at" => date('Y-m-d H:i:s'),
+                            "updated_at" => date('Y-m-d H:i:s'),
+                            "status" => 1
+                        ];
+                        // Inserta los datos en la base de datos utilizando el modelo apropiado (ejemplo: usando CodeIgniter Model)
+                        $result = $traDocStatusModel->insert($insert_data, 'tra_doc_status');
+                    }
+
+                    $bitacoraModel = new BitacoraModel($db2);
+                    $data_bitacora = $data;
+                    $diferencias = $self->encontrarDiferencias($data_bitacora, []);
+                    $insert_bitacora = [
+                        "id"=>null,
+                        "tipo"=>"insert",
+                        "origen"=>"tramite",
+                        "folio_tramite" => $newfolio,
+                        "tramite_id" => (int)$tramite_id,
+                        "cambios" => json_encode($diferencias),
+                        "user_id" => (int)$myid,
+                        "created_at" => date('Y-m-d H:i:s'),
+                        "updated_at" => date('Y-m-d H:i:s'),
+                        "status" => 1
+                    ];
+                    $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+                // }
+                return $stateParameters;
+            });
+
+            $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
+                $db = Database::connect();
+                $db2 = $this->_getDbData();
+                $session = session();
+                $data = $stateParameters->data;
+                $myid = $session->get('id');
+
+                $bitacoraModel = new BitacoraModel($db2);
+                $data_bitacora = $data;                
+                $data_prev = $session->get('data_tramite_before_update');
+                $tramite_id = $session->get('tramite_id');
+                $diferencias = $self->encontrarDiferencias($data_prev, $data_bitacora);
+                
+                $insert_bitacora = [
+                    "tipo" => "update",
+                    "origen"=>"tramite",
+                    "folio_tramite" => $data['folio'],
+                    "tramite_id" => (int)$tramite_id,
+                    "cambios" => json_encode($diferencias),
+                    "user_id" => (int)$myid,
+                    "created_at" => date('Y-m-d H:i:s'),
+                    "updated_at" => date('Y-m-d H:i:s'),
+                    "status" => 1
+                ];
+                $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+            });
+
+            $salida = $crud->render();
+            $salida2 = array_merge((array)$salida, $data);
+            
+            return $this->_example_output($salida2);
+        } catch (\Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    public function mios()
+    {
+        try {
+            $self = $this;
+            $session = session();
+            $data['session'] = \Config\Services::session();
+            $data['username'] = $session->get('user_name');
+            $myid = $session->get('id');
+            $crud = $this->_getGroceryCrudEnterprise();
+
+            $crud->setCsrfTokenName(csrf_token());
+            $crud->setCsrfTokenValue(csrf_hash());
+
+            $crud->setTable('tramite');
+            $crud->setSubject('tramite', 'Tramites');
+            $crud->where([
+                'tramite.user_id' => $myid
+            ]);        
+            
             $crud->columns([
                 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
@@ -56,13 +275,6 @@ class Tramites extends BaseController
                 'tra_status_id','cobro_status_id',
                 'observaciones', 'status'
             ]); 
-
-            /*
-                
-                'costo_gestoria','impuesto_gestoria',
-                'derechos_tramite','comision_derechos','numero_factura','numero_refactura',
-                'costo_total','reembolso_status_id',
-            */ 
 
             $crud->unsetDeleteMultiple();
             $crud->fieldType('user_id','hidden');
@@ -101,12 +313,6 @@ class Tramites extends BaseController
             $crud->displayAs('gestor_id','Gestor');
 
             $crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
-            
-            /* SELECT Se configura el gestor*/
-            // $crud->setRelation('reembolso_status_id', 'reembolso_status', 'reembolso_status');
-            // $crud->displayAs('reembolso_status_id','Estatus de Reembolso');
-
-            // $crud->setRule('folio', 'integer');
 
             $crud->setActionButton('Documentos', 'fa fa-file', function ($row) {
                 return '/deskapp/tramites/documentostatus/' . $row->folio . '/' . $row->id;
@@ -116,7 +322,7 @@ class Tramites extends BaseController
             }, true);
 
             $crud->setActionButton('Bitacora', 'icon-copy dw dw-open-book-2', function ($row) {
-                return '/deskapp//bitacora/index/' . $row->folio ;
+                return '/deskapp/bitacora/index/' . $row->folio ;
             }, true);
             
             $crud->callbackAddForm(function ($data) use ($self){
@@ -127,15 +333,6 @@ class Tramites extends BaseController
                 $data['user_id'] = $myid;
                 $data['contrato'] = 'CONT010203';
                 $data['tra_status_id'] = 11;
-
-                // $data['costo_gestoria'] = 12121;
-                // $data['impuesto_gestoria'] = 12121;
-                // $data['derechos_tramite'] = 12121;
-                // $data['comision_derechos'] = 12121;
-
-                // $data['numero_factura'] = 12121;
-                // $data['costo_total'] = 212121;
-
                 $data['unidad'] = "ASDF123";
                 $data['serie'] = "MVI1234QE242";
                 $data['placas'] = "972ADS";
@@ -166,14 +363,15 @@ class Tramites extends BaseController
                 $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
                 return $stateParameters;
             });
-
-            $crud->callbackAfterInsert(function ($stateParameters) use ($self){
-                if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
+            $tramiteAfterInsert = new TramiteAfterInsert($this->_getDbData());
+            $crud->callbackAfterInsert(function ($stateParameters) use ($self, $tramiteAfterInsert){
+                // if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
                     $parameters = $stateParameters;
                     $db = Database::connect();
                     $db2 = $this->_getDbData();
                     $data = $parameters->data;
                     $tramite_id = $parameters->insertId;
+                    $newfolio = $tramiteAfterInsert->updateFolioTramite($tramite_id, $data["cli_directo_id"]);
 
                     $tra_tipos_id = $data["tra_tipos_id"];
                     $condition = ['tra_tipos_id' => $tra_tipos_id];
@@ -189,7 +387,7 @@ class Tramites extends BaseController
                         // Inserta cada elemento en la tabla tra_doc_status
                         $insert_data = [
                             "id"=>null,
-                            "folio_tramite" => $data['folio'],
+                            "folio_tramite" => $newfolio,
                             "tramite_id" => (int)$tramite_id,
                             "documento_id" => (int)$elemento['documento_id'],
                             "status_documento_id" => 11,
@@ -211,7 +409,7 @@ class Tramites extends BaseController
                         "id"=>null,
                         "tipo"=>"insert",
                         "origen"=>"tramite",
-                        "folio_tramite" => $data['folio'],
+                        "folio_tramite" => $newfolio,
                         "tramite_id" => (int)$tramite_id,
                         "cambios" => json_encode($diferencias),
                         "user_id" => (int)$myid,
@@ -220,7 +418,7 @@ class Tramites extends BaseController
                         "status" => 1
                     ];
                     $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
-                }
+                // }
                 return $stateParameters;
             });
 
@@ -252,10 +450,6 @@ class Tramites extends BaseController
             });
 
             $salida = $crud->render();
-            // $data['js_files'] = [
-            //     base_url('/assets/src/scripts/my_scripts.js')
-            //     // Agrega más archivos si es necesario
-            // ];
             $salida2 = array_merge((array)$salida, $data);
             
             return $this->_example_output($salida2);
@@ -265,15 +459,9 @@ class Tramites extends BaseController
     }
 
     public function ultimos_seis_digitos() {
-        // Obtener el valor de time()
         $tiempo = time();
-        
-        // Convertir el tiempo a cadena
         $tiempo_str = (string) $tiempo;
-        
-        // Tomar los últimos 6 caracteres
         $ultimos_seis = substr($tiempo_str, -6);
-        
         return $ultimos_seis;
     }
 
@@ -639,7 +827,6 @@ class Tramites extends BaseController
             echo $salida->output;
             exit;
         }
-        // return view('example.php', (array)$salida);
         return view('/deskapp/extra-pages/grocery_page.php', (array)$salida);
     }
 

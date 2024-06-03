@@ -26,23 +26,43 @@ class Clidirecto extends BaseController
         $data['username'] = $session->get('user_name');
     
         $crud = $this->_getGroceryCrudEnterprise();
-
         $crud->setCsrfTokenName(csrf_token());
         $crud->setCsrfTokenValue(csrf_hash());
 
         $crud->setTable('cli_directo');
         $crud->setSubject('Cliente Directo', 'Clientes Directos');
+
+        $crud->columns([
+            'nombre','razon_social','rfc','telefono', 
+            'correo_electronico','calle','numero_interior','numero_exterior',
+            'codigo_postal','colonia','ciudad','estado',
+            'pais','cliente_id', 'status'
+        ]);
+
+        $crud->fields([
+            'nombre','razon_social','rfc','telefono', 
+            'correo_electronico','calle','numero_interior','numero_exterior',
+            'codigo_postal','colonia','ciudad','estado',
+            'pais','cliente_id', 'status'
+        ]);
+
         $crud->callbackBeforeInsert(function ($stateParameters) {
             $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
             $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
             return $stateParameters;
         });
+
         $crud->callbackAddForm(function ($data) {
             $session = session();
             $myid = $session->get('id');
             $data['user_id'] = $myid;
             return $data;
         });
+
+        /* SELECT Se configura el ejecutivo del cliente */
+        $crud->setRelation('cliente_id', 'cliente', 'nombre');
+        $crud->displayAs('cliente_id','Cliente');
+
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
@@ -61,6 +81,14 @@ class Clidirecto extends BaseController
 
         $crud->setTable('cli_directo_ejecutivo');
         $crud->setSubject('Ejecutivo', 'Ejecutivos');
+
+        $crud->columns([
+            'nombre','telefono','correo_electronico','cli_directo_id', 'status'
+        ]);
+
+        $crud->fields([
+            'nombre','telefono','correo_electronico','cli_directo_id', 'status'
+        ]);
 
         /* SELECT Se relaciona el cliente al que pertenece */
         $crud->setRelation('cli_directo_id', 'cli_directo', 'nombre');
