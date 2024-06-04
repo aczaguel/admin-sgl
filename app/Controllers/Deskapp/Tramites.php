@@ -56,10 +56,11 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status'
+                'observaciones', 'status', 'user_id', 'created_at', 'updated_at'
             ]); 
-            $crud->readOnlyFields(["folio"]);
+            // $crud->readOnlyFields(["folio"]);
             $crud->unsetDeleteMultiple();
+            $crud->fieldType('folio','hidden');
             $crud->fieldType('user_id','hidden');
             $crud->fieldType('created_at','hidden');
             $crud->fieldType('updated_at','hidden');
@@ -111,8 +112,7 @@ class Tramites extends BaseController
             $crud->callbackAddForm(function ($data) use ($self){
                 $session = session();
                 $myid = $session->get('id');
-                
-                $data['folio'] = $self->ultimos_seis_digitos();
+                // $data['folio'] = $self->ultimos_seis_digitos();
                 $data['user_id'] = $myid;
                 $data['contrato'] = 'CONT010203';
                 $data['tra_status_id'] = 11;
@@ -209,6 +209,7 @@ class Tramites extends BaseController
                 $db = Database::connect();
                 $db2 = $this->_getDbData();
                 $session = session();
+                
                 $data = $stateParameters->data;
                 $myid = $session->get('id');
 
@@ -273,7 +274,7 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status'
+                'observaciones', 'status', 'user_id', 'created_at', 'updated_at'
             ]); 
 
             $crud->unsetDeleteMultiple();
@@ -328,7 +329,6 @@ class Tramites extends BaseController
             $crud->callbackAddForm(function ($data) use ($self){
                 $session = session();
                 $myid = $session->get('id');
-                
                 $data['folio'] = $self->ultimos_seis_digitos();
                 $data['user_id'] = $myid;
                 $data['contrato'] = 'CONT010203';
@@ -341,7 +341,6 @@ class Tramites extends BaseController
             });
 
             $crud->callbackEditForm(function ($data) use ($self, $crud){
-                
                 $crud->unsetEdit();
                 $session = session();
                 $data2 = $data;
@@ -428,7 +427,6 @@ class Tramites extends BaseController
                 $session = session();
                 $data = $stateParameters->data;
                 $myid = $session->get('id');
-
                 $bitacoraModel = new BitacoraModel($db2);
                 $data_bitacora = $data;                
                 $data_prev = $session->get('data_tramite_before_update');
