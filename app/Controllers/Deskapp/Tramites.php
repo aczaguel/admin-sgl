@@ -556,7 +556,7 @@ class Tramites extends BaseController
         $self = $this;
         $request = \Config\Services::request();
         $uri = $request->getUri();
-        $folio_tramite = (int) $uri->getSegment(4);
+        $folio_tramite = $uri->getSegment(4);
         $tramite_id = (int) $uri->getSegment(5);
 
         $db = Database::connect();
@@ -575,6 +575,9 @@ class Tramites extends BaseController
         $crud->where([
             'folio_tramite' => $folio_tramite
         ]);        
+
+        $crud->fieldType('folio_tramite','hidden');
+        $crud->fieldType('tramite_id','hidden');
         
         /* SELECT Se configura el documento */
         $crud->setRelation('documento_id', 'documento', 'documento');
@@ -633,8 +636,8 @@ class Tramites extends BaseController
 
         $crud->setFieldUpload(
             'file', 
-            'assets/uploads/', 
-            '/assets/uploads/', 
+            'assets/uploads/documentostatus/', 
+            '/assets/uploads/documentostatus/', 
             $uploadValidations
         );
 
@@ -645,7 +648,7 @@ class Tramites extends BaseController
         $crud->callbackAddForm(function ($data) {
             $request = \Config\Services::request();
             $uri = $request->getUri();
-            $folio_tramite = (int) $uri->getSegment(4);
+            $folio_tramite = $uri->getSegment(4);
             $tramite_id = (int) $uri->getSegment(5);
 
             $session = session();
@@ -677,7 +680,7 @@ class Tramites extends BaseController
         $self = $this;
         $request = \Config\Services::request();
         $uri = $request->getUri();
-        $folio_tramite = (int) $uri->getSegment(4);
+        $folio_tramite = $uri->getSegment(4);
         $tramite_id = (int) $uri->getSegment(5);
 
         $db = Database::connect();
@@ -705,7 +708,7 @@ class Tramites extends BaseController
 
                 $request = \Config\Services::request();
                 $uri = $request->getUri();
-                $folio_tramite = (int) $uri->getSegment(4);
+                $folio_tramite = $uri->getSegment(4);
                 $tramite_id = (int) $uri->getSegment(5);
 
                 $session = session();
@@ -779,8 +782,8 @@ class Tramites extends BaseController
 
         $crud->setFieldUpload(
             'file', 
-            'assets/uploads/', 
-            '/assets/uploads/', 
+            'assets/uploads/evidencias/', 
+            '/assets/uploads/evidencias/', 
             $uploadValidations
         );
 
@@ -788,12 +791,14 @@ class Tramites extends BaseController
         $crud->fieldType('created_at','hidden');
         $crud->fieldType('updated_at','hidden');
 
+        $crud->fieldType('folio_tramite','hidden');
+        $crud->fieldType('tramite_id','hidden');
+
         $crud->callbackAddForm(function ($data) {
             $request = \Config\Services::request();
             $uri = $request->getUri();
-            $folio_tramite = (int) $uri->getSegment(4);
+            $folio_tramite = $uri->getSegment(4);
             $tramite_id = (int) $uri->getSegment(5);
-
             $session = session();
             $myid = $session->get('id');
             $data['user_id'] = $myid;

@@ -386,8 +386,8 @@ class Proceso extends BaseController
 
         $crud->setFieldUpload(
             'file', 
-            'assets/uploads/', 
-            '/assets/uploads/', 
+            'assets/uploads/proceso/', 
+            '/assets/uploads/proceso/', 
             $uploadValidations
         );
 

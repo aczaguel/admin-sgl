@@ -54,8 +54,8 @@ class Documentos extends BaseController
         });
         $crud->setFieldUpload(
             'file', 
-            'assets/uploads/', 
-            '/assets/uploads/', 
+            'assets/uploads/documentos/', 
+            '/assets/uploads/documentos/', 
             $uploadValidations
         );
 
