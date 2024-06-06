@@ -51,8 +51,8 @@ class Tradocstatus extends BaseController
 
         $crud->setFieldUpload(
             'file', 
-            'assets/uploads/', 
-            '/assets/uploads/', 
+            'assets/uploads/docstatus/', 
+            '/assets/uploads/docstatus/', 
             $uploadValidations
         );
 
