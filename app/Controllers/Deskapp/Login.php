@@ -35,6 +35,12 @@
 	                    'logged_in'     => TRUE
 	                ];
 	                $session->set($ses_data);
+					$user_permissions = $model->getUserPermissions($data['id']);
+					$session->set('user_permissions', $user_permissions);
+					// var_dump($session->get('user_permissions'));
+					$user_roles = $model->getUserRoles($data['id']);
+					$session->set('user_roles', $user_roles);
+					// var_dump($session->get('user_roles'));die();
 	                return redirect()->to('./deskapp/dashboard');
 	            }else{
 	                $session->setFlashdata('msg', 'Wrong Password');

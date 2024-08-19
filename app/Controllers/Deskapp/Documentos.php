@@ -52,7 +52,7 @@ class Documentos extends BaseController
             $data['user_id'] = $myid;
             return $data;
         });
-        $crud->setFieldUpload(
+        $crud->setFieldUploadMultiple(
             'file', 
             'assets/uploads/documentos/', 
             '/assets/uploads/documentos/', 

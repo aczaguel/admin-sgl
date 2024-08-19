@@ -384,7 +384,7 @@ class Proceso extends BaseController
             ]
         ];
 
-        $crud->setFieldUpload(
+        $crud->setFieldUploadMultiple(
             'file', 
             'assets/uploads/proceso/', 
             '/assets/uploads/proceso/', 

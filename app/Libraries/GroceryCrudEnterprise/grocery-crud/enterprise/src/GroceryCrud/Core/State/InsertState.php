@@ -51,7 +51,7 @@ class InsertState extends StateAbstract {
             $model->setWhere($this->gCrud->getWhere());
         }
 
-        $validator = $this->getValidationRules();
+        $validator = $this->setValidationRules('insert');
 
         $output = (object)array();
 

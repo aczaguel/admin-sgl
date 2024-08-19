@@ -104,39 +104,17 @@ class InitialState extends StateAbstract implements StateInterface
 
         $config = $this->gCrud->getConfig();
 
-        if (array_key_exists('url_history', $config)) {
-            $data->urlHistory = $config['url_history'];
-        }
+        $data->urlHistory = $config['url_history'];
+        $data->actionButtonType = $config['action_button_type'];
+        $data->openInModal = $config['open_in_modal'];
+        $data->showImagePreview = $config['show_image_preview'];
 
-        if (array_key_exists('action_button_type', $config)) {
-            $data->actionButtonType = $config['action_button_type'];
-        }
-
-        if (array_key_exists('open_in_modal', $config)) {
-            $data->openInModal = $config['open_in_modal'];
-        }
-
-        $data->showImagePreview = array_key_exists('show_image_preview', $config)
-            ? $config['show_image_preview']
-            : false;
-
-        if (array_key_exists('actions_column_side', $config) && in_array($config['actions_column_side'], ['left', 'right'])) {
-            $data->leftSideActions = $config['actions_column_side'] === 'left';
-            $data->rightSideActions = $config['actions_column_side'] === 'right';
-        } else {
-            $data->leftSideActions = true;
-            $data->rightSideActions = false;
-        }
+        $data->leftSideActions = $config['actions_column_side'] === 'left';
+        $data->rightSideActions = $config['actions_column_side'] === 'right';
 
         $data->maxActionButtons = (object)[
-            'mobile' =>
-                array_key_exists('max_action_buttons', $config) && array_key_exists('mobile', $config['max_action_buttons'])
-                    ? $config['max_action_buttons']['mobile']
-                    : 1,
-            'desktop' =>
-                array_key_exists('max_action_buttons', $config) && array_key_exists('desktop', $config['max_action_buttons'])
-                    ? $config['max_action_buttons']['desktop']
-                    : 2,
+            'mobile' => $config['max_action_buttons']['mobile'],
+            'desktop' =>  $config['max_action_buttons']['desktop'],
         ];
 
         return $data;

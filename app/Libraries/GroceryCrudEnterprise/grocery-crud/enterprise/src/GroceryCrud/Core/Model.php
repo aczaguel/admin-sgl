@@ -1168,11 +1168,19 @@ ORDER BY KU.TABLE_NAME, KU.ORDINAL_POSITION;");
 
     function insertRelationManytoMany($fieldInfo, $data , $primaryKey)
     {
+        $ordering = 1;
         foreach($data as $dataPrimaryKey) {
-            $this->insert(array(
+            $insertData = array(
                 $fieldInfo->primaryKeyJunctionToCurrent => $primaryKey,
                 $fieldInfo->primaryKeyToReferrerTable => $dataPrimaryKey,
-            ), $fieldInfo->junctionTable);
+            );
+
+            if (!empty($fieldInfo->orderingFieldName)) {
+                $insertData[$fieldInfo->orderingFieldName] = $ordering;
+                $ordering++;
+            }
+
+            $this->insert($insertData, $fieldInfo->junctionTable);
         }
 
         return true;
@@ -1231,6 +1239,24 @@ ORDER BY KU.TABLE_NAME, KU.ORDINAL_POSITION;");
             ), $fieldInfo->junctionTable);
         }
 
+        // Step 4. Update the ordering field if it exists
+        if ($fieldInfo->orderingFieldName) {
+            $ordering = 1;
+            foreach ($data as $dataPrimaryKey) {
+                $update = $sql->update($this->getTableNameWithSchemaForOperations($fieldInfo->junctionTable));
+                $update->set([$fieldInfo->orderingFieldName => $ordering]);
+                $update->where([
+                    $fieldInfo->primaryKeyJunctionToCurrent . ' = ?' => $primaryKey,
+                    $fieldInfo->primaryKeyToReferrerTable . ' = ?' => $dataPrimaryKey
+                ]);
+
+                $statement = $sql->prepareStatementForSqlObject($update);
+                $statement->execute();
+
+                $ordering++;
+            }
+        }
+
         return true;
     }
 
@@ -1243,6 +1269,10 @@ ORDER BY KU.TABLE_NAME, KU.ORDINAL_POSITION;");
             $fieldInfo->primaryKeyJunctionToCurrent . ' = ?' => $primaryKeyValue
         ]);
         $select->from($this->getTableNameWithSchema($fieldInfo->junctionTable));
+
+        if ($fieldInfo->orderingFieldName) {
+            $select->order($fieldInfo->orderingFieldName);
+        }
 
         $results = $this->getResultsFromSelect($select, $sql);
 
@@ -1285,6 +1315,10 @@ ORDER BY KU.TABLE_NAME, KU.ORDINAL_POSITION;");
                 $where = new Where();
                 $where->in($relation->primaryKeyJunctionToCurrent, $primaryKeyValues);
                 $select->where([$where]);
+
+                if ($relation->orderingFieldName) {
+                    $select->order($relation->orderingFieldName);
+                }
 
                 $relationResults = $this->getResultsFromSelect($select, $sql);
 

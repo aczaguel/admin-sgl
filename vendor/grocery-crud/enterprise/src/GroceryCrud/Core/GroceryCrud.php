@@ -29,33 +29,35 @@ use GroceryCrud\Core\Validate\ValidateInterface;
 
 class GroceryCrud implements GroceryCrudInterface
 {
-    const FIELD_TYPE_READ_ONLY = 'readonly';
-    const FIELD_TYPE_REAL_BOOLEAN = 'boolean';
-    const FIELD_TYPE_BOOLEAN_CHECKBOX = 'checkbox_boolean';
-    const FIELD_TYPE_DROPDOWN = 'dropdown';
-    const FIELD_TYPE_DROPDOWN_WITH_SEARCH = 'dropdown_search';
-    const FIELD_TYPE_RELATIONAL_NATIVE = 'relational_native';
-    const FIELD_TYPE_PASSWORD = 'password';
-    const FIELD_TYPE_EMAIL = 'email';
-    const FIELD_TYPE_INTEGER = 'int';
-    const FIELD_TYPE_NUMERIC = 'numeric';
-    const FIELD_TYPE_FLOAT = 'float';
+    const FIELD_TYPE_BACKEND_CALLBACK = 'backend_callback';
+    const FIELD_TYPE_BLOB = 'special_blob';
+    const FIELD_TYPE_BOOLEAN = 'boolean';
+    const FIELD_TYPE_CALLBACK_COLUMN = 'callback_column';
     const FIELD_TYPE_COLOR = 'color';
-    const FIELD_TYPE_URL = 'url';
-    const FIELD_TYPE_HIDDEN = 'hidden';
-    const FIELD_TYPE_INVISIBLE = 'invisible';
     const FIELD_TYPE_DATE = 'date';
     const FIELD_TYPE_DATETIME = 'datetime';
-    const FIELD_TYPE_TEXTAREA = 'text';
-    const FIELD_TYPE_NATIVE_SELECT_N_TO_N = 'native_relational_n_n';
-    const FIELD_TYPE_BACKEND_CALLBACK = 'backend_callback';
-    const FIELD_TYPE_CALLBACK_COLUMN = 'callback_column';
-    const FIELD_TYPE_MULTIPLE_SELECT_SEARCHABLE = 'multiselect_searchable';
+    const FIELD_TYPE_DEPENDED_RELATIONAL = 'depended_relational';
+    const FIELD_TYPE_DROPDOWN = 'dropdown';
+    const FIELD_TYPE_DROPDOWN_WITH_SEARCH = 'dropdown_search';
+    const FIELD_TYPE_EMAIL = 'email';
+    const FIELD_TYPE_FLOAT = 'float';
+    const FIELD_TYPE_HIDDEN = 'hidden';
+    const FIELD_TYPE_INTEGER = 'int';
+    const FIELD_TYPE_INVISIBLE = 'invisible';
     const FIELD_TYPE_MULTIPLE_SELECT_NATIVE = 'multiselect_native';
+    const FIELD_TYPE_MULTIPLE_SELECT_SEARCHABLE = 'multiselect_searchable';
+    const FIELD_TYPE_NATIVE_SELECT_N_TO_N = 'native_relational_n_n';
+    const FIELD_TYPE_NATIVE_TIME = 'native_time';
+    const FIELD_TYPE_NUMERIC = 'numeric';
+    const FIELD_TYPE_PASSWORD = 'password';
+    const FIELD_TYPE_READ_ONLY = 'readonly';
+    const FIELD_TYPE_RELATIONAL_NATIVE = 'relational_native';
+    const FIELD_TYPE_STRING = 'varchar';
+    const FIELD_TYPE_TEXTAREA = 'text';
+    const FIELD_TYPE_TIMESTAMP = 'timestamp';
     const FIELD_TYPE_UPLOAD = 'upload';
     const FIELD_TYPE_UPLOAD_MULTIPLE = 'upload-multiple';
-    const FIELD_TYPE_BLOB = 'special_blob';
-    const FIELD_TYPE_DEPENDED_RELATIONAL = 'depended_relational';
+    const FIELD_TYPE_URL = 'url';
 
     const PREFIX_FILE_UPLOAD = '__gcrud_upload';
 
@@ -69,7 +71,7 @@ class GroceryCrud implements GroceryCrudInterface
      *
      * @var string
      */
-    const VERSION = "3.0.19";
+    const VERSION = "3.1.7";
 
     /**
      * Specifying if the current datagrid will be a master - detail grid.
@@ -642,11 +644,15 @@ class GroceryCrud implements GroceryCrudInterface
             throw new Exception('You will need to add a configurable file');
         }
 
-        $this->_layout = new Layout($config);
-        $this->_validate = new Validate($config);
+        $defaultConfig = include __DIR__ . '/../Config/default-config.php';
+
+        $mergedConfig = array_replace($defaultConfig, $config);
+
+        $this->_layout = new Layout($mergedConfig);
+        $this->_validate = new Validate($mergedConfig);
         $this->_database = $database;
 
-        $this->_config = $config;
+        $this->_config = $mergedConfig;
 	}
 
     /**
@@ -1950,7 +1956,8 @@ class GroceryCrud implements GroceryCrudInterface
 	public function setRelationNtoN(
 	    $fieldName, $junctionTable, $referrerTable,
         $primaryKeyJunctionToCurrent, $primaryKeyToReferrerTable,
-        $referrerTitleField, $sortingFieldName = null, $where = null
+        $referrerTitleField, $sortingFieldName = null, $where = null,
+        $orderingFieldName = null
     )
 	{
         $this->_relation_n_n[$fieldName] = (object)[
@@ -1961,7 +1968,8 @@ class GroceryCrud implements GroceryCrudInterface
             'primaryKeyToReferrerTable' => $primaryKeyToReferrerTable,
             'referrerTitleField' => $referrerTitleField,
             'where' => $where,
-            'sortingFieldName' => $sortingFieldName
+            'sortingFieldName' => $sortingFieldName,
+            'orderingFieldName' => $orderingFieldName
         ];
 		return $this;
 	}

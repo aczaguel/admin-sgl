@@ -20,7 +20,6 @@ class StateAbstract
     const EXTRAS_FIELD_NAME = 'grocery_crud_extras';
     const WITH_PRIMARY_KEY = 1;
     const WITH_TABLE_NAME = 1;
-    const DEFAULT_THEME = 'bootstrap-v5';
 
     const UPLOAD_FIELD_EMPTY_STRING = 'EMPTY_STRING';
 
@@ -142,11 +141,7 @@ class StateAbstract
         if ($this->gCrud->getTheme() === null) {
             $config = $this->gCrud->getConfig();
 
-            if (array_key_exists('theme', $config)) {
-                return $config['theme'];
-            }
-
-            return self::DEFAULT_THEME;
+            return $config['theme'];
         }
 
         return strtolower($this->gCrud->getTheme());
@@ -395,9 +390,7 @@ class StateAbstract
     public function getGlobalAllowedFileTypes():array {
         $config = $this->gCrud->getConfig();
 
-        return array_key_exists('upload_allowed_file_types', $config) && is_array($config['upload_allowed_file_types'])
-                ? $config['upload_allowed_file_types']
-                : $this->getDefaultUploadAllowedFileTypes();
+        return $config['upload_allowed_file_types'];
     }
 
     /**
@@ -710,15 +703,6 @@ class StateAbstract
         return $uploadData;
     }
 
-    public function getDefaultUploadAllowedFileTypes(): array
-    {
-        return [
-            'gif', 'jpeg', 'jpg', 'png', 'svg', 'tiff', 'doc', 'docx',  'rtf', 'txt', 'odt', 'xls', 'xlsx', 'pdf',
-            'ppt', 'pptx', 'pps', 'ppsx', 'mp3', 'm4a', 'ogg', 'wav', 'mp4', 'm4v', 'mov', 'wmv', 'flv', 'avi',
-            'mpg', 'ogv', '3gp', '3g2'
-        ];
-    }
-
     public function mapFields($outputData) {
         $mappedFields = $this->getMappedFields();
 
@@ -959,15 +943,11 @@ class StateAbstract
 
         foreach ($results as &$result) {
             foreach ($result as $columnName => &$columnValue) {
-                if (is_array($columnValue)) {
-                    continue;
-                }
-
                 $columnValue = is_numeric($columnValue) ? (string)$columnValue : $columnValue;
 
                 if (isset($callbackColumns[$columnName])) {
                     $columnValue = $callbackColumns[$columnName]($columnValue, $result);
-                } else {
+                } else if (!is_array($columnValue)) {
                     $columnValue = is_string($columnValue) ? strip_tags($columnValue) : "";
 
                     if (
@@ -1377,7 +1357,6 @@ class StateAbstract
         $relations = $this->gCrud->getRelations1toMany();
         $dynamicRelations = $this->gCrud->getDynamicRelation1toN();
         $dependedRelations = $this->gCrud->getDependedRelation();
-        $requiredFields = $this->gCrud->getRequiredFields();
 
         foreach ($fieldTypes as $fieldName => $fieldType) {
             if (isset($relations[$fieldName])) {
@@ -1412,14 +1391,13 @@ class StateAbstract
                 $fieldTypes[$fieldName]->dataType = 'dynamic-relation';
                 $fieldTypes[$fieldName]->options = null;
             }
-
-            $fieldTypes[$fieldName]->isRequired = in_array($fieldName, $requiredFields);
         }
 
         foreach ($this->gCrud->getRelationNtoN() as $fieldName => $relation) {
 
+            $relationNtoNDataType = $relation->orderingFieldName ? 'relational_n_n_ordering' : 'relational_n_n';
             $fieldTypes[$fieldName] = (object)array(
-                'dataType' => 'relational_n_n',
+                'dataType' => $relationNtoNDataType,
                 'isNullable' => false,
                 'defaultValue' => ''
             );
@@ -1501,9 +1479,7 @@ class StateAbstract
 
         $config = $this->gCrud->getConfig();
 
-        if (array_key_exists('optimize_sql_queries', $config)) {
-            $this->gCrud->getModel()->setOptimizeSqlQueries($config['optimize_sql_queries']);
-        }
+        $this->gCrud->getModel()->setOptimizeSqlQueries($config['optimize_sql_queries']);
     }
 
     public function getEditFields()
@@ -1598,6 +1574,9 @@ class StateAbstract
     }
 
     public function getFieldTypesAddForm() {
+        $fieldTypes = $this->getFieldTypes();
+        $requiredFields = $this->getRequiredFields('insert');
+
         $fieldTypesAddForm = $this->gCrud->getFieldTypesAddForm();
         $callbackAddFields  = $this->gCrud->getCallbackAddFields();
 
@@ -1608,10 +1587,22 @@ class StateAbstract
             $fieldTypesAddForm[$fieldName] = $fieldTypeModel;
         }
 
+        foreach ($requiredFields as $fieldName) {
+            if (isset($fieldTypesAddForm[$fieldName])) {
+                $fieldTypesAddForm[$fieldName]->isRequired = true;
+            } else if (isset($fieldTypes[$fieldName])) {
+                $fieldTypesAddForm[$fieldName] = clone $fieldTypes[$fieldName];
+                $fieldTypesAddForm[$fieldName]->isRequired = true;
+            }
+        }
+
         return $fieldTypesAddForm;
     }
 
     public function getFieldTypesEditForm() {
+        $fieldTypes = $this->getFieldTypes();
+        $requiredFields = $this->getRequiredFields('update');
+
         $fieldTypesEditForm = $this->gCrud->getFieldTypesEditForm();
         $callbackEditFields  = $this->gCrud->getCallbackEditFields();
 
@@ -1622,30 +1613,42 @@ class StateAbstract
             $fieldTypesEditForm[$fieldName] = $fieldTypeModel;
         }
 
+        foreach ($requiredFields as $fieldName) {
+            if (isset($fieldTypesEditForm[$fieldName])) {
+                $fieldTypesEditForm[$fieldName]->isRequired = true;
+            } else if (isset($fieldTypes[$fieldName])) {
+                $fieldTypesEditForm[$fieldName] = clone $fieldTypes[$fieldName];
+                $fieldTypesEditForm[$fieldName]->isRequired = true;
+            }
+        }
+
         return $fieldTypesEditForm;
     }
 
-    public function hasOrdering($fieldType) {
+    public function getFieldTypesCloneForm() {
+        $fieldTypes = $this->getFieldTypes();
+        $requiredFields = $this->getRequiredFields('clone');
 
-        switch ($fieldType) {
-            case 'varchar':
-                return true;
-            case GroceryCrud::FIELD_TYPE_DROPDOWN:
-            case GroceryCrud::FIELD_TYPE_DROPDOWN_WITH_SEARCH:
-            case GroceryCrud::FIELD_TYPE_MULTIPLE_SELECT_NATIVE:
-            case GroceryCrud::FIELD_TYPE_MULTIPLE_SELECT_SEARCHABLE:
-            case 'relational_n_n':
-            case 'native_relational_n_n':
-                return false;
-            case 'relational':
-            case GroceryCrud::FIELD_TYPE_RELATIONAL_NATIVE:
-            case 'depended_relational':
-                $config = $this->getConfigParameters();
-                return  $config['optimize_sql_queries'] === false;
+        $fieldTypesCloneForm = $this->gCrud->getFieldTypesCloneForm();
+        $callbackCloneFields  = $this->gCrud->getCallbackCloneFields();
+
+        foreach ($callbackCloneFields as $fieldName => $callback) {
+            $fieldTypeModel = new ModelFieldType();
+            $fieldTypeModel->dataType = GroceryCrud::FIELD_TYPE_BACKEND_CALLBACK;
+
+            $fieldTypesCloneForm[$fieldName] = $fieldTypeModel;
         }
 
-        // Default true
-        return true;
+        foreach ($requiredFields as $fieldName) {
+            if (isset($fieldTypesCloneForm[$fieldName])) {
+                $fieldTypesCloneForm[$fieldName]->isRequired = true;
+            } else if (isset($fieldTypes[$fieldName])) {
+                $fieldTypesCloneForm[$fieldName] = clone $fieldTypes[$fieldName];
+                $fieldTypesCloneForm[$fieldName]->isRequired = true;
+            }
+        }
+
+        return $fieldTypesCloneForm;
     }
 
     public function getFieldTypeColumns() {
@@ -1683,20 +1686,29 @@ class StateAbstract
         return $fieldTypesReadForm;
     }
 
+    public function hasOrdering($fieldType) {
 
-    public function getFieldTypesCloneForm() {
-        $fieldTypesCloneForm = $this->gCrud->getFieldTypesCloneForm();
-        $callbackCloneFields  = $this->gCrud->getCallbackCloneFields();
-
-        foreach ($callbackCloneFields as $fieldName => $callback) {
-            $fieldTypeModel = new ModelFieldType();
-            $fieldTypeModel->dataType = GroceryCrud::FIELD_TYPE_BACKEND_CALLBACK;
-
-            $fieldTypesCloneForm[$fieldName] = $fieldTypeModel;
+        switch ($fieldType) {
+            case GroceryCrud::FIELD_TYPE_STRING:
+                return true;
+            case GroceryCrud::FIELD_TYPE_DROPDOWN:
+            case GroceryCrud::FIELD_TYPE_DROPDOWN_WITH_SEARCH:
+            case GroceryCrud::FIELD_TYPE_MULTIPLE_SELECT_NATIVE:
+            case GroceryCrud::FIELD_TYPE_MULTIPLE_SELECT_SEARCHABLE:
+            case 'relational_n_n':
+            case 'native_relational_n_n':
+                return false;
+            case 'relational':
+            case GroceryCrud::FIELD_TYPE_RELATIONAL_NATIVE:
+            case 'depended_relational':
+                $config = $this->getConfigParameters();
+                return  $config['optimize_sql_queries'] === false;
         }
 
-        return $fieldTypesCloneForm;
+        // Default true
+        return true;
     }
+
 
     public function validateVisibleColumnsMinified($visibleColumnsMinified) {
 
@@ -1846,7 +1858,20 @@ class StateAbstract
         return false;
     }
 
-    public function getValidationRules()
+    public function getRequiredFields($formOperation) {
+        switch ($formOperation) {
+            case 'insert':
+                return $this->gCrud->getRequiredAddFields();
+            case 'update':
+                return $this->gCrud->getRequiredEditFields();
+            case 'clone':
+                return $this->gCrud->getRequiredCloneFields();
+            default:
+                return [];
+        }
+    }
+
+    public function setValidationRules(string $formOperation)
     {
         $fieldTypes = $this->getFieldTypes();
         $data = $this->getStateParameters()->data;
@@ -1889,7 +1914,7 @@ class StateAbstract
             $validator->set_label($fieldName, $display);
         }
 
-        $requiredFields = $this->gCrud->getRequiredFields();
+        $requiredFields = $this->getRequiredFields($formOperation);
         foreach ($requiredFields as $fieldName) {
             if ($hasUploadFields && array_key_exists($fieldName, $uploadFields)) {
                 // Work-around for Valitron library since it doesn't support callback validation to a non-empty field

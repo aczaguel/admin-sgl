@@ -20,7 +20,6 @@ class StateAbstract
     const EXTRAS_FIELD_NAME = 'grocery_crud_extras';
     const WITH_PRIMARY_KEY = 1;
     const WITH_TABLE_NAME = 1;
-    const DEFAULT_THEME = 'bootstrap-v5';
 
     const UPLOAD_FIELD_EMPTY_STRING = 'EMPTY_STRING';
 
@@ -142,11 +141,7 @@ class StateAbstract
         if ($this->gCrud->getTheme() === null) {
             $config = $this->gCrud->getConfig();
 
-            if (array_key_exists('theme', $config)) {
-                return $config['theme'];
-            }
-
-            return self::DEFAULT_THEME;
+            return $config['theme'];
         }
 
         return strtolower($this->gCrud->getTheme());
@@ -395,9 +390,7 @@ class StateAbstract
     public function getGlobalAllowedFileTypes():array {
         $config = $this->gCrud->getConfig();
 
-        return array_key_exists('upload_allowed_file_types', $config) && is_array($config['upload_allowed_file_types'])
-                ? $config['upload_allowed_file_types']
-                : $this->getDefaultUploadAllowedFileTypes();
+        return $config['upload_allowed_file_types'];
     }
 
     /**
@@ -710,15 +703,6 @@ class StateAbstract
         return $uploadData;
     }
 
-    public function getDefaultUploadAllowedFileTypes(): array
-    {
-        return [
-            'gif', 'jpeg', 'jpg', 'png', 'svg', 'tiff', 'doc', 'docx',  'rtf', 'txt', 'odt', 'xls', 'xlsx', 'pdf',
-            'ppt', 'pptx', 'pps', 'ppsx', 'mp3', 'm4a', 'ogg', 'wav', 'mp4', 'm4v', 'mov', 'wmv', 'flv', 'avi',
-            'mpg', 'ogv', '3gp', '3g2'
-        ];
-    }
-
     public function mapFields($outputData) {
         $mappedFields = $this->getMappedFields();
 
@@ -959,15 +943,11 @@ class StateAbstract
 
         foreach ($results as &$result) {
             foreach ($result as $columnName => &$columnValue) {
-                if (is_array($columnValue)) {
-                    continue;
-                }
-
                 $columnValue = is_numeric($columnValue) ? (string)$columnValue : $columnValue;
 
                 if (isset($callbackColumns[$columnName])) {
                     $columnValue = $callbackColumns[$columnName]($columnValue, $result);
-                } else {
+                } else if (!is_array($columnValue)) {
                     $columnValue = is_string($columnValue) ? strip_tags($columnValue) : "";
 
                     if (
@@ -1415,8 +1395,9 @@ class StateAbstract
 
         foreach ($this->gCrud->getRelationNtoN() as $fieldName => $relation) {
 
+            $relationNtoNDataType = $relation->orderingFieldName ? 'relational_n_n_ordering' : 'relational_n_n';
             $fieldTypes[$fieldName] = (object)array(
-                'dataType' => 'relational_n_n',
+                'dataType' => $relationNtoNDataType,
                 'isNullable' => false,
                 'defaultValue' => ''
             );
@@ -1498,9 +1479,7 @@ class StateAbstract
 
         $config = $this->gCrud->getConfig();
 
-        if (array_key_exists('optimize_sql_queries', $config)) {
-            $this->gCrud->getModel()->setOptimizeSqlQueries($config['optimize_sql_queries']);
-        }
+        $this->gCrud->getModel()->setOptimizeSqlQueries($config['optimize_sql_queries']);
     }
 
     public function getEditFields()
@@ -1710,7 +1689,7 @@ class StateAbstract
     public function hasOrdering($fieldType) {
 
         switch ($fieldType) {
-            case 'varchar':
+            case GroceryCrud::FIELD_TYPE_STRING:
                 return true;
             case GroceryCrud::FIELD_TYPE_DROPDOWN:
             case GroceryCrud::FIELD_TYPE_DROPDOWN_WITH_SEARCH:

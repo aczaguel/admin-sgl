@@ -42,7 +42,7 @@ class MainState extends StateAbstract implements StateInterface
         $render = new RenderAbstract();
 
         $render->output = $output;
-        $render->js_files = $layout->get_js_files();
+        $render->js_files = $layout->getJavaScriptFiles();
         $render->css_files = $layout->get_css_files();
         $render->isJSONResponse = false;
 
@@ -71,10 +71,12 @@ class MainState extends StateAbstract implements StateInterface
         $data->load_css_theme = $this->gCrud->getLoadCssTheme();
         $data->load_css_icons = $this->gCrud->getLoadCssIcons();
         $data->load_css_third_party = $this->gCrud->getLoadCssThirdParty();
+
         $data->is_development_environment = $config['environment']  === 'development';
-        $data->publish_events = array_key_exists('publish_events', $config) ? $config['publish_events'] : false;
-        $data->remember_state = array_key_exists('remember_state_upon_refresh', $config) ? $config['remember_state_upon_refresh'] : true;
-        $data->remember_filtering = array_key_exists('remember_filters_upon_refresh', $config) ? $config['remember_filters_upon_refresh'] : true;
+        $data->publish_events = $config['publish_events'];
+        $data->remember_state = $config['remember_state_upon_refresh'];
+        $data->remember_filtering = $config['remember_filters_upon_refresh'];
+        $data->display_js_files_in_output = $config['display_js_files_in_output'];
 
         $data->autoload_javascript = $this->gCrud->getAutoloadJavaScript();
 

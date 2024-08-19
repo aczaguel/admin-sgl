@@ -88,9 +88,14 @@ class Layout implements LayoutInterface
         return $this->css_files;
     }
 
-    public function get_js_files()
+    public function getJavaScriptFiles()
     {
         return $this->js_files;
+    }
+
+    public function clearJavaScriptFiles()
+    {
+        $this->js_files = [];
     }
 
     public function setTheme($theme = null)

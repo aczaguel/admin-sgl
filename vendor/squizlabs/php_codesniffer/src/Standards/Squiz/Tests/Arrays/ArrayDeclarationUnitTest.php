@@ -11,7 +11,12 @@ namespace PHP_CodeSniffer\Standards\Squiz\Tests\Arrays;
 
 use PHP_CodeSniffer\Tests\Standards\AbstractSniffUnitTest;
 
-class ArrayDeclarationUnitTest extends AbstractSniffUnitTest
+/**
+ * Unit test class for the ArrayDeclaration sniff.
+ *
+ * @covers \PHP_CodeSniffer\Standards\Squiz\Sniffs\Arrays\ArrayDeclarationSniff
+ */
+final class ArrayDeclarationUnitTest extends AbstractSniffUnitTest
 {
 
 
@@ -129,6 +134,8 @@ class ArrayDeclarationUnitTest extends AbstractSniffUnitTest
                 523 => 1,
                 530 => 1,
                 537 => 1,
+                540 => 1,
+                547 => 2,
             ];
         case 'ArrayDeclarationUnitTest.2.inc':
             return [
@@ -220,6 +227,8 @@ class ArrayDeclarationUnitTest extends AbstractSniffUnitTest
                 512 => 1,
                 519 => 1,
                 526 => 1,
+                529 => 1,
+                536 => 2,
             ];
         default:
             return [];

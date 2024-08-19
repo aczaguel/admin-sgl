@@ -16,26 +16,34 @@
 							<span class="micon dw dw-house-1"></span><span class="mtext">Trámites</span>
 						</a>
 						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/tramites/tramite'); ?>">Trámites</a></li>
-							<li><a href="<?php echo base_url('deskapp/tramites/mios'); ?>">Mis Trámites</a></li>
-							<li><a href="<?php echo base_url('deskapp/tramites/tipo'); ?>">Tipo de Trámite</a></li>
-							<li><a href="<?php echo base_url('deskapp/tramites/status'); ?>">Estatuses de Trámite</a></li>
+							<?php if (has_permission('listar_tramite', esc($session->get('user_permissions'))) || is_super_admin($session->get('user_roles'))): ?>
+            					<li><a href="<?php echo base_url('deskapp/tramites/tramite'); //listar_tramite?>">Trámites</a></li>
+        					<?php endif; ?>	
+							<?php if (has_permission('listar_mis_tramites', esc($session->get('user_permissions'))) || is_super_admin($session->get('user_roles'))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/mios'); //listar_mios?>">Mis Trámites</a></li>
+							<?php endif; ?>	
+							<?php if (has_permission('listar_tramite', esc($session->get('user_permissions'))) || is_super_admin($session->get('user_roles'))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/tipo'); //listar_tp_tramite?>">Tipo de Trámite</a></li>
+							<?php endif; ?>
+							<?php if (has_permission('listar_tramite', esc($session->get('user_permissions'))) || is_super_admin($session->get('user_roles'))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/status'); //listar_st_tramite?>">Estatuses de Trámite</a></li>
+							<?php endif; ?>
 						</ul>
 					</li>
-					<li class="dropdown">
+					<!-- <li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
 							<span class="micon dw dw-library"></span><span class="mtext">Seguimiento</span>
 						</a>
 						<ul class="submenu">
 							<li><a href="<?php echo base_url('deskapp/tradocstatus/documento'); ?>">Documentos del trámite</a></li>
 						</ul>
-					</li>
+					</li> -->
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
 							<span class="micon dw dw-house-1"></span><span class="mtext">Proceso Final</span>
 						</a>
 						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/proceso/final'); ?>">Finalizando</a></li>
+							<li><a href="<?php echo base_url('deskapp/proceso/final'); //listar_final_tramite?>">Finalizando</a></li>
 						</ul>
 					</li>
 					<li class="dropdown">
@@ -43,13 +51,10 @@
 							<span class="micon dw dw-edit2"></span><span class="mtext">Documentos</span>
 						</a>
 						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/documentos/documento'); ?>">Documento</a></li>
-							<li><a href="<?php echo base_url('deskapp/documentos/status'); ?>">Estatus</a></li>
-							<!-- <li><a href="<?php echo base_url('deskapp/forms/wizard') ?>">Form Wizard</a></li>
-							<li><a href="<?php echo base_url('deskapp/forms/html5Editor'); ?>">HTML5 Editor</a></li>
-							<li><a href="<?php echo base_url('deskapp/forms/pickers'); ?>">Form Pickers</a></li>
-							<li><a href="<?php echo base_url('deskapp/forms/imageCropper'); ?>">Image Cropper</a></li>
-							<li><a href="<?php echo base_url('deskapp/forms/imageDropZone'); ?>">Image Dropzone</a></li> -->
+							<li><a href="<?php echo base_url('deskapp/documentos/documento'); //listar_documentos?>">Documento</a></li>
+							<li><a href="<?php echo base_url('deskapp/documentos/status'); //listar_st_documentos?>">Estatus</a></li>
+
+							
 						</ul>
 					</li>
 					<li class="dropdown">
@@ -57,23 +62,54 @@
 							<span class="micon dw dw-library"></span><span class="mtext">Gestores</span>
 						</a>
 						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/gestores/gestores'); ?>">Empresa Gestora</a></li>
-							<li><a href="<?php echo base_url('deskapp/gestores/gestor'); ?>">Gestor</a></li>
+							<li><a href="<?php echo base_url('deskapp/gestores/gestores'); //listar_emp_gestoras?>">Empresa Gestora</a></li>
+							<li><a href="<?php echo base_url('deskapp/gestores/gestor'); //listar_gestores?>">Gestor</a></li>
 						</ul>
 					</li>
 					
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
+
 							<span class="micon dw dw-library"></span><span class="mtext">Clientes</span>
 						</a>
 						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/cliente/cliente'); ?>">Clientes</a></li>
-							<li><a href="<?php echo base_url('deskapp/clidirecto/clidirecto'); ?>">Cliente Directo</a></li>
-							<li><a href="<?php echo base_url('deskapp/clidirecto/ejecutivo'); ?>">Ejecutivo</a></li>
+							<li><a href="<?php echo base_url('deskapp/cliente/cliente'); //listar_clientes?>">Clientes</a></li>
+							<li><a href="<?php echo base_url('deskapp/clidirecto/clidirecto'); //listar_cte_directo?>">Cliente Directo</a></li>
+							<li><a href="<?php echo base_url('deskapp/clidirecto/ejecutivo'); //listar_ejecutivos?>">Ejecutivo</a></li>
 						</ul>
 					</li>
+					<li>
+						<div class="dropdown-divider"></div>
+					</li>
 					
-					<!-- <li>
+					<li>
+						<div class="dropdown-divider"></div>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon dw dw-library"></span><span class="mtext">Permisos</span>
+						</a>
+						<ul class="submenu">
+							<li><a href="<?php echo base_url('deskapp/users/users'); //listar_usuarios?>">Usuarios</a></li>
+							<li><a href="<?php echo base_url('deskapp/users/user_roles') //listar_usuarios_roles; ?>">Usuarios - Roles</a></li>
+							<li><a href="<?php echo base_url('deskapp/roles/roles'); //listar_roles;?>"> Roles </a></li>
+							<li><a href="<?php echo base_url('deskapp/permisos/permisos'); //listar_permisos?>">Permisos</a></li>
+							<li><a href="<?php echo base_url('deskapp/roles/role_permissions');//listar_roles_permisos ?>">Roles - Permisos</a></li>
+							
+						</ul>
+					</li>
+					<li>
+						<div class="dropdown-divider"></div>
+					</li>
+					
+					<li>
+						<div class="dropdown-divider"></div>
+					</li>
+
+
+
+					<?php if (has_permission('menu_erp_sa', esc($session->get('user_permissions'))) || is_super_admin($session->get('user_roles'))): //menu_erp_sa ?>
+					<li>
 						<a href="<?php echo base_url('deskapp/calendar'); ?>" class="dropdown-toggle no-arrow">
 							<span class="micon dw dw-calendar1"></span><span class="mtext">Calendar</span>
 						</a>
@@ -98,6 +134,12 @@
 							<li><a href="<?php echo base_url('deskapp/ui/listgroup'); ?>">List group</a></li>
 							<li><a href="<?php echo base_url('deskapp/ui/rangeSlider'); ?>">Range slider</a></li>
 							<li><a href="<?php echo base_url('deskapp/ui/carousel'); ?>">Carousel</a></li>
+							
+							<li><a href="<?php echo base_url('deskapp/forms/wizard') ?>">Form Wizard</a></li>
+							<li><a href="<?php echo base_url('deskapp/forms/html5Editor'); ?>">HTML5 Editor</a></li>
+							<li><a href="<?php echo base_url('deskapp/forms/pickers'); ?>">Form Pickers</a></li>
+							<li><a href="<?php echo base_url('deskapp/forms/imageCropper'); ?>">Image Cropper</a></li>
+							<li><a href="<?php echo base_url('deskapp/forms/imageDropZone'); ?>">Image Dropzone</a></li>
 						</ul>
 					</li>
 					<li class="dropdown">
@@ -185,8 +227,8 @@
 							<li><a href="javascript:;">Level 1</a></li>
 							<li><a href="javascript:;">Level 1</a></li>
 						</ul>
-					</li> -->
-					<!-- <li>
+					</li>
+					<li>
 						<a href="<?php echo base_url('deskapp/sitemap'); ?>" class="dropdown-toggle no-arrow">
 							<span class="micon dw dw-diagram"></span><span class="mtext">Sitemap</span>
 						</a>
@@ -200,7 +242,7 @@
 						<a href="<?php echo base_url('deskapp/invoice/'); ?>" class="dropdown-toggle no-arrow">
 							<span class="micon dw dw-invoice"></span><span class="mtext">Invoice</span>
 						</a>
-					</li> -->
+					</li>
 					<li>
 						<div class="dropdown-divider"></div>
 					</li>
@@ -228,6 +270,7 @@
 							<span class="mtext">Landing Page <img src="<?php echo base_url(); ?>/assets/vendors/images/coming-soon.png" alt="" width="25"></span>
 						</a>
 					</li>
+					<?php endif; ?>
 				</ul>
 			</div>
 		</div>

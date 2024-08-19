@@ -1,5 +1,5 @@
 <?php
-error_reporting(E_ALL);
+// error_reporting(E_ALL);
 // Valid PHP Version?
 $minPHPVersion = '7.2';
 if (version_compare(PHP_VERSION, $minPHPVersion, '<'))
@@ -33,7 +33,7 @@ $paths = new Config\Paths();
 // Location of the framework bootstrap file.
 $bootstrap = rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'bootstrap.php';
 $app       = require realpath($bootstrap) ?: $bootstrap;
-
+helper(['permissions_heleper']);
 /*
  *---------------------------------------------------------------
  * LAUNCH THE APPLICATION

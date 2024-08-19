@@ -45,7 +45,7 @@ class UpdateState extends StateAbstract {
 
         $this->setColumns();
 
-        $validator = $this->getValidationRules();
+        $validator = $this->setValidationRules('update');
 
         $output = (object)array();
 
