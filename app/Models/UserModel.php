@@ -37,6 +37,33 @@ class UserModel extends Model{
         return $this->extractRoleNames($query->getResultArray());
     }
 
+    public function isUserClient($user_id)
+    {
+        // Construir la consulta para verificar si el usuario es un cliente
+        $builder = $this->db->table('users as u');
+        $builder->select('c.*'); // Selecciona todos los campos de la tabla cliente
+        $builder->join('cliente_user as cu', 'u.id = cu.user_id', 'inner');
+        $builder->join('cliente as c', 'cu.cliente_id = c.id', 'inner');
+        $builder->where('u.id', $user_id);
+
+        // Ejecutar la consulta
+        $query = $builder->get();
+        $clientInfo = $query->getRowArray();
+
+        if ($clientInfo) {
+            // Si el usuario es un cliente, devolver true y la información del cliente
+            return [
+                'is_client' => true,
+                'client_info' => $clientInfo
+            ];
+        } else {
+            // Si el usuario no es un cliente, devolver false
+            return [
+                'is_client' => false
+            ];
+        }
+    }
+
     /**
      * Extrae los nombres de los roles de los resultados de la consulta.
      * 

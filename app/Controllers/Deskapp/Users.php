@@ -7,10 +7,6 @@ use Config\Database as ConfigDatabase;
 use Config\GroceryCrud as ConfigGroceryCrud;
 use GroceryCrud\Core\GroceryCrud;
 
-use Config\Database;
-
-use App\Models\UserModel;
-
 class Users extends BaseController
 {
     public function __construct() {
@@ -46,20 +42,22 @@ class Users extends BaseController
             $users_crud->defaultOrdering('users.id', 'desc');
             
             // Callback para cifrar la contraseña antes de insertar
-            $users_crud->columns(['id', 'username', 'firstname', 'lastname', 'email', 'roles', 'status']);
-            $users_crud->fields(['username', 'firstname', 'lastname', 'email', 'phone', 'avatar', 'password', 'roles', 'status', 'created_at', 'updated_at']);
+            $users_crud->columns(['id', 'username', 'firstname', 'midname', 'lastname', 'email', 'roles', 'status']);
+            $users_crud->fields(['username', 'firstname', 'midname', 'lastname', 'email', 'phone', 'avatar', 'password', 'roles', 'status']);
             $users_crud->fieldType('password', 'password'); // Indica que el campo password es de tipo password
             $users_crud->unsetDeleteMultiple();
-            $users_crud->displayAs('username','Nombre');
-            $users_crud->displayAs('firstname','Apellido Paterno');
+            $users_crud->displayAs('username','Username');
+            $users_crud->displayAs('firstname','Nombre');
+            $users_crud->displayAs('midname','Apellido Paterno');
             $users_crud->displayAs('lastname','Apellido Materno');
             $users_crud->displayAs('email','Correo');
             $users_crud->displayAs('phone','Teléfono');
             $users_crud->displayAs('password','Contraseña');
-            // echo "<br> aaaaaa" . base_url();die();
+            $users_crud->displayAs('avatar','Foto');
+
             $uploadValidations = [
-                'maxUploadSize' => '20M', // 20 Mega Bytes
-                'minUploadSize' => '1K', // 1 Kilo Byte
+                'maxUploadSize' => '20M',
+                'minUploadSize' => '1K',
                 'allowedFileTypes' => [
                     'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf'
                 ]
@@ -67,8 +65,8 @@ class Users extends BaseController
     
             $users_crud->setFieldUpload(
                 'avatar', 
-                'assets/uploads/avatars/', 
-                '/assets/uploads/avatars/', 
+                '/assets/uploads/documentos/', 
+                '/assets/uploads/documentos/', 
                 $uploadValidations
             );
 
@@ -89,6 +87,7 @@ class Users extends BaseController
                 $data['user_id'] = $myid;
                 $data['username'] = 'test';
                 $data['firstname'] = 'test';
+                $data['midname'] = 'test';
                 $data['lastname'] = "test";
                 $data['email'] = "test@test.com";
                 $data['phone'] = "12345678";
@@ -96,7 +95,7 @@ class Users extends BaseController
 
                 return $data;
             });
-
+            $users_crud->unsetEditFields(['password']);
             $users_crud->callbackBeforeInsert(function ($stateParameters) {
                 $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
                 $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
@@ -111,8 +110,6 @@ class Users extends BaseController
                 
                 return $stateParameters;
             });
-
-           
 
             // Encriptar la contraseña antes de guardarla en la base de datos al actualizar un registro existente
             $users_crud->callbackBeforeUpdate(function ($stateParameters) {
@@ -146,7 +143,7 @@ class Users extends BaseController
             $user_roles_crud->defaultOrdering('us_user_roles.id', 'desc');
             
             $user_roles_crud->columns(['id', 'user_id', 'role_id']);
-            $user_roles_crud->fields(['user_id', 'role_id', 'created_at', 'updated_at']);
+            $user_roles_crud->fields(['user_id', 'role_id']);
             $user_roles_crud->unsetDeleteMultiple();
 
             // Relaciones$user_roles_crud->setRelation('user_id', 'us_users', 'username');

@@ -42,7 +42,7 @@ class Permisos extends BaseController
             $permissions_crud->defaultOrdering('us_permissions.id', 'desc');
             
             $permissions_crud->columns(['id', 'permission_name', 'description']);
-            $permissions_crud->fields(['permission_name', 'description', 'created_at', 'updated_at']);
+            $permissions_crud->fields(['permission_name', 'description']);
             $permissions_crud->unsetDeleteMultiple();
 
             $permissions_output = $permissions_crud->render();

@@ -17,6 +17,8 @@ user_guide_src/cilexer/build/*
 user_guide_src/cilexer/dist/*
 user_guide_src/cilexer/pycilexer.egg-info/*
 
+assets/uploads/*
+
 #codeigniter 3
 application/logs/*
 !application/logs/index.html
@@ -25,12 +27,15 @@ application/logs/*
 composer.lock
 
 # Ignorar datos generados por el sistema
-/writable/cache/*
-/writable/logs/*
-/writable/session/*
-/writable/tests/*
-/writable/uploads/*
-/writable/*
+writable/*
+writable/cache/*
+writable/logs/*
+writable/session/*
+writable/tests/*
+writable/uploads/*
+
+
+
 
 # Ignorar archivos de IDE/editor
 *.swp  # Archivos temporales de Vim

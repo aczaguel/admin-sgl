@@ -22,7 +22,7 @@ use App\Models\GestorModel;
 use App\Models\TraStatusModel;
 use App\Models\TramitesModel;
 use App\Models\CobroStatusesModel;
-
+use App\Models\TraUserLogModel;
 class Tramites extends BaseController
 {
     public function __construct() {
@@ -52,33 +52,109 @@ class Tramites extends BaseController
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
-            $tramite_crud->unsetAdd();    
+            $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
-            $tramite_crud->unsetDelete();
+            $tramite_crud->unsetRead();
+            // $tramite_crud->setTheme('bootstrap-v5');
+            $tramite_crud->unsetDeleteMultiple();
+            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+                    return '/deskapp/tramites/update/' . $row->id;
+                }, true);
+            }
+
+            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetDelete();
+            }
+
+            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetExport();
+            }
+
+            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetPrint();
+            }
+
+            if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
+                    return '/deskapp/tramites/update/' . $row->id;
+                }, true);
+            }
+
+            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetClone();
+            }
+
             $tramite_crud->setCsrfTokenName(csrf_token());
             $tramite_crud->setCsrfTokenValue(csrf_hash());
+
+            //lista todos los unset de grocery crud
             
             $tramite_crud->setTable('tramite');
             $tramite_crud->setSubject('tramite', 'Tramites');
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
             
+            
+
             $tramite_crud->columns([
-                'id', 'folio','contrato','unidad','serie', 
+                'created_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
                 'observaciones', 'status'
             ]);
+            $tramite_crud->displayAs("created_at", "Desde Creación");
+
+            $tramite_crud->callbackColumn('created_at', function ($value, $row) {
+                $fechaCreacion = new \DateTime($row->created_at);
+                $fechaActual = new \DateTime();
+                $diasDiferencia = $fechaCreacion->diff($fechaActual)->days;
+            
+                // Definir clases CSS según los días
+                $claseVerde = 'background-verde';  // Clase CSS para verde
+                $claseAmarillo = 'background-amarillo';  // Clase CSS para amarillo
+                $claseRojo = 'background-rojo';  // Clase CSS para rojo
+                $claseVioleta = 'background-violeta';  // Clase CSS para violeta
+            
+                // Determinar si es Local o Foráneo
+                $local = ($row->ent_municipio_id >= 266 && $row->ent_municipio_id <= 281) || 
+                ($row->ent_municipio_id >= 657 && $row->ent_municipio_id <= 781);
+                
+                // Determinar la clase CSS basada en los días de diferencia y si es Local o Foráneo
+                if ($local) {
+                    if ($diasDiferencia < 5) {
+                        $clase = $claseVerde;
+                    } elseif ($diasDiferencia < 8) {
+                        $clase = $claseAmarillo;
+                    } elseif ($diasDiferencia < 12) {
+                        $clase = $claseRojo;
+                    } else {
+                        $clase = $claseVioleta;
+                    }
+                } else {
+                    if ($diasDiferencia < 10) {
+                        $clase = $claseVerde;
+                    } elseif ($diasDiferencia < 13) {
+                        $clase = $claseAmarillo;
+                    } elseif ($diasDiferencia < 16) {
+                        $clase = $claseRojo;
+                    } else {
+                        $clase = $claseVioleta;
+                    }
+                }
+            
+                return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
+            });
+            
+            
 
             $tramite_crud->fields([
                 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status', 'user_id', 'created_at', 'updated_at'
+                'observaciones', 'status', 'user_id'
             ]); 
-            // $tramite_crud->readOnlyFields(["folio"]);
-            $tramite_crud->unsetDeleteMultiple();
             
             /* SELECT Se configura el tipo de tramite */
             $tramite_crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
@@ -111,11 +187,6 @@ class Tramites extends BaseController
             $tramite_crud->displayAs('gestor_id','Gestor');
 
             $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
-
-
-            $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
-                return '/deskapp/tramites/update/' . $row->id;
-            }, true);
 
             $tramite_salida = $tramite_crud->render();
             
@@ -167,7 +238,7 @@ class Tramites extends BaseController
 
         $traStatus = new TraStatusModel($db2);
         $tra_status_options = $traStatus->getTraStatusOptions();
-
+        $tra_status_options = array_slice($tra_status_options, 0, 1, true); // Se deja unicamente la opción en proceso
         $cobroStatuses = new CobroStatusesModel($db2);
         $cobro_status_options = $cobroStatuses->getCobroStatusesOptions();
 
@@ -274,8 +345,6 @@ class Tramites extends BaseController
                         "file" => null,
                         "comentario" => null,
                         "user_id" => (int)$myid,
-                        "created_at" => date('Y-m-d H:i:s'),
-                        "updated_at" => date('Y-m-d H:i:s'),
                         "status" => 1
                     ];
                     // Inserta los datos en la base de datos utilizando el modelo apropiado (ejemplo: usando CodeIgniter Model)
@@ -294,11 +363,17 @@ class Tramites extends BaseController
                     "tramite_id" => (int)$lastInsertID,
                     "cambios" => json_encode($diferencias),
                     "user_id" => (int)$myid,
-                    "created_at" => date('Y-m-d H:i:s'),
-                    "updated_at" => date('Y-m-d H:i:s'),
                     "status" => 1
                 ];
                 $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+
+                $tra_user_log = new TraUserLogModel($db2);
+                $log = [
+                    "tramite_id"    => $lastInsertID,
+                    "user_id"       => $myid,
+                    "tra_status_id" => 11
+                ];
+                $tra_user_log->insert($log, 'tra_user_log');
 
                 // Si la solicitud es AJAX, devuelve una respuesta JSON indicando éxito
                 if ($this->request->isAJAX()) {
@@ -335,7 +410,9 @@ class Tramites extends BaseController
         $db2 = $this->_getDbData();
         // Retrieve the record
         $tramite = $builder->getWhere(['id' => $id])->getRowArray();
-
+        if($tramite['tra_status_id'] == 23){
+            return redirect()->to('/deskapp/proceso/update_final/'. $id);
+        }
         // var_dump($tramite);
         $TraTiposModel = new TraTiposModel($db2);
         $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
@@ -350,54 +427,74 @@ class Tramites extends BaseController
         $tra_status_options = $traStatus->getTraStatusOptions();
 
         $cobroStatuses = new CobroStatusesModel($db2);
-        $cobro_status_options = $cobroStatuses->getCobroStatusesOptions();
+        // $cobro_status_options = $cobroStatuses->getCobroStatusesOptions();
         $form = new \stdClass();
         
         // Fields to be displayed in the add form
-        $form->fields = [
-            "folio" => ["label" => "Folio", "type" => "text", "value" => $tramite['folio'], "readonly"=>"readonly"],
-            "contrato" => ["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required"],
-            "unidad" => ["label" => "Unidad", "type" => "text", "value" => $tramite['unidad']],
-            "serie" => ["label" => "Serie", "type" => "text", "value" => $tramite['serie']],
-            "placas" => ["label" => "Placas", "type" => "text", "value" => $tramite['placas']],
-            "tra_tipos_id" => ["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "value" => $tramite['tra_tipos_id']],
-            "cli_directo_id" => ["label" => "Cliente", "type" => "select", "options" => $cli_directo_options, "value" => $tramite['cli_directo_id']],
-            "cli_directo_ejecutivo_id" => ["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "value" => $tramite['cli_directo_ejecutivo_id']],
-            "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id']],
-            "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id']],
-            "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id']],
-            "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion']],
-            "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id']],
-            "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']],
-            "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status']],
-            // "user_id" => ["label" => "User Id", "type" => "hidden", "value" => "$myid"]
-        ];
-    
-        // $data['fields'] = $fields;
+
+        if (is_read_only(esc($session->get('user_roles')))){
+            $form->fields = [
+                "folio" => ["label" => "Folio", "type" => "text", "value" => $tramite['folio'], "disabled"=>"disabled"],
+                "contrato" => ["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required", "disabled"=>"disabled"],
+                "unidad" => ["label" => "Unidad", "type" => "text", "value" => $tramite['unidad'], "disabled"=>"disabled"],
+                "serie" => ["label" => "Serie", "type" => "text", "value" => $tramite['serie'], "disabled"=>"disabled"],
+                "placas" => ["label" => "Placas", "type" => "text", "value" => $tramite['placas'], "disabled"=>"disabled"],
+                "tra_tipos_id" => ["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "value" => $tramite['tra_tipos_id'], "disabled"=>"disabled"],
+                "cli_directo_id" => ["label" => "Cliente", "type" => "select", "options" => $cli_directo_options, "value" => $tramite['cli_directo_id'], "disabled"=>"disabled"],
+                "cli_directo_ejecutivo_id" => ["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "value" => $tramite['cli_directo_ejecutivo_id'], "disabled"=>"disabled"],
+                "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id'], "disabled"=>"disabled"],
+                "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "disabled"=>"disabled"],
+                "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id'], "disabled"=>"disabled"],
+                "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion'], "disabled"=>"disabled"],
+                "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id'], "disabled"=>"disabled"],
+                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"],
+                "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status'], "disabled"=>"disabled"]
+            ];
+        }else{
+            $form->fields = [
+                "folio" => ["label" => "Folio", "type" => "text", "value" => $tramite['folio'], "readonly"=>"readonly"],
+                "contrato" => ["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required"],
+                "unidad" => ["label" => "Unidad", "type" => "text", "value" => $tramite['unidad']],
+                "serie" => ["label" => "Serie", "type" => "text", "value" => $tramite['serie']],
+                "placas" => ["label" => "Placas", "type" => "text", "value" => $tramite['placas']],
+                "tra_tipos_id" => ["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "value" => $tramite['tra_tipos_id']],
+                "cli_directo_id" => ["label" => "Cliente", "type" => "select", "options" => $cli_directo_options, "value" => $tramite['cli_directo_id']],
+                "cli_directo_ejecutivo_id" => ["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "value" => $tramite['cli_directo_ejecutivo_id']],
+                "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id']],
+                "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id']],
+                "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id']],
+                "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion']],
+                "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id']],
+                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']],
+                "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status']]
+            ];
+        }
+
         $data['id'] = $id;
         $form->id = $id;
+
+        
         $crud = $this->_getGroceryCrudEnterprise();
         $crudOutput = $crud->render();
 
         $form->css_files = $crudOutput->css_files;
         $form->js_files = $crudOutput->js_files;
-        // Load the view with the fields and current data
-
-        $cruddocstatus = $this->_getGroceryCrudEnterprise();
-        $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/221');
-        $output = $cruddocstatus->render();
-        // single_evidencias
-        // $crudtramites = $this->_getGroceryCrudEnterprise();
-        // $crud2->setApiUrlPath('/deskapp/tramites/tipo');
-        // $output2 = $crud2->render();
-
-        $crudevidencias = $this->_getGroceryCrudEnterprise();
-        $crudevidencias->setApiUrlPath('/deskapp/tramites/single_evidencias/221');
-        $outputevidencias = $crudevidencias->render();
         
-        $output->output .= "<hr>".$outputevidencias->output;
+        // Load the view with the fields and current data
+        if (!is_read_only(esc($session->get('user_roles')))){
+            $cruddocstatus = $this->_getGroceryCrudEnterprise();
+            $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/'.$id);
+            $output = $cruddocstatus->render();
 
-        $form->output = $output->output;
+            $crudevidencias = $this->_getGroceryCrudEnterprise();
+            $crudevidencias->setApiUrlPath('/deskapp/tramites/single_evidencias/'.$id);
+            $outputevidencias = $crudevidencias->render();
+            
+            $output->output .= "<hr>".$outputevidencias->output;
+
+            $form->output = $output->output;
+        }
+
         $form = array_merge((array)$form, $data);
         return $this->_example_output_2($form, 'add');
     }
@@ -450,6 +547,7 @@ class Tramites extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
             $builder->where('id', $id);
+            $data["user_id"] = $myid;
             $builder->update($data);
             $folio = $data["folio"];
             #adding bitacora
@@ -464,11 +562,17 @@ class Tramites extends BaseController
                 "tramite_id" => (int)$id,
                 "cambios" => json_encode($diferencias),
                 "user_id" => (int)$myid,
-                "created_at" => date('Y-m-d H:i:s'),
-                "updated_at" => date('Y-m-d H:i:s'),
                 "status" => 1
             ];
-            $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+            $bitacoraModel->insert($insert_bitacora, 'bitacora');
+
+            $tra_user_log = new TraUserLogModel($db2);
+            $log = [
+                "tramite_id"    => (int)$id,
+                "user_id"       => (int)$myid,
+                "tra_status_id" => 22
+            ];
+            $tra_user_log->insert($log, 'tra_user_log');
 
             // Return success message as JSON
             return $this->response->setJSON([
@@ -537,26 +641,216 @@ class Tramites extends BaseController
             
             $tramite_crud->setTable('tramite');
             $tramite_crud->setSubject('tramite', 'Mis Tramites');
-            $tramite_crud->where([
-                'tramite.user_id' => $myid
-            ]);     
+
+            if(is_starter($session->get('user_roles'))){
+                $tramite_crud->where([
+                    '(tramite.user_id = ? AND tramite.tra_status_id = ?)' => [$myid, 11]
+                ]);
+            }elseif(is_executer($session->get('user_roles'))){
+                    $tramite_crud->where([
+                        '(tramite.user_id = ? AND tramite.tra_status_id = ?)' => [$myid, 22]
+                    ]);
+            }else{
+                $tramite_crud->where([
+                    'tramite.user_id' => $myid
+                ]); 
+            }
 
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
             
             $tramite_crud->columns([
-                'id', 'folio','contrato','unidad','serie', 
+                'created_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
                 'observaciones', 'status'
             ]);
 
+            $tramite_crud->displayAs("created_at", "Desde Creación");
+
+            $tramite_crud->callbackColumn('created_at', function ($value, $row) {
+                $fechaCreacion = new \DateTime($row->created_at);
+                $fechaActual = new \DateTime();
+                $diasDiferencia = $fechaCreacion->diff($fechaActual)->days;
+            
+                // Definir clases CSS según los días
+                $claseVerde = 'background-verde';  // Clase CSS para verde
+                $claseAmarillo = 'background-amarillo';  // Clase CSS para amarillo
+                $claseRojo = 'background-rojo';  // Clase CSS para rojo
+                $claseVioleta = 'background-violeta';  // Clase CSS para violeta
+            
+                // Determinar si es Local o Foráneo
+                $local = ($row->ent_municipio_id >= 266 && $row->ent_municipio_id <= 281) || 
+                ($row->ent_municipio_id >= 657 && $row->ent_municipio_id <= 781);
+                
+                // Determinar la clase CSS basada en los días de diferencia y si es Local o Foráneo
+                if ($local) {
+                    if ($diasDiferencia < 5) {
+                        $clase = $claseVerde;
+                    } elseif ($diasDiferencia < 8) {
+                        $clase = $claseAmarillo;
+                    } elseif ($diasDiferencia < 12) {
+                        $clase = $claseRojo;
+                    } else {
+                        $clase = $claseVioleta;
+                    }
+                } else {
+                    if ($diasDiferencia < 10) {
+                        $clase = $claseVerde;
+                    } elseif ($diasDiferencia < 13) {
+                        $clase = $claseAmarillo;
+                    } elseif ($diasDiferencia < 16) {
+                        $clase = $claseRojo;
+                    } else {
+                        $clase = $claseVioleta;
+                    }
+                }
+            
+                return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
+            });
+
             $tramite_crud->fields([
                 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status', 'user_id', 'created_at', 'updated_at'
+                'observaciones', 'status', 'user_id'
+            ]); 
+            // $tramite_crud->readOnlyFields(["folio"]);
+            $tramite_crud->unsetDeleteMultiple();
+            
+            /* SELECT Se configura el tipo de tramite */
+            $tramite_crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
+            $tramite_crud->displayAs('tra_tipos_id','Tipo de Tramite');
+
+            /* SELECT Se configura el estatus del tramite */
+            $tramite_crud->setRelation('tra_status_id', 'tra_status', 'tra_status');
+            $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
+
+            /* SELECT Se configura el cliente final o cliente directo */
+            $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
+            
+            /* SELECT Se configura el ejecutivo del cliente */
+            $tramite_crud->setRelation('cli_directo_ejecutivo_id', 'cli_directo_ejecutivo', 'nombre');
+            $tramite_crud->displayAs('cli_directo_ejecutivo_id','Ejecutivo del Cliente');
+
+            $tramite_crud->setDependentRelation('cli_directo_ejecutivo_id','cli_directo_id','cli_directo_id');
+
+            /* SELECT Se configura el municipio */
+            $tramite_crud->setRelation('ent_municipio_id', 'rel_ent_municipio', 'ent_municipality');
+            $tramite_crud->displayAs('ent_municipio_id','Municipio');
+
+            /* SELECT Se configura la empresa gestora */
+            $tramite_crud->setRelation('empresa_gestora_id', 'ges_empresa_gestora', 'razon_social');
+            $tramite_crud->displayAs('empresa_gestora_id','Empresa Gestora');
+
+            /* SELECT Se configura el gestor*/
+            $tramite_crud->setRelation('gestor_id', 'ges_gestor', 'nombre');
+            $tramite_crud->displayAs('gestor_id','Gestor');
+
+            $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
+
+            $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+                return '/deskapp/tramites/update/' . $row->id;
+            }, true);
+
+            $tramite_salida = $tramite_crud->render();
+            
+            $salida_total = array_merge((array)$tramite_salida, $data);
+            $salida_total['insert_button_url'] = '/public/deskapp/tramites/add';
+
+            echo $this->_example_output($salida_total);
+
+        } catch (\Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    public function en_proceso()
+    {
+        try {
+            # Manejo de session de action
+            $self = $this;
+            $session = session();
+            $data['session'] = \Config\Services::session();
+            $data['username'] = $session->get('user_name');
+            $myid = $session->get('id');
+            # fin del manejo de session
+
+            $tramite_crud = $this->_getGroceryCrudEnterprise();
+            $tramite_crud->unsetAdd();    
+            $tramite_crud->unsetEdit();
+            $tramite_crud->unsetDelete();
+            $tramite_crud->setCsrfTokenName(csrf_token());
+            $tramite_crud->setCsrfTokenValue(csrf_hash());
+            
+            $tramite_crud->setTable('tramite');
+            $tramite_crud->setSubject('tramite', 'Mis Tramites');
+
+            $tramite_crud->where([
+                'tramite.tra_status_id = ?' => [11]
+            ]);   
+
+            $tramite_crud->defaultOrdering('tramite.id', 'desc');
+            
+            $tramite_crud->columns([
+                'created_at', 'id', 'folio','contrato','unidad','serie', 
+                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
+                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
+                'tra_status_id','cobro_status_id',
+                'observaciones', 'status'
+            ]);
+
+            $tramite_crud->displayAs("created_at", "Desde Creación");
+
+            $tramite_crud->callbackColumn('created_at', function ($value, $row) {
+                $fechaCreacion = new \DateTime($row->created_at);
+                $fechaActual = new \DateTime();
+                $diasDiferencia = $fechaCreacion->diff($fechaActual)->days;
+            
+                // Definir clases CSS según los días
+                $claseVerde = 'background-verde';  // Clase CSS para verde
+                $claseAmarillo = 'background-amarillo';  // Clase CSS para amarillo
+                $claseRojo = 'background-rojo';  // Clase CSS para rojo
+                $claseVioleta = 'background-violeta';  // Clase CSS para violeta
+            
+                // Determinar si es Local o Foráneo
+                $local = ($row->ent_municipio_id >= 266 && $row->ent_municipio_id <= 281) || 
+                ($row->ent_municipio_id >= 657 && $row->ent_municipio_id <= 781);
+                
+                // Determinar la clase CSS basada en los días de diferencia y si es Local o Foráneo
+                if ($local) {
+                    if ($diasDiferencia < 5) {
+                        $clase = $claseVerde;
+                    } elseif ($diasDiferencia < 8) {
+                        $clase = $claseAmarillo;
+                    } elseif ($diasDiferencia < 12) {
+                        $clase = $claseRojo;
+                    } else {
+                        $clase = $claseVioleta;
+                    }
+                } else {
+                    if ($diasDiferencia < 10) {
+                        $clase = $claseVerde;
+                    } elseif ($diasDiferencia < 13) {
+                        $clase = $claseAmarillo;
+                    } elseif ($diasDiferencia < 16) {
+                        $clase = $claseRojo;
+                    } else {
+                        $clase = $claseVioleta;
+                    }
+                }
+            
+                return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
+            });
+
+            $tramite_crud->fields([
+                'folio','contrato','unidad','serie', 
+                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
+                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
+                'tra_status_id','cobro_status_id',
+                'observaciones', 'status', 'user_id'
             ]); 
             // $tramite_crud->readOnlyFields(["folio"]);
             $tramite_crud->unsetDeleteMultiple();
@@ -684,11 +978,7 @@ class Tramites extends BaseController
             "documento_id", 
             "documento"
         );
-        $crud->callbackBeforeInsert(function ($stateParameters) {
-            $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
-        });
+
         $crud->callbackAddForm(function ($data) {
             $session = session();
             $myid = $session->get('id');
@@ -786,8 +1076,6 @@ class Tramites extends BaseController
                 "tramite_id" => (int)$tramite_id,
                 "cambios" => json_encode($diferencias),
                 "user_id" => (int)$myid,
-                "created_at" => date('Y-m-d H:i:s'),
-                "updated_at" => date('Y-m-d H:i:s'),
                 "status" => 1
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
@@ -810,8 +1098,6 @@ class Tramites extends BaseController
         );
 
         $crud->fieldType('user_id','hidden');
-        $crud->fieldType('created_at','hidden');
-        $crud->fieldType('updated_at','hidden');
 
         $crud->callbackAddForm(function ($data) {
             $request = \Config\Services::request();
@@ -825,17 +1111,6 @@ class Tramites extends BaseController
             $data['folio_tramite'] = $folio_tramite;
             $data['tramite_id'] = $tramite_id;
             return $data;
-        });
-
-        $crud->callbackBeforeInsert(function ($stateParameters) {
-            $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
-        });
-
-        $crud->callbackBeforeUpdate(function ($stateParameters) {
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
         });
 
         $salida = $crud->render();
@@ -869,12 +1144,33 @@ class Tramites extends BaseController
         $crud->setCsrfTokenValue(csrf_hash());
         $crud->setTable('tra_doc_status');
         $crud->setSubject('Documento', 'Documentos');
+
+        $crud->fields([
+            "tramite_id", "folio_tramite", "documento_id", "status_documento_id", "file", "comentario", "user_id"
+        ]); 
+
+        $crud->columns([
+            "id", "folio_tramite", "tramite_id", "documento_id", "status_documento_id", "file", "comentario", "user_id", "status"
+        ]);
+
         $crud->where([
             'folio_tramite' => $folio_tramite
         ]);        
-
-        $crud->fieldType('folio_tramite','hidden');
+        $crud->readOnlyFields(['folio_tramite']);
         
+        $crud->fieldType('user_id','hidden');
+        $crud->callbackBeforeInsert(function ($stateParameters) {
+            $session = session();
+            $folio_tramite = $session->get('folio_tramite_id');
+            $stateParameters->data['folio_tramite'] = $folio_tramite;
+            return $stateParameters;
+        });    
+        $crud->callbackBeforeUpdate(function ($stateParameters) {
+            $session = session();
+            $folio_tramite = $session->get('folio_tramite_id');
+            $stateParameters->data['folio_tramite'] = $folio_tramite;
+            return $stateParameters;
+        });    
         /* SELECT Se configura el documento */
         $crud->setRelation('documento_id', 'documento', 'documento');
         $crud->displayAs('documento_id','Documento');
@@ -894,7 +1190,6 @@ class Tramites extends BaseController
         });
 
         $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
-            $db = Database::connect();
             $db2 = $this->_getDbData();
             $session = session();
             $data = $stateParameters->data;
@@ -914,8 +1209,6 @@ class Tramites extends BaseController
                 "tramite_id" => (int)$tramite_id,
                 "cambios" => json_encode($diferencias),
                 "user_id" => (int)$myid,
-                "created_at" => date('Y-m-d H:i:s'),
-                "updated_at" => date('Y-m-d H:i:s'),
                 "status" => 1
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
@@ -938,34 +1231,21 @@ class Tramites extends BaseController
         );
 
         $crud->fieldType('user_id','hidden');
-        $crud->fieldType('created_at','hidden');
-        $crud->fieldType('updated_at','hidden');
 
         $crud->callbackAddForm(function ($data) {
             $request = \Config\Services::request();
             $uri = $request->getUri();
             $tramite_id = $uri->getSegment(4);
-            // $tramite_id = (int) $uri->getSegment(5);
 
             $session = session();
             $myid = $session->get('id');
-            $folio_tramite = $session->set('folio_tramite_id');
+            $folio_tramite = $session->get('folio_tramite_id');
             $data['user_id'] = $myid;
             $data['folio_tramite'] = $folio_tramite;
             $data['tramite_id'] = $tramite_id;
             return $data;
         });
 
-        $crud->callbackBeforeInsert(function ($stateParameters) {
-            $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
-        });
-
-        $crud->callbackBeforeUpdate(function ($stateParameters) {
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
-        });
 
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
@@ -990,7 +1270,7 @@ class Tramites extends BaseController
         $crud->setCsrfTokenValue(csrf_hash());
 
         $crud->setTable('tra_evidencias');
-        $crud->setSubject('Evidencia', 'Evidencias');
+        $crud->setSubject('Bitacora', 'Bitacoras');
 
         $crud->where([
             'folio_tramite' => $folio_tramite
@@ -1022,8 +1302,6 @@ class Tramites extends BaseController
                     "tramite_id" => (int)$tramite_id,
                     "cambios" => json_encode($diferencias),
                     "user_id" => (int)$myid,
-                    "created_at" => date('Y-m-d H:i:s'),
-                    "updated_at" => date('Y-m-d H:i:s'),
                     "status" => 1
                 ];
                 $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
@@ -1061,8 +1339,6 @@ class Tramites extends BaseController
                 "tramite_id" => (int)$tramite_id,
                 "cambios" => json_encode($diferencias),
                 "user_id" => (int)$myid,
-                "created_at" => date('Y-m-d H:i:s'),
-                "updated_at" => date('Y-m-d H:i:s'),
                 "status" => 1
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
@@ -1085,8 +1361,6 @@ class Tramites extends BaseController
         );
 
         $crud->fieldType('user_id','hidden');
-        $crud->fieldType('created_at','hidden');
-        $crud->fieldType('updated_at','hidden');
 
         $crud->fieldType('folio_tramite','hidden');
         $crud->fieldType('tramite_id','hidden');
@@ -1102,17 +1376,6 @@ class Tramites extends BaseController
             $data['folio_tramite'] = $folio_tramite;
             $data['tramite_id'] = $tramite_id;
             return $data;
-        });
-
-        $crud->callbackBeforeInsert(function ($stateParameters) {
-            $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
-        });
-
-        $crud->callbackBeforeUpdate(function ($stateParameters) {
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
         });
 
         $salida = $crud->render();
@@ -1146,8 +1409,16 @@ class Tramites extends BaseController
         $crud->setCsrfTokenValue(csrf_hash());
 
         $crud->setTable('tra_evidencias');
-        $crud->setSubject('Evidencia', 'Evidencias');
+        $crud->setSubject('Bitacora', 'Bitacoras');
 
+        $crud->fields([
+            "folio_tramite", "tramite_id", "file", "comentario", "costo", "user_id"
+        ]); 
+
+        $crud->columns([
+            "id", "folio_tramite", "tramite_id", "file", "costo", "user_id"
+        ]);
+        
         $crud->where([
             'folio_tramite' => $folio_tramite
         ]);   
@@ -1177,8 +1448,6 @@ class Tramites extends BaseController
                     "tramite_id" => (int)$tramite_id,
                     "cambios" => json_encode($diferencias),
                     "user_id" => (int)$myid,
-                    "created_at" => date('Y-m-d H:i:s'),
-                    "updated_at" => date('Y-m-d H:i:s'),
                     "status" => 1
                 ];
                 $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
@@ -1218,8 +1487,6 @@ class Tramites extends BaseController
                 "tramite_id" => (int)$tramite_id,
                 "cambios" => json_encode($diferencias),
                 "user_id" => (int)$myid,
-                "created_at" => date('Y-m-d H:i:s'),
-                "updated_at" => date('Y-m-d H:i:s'),
                 "status" => 1
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
@@ -1241,12 +1508,20 @@ class Tramites extends BaseController
         );
 
         $crud->fieldType('user_id','hidden');
-        $crud->fieldType('created_at','hidden');
-        $crud->fieldType('updated_at','hidden');
-
         $crud->fieldType('folio_tramite','hidden');
         $crud->fieldType('tramite_id','hidden');
-
+        $crud->callbackBeforeInsert(function ($stateParameters) {
+            $session = session();
+            $folio_tramite = $session->get('folio_tramite_id');
+            $stateParameters->data['folio_tramite'] = $folio_tramite;
+            return $stateParameters;
+        });    
+        $crud->callbackBeforeUpdate(function ($stateParameters) {
+            $session = session();
+            $folio_tramite = $session->get('folio_tramite_id');
+            $stateParameters->data['folio_tramite'] = $folio_tramite;
+            return $stateParameters;
+        });  
         $crud->callbackAddForm(function ($data) {
             $session = session();
 
@@ -1263,17 +1538,6 @@ class Tramites extends BaseController
             $data['folio_tramite'] = $folio_tramite;
             $data['tramite_id'] = $tramite_id;
             return $data;
-        });
-
-        $crud->callbackBeforeInsert(function ($stateParameters) {
-            $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
-        });
-
-        $crud->callbackBeforeUpdate(function ($stateParameters) {
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
         });
 
         $salida = $crud->render();
@@ -1300,5 +1564,35 @@ class Tramites extends BaseController
 
         $groceryCrud = new GroceryCrud($config, $db);
         return $groceryCrud;
+    }
+
+    public function autorizar(){
+        $tramiteId = $this->request->getPost('tramite_id');
+        $statusId = $this->request->getPost('status_id');
+        $db = \Config\Database::connect();
+        $db2 = $this->_getDbData();
+        $builder = $db->table('tramite');
+
+        try {
+            // Actualizar el estatus del trámite
+            $builder->where('id', $tramiteId);
+            $builder->update(['tra_status_id' => $statusId]);
+
+            // Opcional: Insertar un registro en tra_user_log
+            $session = session();
+            $myid = $session->get('id');
+            $tra_user_log = new TraUserLogModel($db2);
+            $logData = [
+                'tramite_id' => $tramiteId,
+                'user_id' => $myid,
+                'tra_status_id' => 23
+            ];
+
+            $tra_user_log->insert($logData, 'tra_user_log');
+
+            return $this->response->setJSON(['success' => true]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
 }

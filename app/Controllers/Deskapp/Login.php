@@ -40,8 +40,14 @@
 					// var_dump($session->get('user_permissions'));
 					$user_roles = $model->getUserRoles($data['id']);
 					$session->set('user_roles', $user_roles);
+					$user_client = $model->isUserClient($data['id']);
+					if($user_client["is_client"]){
+						$session->set('user_client', $user_client);
+					}
+					
 					// var_dump($session->get('user_roles'));die();
 	                return redirect()->to('./deskapp/dashboard');
+
 	            }else{
 	                $session->setFlashdata('msg', 'Wrong Password');
 	                return redirect()->to('./deskapp/login');

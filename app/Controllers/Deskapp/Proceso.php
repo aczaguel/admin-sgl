@@ -9,11 +9,25 @@ use GroceryCrud\Core\GroceryCrud;
 
 use Config\Database;
 
-use App\Models\TraDocStatusModel;
+use App\Models\TraTiposModel;
+use App\Models\EntMunicipioModel;
+use App\Models\ClienteModel;
+use App\Models\ClienteDirectoModel;
+use App\Models\ClienteDirectoEjecutivoModel;
+use App\Models\EmpresaGestoraModel;
+use App\Models\GestorModel;
+use App\Models\TraStatusModel;
+use App\Models\TramitesModel;
+use App\Models\CobroStatusesModel;
+use App\Models\CobroStatusModel;
 use App\Models\BitacoraModel;
-
+use App\Models\ReembolsoStatusModel;
 class Proceso extends BaseController
 {
+    public function __construct() {
+        // parent::__construct();
+        helper(['form', 'url']);
+    }
 
     public function index()
     {
@@ -35,91 +49,62 @@ class Proceso extends BaseController
             $myid = $session->get('id');
             $crud = $this->_getGroceryCrudEnterprise();
 
+            $crud->unsetAdd();
+            $crud->unsetEdit();
+            $crud->unsetDelete();
+            $crud->unsetDeleteMultiple();
+
+            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $crud->unsetExport();
+            }
+
+            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $crud->unsetPrint();
+            }
+
+            if (!has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $crud->unsetRead();
+            }
+
+            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $crud->setClone();
+            }
+
             $crud->setCsrfTokenName(csrf_token());
             $crud->setCsrfTokenValue(csrf_hash());
 
             $crud->setTable('tramite');
             $crud->setSubject('tramite', 'Tramites');
-            $crud->unsetAdd();
-            $crud->columns(["folio",
-            "contrato",
-            "unidad",
-            "serie",
-            "placas",
-            "tra_tipos_id",
-            // "ent_municipio_id",
-            "cli_directo_id",
-            "cli_directo_ejecutivo_id",
-            "empresa_gestora_id",
-            "gestor_id",
-            "fecha_asignacion",
-            "fecha_conclusion",
-            "costo_gestoria",
-            "impuesto_gestoria",
-            "derechos_tramite",
-            "comision_derechos",
-            "numero_factura",
-            "numero_refactura",
-            "costo_total",
-            "reembolso_status_id",
-            "tra_status_id",
-            "cobro_status_id",
-            "observaciones",
-            "status"]);
-            $crud->fields(["folio",
-            "contrato",
-            "unidad",
-            "serie",
-            "placas",
-            "tra_tipos_id",
-            // "ent_municipio_id",
-            "cli_directo_id",
-            "cli_directo_ejecutivo_id",
-            "empresa_gestora_id",
-            "gestor_id",
-            "fecha_asignacion",
-            "fecha_conclusion",
-            "costo_gestoria",
-            "impuesto_gestoria",
-            "derechos_tramite",
-            "comision_derechos",
-            "numero_factura",
-            "numero_refactura",
-            "costo_total",
-            "reembolso_status_id",
-            "tra_status_id",
-            "cobro_status_id",
-            "observaciones",
-            "status"]);
+            $crud->columns(["folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id", "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", 
+            "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite", "comision_derechos", "costo_total", "numero_factura", "numero_refactura",
+            "reembolso_status_id", "tra_status_id", "cobro_status_id", "observaciones", "status"]); 
+            $crud->fields(["folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id", 
+            "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite",
+            "comision_derechos", "costo_total", "numero_factura", "numero_refactura", "reembolso_status_id", "tra_status_id", "cobro_status_id", "observaciones", "status"]);
 
-            $crud->readOnlyFields(["folio",
-            "contrato",
-            "unidad",
-            "serie",
-            "placas",
-            "tra_tipos_id",
-            // "ent_municipio_id",
-            "cli_directo_id",
-            "cli_directo_ejecutivo_id",
-            "empresa_gestora_id",
-            "gestor_id",
-            "fecha_asignacion",
-            "fecha_conclusion",
-            "costo_gestoria",
-            "impuesto_gestoria",
-            "derechos_tramite",
-            "comision_derechos",
-            "numero_factura",
-            "numero_refactura",
-            "costo_total",
-            "reembolso_status_id",
-            "tra_status_id",
-            "observaciones",
-            "status"]);
+            $crud->readOnlyFields(["folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id", "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id",
+            "gestor_id", "fecha_asignacion", "fecha_conclusion", "numero_factura", "numero_refactura", "reembolso_status_id", "tra_status_id", "observaciones", "status"]);
 
             $crud->where([
-                'tra_status_id' => 20
+                'tra_status_id' => 20                                                                                                                                                                                                                                                                                                                                  
             ]);
+            
+            $crud->unsetAdd();
+            $crud->unsetEdit();
+            $crud->unsetDelete();
+            
+            if (!has_permission('export_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $crud->unsetExport();
+            }
+            if (!has_permission('print_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $crud->unsetPrint();
+            }
+            if (!has_permission('read_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $crud->unsetRead();
+            }
+            if (!has_permission('clone_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $crud->setClone();
+            }
 
             /* SELECT Se configura el tipo de tramite */
             $crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
@@ -154,7 +139,7 @@ class Proceso extends BaseController
             /* SELECT Se configura el gestor*/
             $crud->setRelation('gestor_id', 'ges_gestor', 'nombre');
             $crud->displayAs('gestor_id','Gestor');
-
+            
             $crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
             
             /* SELECT Se configura el gestor*/
@@ -163,59 +148,60 @@ class Proceso extends BaseController
 
             // $crud->setRule('folio', 'integer');
 
-            $crud->setActionButton('Documentos', 'fa fa-file', function ($row) {
-                return '/deskapp/tramites/documentostatus/' . $row->folio . '/' . $row->id;
-            }, true);
-            $crud->setActionButton('Bitacora', 'icon-copy dw dw-open-book-2', function ($row) {
-                return '/deskapp//bitacora/index/' . $row->folio ;
-            }, true);
-            $crud->unsetDelete();
-            $crud->unsetDeleteMultiple();
+            // $crud->setActionButton('Documentos', 'fa fa-file', function ($row) {
+            //     return '/deskapp/tramites/documentostatus/' . $row->folio . '/' . $row->id;
+            // }, true);
+            // $crud->setActionButton('Bitacora', 'icon-copy dw dw-open-book-2', function ($row) {
+            //     return '/deskapp//bitacora/index/' . $row->folio ;
+            // }, true);
 
-            $crud->callbackEditForm(function ($data) use ($self){
-                $session = session();
-                $data2 = $data;
-                $data3 = $data2->getArrayCopy();
-                $flatArray = $self->flattenObject($data3);
-                $session->set('data_tramite_final_before_update',  $flatArray);
-                $session->set('tramite_final_id',  $flatArray["id"]);
-                $session->set('tramite_final_folio',  $flatArray["folio"]);
-                return $data;
-            });
+            // $crud->callbackEditForm(function ($data) use ($self){
+            //     $session = session();
+            //     $data2 = $data;
+            //     $data3 = $data2->getArrayCopy();
+            //     $flatArray = $self->flattenObject($data3);
+            //     $session->set('data_tramite_final_before_update',  $flatArray);
+            //     $session->set('tramite_final_id',  $flatArray["id"]);
+            //     $session->set('tramite_final_folio',  $flatArray["folio"]);
+            //     return $data;
+            // });
 
             $crud->callbackBeforeUpdate(function ($stateParameters) {
                 $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
                 return $stateParameters;
             });
 
-            $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
-                $db = Database::connect();
-                $db2 = $this->_getDbData();
-                $session = session();
-                $data = $stateParameters->data;
-                $myid = $session->get('id');
+            // $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
+            //     $db = Database::connect();
+            //     $db2 = $this->_getDbData();
+            //     $session = session();
+            //     $data = $stateParameters->data;
+            //     $myid = $session->get('id');
 
-                $bitacoraModel = new BitacoraModel($db2);
-                $data_bitacora = $data;                
-                $data_prev = $session->get('data_tramite_final_before_update');
-                $tramite_id = $session->get('tramite_final_id');
-                $folio = $session->get('tramite_final_folio');
-                $diferencias = $self->encontrarDiferencias($data_prev, $data_bitacora);
+            //     $bitacoraModel = new BitacoraModel($db2);
+            //     $data_bitacora = $data;                
+            //     $data_prev = $session->get('data_tramite_final_before_update');
+            //     $tramite_id = $session->get('tramite_final_id');
+            //     $folio = $session->get('tramite_final_folio');
+            //     $diferencias = $self->encontrarDiferencias($data_prev, $data_bitacora);
                 
-                $insert_bitacora = [
-                    "tipo" => "update",
-                    "origen"=>"final",
-                    "folio_tramite" => $folio,
-                    "tramite_id" => (int)$tramite_id,
-                    "cambios" => json_encode($diferencias),
-                    "user_id" => (int)$myid,
-                    "created_at" => date('Y-m-d H:i:s'),
-                    "updated_at" => date('Y-m-d H:i:s'),
-                    "status" => 1
-                ];
-                $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
-            });
-
+            //     $insert_bitacora = [
+            //         "tipo" => "update",
+            //         "origen"=>"final",
+            //         "folio_tramite" => $folio,
+            //         "tramite_id" => (int)$tramite_id,
+            //         "cambios" => json_encode($diferencias),
+            //         "user_id" => (int)$myid,
+            //         "created_at" => date('Y-m-d H:i:s'),
+            //         "updated_at" => date('Y-m-d H:i:s'),
+            //         "status" => 1
+            //     ];
+            //     $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+            // });
+            
+            $crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+                return '/deskapp/proceso/update_final/' . $row->id;
+            }, true);
             $salida = $crud->render();
             $salida2 = array_merge((array)$salida, $data);
             return $this->_example_output($salida2);
@@ -223,6 +209,307 @@ class Proceso extends BaseController
             exit($e->getMessage());
         }
     }
+
+    public function update_final($id) {
+        $session = session();
+        $data['session'] = \Config\Services::session();
+        $data['username'] = $session->get('user_name');
+        $myid = $session->get('id');
+        $db = \Config\Database::connect();
+        $builder = $db->table('tramite');
+        $db2 = $this->_getDbData();
+        // Retrieve the record
+        $tramite = $builder->getWhere(['id' => $id])->getRowArray();
+        $tra_status_id = $tramite['tra_status_id'];
+        $ro_numero_factura = [];
+        $ro_numero_refactura = [];
+        $ro_reembolso_status_id = [];
+        $ro_cobro_status_id = [];
+        $ro_costo_gestoria = [];
+        $ro_impuesto_gestoria = [];
+        $ro_derechos_tramite = [];
+        $ro_comision_derechos = [];
+        if($tramite['tra_status_id'] != 23){
+            $ro_numero_factura = ["disabled"=>"disabled"];
+            $ro_numero_refactura = ["disabled"=>"disabled"];
+            $ro_reembolso_status_id = ["disabled"=>"disabled"];
+            $ro_cobro_status_id = ["disabled"=>"disabled"];
+            $ro_costo_gestoria = ["disabled"=>"disabled"];
+            $ro_impuesto_gestoria = ["disabled"=>"disabled"];
+            $ro_derechos_tramite = ["disabled"=>"disabled"];
+            $ro_comision_derechos = ["disabled"=>"disabled"];
+        }    
+        // var_dump($tramite);
+        $TraTiposModel = new TraTiposModel($db2);
+        $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
+        $entMunicipios = new EntMunicipioModel($db2);
+        $ent_municipio_options = $entMunicipios->getEntMunicipios();
+        $clienteDirecto = new ClienteDirectoModel($db2);
+        $cli_directo_options = $clienteDirecto->getClientesDirectosOptions();
+        $empGestora = new EmpresaGestoraModel($db2);
+        $empresa_gestora_options = $empGestora->getEmpresasGestorasOptions();
+
+        $reembolso_status = new ReembolsoStatusModel($db2);
+        $reembolso_status_options = $reembolso_status->getReembolsoStatusOptions();
+
+        $cobro_status = new CobroStatusModel($db2);
+        $cobro_status_options = $cobro_status->getCobroStatusOptions();
+
+        $traStatus = new TraStatusModel($db2);
+        $tra_status_options = $traStatus->getTraStatusOptions();
+
+        // $cobroStatuses = new CobroStatusesModel($db2);
+        // $cobro_status_options = $cobroStatuses->getCobroStatusesOptions();
+        $form = new \stdClass();
+        
+        // Fields to be displayed in the add form
+
+        $form->fields = [
+            "folio" => ["label" => "Folio", "type" => "text", "value" => $tramite['folio'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "contrato" => ["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "disabled"=>"disabled"],
+            "unidad" => ["label" => "Unidad", "type" => "text", "value" => $tramite['unidad'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "serie" => ["label" => "Serie", "type" => "text", "value" => $tramite['serie'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "placas" => ["label" => "Placas", "type" => "text", "value" => $tramite['placas'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "tra_tipos_id" => ["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "value" => $tramite['tra_tipos_id'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "cli_directo_id" => ["label" => "Cliente", "type" => "select", "options" => $cli_directo_options, "value" => $tramite['cli_directo_id'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "cli_directo_ejecutivo_id" => ["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "value" => $tramite['cli_directo_ejecutivo_id'], "disabled"=>"disabled"],
+            "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            
+            "fecha_conclusion" => ["label" => "Fecha de Conclusión", "type" => "datetime", "value" => $tramite['fecha_conclusion'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            
+            "numero_factura" => array_merge(["label" => "Número de Factura", "type" => "number", "value" => $tramite['costo_total']], $ro_numero_factura),
+            "numero_refactura" => array_merge(["label" => "Número de Refactura", "type" => "number", "value" => $tramite['costo_total']], $ro_numero_refactura),
+            "reembolso_status_id" => array_merge(["label" => "Estatus del Reembolso", "type" => "select", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']], $ro_reembolso_status_id),
+
+            "cobro_status_id" => array_merge(["label" => "Estatus del Cobro", "type" => "select", "options" => $cobro_status_options, "value" => $tramite['cobro_status_id']], $ro_cobro_status_id),
+
+            "costo_gestoria" => array_merge(["label" => "Costo Gestoría", "type" => "number", "value" => $tramite['costo_gestoria']], $ro_costo_gestoria),
+            "impuesto_gestoria" => array_merge(["label" => "Impuesto Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria']], $ro_impuesto_gestoria), 
+            "derechos_tramite" => array_merge(["label" => "Derechos del Trámite", "type" => "number", "value" => $tramite['derechos_tramite']], $ro_derechos_tramite),
+            "comision_derechos" => array_merge(["label" => "Comisión Derechos", "type" => "number", "value" => $tramite['comision_derechos']], $ro_comision_derechos),
+            
+            "costo_total" => ["label" => "Costo Total", "type" => "number", "value" => $tramite['costo_total'], "readonly"=>"readonly"],
+
+
+            "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "tra_status_id" => ["label" => "Estatus del Trámite", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status'], "readonly"=>"readonly", "disabled"=>"disabled"],
+            "user_id" => ["label" => "User Id", "type" => "hidden", "value" => "$myid"],
+        ];
+        // echo "<pre>";
+
+        // print_r($form->fields);
+        // echo "</pre>";die();
+        $data['id'] = $id;
+        $form->id = $id;
+        $form->tra_status_id = $tra_status_id;
+        $crud = $this->_getGroceryCrudEnterprise();
+        $crudOutput = $crud->render();
+
+        $form->css_files = $crudOutput->css_files;
+        $form->js_files = $crudOutput->js_files;
+
+        $cruddocstatus = $this->_getGroceryCrudEnterprise();
+        $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/' . $id);
+        $output = $cruddocstatus->render();
+
+        $crudevidencias = $this->_getGroceryCrudEnterprise();
+        $crudevidencias->setApiUrlPath('/deskapp/tramites/single_evidencias/'. $id);
+        $outputevidencias = $crudevidencias->render();
+
+        $crud_finalevidencias = $this->_getGroceryCrudEnterprise();
+        $crud_finalevidencias->setApiUrlPath('/deskapp/proceso/single_evidencias_finales/' . $id);
+        $output_finalevidencias = $crud_finalevidencias->render();
+
+        $output_finalevidencias->output .= "<hr>".$output->output . $outputevidencias->output;
+
+        $form->output = $output_finalevidencias->output;
+        $form = array_merge((array)$form, $data);
+        return $this->_example_output_final($form);
+    }
+
+    private function _example_output_final($output = null) {
+        return view('/deskapp/extra-pages/tramite_final_view', (array)$output);
+        // $this->load->view('tramite_' . $page . '_view', (array)$output);
+    }
+
+    public function update_final_save() {
+        $session = session();
+        $data['session'] = \Config\Services::session();
+        $data['username'] = $session->get('user_name');
+        $myid = $session->get('id');
+        $id = $this->request->uri->getSegment(4);
+        $validation = \Config\Services::validation();   
+        $db2 = $this->_getDbData();    
+        // Set validation rules
+        $validation->setRules([
+            "costo_gestoria" => "required",
+            "costo_total" => "required"
+        ]);
+    
+        if ($validation->withRequest($this->request)->run() === FALSE) {
+            // Validation failed, return errors as JSON
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $validation->getErrors()
+            ]);
+        } else {
+            // Update the data in the database
+            $data = $this->request->getPost();
+            $db = \Config\Database::connect();
+            $builder = $db->table('tramite');
+            $builder->where('id', $id);
+            $builder->update($data);
+            // $folio = $data["folio"];
+            #adding bitacora
+            $bitacoraModel = new BitacoraModel($db2);
+            $data_bitacora = $data;
+            $diferencias = $this->encontrarDiferencias($data_bitacora, []);
+            $insert_bitacora = [
+                "id"=>null,
+                "tipo"=>"update",
+                "origen"=>"final",
+                // "folio_tramite" => $folio,
+                "tramite_id" => (int)$id,
+                "cambios" => json_encode($diferencias),
+                "user_id" => (int)$myid,
+                "status" => 1
+            ];
+            $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+
+            // Return success message as JSON
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'El trámite se guardó correctamente.',
+                'redirect' => '/deskapp/proceso/update_final/'.$id
+            ]);
+        }
+    }
+
+    public function single_evidencias_finales(){
+        $session = session();
+        $data['session'] = \Config\Services::session();
+        $data['username'] = $session->get('user_name');
+        $self = $this;
+        $request = \Config\Services::request();
+        $uri = $request->getUri();
+        $tramite_id = (int) $uri->getSegment(4);
+    
+        $crud = $this->_getGroceryCrudEnterprise();
+        $crud->setCsrfTokenName(csrf_token());
+        $crud->setCsrfTokenValue(csrf_hash());
+
+        $crud->setTable('tra_evidencias_finales');
+        $crud->setSubject('Evidencia Final', 'Evidencias Finales');
+
+        $crud->where([
+            'tramite_id' => $tramite_id
+        ]);   
+
+        $crud->fields([
+            'file', 'tramite_id',
+            'costo', 'comentario', 'user_id'
+        ]); 
+
+        $crud->columns([
+            'id', 'tramite_id','file', 
+            'costo', 'created_at'
+        ]); 
+
+
+        $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
+            if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
+                $session = session();
+                $parameters = $stateParameters;
+                $db2 = $this->_getDbData();
+                $data = $parameters->data;
+                $request = \Config\Services::request();
+                $uri = $request->getUri();
+                $tramite_id = (int) $uri->getSegment(4);
+
+                $myid = $session->get('id');
+                                
+                $bitacoraModel = new BitacoraModel($db2);
+                $data_bitacora = $data;
+                $diferencias = $self->encontrarDiferencias($data_bitacora, []);
+                $insert_bitacora = [
+                    "id"=>null,
+                    "tipo"=>"insert",
+                    "origen"=>"final",
+                    "tramite_id" => (int)$tramite_id,
+                    "cambios" => json_encode($diferencias),
+                    "user_id" => (int)$myid,
+                    "status" => 1
+                ];
+                $bitacoraModel->insert($insert_bitacora, 'bitacora');
+            }
+            return $stateParameters;
+        });
+
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
+            $db2 = $this->_getDbData();
+            $session = session();
+            $data = $stateParameters->data;
+            $myid = $session->get('id');
+            
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+
+            $bitacoraModel = new BitacoraModel($db2);
+            $data_bitacora = $data;
+            $diferencias = $self->encontrarDiferencias($data_bitacora, []);
+            $insert_bitacora = [
+                "tipo"=>"update",
+                "origen"=>"final",
+                "tramite_id" => (int)$tramite_id,
+                "cambios" => json_encode($diferencias),
+                "user_id" => (int)$myid,
+                "status" => 1
+            ];
+            $bitacoraModel->insert($insert_bitacora, 'bitacora');
+        });
+
+        $uploadValidations = [
+            'maxUploadSize' => '20M', // 20 Mega Bytes
+            'minUploadSize' => '1K', // 1 Kilo Byte
+            'allowedFileTypes' => [
+                'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf'
+            ]
+        ];
+
+        $crud->setFieldUploadMultiple(
+            'file', 
+            'assets/uploads/evidencias/', 
+            '/assets/uploads/evidencias/', 
+            $uploadValidations
+        );
+
+        $crud->fieldType('user_id','hidden');
+        $crud->fieldType('tramite_id','hidden');
+
+        $crud->callbackAddForm(function ($data) {
+            $session = session();
+
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+
+            $myid = $session->get('id');
+            $data['user_id'] = $myid;
+            $data['tramite_id'] = $tramite_id;
+            // var_dump($data);
+            return $data;
+        });
+
+        $salida = $crud->render();
+        $salida2 = array_merge((array)$salida, $data);
+        return $this->_example_output($salida2);
+    }
+
     public function encontrarDiferencias($datos1, $datos2) {
         $diferencias = [];
         foreach ($datos1 as $clave => $valor) {
@@ -457,60 +744,3 @@ class Proceso extends BaseController
         return $groceryCrud;
     }
 }
-
-
-/*
-array(3) {
-  [0]=>
-  array(7) {
-    ["id"]=>
-    string(1) "1"
-    ["tra_tipos_id"]=>
-    string(1) "1"
-    ["documento_id"]=>
-    string(1) "1"
-    ["created_at"]=>
-    string(19) "2024-02-02 02:06:19"
-    ["updated_at"]=>
-    string(19) "2024-02-02 02:06:19"
-    ["user_id"]=>
-    NULL
-    ["status"]=>
-    string(1) "1"
-  }
-  [1]=>
-  array(7) {
-    ["id"]=>
-    string(1) "2"
-    ["tra_tipos_id"]=>
-    string(1) "1"
-    ["documento_id"]=>
-    string(1) "2"
-    ["created_at"]=>
-    string(19) "2024-02-02 02:06:19"
-    ["updated_at"]=>
-    string(19) "2024-02-02 02:06:19"
-    ["user_id"]=>
-    NULL
-    ["status"]=>
-    string(1) "1"
-  }
-  [2]=>
-  array(7) {
-    ["id"]=>
-    string(1) "3"
-    ["tra_tipos_id"]=>
-    string(1) "1"
-    ["documento_id"]=>
-    string(1) "3"
-    ["created_at"]=>
-    string(19) "2024-02-02 02:06:19"
-    ["updated_at"]=>
-    string(19) "2024-02-02 02:06:19"
-    ["user_id"]=>
-    NULL
-    ["status"]=>
-    string(1) "1"
-  }
-}
-*/

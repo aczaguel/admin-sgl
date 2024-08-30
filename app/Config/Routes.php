@@ -88,6 +88,12 @@ $routes->post('/tramites/tramite', 'Deskapp/Tramites::tramite');
 $routes->get('/tramites/mios', 'Deskapp/Tramites::mios',['filter' => 'auth']);
 $routes->post('/tramites/mios', 'Deskapp/Tramites::mios');
 
+$routes->get('/tramites/en_proceso', 'Deskapp/Tramites::en_proceso',['filter' => 'auth']);
+$routes->post('/tramites/en_proceso', 'Deskapp/Tramites::en_proceso');
+
+$routes->get('/tramites/autorizar', 'Deskapp/Tramites::autorizar',['filter' => 'auth']);
+$routes->post('/tramites/autorizar', 'Deskapp/Tramites::autorizar');
+
 $routes->get('/tramites/tipo', 'Deskapp/Tramites::tipo',['filter' => 'auth']);
 $routes->post('/tramites/tipo', 'Deskapp/Tramites::tipo');
 
@@ -123,6 +129,16 @@ $routes->post('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora::index');
 
 $routes->get('/proceso/final', 'Deskapp/Proceso::final',['filter' => 'auth']);
 $routes->post('/proceso/final', 'Deskapp/Proceso::final');
+
+$routes->get('/tramites/update_final/(:id)', 'Deskapp/Tramites::update_final/$1',['filter' => 'auth']);
+$routes->post('/tramites/update_final/(:id)', 'Deskapp/Tramites::update_final/$1');
+
+$routes->get('/proceso/update_final_save/(:id)', 'Deskapp/Proceso::update_final_save/$1',['filter' => 'auth']);
+$routes->post('/proceso/update_final_save/(:id)', 'Deskapp/Proceso::update_final_save/$1');
+
+
+$routes->get('/proceso/single_evidencias_finales/(:id)', 'Deskapp/Proceso::single_evidencias_finales/$1',['filter' => 'auth']);
+$routes->post('/proceso/single_evidencias_finales/(:id)', 'Deskapp/Proceso::single_evidencias_finales/$1');
 
 /*
  * --------------------------------------------------------------------

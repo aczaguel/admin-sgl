@@ -12,8 +12,6 @@
     <?php endforeach; ?>
 	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.css">
-	<link rel="stylesheet" href="/assets/src/styles/forms_styles.css">
-
     <style>
         .form-container {
             display: flex;
@@ -79,15 +77,18 @@
 			<div class="min-height-200px">
 
 			<div class="page-header">
-				<h2 class="h4"><?php echo isset($id) ? 'Actualizar datos del trámite ' : 'Agregar nuevo Trámite'; ?></h2>
+				<h2 class="h4"><?php echo isset($id) ? 'Actualizar Fase Final' : 'Agregar Fase Final'; ?></h2>
 				<hr class="my-4">
+				<?php 
+				if($tra_status_id != 20) { ?>
+					<button class="btn btn-primary" onclick="authorizeTramite(<?php echo $id?>, 20); return false;" id="boton_finalizar">
+						<i class="fas fa-check"></i>Autorizar Finalización del Trámite
+					</button>
+				<?php } ?>
 				
-				<button class="btn btn-primary" onclick="authorizeTramite(<?php echo $id?>, 23); return false;" id="boton_autorizar">
-					<i class="fas fa-check"></i> Enviar a Proceso Final
-				</button>
-			</div>
-				<?php echo form_open(isset($id) ? "/deskapp/tramites/update_save/$id" : '/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'tramiteForm']); ?>
 
+			</div>
+				<?php echo form_open(isset($id) ? "/deskapp/proceso/update_final_save/$id" : '/deskapp/proceso/insert_final', ['class' => 'form-horizontal', 'id' => 'tramiteForm']); ?>
 				<div class="row">
 					<div class="col-md-6">
 						<?php 
@@ -107,26 +108,28 @@
 										<?php if ($field_info['type'] == 'text'): ?>
 											<input type="text" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 										<?php elseif ($field_info['type'] == 'select'): ?>
-											<select class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
+											<select class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 												<?php foreach ($field_info['options'] as $option_value => $option_label): ?>
 													<option value="<?php echo $option_value; ?>" <?php echo set_select($field_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
 												<?php endforeach; ?>
 											</select>
 										<?php elseif ($field_info['type'] == 'textarea'): ?>
-											<textarea class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
+											<textarea class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $required; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
 										<?php elseif ($field_info['type'] == 'checkbox'): ?>
-											<input type="checkbox" class="form-check-input" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="1" <?php echo set_checkbox($field_name, '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+											<input type="checkbox" class="form-check-input" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="1" <?php echo set_checkbox($field_name, '1', $value == '1'); ?> <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 										<?php elseif ($field_info['type'] == 'radio' && $field_name == 'status'): ?>
 											<div class="form-check form-check-inline">
-												<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+												<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 												<label class="form-check-label" for="status_active">Activo</label>
 											</div>
 											<div class="form-check form-check-inline">
-												<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+												<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 												<label class="form-check-label" for="status_inactive">Inactivo</label>
 											</div>
 										<?php elseif ($field_info['type'] == 'datetime'): ?>
-											<input type="text" class="form-control datetime-picker" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $disabled; ?>>
+											<input type="text" class="form-control datetime-picker" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+										<?php elseif ($field_info['type'] == 'number'): ?>
+											<input type="number" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 										<?php endif; ?>
 										<div class="invalid-feedback">
 											<?php echo \Config\Services::validation()->showError($field_name); ?>
@@ -146,7 +149,7 @@
 							$disabled = isset($field_info['disabled']) ? $field_info['disabled'] : "";
 						?>
 							<?php if ($field_info['type'] == 'hidden'): ?>
-								<input type="hidden" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>">
+								<input type="hidden" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 							<?php else: ?>
 								<div class="mb-3 row">
 									<label for="<?php echo $field_name; ?>" class="col-sm-4 col-form-label"><?php echo $field_info['label']; ?></label>
@@ -154,27 +157,32 @@
 										<?php if ($field_info['type'] == 'text'): ?>
 											<input type="text" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 										<?php elseif ($field_info['type'] == 'select'): ?>
-											<select class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
+											<select class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 												<?php foreach ($field_info['options'] as $option_value => $option_label): ?>
 													<option value="<?php echo $option_value; ?>" <?php echo set_select($field_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
 												<?php endforeach; ?>
 											</select>
 										<?php elseif ($field_info['type'] == 'textarea'): ?>
-											<textarea class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
+											<textarea class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>"  <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
 										<?php elseif ($field_info['type'] == 'checkbox'): ?>
-											<input type="checkbox" class="form-check-input" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="1" <?php echo set_checkbox($field_name, '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+											<input type="checkbox" class="form-check-input" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="1" <?php echo set_checkbox($field_name, '1', $value == '1'); ?>>
 										<?php elseif ($field_info['type'] == 'radio' && $field_name == 'status'): ?>
 											<div class="form-check form-check-inline">
-												<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+												<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 												<label class="form-check-label" for="status_active">Activo</label>
 											</div>
 											<div class="form-check form-check-inline">
-												<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+												<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 												<label class="form-check-label" for="status_inactive">Inactivo</label>
 											</div>
 										<?php elseif ($field_info['type'] == 'datetime'): ?>
-											<input type="text" class="form-control datetime-picker" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
+											<input type="text" class="form-control datetime-picker" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+										<?php elseif ($field_info['type'] == 'number'): ?>
+											<input type="number" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 										<?php endif; ?>
+										
+										
+
 										<div class="invalid-feedback">
 											<?php echo \Config\Services::validation()->showError($field_name); ?>
 										</div>
@@ -187,13 +195,12 @@
 
 
 
-			<div class="text-center mt-4" id="boton_autorizar">
-				<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
+			<div class="text-center mt-4">
+				<a href="/proceso/final" class="btn btn-secondary ml-2">Cancelar</a>
 				<button type="submit" class="btn btn-primary"><?php echo isset($id) ? 'Actualizar' : 'Guardar'; ?></button>
 			</div>
 
 			<?php echo form_close(); ?>
-			
 			<script>
 				var empresaGestoraId = "<?php echo isset($fields['empresa_gestora']['value']) ? $fields['empresa_gestora']['value'] : ''; ?>";
 				var gestorId = "<?php echo isset($fields['gestor_id']['value']) ? $fields['gestor_id']['value'] : ''; ?>";

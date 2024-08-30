@@ -15,7 +15,7 @@
  		$session = session();
  		$data['username'] = $session->get('user_name');
  		$data['session'] = \Config\Services::session();
- 		echo view('deskapp/dashboard/index',$data);
+ 		echo view('deskapp/dashboard/index_sgl',$data);
  	}
  	public function one()
  	{

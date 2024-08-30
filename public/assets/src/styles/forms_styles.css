@@ -1,0 +1,20 @@
+/* Define colores de fondo según el Pantone */
+.background-verde {
+    background-color: #a4c3b2;  /* Pantone 5585 C */
+    color: black;  /* Asegura buena legibilidad */
+}
+
+.background-amarillo {
+    background-color: #f5e1a4;  /* Pantone 1205 C */
+    color: black;
+}
+
+.background-rojo {
+    background-color: #dba498;  /* Pantone 7612 C */
+    color: white;  /* Mejora la legibilidad en fondos oscuros */
+}
+
+.background-violeta {
+    background-color: #b3a2c9;  /* Pantone 7671 C */
+    color: white;
+}

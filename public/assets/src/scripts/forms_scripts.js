@@ -213,3 +213,28 @@
       form.prepend(errorAlert);
   });
   });
+
+  function authorizeTramite(tramiteId, status_id) {
+    if (confirm('¿Estás seguro de que deseas autorizar este trámite?')) {
+        $.ajax({
+            url: '/deskapp/tramites/autorizar', // Ruta hacia la función en el controlador
+            type: 'POST',
+            data: {
+                tramite_id: tramiteId,
+                status_id: status_id,
+                csrf_token: $('meta[name="csrf_token"]').attr('content') // Asegúrate de incluir el token CSRF
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Trámite autorizado correctamente.');
+                    location.reload(); // Recargar la página para actualizar la lista
+                } else {
+                    alert('Ocurrió un error al autorizar el trámite.');
+                }
+            },
+            error: function() {
+                alert('Ocurrió un error en la solicitud.');
+            }
+        });
+    }
+}

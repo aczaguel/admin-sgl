@@ -11,23 +11,23 @@
 		<div class="menu-block customscroll">
 			<div class="sidebar-menu">
 				<ul id="accordion-menu">
+					<li>
+						<div class="dropdown-divider"></div>
+					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
 							<span class="micon dw dw-house-1"></span><span class="mtext">Trámites</span>
 						</a>
 						<ul class="submenu">
-							<?php if (has_permission('listar_tramite', esc($session->get('user_permissions'))) || is_super_admin($session->get('user_roles'))): ?>
+							<?php if (has_permission('listar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
             					<li><a href="<?php echo base_url('deskapp/tramites/tramite'); //listar_tramite?>">Trámites</a></li>
         					<?php endif; ?>	
-							<?php if (has_permission('listar_mis_tramites', esc($session->get('user_permissions'))) || is_super_admin($session->get('user_roles'))): ?>
+							<?php if (has_permission('listar_en_proceso_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/en_proceso'); //listar_mios?>">En Proceso</a></li>
+							<?php endif; ?>	
+							<?php if (has_permission('listar_mis_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramites/mios'); //listar_mios?>">Mis Trámites</a></li>
 							<?php endif; ?>	
-							<?php if (has_permission('listar_tramite', esc($session->get('user_permissions'))) || is_super_admin($session->get('user_roles'))): ?>
-								<li><a href="<?php echo base_url('deskapp/tramites/tipo'); //listar_tp_tramite?>">Tipo de Trámite</a></li>
-							<?php endif; ?>
-							<?php if (has_permission('listar_tramite', esc($session->get('user_permissions'))) || is_super_admin($session->get('user_roles'))): ?>
-								<li><a href="<?php echo base_url('deskapp/tramites/status'); //listar_st_tramite?>">Estatuses de Trámite</a></li>
-							<?php endif; ?>
 						</ul>
 					</li>
 					<!-- <li class="dropdown">
@@ -46,16 +46,8 @@
 							<li><a href="<?php echo base_url('deskapp/proceso/final'); //listar_final_tramite?>">Finalizando</a></li>
 						</ul>
 					</li>
-					<li class="dropdown">
-						<a href="javascript:;" class="dropdown-toggle">
-							<span class="micon dw dw-edit2"></span><span class="mtext">Documentos</span>
-						</a>
-						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/documentos/documento'); //listar_documentos?>">Documento</a></li>
-							<li><a href="<?php echo base_url('deskapp/documentos/status'); //listar_st_documentos?>">Estatus</a></li>
-
-							
-						</ul>
+					<li>
+						<div class="dropdown-divider"></div>
 					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
@@ -78,6 +70,34 @@
 							<li><a href="<?php echo base_url('deskapp/clidirecto/ejecutivo'); //listar_ejecutivos?>">Ejecutivo</a></li>
 						</ul>
 					</li>
+					<li>
+						<div class="dropdown-divider"></div>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon dw dw-edit2"></span><span class="mtext">Configuración</span>
+						</a>
+						<ul class="submenu">
+						<?php if (has_permission('listar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/tipo'); //listar_tp_tramite?>">Tipo de Trámite</a></li>
+							<?php endif; ?>
+							<?php if (has_permission('listar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/status'); //listar_st_tramite?>">Estatuses de Trámite</a></li>
+							<?php endif; ?>
+						</ul>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon dw dw-edit2"></span><span class="mtext">Documentos</span>
+						</a>
+						<ul class="submenu">
+							<li><a href="<?php echo base_url('deskapp/documentos/documento'); //listar_documentos?>">Documento</a></li>
+							<li><a href="<?php echo base_url('deskapp/documentos/status'); //listar_st_documentos?>">Estatus</a></li>
+
+							
+						</ul>
+					</li>
+					
 					<li>
 						<div class="dropdown-divider"></div>
 					</li>
@@ -108,7 +128,7 @@
 
 
 
-					<?php if (has_permission('menu_erp_sa', esc($session->get('user_permissions'))) || is_super_admin($session->get('user_roles'))): //menu_erp_sa ?>
+					<?php if (has_permission('menu_erp_sa', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 					<li>
 						<a href="<?php echo base_url('deskapp/calendar'); ?>" class="dropdown-toggle no-arrow">
 							<span class="micon dw dw-calendar1"></span><span class="mtext">Calendar</span>

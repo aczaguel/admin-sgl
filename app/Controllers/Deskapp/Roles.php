@@ -84,7 +84,7 @@ class Roles extends BaseController
             $role_permissions_crud->defaultOrdering('us_role_permissions.id', 'desc');
             
             $role_permissions_crud->columns(['id', 'role_id', 'permission_id']);
-            $role_permissions_crud->fields(['role_id', 'permission_id', 'created_at', 'updated_at']);
+            $role_permissions_crud->fields(['role_id', 'permission_id']);
             $role_permissions_crud->unsetDeleteMultiple();
 
             // Relaciones
@@ -99,8 +99,6 @@ class Roles extends BaseController
             exit($e->getMessage());
         }
     }
-
-
 
     private function _getGroceryCrudEnterprise($bootstrap = true, $jquery = true) {
         $db = $this->_getDbData();

@@ -32,11 +32,12 @@ class Gestores extends BaseController
 
         $crud->setTable('ges_empresa_gestora');
         $crud->setSubject('Empresa Gestora', 'Empresas Gestoras');
-        $crud->callbackBeforeInsert(function ($stateParameters) {
-            $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
-        });
+
+        $crud->columns(["id", "nombre", "razon_social", "rfc", "telefono", "correo_electronico", "calle", "numero_interior", "numero_exterior", "codigo_postal", "colonia", "ciudad", "estado", "pais", "user_id"]); 
+        $crud->fields(["id", "nombre", "razon_social", "rfc", "telefono", "correo_electronico", "calle", "numero_interior", "numero_exterior", "codigo_postal", "colonia", "ciudad", "estado", "pais", "user_id"]);
+
+        $crud->fieldType('user_id','hidden');
+
         $crud->callbackAddForm(function ($data) {
             $session = session();
             $myid = $session->get('id');
@@ -61,6 +62,12 @@ class Gestores extends BaseController
 
         $crud->setTable('ges_gestor');
         $crud->setSubject('Gestor', 'Gestores');
+
+        $crud->columns(["id", "nombre", "razon_social", "rfc", "telefono", "correo_electronico", "calle", "numero_interior", "numero_exterior", "codigo_postal", "colonia", "ciudad", "estado", "pais", "user_id", "empresa_gestora_id"]); 
+        $crud->fields(["id", "nombre", "razon_social", "rfc", "telefono", "correo_electronico", "calle", "numero_interior", "numero_exterior", "codigo_postal", "colonia", "ciudad", "estado", "pais", "user_id", "empresa_gestora_id"]);
+
+        $crud->fieldType('user_id','hidden');
+
     
         /* SELECT Se configura el gestor*/
         $crud->setRelation('empresa_gestora_id', 'ges_empresa_gestora', 'nombre');
