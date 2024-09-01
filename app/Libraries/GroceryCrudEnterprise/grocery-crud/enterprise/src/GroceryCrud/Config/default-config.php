@@ -5,6 +5,7 @@ return [
     // Dutch, English, French, German, Greek, Hindi, Hungarian, Indonesian, Italian, Japanese, Korean,
     // Lithuanian, Mongolian, Norwegian, Persian, Polish, Portuguese, Brazilian Portuguese, Romanian,
     // Russian, Slovak, Spanish, Thai, Turkish, Ukrainian, Vietnamese
+    // 
     'default_language'	=> 'English',
 
     // This is the assets folder where all the JavaScript, CSS, images and font files are located
