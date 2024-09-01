@@ -60,7 +60,7 @@
 				</a>
 			</div>
 		</div>
-		<div class="user-notification">
+		<!-- <div class="user-notification">
 			<div class="dropdown">
 				<a class="dropdown-toggle no-arrow" href="#" role="button" data-toggle="dropdown">
 					<i class="icon-copy dw dw-notification"></i>
@@ -115,7 +115,7 @@
 					</div>
 				</div>
 			</div>
-		</div>
+		</div> -->
 		
 		<div class="user-info-dropdown">
 			<div class="dropdown">
@@ -123,12 +123,14 @@
 					<span class="user-icon">
 						<img src="<?php echo base_url(); ?>/assets/vendors/images/img.jpg" alt="">
 					</span>
-					<span class="user-name"><?= esc($session->get('firstname').' '.$session->get('lastname')); ?></span>
+					<span class="user-name"><?= esc($session->get('firstname').' '.$session->get('midname').' '.$session->get('lastname')); ?></span>
 				</a>
 				<div class="dropdown-menu dropdown-menu-right dropdown-menu-icon-list">
-					<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-user1"></i> Profile</a>
-					<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-settings2"></i> Setting</a>
-					<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/faq'); ?>"><i class="dw dw-help"></i> Help</a>
+					<?php if (has_permission('listar_settings', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-user1"></i> Profile</a>
+						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-settings2"></i> Setting</a>
+						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/faq'); ?>"><i class="dw dw-help"></i> Help</a>
+					<?php endif; ?>		
 					<a class="dropdown-item" href="<?php echo base_url('deskapp/logout'); ?>"><i class="dw dw-logout"></i> Log Out</a>
 				</div>
 			</div>
