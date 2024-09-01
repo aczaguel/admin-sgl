@@ -26,7 +26,8 @@ assets/uploads/*
 application/logs/*
 !application/logs/index.html
 !application/logs/.htaccess
-/vendor/
+/vendor/squizlabs
+/vendor/phar-io
 composer.lock
 
 # Ignorar datos generados por el sistema
