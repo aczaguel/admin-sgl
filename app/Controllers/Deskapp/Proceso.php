@@ -75,9 +75,53 @@ class Proceso extends BaseController
 
             $crud->setTable('tramite');
             $crud->setSubject('tramite', 'Tramites');
-            $crud->columns(["folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id", "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", 
+            $crud->columns(["created_at", "id", "folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id",'ent_municipio_id', "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", 
             "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite", "comision_derechos", "costo_total", "numero_factura", "numero_refactura",
             "reembolso_status_id", "tra_status_id", "cobro_status_id", "observaciones", "status"]); 
+
+            $crud->displayAs("created_at", "Desde Creación");
+
+            $crud->callbackColumn('created_at', function ($value, $row) {
+                $fechaCreacion = new \DateTime($row->created_at);
+                $fechaActual = new \DateTime();
+                $diasDiferencia = $fechaCreacion->diff($fechaActual)->days;
+            
+                // Definir clases CSS según los días
+                $claseVerde = 'background-verde';  // Clase CSS para verde
+                $claseAmarillo = 'background-amarillo';  // Clase CSS para amarillo
+                $claseRojo = 'background-rojo';  // Clase CSS para rojo
+                $claseVioleta = 'background-violeta';  // Clase CSS para violeta
+            
+                // Determinar si es Local o Foráneo
+                $local = ($row->ent_municipio_id >= 266 && $row->ent_municipio_id <= 281) || 
+                ($row->ent_municipio_id >= 657 && $row->ent_municipio_id <= 781);
+                
+                // Determinar la clase CSS basada en los días de diferencia y si es Local o Foráneo
+                if ($local) {
+                    if ($diasDiferencia < 5) {
+                        $clase = $claseVerde;
+                    } elseif ($diasDiferencia < 8) {
+                        $clase = $claseAmarillo;
+                    } elseif ($diasDiferencia < 12) {
+                        $clase = $claseRojo;
+                    } else {
+                        $clase = $claseVioleta;
+                    }
+                } else {
+                    if ($diasDiferencia < 10) {
+                        $clase = $claseVerde;
+                    } elseif ($diasDiferencia < 13) {
+                        $clase = $claseAmarillo;
+                    } elseif ($diasDiferencia < 16) {
+                        $clase = $claseRojo;
+                    } else {
+                        $clase = $claseVioleta;
+                    }
+                }
+            
+                return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
+            });
+
             $crud->fields(["folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id", 
             "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite",
             "comision_derechos", "costo_total", "numero_factura", "numero_refactura", "reembolso_status_id", "tra_status_id", "cobro_status_id", "observaciones", "status"]);
