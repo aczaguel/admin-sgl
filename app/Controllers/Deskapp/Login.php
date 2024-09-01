@@ -31,6 +31,7 @@
 	                    'username' => $data['username'],
 	                    'email'    => $data['email'],
 	                    'firstname' => $data['firstname'],
+						'midname' => $data['midname'],
 	                    'lastname' => $data['lastname'],
 	                    'logged_in'     => TRUE
 	                ];

@@ -48,7 +48,7 @@
 					</div>
 					<div class="col-md-8">
 						<h4 class="font-20 weight-500 mb-10 text-capitalize">
-							¡Bienvenido de nuevo, <span class="weight-600 font-30 text-blue"><?= esc($session->get('username')); ?>!</span>
+							¡Bienvenido de nuevo, <span class="weight-600 font-30 text-blue"><?= esc($session->get('firstname')); ?>!</span>
 						</h4>
 						<p class="font-18 max-width-600">
 							Bienvenido al sistema de administración SGL, donde podrás dar de alta, modificar y dar seguimiento a trámites de SGL. ¡Nos alegra tenerte de vuelta!
