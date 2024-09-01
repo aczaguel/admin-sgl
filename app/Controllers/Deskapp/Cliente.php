@@ -34,10 +34,16 @@ class Cliente extends BaseController
         $crud->setSubject('Cliente', 'Clientes');
 
         $crud->fields(['nombre', 'razon_social', 'rfc', 'prefijo', 'telefono', 'correo_electronico', 'calle', 'numero_interior', 
-        'numero_exterior', 'codigo_postal', 'colonia', 'ciudad', 'estado', 'pais']);
+        'numero_exterior', 'codigo_postal', 'colonia', 'ciudad', 'estado', 'pais', 'user_id', 'created_at', 'updated_at']);
 
         $crud->columns(['nombre', 'razon_social', 'rfc', 'prefijo', 'telefono', 'correo_electronico', 'calle', 'numero_interior', 
-        'numero_exterior', 'codigo_postal', 'colonia', 'ciudad', 'estado', 'pais']);
+        'numero_exterior', 'codigo_postal', 'colonia', 'ciudad', 'estado', 'pais', 'user_id', 'created_at', 'updated_at']);
+
+
+        $crud->fieldType('user_id','hidden');
+        $crud->fieldType('created_at','hidden');
+        $crud->fieldType('updated_at','hidden');
+
 
         $crud->callbackBeforeInsert(function ($stateParameters) {
             $stateParameters->data['created_at'] = date('Y-m-d H:i:s');

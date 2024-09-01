@@ -195,14 +195,6 @@ class ExportState extends DatagridState {
         $this->exportToExcel($data, $columns);
     }
 
-    public function getTemporaryFolder() {
-        $config = $this->gCrud->getConfig();
-
-        return array_key_exists('export_temporary_folder_path', $config)
-                ? $config['export_temporary_folder_path']
-                : null;
-    }
-
     public function exportToExcel($data, $columns)
     {
         $callbackColumns = $this->gCrud->getCallbackColumns();

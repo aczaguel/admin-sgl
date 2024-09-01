@@ -1,3 +1,31 @@
+3.1.7
+    - GC-545: Better positioning of datagrid buttons on top for mobile devices
+    - GC-543: Fixing issue with the checkbox buttons of datagrid that doesn't appear on mobile devices
+3.1.6
+    - GC-541: Dropping support for PHP 7.4. Requirement for PHP 8.1 and above.
+3.1.5
+    - GC-536: Fixing text color on dark mode on filters, when choosing a relational field.
+    - GC-537: Fixing issue with calendar and relation field is hiding behind the footer.
+    - GC-540: Fixing issue on filters when the first filter is a setRelation and the dropdown doesn't show up.
+3.1.4
+    - GC-535: setRelationNtoN new orderingFieldName parameter, so the user is able to change the ordering of the field.
+3.1.3
+    - GC-531: callbackColumn doesn't work for relationNtoN fields.
+    - GC-532: Image Preview is not visible on delete operation.
+    - GC-533: Missing translation for the footer of the paging selection.
+3.1.2
+    - GC-530: Column width does not meet the requirement of being under 200px. Current new minimum width is now 60px.
+3.1.1
+    - GC-526: New field type "boolean" which you can use it for boolean fields.
+    - GC-528: When search value on dropdown is an empty string, it is causing datagrid to fetch data twice causing not well JSON formatted response.
+    - GC-529: Remove force search on page change from the number input.
+3.1
+    - GC-522: Upgrading to latest React and Redux versions.
+    - GC-523: Search doesn't work when I am searching from a page other than the first one.
+    - GC-521: Removing the page change loading delay when we change the page.
+    - GC-524: New Configuration: Display JavaScript files into the main output (default is false).
+3.0.20
+    - GC-520: Multiple Grid in one page doesn't work. Only the first grid is loading.
 3.0.19
     - GC-519: When remember_filters_upon_refresh is false and we have CSRF on, then "Something went wrong!" message appears for no reason.
 3.0.18

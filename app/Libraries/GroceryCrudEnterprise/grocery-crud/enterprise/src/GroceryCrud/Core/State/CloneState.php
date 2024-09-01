@@ -42,7 +42,7 @@ class CloneState extends StateAbstract {
             $model->setWhere($this->gCrud->getWhere());
         }
 
-        $validator = $this->getValidationRules();
+        $validator = $this->setValidationRules('clone');
 
         $output = (object)array();
 

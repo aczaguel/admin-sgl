@@ -49,7 +49,7 @@ class Tradocstatus extends BaseController
             ]
         ];
 
-        $crud->setFieldUpload(
+        $crud->setFieldUploadMultiple(
             'file', 
             'assets/uploads/docstatus/', 
             '/assets/uploads/docstatus/', 

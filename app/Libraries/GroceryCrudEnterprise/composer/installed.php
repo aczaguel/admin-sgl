@@ -1,7 +1,7 @@
 <?php return array(
     'root' => array(
-        'pretty_version' => '1.0.0',
-        'version' => '1.0.0.0',
+        'pretty_version' => '3.0.19',
+        'version' => '3.0.19.0',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,8 +11,8 @@
     ),
     'versions' => array(
         'grocery-crud/deployment' => array(
-            'pretty_version' => '1.0.0',
-            'version' => '1.0.0.0',
+            'pretty_version' => '3.0.19',
+            'version' => '3.0.19.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -20,8 +20,8 @@
             'dev_requirement' => false,
         ),
         'grocery-crud/enterprise' => array(
-            'pretty_version' => '3.0.16',
-            'version' => '3.0.16.0',
+            'pretty_version' => '3.1.7',
+            'version' => '3.1.7.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../grocery-crud/enterprise',
             'aliases' => array(),
@@ -29,21 +29,21 @@
             'dev_requirement' => false,
         ),
         'laminas/laminas-db' => array(
-            'pretty_version' => '2.15.1',
-            'version' => '2.15.1.0',
+            'pretty_version' => '2.20.0',
+            'version' => '2.20.0.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../laminas/laminas-db',
             'aliases' => array(),
-            'reference' => 'a03d8df79c36c07b9031d05bfd605dfed3ddf9a3',
+            'reference' => '207b9ee70a8b518913c1fad688d7a64fe89a8b91',
             'dev_requirement' => false,
         ),
         'laminas/laminas-stdlib' => array(
-            'pretty_version' => '3.13.0',
-            'version' => '3.13.0.0',
+            'pretty_version' => '3.19.0',
+            'version' => '3.19.0.0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../laminas/laminas-stdlib',
             'aliases' => array(),
-            'reference' => '66a6d03c381f6c9f1dd988bf8244f9afb9380d76',
+            'reference' => '6a192dd0882b514e45506f533b833b623b78fff3',
             'dev_requirement' => false,
         ),
         'scoumbourdis/phpexcel' => array(

@@ -9,10 +9,10 @@
 
 namespace PHP_CodeSniffer\Sniffs;
 
-use PHP_CodeSniffer\Files\File;
-use PHP_CodeSniffer\Util\Tokens;
-use PHP_CodeSniffer\Tokenizers\PHP;
 use PHP_CodeSniffer\Exceptions\RuntimeException;
+use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Tokenizers\PHP;
+use PHP_CodeSniffer\Util\Tokens;
 
 abstract class AbstractPatternSniff implements Sniff
 {
@@ -78,7 +78,7 @@ abstract class AbstractPatternSniff implements Sniff
      * Classes extending <i>AbstractPatternTest</i> should implement the
      * <i>getPatterns()</i> method to register the patterns they wish to test.
      *
-     * @return int[]
+     * @return array<int|string>
      * @see    process()
      */
     final public function register()

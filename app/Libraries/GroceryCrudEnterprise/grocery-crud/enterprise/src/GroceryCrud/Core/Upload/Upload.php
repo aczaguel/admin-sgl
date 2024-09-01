@@ -289,6 +289,8 @@ class Upload
         }
 
         // Upload path destination checks
+
+        echo "<br> aqui";die();
         if (!is_dir($this->_uploadPath)) {
             $errorMessages[] = "The upload directory specified does not exist";
         } else if (!is_writable($this->_uploadPath)) {

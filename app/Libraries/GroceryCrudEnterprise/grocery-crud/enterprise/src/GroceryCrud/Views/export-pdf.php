@@ -86,7 +86,9 @@
 <script src="<?php echo $this->_assetsFolder;?>js/jspdf/Roboto-Regular-normal.js"></script>
 <script src="<?php echo $this->_assetsFolder;?>js/jspdf/jspdf.plugin.autotable.js"></script>
 <script>
-    var doc = new jsPDF();
+    var doc = new jsPDF({
+        orientation: 'l',
+    });
 
     doc.autoTable({
         headStyles: {

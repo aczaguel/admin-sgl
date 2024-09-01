@@ -33,7 +33,13 @@ class Documentos extends BaseController
         $crud->setTable('documento');
         $crud->setSubject('Documento', 'Documentos');
 
-        
+        $crud->columns(["documento", "descripcion"]); 
+        $crud->fields(["documento", "descripcion", "user_id"]);
+
+        $crud->fieldType('user_id','hidden');
+        $crud->fieldType('created_at','hidden');
+        $crud->fieldType('updated_at','hidden');
+
         $uploadValidations = [
             'maxUploadSize' => '20M', // 20 Mega Bytes
             'minUploadSize' => '1K', // 1 Kilo Byte
@@ -41,18 +47,14 @@ class Documentos extends BaseController
                 'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf'
             ]
         ];
-        $crud->callbackBeforeInsert(function ($stateParameters) {
-            $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
-        });
+        
         $crud->callbackAddForm(function ($data) {
             $session = session();
             $myid = $session->get('id');
             $data['user_id'] = $myid;
             return $data;
         });
-        $crud->setFieldUpload(
+        $crud->setFieldUploadMultiple(
             'file', 
             'assets/uploads/documentos/', 
             '/assets/uploads/documentos/', 
@@ -77,6 +79,18 @@ class Documentos extends BaseController
 
         $crud->setTable('doc_statuses');
         $crud->setSubject('Estatus', 'Estatuses');
+
+        $crud->columns(["st_documento", "descripcion"]); 
+        $crud->fields(["st_documento", "descripcion", "user_id"]);
+
+        $crud->fields(["st_documento", "descripcion", "user_id"]);
+
+        $crud->displayAs('st_documento','Estatus del Documento');
+
+        $crud->fieldType('user_id','hidden');
+        $crud->fieldType('created_at','hidden');
+        $crud->fieldType('updated_at','hidden');
+
 
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);

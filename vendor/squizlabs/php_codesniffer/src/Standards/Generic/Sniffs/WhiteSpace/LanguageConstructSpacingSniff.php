@@ -21,7 +21,7 @@ class LanguageConstructSpacingSniff implements Sniff
     /**
      * Returns an array of tokens this test wants to listen for.
      *
-     * @return array
+     * @return array<int|string>
      */
     public function register()
     {
@@ -81,7 +81,7 @@ class LanguageConstructSpacingSniff implements Sniff
             && strtolower($content) !== 'yield from'
         ) {
             if ($tokens[($stackPtr - 1)]['code'] === T_YIELD_FROM) {
-                // A multi-line statements that has already been processed.
+                // A multi-line statement that has already been processed.
                 return;
             }
 
