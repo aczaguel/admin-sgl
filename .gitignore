@@ -44,6 +44,3 @@ writable/uploads/*
 *.vscode/  # Configuración de Visual Studio Code
 .DS_Store  # Archivos del sistema MacOS
 Thumbs.db  # Archivos del sistema Windows
-
-
-app.baseURL = 'http://18.206.55.94:8080/public/'
