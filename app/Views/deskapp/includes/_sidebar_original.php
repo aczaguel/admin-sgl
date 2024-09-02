@@ -1,8 +1,8 @@
 <div class="left-side-bar">
 		<div class="brand-logo">
 			<a href="<?php echo base_url('deskapp/dashboard'); ?>">
-				<img src="<?php echo base_url(); ?>/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo">
-				<img src="<?php echo base_url(); ?>/assets/vendors/images/logoes_sgt_white.png" alt="" class="light-logo">
+				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo">
+				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt_white.png" alt="" class="light-logo">
 			</a>
 			<div class="close-sidebar" data-toggle="left-sidebar-close">
 				<i class="ion-close-round"></i>
@@ -196,7 +196,7 @@
 					<li>
 						<a href="https://dropways.github.io/deskapp-free-single-page-website-template/" target="_blank" class="dropdown-toggle no-arrow">
 							<span class="micon dw dw-paper-plane1"></span>
-							<span class="mtext">Landing Page <img src="<?php echo base_url(); ?>/assets/vendors/images/coming-soon.png" alt="" width="25"></span>
+							<span class="mtext">Landing Page <img src="<?php echo base_url(); ?>/public/assets/vendors/images/coming-soon.png" alt="" width="25"></span>
 						</a>
 					</li>
 				</ul>

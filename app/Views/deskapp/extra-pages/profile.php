@@ -6,9 +6,9 @@
 	<title>DeskApp - Bootstrap Admin Dashboard HTML Template</title>
 
 	<!-- Site favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/assets/vendors/images/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-16x16.png">
 
 	<!-- Mobile Specific Metas -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -16,10 +16,10 @@
 	<!-- Google Font -->
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/core.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/icon-font.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/src/plugins/cropperjs/dist/cropper.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/style.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/plugins/cropperjs/dist/cropper.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
@@ -62,13 +62,13 @@
 						<div class="pd-20 card-box height-100-p">
 							<div class="profile-photo">
 								<a href="modal" data-toggle="modal" data-target="#modal" class="edit-avatar"><i class="fa fa-pencil"></i></a>
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/photo1.jpg" alt="" class="avatar-photo">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo1.jpg" alt="" class="avatar-photo">
 								<div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
 									<div class="modal-dialog modal-dialog-centered" role="document">
 										<div class="modal-content">
 											<div class="modal-body pd-5">
 												<div class="img-container">
-													<img id="image" src="<?php echo base_url(); ?>/assets/vendors/images/photo2.jpg" alt="Picture">
+													<img id="image" src="<?php echo base_url(); ?>/public/assets/vendors/images/photo2.jpg" alt="Picture">
 												</div>
 											</div>
 											<div class="modal-footer">
@@ -582,11 +582,11 @@
 		</div>
 	</div>
 	<!-- js -->
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/script.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/process.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/layout-settings.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/cropperjs/dist/cropper.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/cropperjs/dist/cropper.js"></script>
 	<script>
 		window.addEventListener('DOMContentLoaded', function () {
 			var image = document.getElementById('image');

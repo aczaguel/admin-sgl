@@ -6,9 +6,9 @@
 	<title>DeskApp - Bootstrap Admin Dashboard HTML Template</title>
 
 	<!-- Site favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/assets/vendors/images/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-16x16.png">
 
 	<!-- Mobile Specific Metas -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -16,13 +16,13 @@
 	<!-- Google Font -->
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/core.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/icon-font.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
 	<!-- Slick Slider css -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/src/plugins/slick/slick.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/plugins/slick/slick.css">
 	<!-- bootstrap-touchspin css -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/src/plugins/bootstrap-touchspin/jquery.bootstrap-touchspin.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/style.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/plugins/bootstrap-touchspin/jquery.bootstrap-touchspin.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
@@ -66,30 +66,30 @@
 							<div class="col-lg-6 col-md-12 col-sm-12">
 								<div class="product-slider slider-arrow">
 									<div class="product-slide">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/product-img1.jpg" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-img1.jpg" alt="">
 									</div>
 									<div class="product-slide">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/product-img2.jpg" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-img2.jpg" alt="">
 									</div>
 									<div class="product-slide">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/product-img3.jpg" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-img3.jpg" alt="">
 									</div>
 									<div class="product-slide">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/product-img4.jpg" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-img4.jpg" alt="">
 									</div>
 								</div>
 								<div class="product-slider-nav">
 									<div class="product-slide-nav">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/product-img1.jpg" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-img1.jpg" alt="">
 									</div>
 									<div class="product-slide-nav">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/product-img2.jpg" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-img2.jpg" alt="">
 									</div>
 									<div class="product-slide-nav">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/product-img3.jpg" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-img3.jpg" alt="">
 									</div>
 									<div class="product-slide-nav">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/product-img4.jpg" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-img4.jpg" alt="">
 									</div>
 								</div>
 							</div>
@@ -124,7 +124,7 @@
 						<ul class="row">
 							<li class="col-lg-4 col-md-6 col-sm-12">
 								<div class="product-box">
-									<div class="producct-img"><img src="<?php echo base_url(); ?>/assets/vendors/images/product-img1.jpg" alt=""></div>
+									<div class="producct-img"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-img1.jpg" alt=""></div>
 									<div class="product-caption">
 										<h4><a href="#">Gufram Bounce Black</a></h4>
 										<div class="price">
@@ -136,7 +136,7 @@
 							</li>
 							<li class="col-lg-4 col-md-6 col-sm-12">
 								<div class="product-box">
-									<div class="producct-img"><img src="<?php echo base_url(); ?>/assets/vendors/images/product-img2.jpg" alt=""></div>
+									<div class="producct-img"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-img2.jpg" alt=""></div>
 									<div class="product-caption">
 										<h4><a href="#">Gufram Bounce White</a></h4>
 										<div class="price">
@@ -148,7 +148,7 @@
 							</li>
 							<li class="col-lg-4 col-md-6 col-sm-12">
 								<div class="product-box">
-									<div class="producct-img"><img src="<?php echo base_url(); ?>/assets/vendors/images/product-img3.jpg" alt=""></div>
+									<div class="producct-img"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-img3.jpg" alt=""></div>
 									<div class="product-caption">
 										<h4><a href="#">Contrast Lace-Up Sneakers</a></h4>
 										<div class="price">
@@ -167,14 +167,14 @@
 		</div>
 	</div>
 	<!-- js -->
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/script.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/process.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/layout-settings.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
 	<!-- Slick Slider js -->
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/slick/slick.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/slick/slick.min.js"></script>
 	<!-- bootstrap-touchspin js -->
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/bootstrap-touchspin/jquery.bootstrap-touchspin.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/bootstrap-touchspin/jquery.bootstrap-touchspin.js"></script>
 	<script>
 		jQuery(document).ready(function() {
 			jQuery('.product-slider').slick({

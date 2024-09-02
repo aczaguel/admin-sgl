@@ -6,9 +6,9 @@
 	<title>DeskApp - Bootstrap Admin Dashboard HTML Template</title>
 
 	<!-- Site favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/assets/vendors/images/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-16x16.png">
 
 	<!-- Mobile Specific Metas -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -16,9 +16,9 @@
 	<!-- Google Font -->
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/core.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/icon-font.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/style.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
@@ -61,7 +61,7 @@
 						<div class="pd-20 card-box height-100-p">
 							<h5 class="h4">Large modal</h5>
 							<a href="#" class="btn-block" data-toggle="modal" data-target="#bd-example-modal-lg" type="button">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/modal-img1.jpg" alt="modal">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/modal-img1.jpg" alt="modal">
 							</a>
 							<div class="modal fade bs-example-modal-lg" id="bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
 								<div class="modal-dialog modal-lg modal-dialog-centered">
@@ -98,7 +98,7 @@
 						<div class="pd-20 card-box height-100-p">
 							<h5 class="h4">Medium modal</h5>
 							<a href="#" class="btn-block" data-toggle="modal" data-target="#Medium-modal" type="button">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/modal-img2.jpg" alt="modal">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/modal-img2.jpg" alt="modal">
 							</a>
 							<div class="modal fade" id="Medium-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
 								<div class="modal-dialog modal-dialog-centered">
@@ -129,7 +129,7 @@
 						<div class="pd-20 card-box height-100-p">
 							<h5 class="h4">Small modal</h5>
 							<a href="#" class="btn-block" data-toggle="modal" data-target="#small-modal" type="button">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/modal-img3.jpg" alt="modal">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/modal-img3.jpg" alt="modal">
 							</a>
 							<div class="modal fade" id="small-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
 								<div class="modal-dialog modal-sm modal-dialog-centered">
@@ -155,7 +155,7 @@
 						<div class="pd-20 card-box height-100-p">
 							<h5 class="h4">Login modal</h5>
 							<a href="#" class="btn-block" data-backdrop="static" data-toggle="modal" data-target="#login-modal" type="button">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/modal-img2.jpg" alt="modal">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/modal-img2.jpg" alt="modal">
 							</a>
 							<div class="modal fade" id="login-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
 								<div class="modal-dialog modal-dialog-centered">
@@ -169,13 +169,13 @@
 													<div class="btn-group btn-group-toggle" data-toggle="buttons">
 														<label class="btn active">
 															<input type="radio" name="options" id="admin">
-															<div class="icon"><img src="<?php echo base_url(); ?>/assets/vendors/images/briefcase.svg" class="svg" alt=""></div>
+															<div class="icon"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/briefcase.svg" class="svg" alt=""></div>
 															<span>I'm</span>
 															Manager
 														</label>
 														<label class="btn">
 															<input type="radio" name="options" id="user">
-															<div class="icon"><img src="<?php echo base_url(); ?>/assets/vendors/images/person.svg" class="svg" alt=""></div>
+															<div class="icon"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/person.svg" class="svg" alt=""></div>
 															<span>I'm</span>
 															Employee
 														</label>
@@ -227,7 +227,7 @@
 						<div class="pd-20 card-box height-100-p">
 							<h5 class="h4">Alert modal</h5>
 							<a href="#" class="btn-block" data-toggle="modal" data-target="#alert-modal" type="button">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/modal-img3.jpg" alt="modal">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/modal-img3.jpg" alt="modal">
 							</a>
 							<div class="modal fade" id="alert-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
 								<div class="modal-dialog modal-sm modal-dialog-centered">
@@ -248,7 +248,7 @@
 						<div class="pd-20 card-box height-100-p">
 							<h5 class="h4">Warning modal</h5>
 							<a href="#" class="btn-block" data-toggle="modal" data-target="#warning-modal" type="button">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/modal-img3.jpg" alt="modal">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/modal-img3.jpg" alt="modal">
 							</a>
 							<div class="modal fade" id="warning-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
 								<div class="modal-dialog modal-sm modal-dialog-centered">
@@ -269,14 +269,14 @@
 						<div class="pd-20 card-box height-100-p">
 							<h5 class="h4">Success modal</h5>
 							<a href="#" class="btn-block" data-toggle="modal" data-target="#success-modal" type="button">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/modal-img3.jpg" alt="modal">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/modal-img3.jpg" alt="modal">
 							</a>
 							<div class="modal fade" id="success-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
 								<div class="modal-dialog modal-dialog-centered" role="document">
 									<div class="modal-content">
 										<div class="modal-body text-center font-18">
 											<h3 class="mb-20">Form Submitted!</h3>
-											<div class="mb-30 text-center"><img src="<?php echo base_url(); ?>/assets/vendors/images/success.png"></div>
+											<div class="mb-30 text-center"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/success.png"></div>
 											Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
 										</div>
 										<div class="modal-footer justify-content-center">
@@ -292,7 +292,7 @@
 						<div class="pd-20 card-box height-100-p">
 							<h5 class="h4">Confirmation modal</h5>
 							<a href="#" class="btn-block" data-toggle="modal" data-target="#confirmation-modal" type="button">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/modal-img3.jpg" alt="modal">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/modal-img3.jpg" alt="modal">
 							</a>
 							<div class="modal fade" id="confirmation-modal" tabindex="-1" role="dialog" aria-hidden="true">
 								<div class="modal-dialog modal-dialog-centered" role="document">
@@ -322,9 +322,9 @@
 		</div>
 	</div>
 	<!-- js -->
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/script.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/process.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/layout-settings.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
 </body>
 </html>

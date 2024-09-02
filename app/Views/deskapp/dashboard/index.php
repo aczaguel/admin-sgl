@@ -6,9 +6,9 @@
 	<title>DeskApp - Bootstrap Admin Dashboard HTML Template</title>
 
 	<!-- Site favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/assets/vendors/images/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-16x16.png">
 
 	<!-- Mobile Specific Metas -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -16,11 +16,11 @@
 	<!-- Google Font -->
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/core.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/icon-font.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/src/plugins/datatables/css/responsive.bootstrap4.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/style.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/css/responsive.bootstrap4.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
@@ -44,7 +44,7 @@
 			<div class="card-box pd-20 height-100-p mb-30">
 				<div class="row align-items-center">
 					<div class="col-md-4">
-						<img src="<?php echo base_url(); ?>/assets/vendors/images/banner-img.png" alt="">
+						<img src="<?php echo base_url(); ?>/public/assets/vendors/images/banner-img.png" alt="">
 					</div>
 					<div class="col-md-8">
 						<h4 class="font-20 weight-500 mb-10 text-capitalize">
@@ -139,7 +139,7 @@
 					<tbody>
 						<tr>
 							<td class="table-plus">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/product-1.jpg" width="70" height="70" alt="">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-1.jpg" width="70" height="70" alt="">
 							</td>
 							<td>
 								<h5 class="font-16">Shirt</h5>
@@ -164,7 +164,7 @@
 						</tr>
 						<tr>
 							<td class="table-plus">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/product-2.jpg" width="70" height="70" alt="">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-2.jpg" width="70" height="70" alt="">
 							</td>
 							<td>
 								<h5 class="font-16">Boots</h5>
@@ -189,7 +189,7 @@
 						</tr>
 						<tr>
 							<td class="table-plus">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/product-3.jpg" width="70" height="70" alt="">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-3.jpg" width="70" height="70" alt="">
 							</td>
 							<td>
 								<h5 class="font-16">Hat</h5>
@@ -214,7 +214,7 @@
 						</tr>
 						<tr>
 							<td class="table-plus">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/product-4.jpg" width="70" height="70" alt="">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-4.jpg" width="70" height="70" alt="">
 							</td>
 							<td>
 								<h5 class="font-16">Long Dress</h5>
@@ -239,7 +239,7 @@
 						</tr>
 						<tr>
 							<td class="table-plus">
-								<img src="<?php echo base_url(); ?>/assets/vendors/images/product-5.jpg" width="70" height="70" alt="">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/product-5.jpg" width="70" height="70" alt="">
 							</td>
 							<td>
 								<h5 class="font-16">Blazer</h5>
@@ -270,15 +270,15 @@
 		</div>
 	</div>
 	<!-- js -->
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/script.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/process.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/layout-settings.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/apexcharts/apexcharts.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/datatables/js/jquery.dataTables.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/datatables/js/dataTables.bootstrap4.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/datatables/js/dataTables.responsive.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/dashboard.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/apexcharts/apexcharts.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/js/jquery.dataTables.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/js/dataTables.bootstrap4.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/js/dataTables.responsive.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/dashboard.js"></script>
 </body>
 </html>

@@ -6,9 +6,9 @@
 	<title>DeskApp - Bootstrap Admin Dashboard HTML Template</title>
 
 	<!-- Site favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/assets/vendors/images/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-16x16.png">
 
 	<!-- Mobile Specific Metas -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -16,9 +16,9 @@
 	<!-- Google Font -->
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/core.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/icon-font.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/style.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
@@ -75,11 +75,11 @@
 					<div class="row">
 						<div class="col-md-5">
 							<p>Default sidebar color is dark</p>
-							<p><img src="<?php echo base_url(); ?>/assets/vendors/images/layout/sidebar-dark.png" class="box-shadow" alt=""></p>
+							<p><img src="<?php echo base_url(); ?>/public/assets/vendors/images/layout/sidebar-dark.png" class="box-shadow" alt=""></p>
 						</div>
 						<div class="col-md-7">
 							<p>Change sidebar color for white add class in <code>body class="sidebar-light"</code></p>
-							<p><img src="<?php echo base_url(); ?>/assets/vendors/images/layout/sidebar-white.png" class="box-shadow" alt=""></p>
+							<p><img src="<?php echo base_url(); ?>/public/assets/vendors/images/layout/sidebar-white.png" class="box-shadow" alt=""></p>
 						</div>
 					</div>
 				</div>
@@ -88,11 +88,11 @@
 					<div class="row">
 						<div class="col-md-12 mb-20">
 							<p>Default header color is white</p>
-							<p><img src="<?php echo base_url(); ?>/assets/vendors/images/layout/header-white.png" class="box-shadow" alt=""></p>
+							<p><img src="<?php echo base_url(); ?>/public/assets/vendors/images/layout/header-white.png" class="box-shadow" alt=""></p>
 						</div>
 						<div class="col-md-12">
 							<p>Change headedr color for dark add class in <code>body class="header-dark"</code></p>
-							<p><img src="<?php echo base_url(); ?>/assets/vendors/images/layout/header-dark.png" class="box-shadow" alt=""></p>
+							<p><img src="<?php echo base_url(); ?>/public/assets/vendors/images/layout/header-dark.png" class="box-shadow" alt=""></p>
 						</div>
 					</div>
 				</div>
@@ -168,9 +168,9 @@
 		</div>
 	</div>
 	<!-- js -->
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/script.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/process.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/layout-settings.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
 </body>
 </html>

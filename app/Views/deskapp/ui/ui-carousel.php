@@ -6,9 +6,9 @@
 	<title>DeskApp - Bootstrap Admin Dashboard HTML Template</title>
 
 	<!-- Site favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/assets/vendors/images/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-16x16.png">
 
 	<!-- Mobile Specific Metas -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -16,9 +16,9 @@
 	<!-- Google Font -->
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/core.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/icon-font.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/style.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
@@ -70,13 +70,13 @@
 							<div id="carouselExampleSlidesOnly" class="carousel slide" data-ride="carousel">
 								<div class="carousel-inner">
 									<div class="carousel-item active">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img2.jpg" alt="First slide">
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img2.jpg" alt="First slide">
 									</div>
 									<div class="carousel-item">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="Second slide">
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="Second slide">
 									</div>
 									<div class="carousel-item">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img4.jpg" alt="Third slide">
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img4.jpg" alt="Third slide">
 									</div>
 								</div>
 							</div>
@@ -90,13 +90,13 @@
 <div id="carouselExampleSlidesOnly" class="carousel slide" data-ride="carousel">
 	<div class="carousel-inner">
 		<div class="carousel-item active">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img2.jpg" alt="First slide">
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img2.jpg" alt="First slide">
 		</div>
 		<div class="carousel-item">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="Second slide">
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="Second slide">
 		</div>
 		<div class="carousel-item">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img4.jpg" alt="Third slide">
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img4.jpg" alt="Third slide">
 		</div>
 	</div>
 </div>
@@ -119,13 +119,13 @@
 							<div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
 								<div class="carousel-inner">
 									<div class="carousel-item active">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img2.jpg" alt="First slide">
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img2.jpg" alt="First slide">
 									</div>
 									<div class="carousel-item">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="Second slide">
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="Second slide">
 									</div>
 									<div class="carousel-item">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img4.jpg" alt="Third slide">
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img4.jpg" alt="Third slide">
 									</div>
 								</div>
 								<a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
@@ -147,13 +147,13 @@
 <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
 	<div class="carousel-inner">
 		<div class="carousel-item active">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img2.jpg" alt="First slide">
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img2.jpg" alt="First slide">
 		</div>
 		<div class="carousel-item">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="Second slide">
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="Second slide">
 		</div>
 		<div class="carousel-item">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img4.jpg" alt="Third slide">
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img4.jpg" alt="Third slide">
 		</div>
 	</div>
 	<a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
@@ -189,13 +189,13 @@
 								</ol>
 								<div class="carousel-inner">
 									<div class="carousel-item active">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="First slide">
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="First slide">
 									</div>
 									<div class="carousel-item">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img4.jpg" alt="Second slide">
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img4.jpg" alt="Second slide">
 									</div>
 									<div class="carousel-item">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img5.jpg" alt="Third slide">
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img5.jpg" alt="Third slide">
 									</div>
 								</div>
 								<a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
@@ -222,13 +222,13 @@
 	</ol>
 	<div class="carousel-inner">
 		<div class="carousel-item active">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="First slide">
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="First slide">
 		</div>
 		<div class="carousel-item">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img4.jpg" alt="Second slide">
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img4.jpg" alt="Second slide">
 		</div>
 		<div class="carousel-item">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img5.jpg" alt="Third slide">
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img5.jpg" alt="Third slide">
 		</div>
 	</div>
 	<a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
@@ -264,21 +264,21 @@
 								</ol>
 								<div class="carousel-inner">
 									<div class="carousel-item active">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img1.jpg" alt="First slide" />
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img1.jpg" alt="First slide" />
 										<div class="carousel-caption d-none d-md-block">
 											<h5 class="color-white">First slide label</h5>
 											<p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
 										</div>
 									</div>
 									<div class="carousel-item">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="Second slide" />
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="Second slide" />
 										<div class="carousel-caption d-none d-md-block">
 											<h5 class="color-white">Second slide label</h5>
 											<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
 										</div>
 									</div>
 									<div class="carousel-item">
-										<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img2.jpg" alt="Third slide" />
+										<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img2.jpg" alt="Third slide" />
 										<div class="carousel-caption d-none d-md-block">
 											<h5 class="color-white">Third slide label</h5>
 											<p>Praesent commodo cursus magna, vel scelerisque nisl consectetur.</p>
@@ -309,21 +309,21 @@
 	</ol>
 	<div class="carousel-inner">
 		<div class="carousel-item active">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img1.jpg" alt="First slide" />
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img1.jpg" alt="First slide" />
 			<div class="carousel-caption d-none d-md-block">
 				<h5 class="color-white">First slide label</h5>
 				<p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
 			</div>
 		</div>
 		<div class="carousel-item">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="Second slide" />
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="Second slide" />
 			<div class="carousel-caption d-none d-md-block">
 				<h5 class="color-white">Second slide label</h5>
 				<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
 			</div>
 		</div>
 		<div class="carousel-item">
-			<img class="d-block w-100" src="<?php echo base_url(); ?>/assets/vendors/images/img2.jpg" alt="Third slide" />
+			<img class="d-block w-100" src="<?php echo base_url(); ?>/public/assets/vendors/images/img2.jpg" alt="Third slide" />
 			<div class="carousel-caption d-none d-md-block">
 				<h5 class="color-white">Third slide label</h5>
 				<p>Praesent commodo cursus magna, vel scelerisque nisl consectetur.</p>
@@ -351,9 +351,9 @@
 		</div>
 	</div>
 	<!-- js -->
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/script.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/process.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/layout-settings.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
 </body>
 </html>
