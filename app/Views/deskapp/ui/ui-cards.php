@@ -6,9 +6,9 @@
 	<title>DeskApp - Bootstrap Admin Dashboard HTML Template</title>
 
 	<!-- Site favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/assets/vendors/images/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-16x16.png">
 
 	<!-- Mobile Specific Metas -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -16,9 +16,9 @@
 	<!-- Google Font -->
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/core.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/icon-font.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/style.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
@@ -58,7 +58,7 @@
 				<div class="row clearfix">
 					<div class="col-lg-3 col-md-6 col-sm-12 mb-30">
 						<div class="card card-box">
-							<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img2.jpg" alt="Card image cap">
+							<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img2.jpg" alt="Card image cap">
 							<div class="card-body">
 								<h5 class="card-title weight-500">Card title</h5>
 								<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
@@ -68,7 +68,7 @@
 					</div>
 					<div class="col-lg-3 col-md-6 col-sm-12 mb-30">
 						<div class="card card-box">
-							<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="Card image cap">
+							<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="Card image cap">
 							<div class="card-body">
 								<h5 class="card-title weight-500">Card title</h5>
 								<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
@@ -86,7 +86,7 @@
 								<h5 class="card-title weight-500">Card title</h5>
 								<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
 							</div>
-							<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img1.jpg" alt="Card image cap">
+							<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img1.jpg" alt="Card image cap">
 							<div class="card-body">
 								<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
 								<a href="#" class="card-link text-primary">Card link</a>
@@ -96,7 +96,7 @@
 					</div>
 					<div class="col-lg-3 col-md-6 col-sm-12 mb-30">
 						<div class="card card-box">
-							<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img4.jpg" alt="Card image cap">
+							<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img4.jpg" alt="Card image cap">
 							<div class="card-body">
 								<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content. Some quick example text to build on the card title and make up the bulk of the card's content.</p>
 							</div>
@@ -146,7 +146,7 @@
 				<div class="row clearfix">
 					<div class="col-sm-12 col-md-12 col-lg-4 mb-30">
 						<div class="card card-box">
-							<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img4.jpg" alt="Card image cap">
+							<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img4.jpg" alt="Card image cap">
 							<div class="card-body">
 								<h5 class="card-title weight-500">Card title</h5>
 								<p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
@@ -156,7 +156,7 @@
 					</div>
 					<div class="col-sm-12 col-md-12 col-lg-4 mb-30">
 						<div class="card bg-dark card-box">
-							<img class="card-img" src="<?php echo base_url(); ?>/assets/vendors/images/img1.jpg" alt="Card image">
+							<img class="card-img" src="<?php echo base_url(); ?>/public/assets/vendors/images/img1.jpg" alt="Card image">
 							<div class="card-img-overlay">
 								<h5 class="card-title weight-500">Card title</h5>
 								<p class="card-text">This is a wider card with supporting text below as a natural lead-in.</p>
@@ -171,7 +171,7 @@
 								<p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
 								<p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
 							</div>
-							<img class="card-img-bottom" src="<?php echo base_url(); ?>/assets/vendors/images/img5.jpg" alt="Card image cap">
+							<img class="card-img-bottom" src="<?php echo base_url(); ?>/public/assets/vendors/images/img5.jpg" alt="Card image cap">
 						</div>
 					</div>
 				</div>
@@ -311,7 +311,7 @@
 				<h4 class="h4 text-blue mb-30">Card groups</h4>
 				<div class="card-group mb-30">
 					<div class="card card-box">
-						<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="Card image cap">
+						<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="Card image cap">
 						<div class="card-body">
 							<h5 class="card-title">Card title</h5>
 							<p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
@@ -319,7 +319,7 @@
 						</div>
 					</div>
 					<div class="card card-box">
-						<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img4.jpg" alt="Card image cap">
+						<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img4.jpg" alt="Card image cap">
 						<div class="card-body">
 							<h5 class="card-title">Card title</h5>
 							<p class="card-text">This card has supporting text below as a natural lead-in to additional content.</p>
@@ -327,7 +327,7 @@
 						</div>
 					</div>
 					<div class="card card-box">
-						<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img2.jpg" alt="Card image cap">
+						<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img2.jpg" alt="Card image cap">
 						<div class="card-body">
 							<h5 class="card-title">Card title</h5>
 							<p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This card has even longer content than the first to show that equal height action.</p>
@@ -338,7 +338,7 @@
 				<h4 class="h4 text-blue mb-30">Card decks</h4>
 				<div class="card-deck mb-30">
 					<div class="card">
-						<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img2.jpg" alt="Card image cap">
+						<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img2.jpg" alt="Card image cap">
 						<div class="card-body">
 							<h5 class="card-title">Card title</h5>
 							<p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
@@ -346,7 +346,7 @@
 						</div>
 					</div>
 					<div class="card">
-						<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="Card image cap">
+						<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="Card image cap">
 						<div class="card-body">
 							<h5 class="card-title">Card title</h5>
 							<p class="card-text">This card has supporting text below as a natural lead-in to additional content.</p>
@@ -354,7 +354,7 @@
 						</div>
 					</div>
 					<div class="card">
-						<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img4.jpg" alt="Card image cap">
+						<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img4.jpg" alt="Card image cap">
 						<div class="card-body">
 							<h5 class="card-title">Card title</h5>
 							<p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This card has even longer content than the first to show that equal height action.</p>
@@ -365,7 +365,7 @@
 				<h4 class="h4 text-blue mb-30">Card columns</h4>
 				<div class="card-columns mb-30">
 					<div class="card card-box">
-						<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img1.jpg" alt="Card image cap">
+						<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img1.jpg" alt="Card image cap">
 						<div class="card-body">
 							<h5 class="card-title">Card title that wraps to a new line</h5>
 							<p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
@@ -382,7 +382,7 @@
 						</blockquote>
 					</div>
 					<div class="card card-box">
-						<img class="card-img-top" src="<?php echo base_url(); ?>/assets/vendors/images/img2.jpg" alt="Card image cap">
+						<img class="card-img-top" src="<?php echo base_url(); ?>/public/assets/vendors/images/img2.jpg" alt="Card image cap">
 						<div class="card-body">
 							<h5 class="card-title">Card title</h5>
 							<p class="card-text">This card has supporting text below as a natural lead-in to additional content.</p>
@@ -407,7 +407,7 @@
 						</div>
 					</div>
 					<div class="card card-box">
-						<img class="card-img" src="<?php echo base_url(); ?>/assets/vendors/images/img3.jpg" alt="Card image">
+						<img class="card-img" src="<?php echo base_url(); ?>/public/assets/vendors/images/img3.jpg" alt="Card image">
 					</div>
 					<div class="card card-box p-3 text-right">
 						<blockquote class="blockquote mb-0">
@@ -432,9 +432,9 @@
 		</div>
 	</div>
 	<!-- js -->
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/script.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/process.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/layout-settings.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
 </body>
 </html>

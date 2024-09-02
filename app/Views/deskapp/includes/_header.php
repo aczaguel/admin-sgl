@@ -1,6 +1,6 @@
 <div class="pre-loader">
 	<div class="pre-loader-box">
-		<div class="loader-logo"><img src="<?php echo base_url(); ?>/assets/vendors/images/logoes_sgt.jpg" alt=""></div>
+		<div class="loader-logo"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.jpg" alt=""></div>
 		<div class='loader-progress' id="progress_div">
 			<div class='bar' id='bar1'></div>
 		</div>
@@ -71,42 +71,42 @@
 						<ul>
 							<li>
 								<a href="#">
-									<img src="<?php echo base_url(); ?>/assets/vendors/images/img.jpg" alt="">
+									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/img.jpg" alt="">
 									<h3>John Doe</h3>
 									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
 								</a>
 							</li>
 							<li>
 								<a href="#">
-									<img src="<?php echo base_url(); ?>/assets/vendors/images/photo1.jpg" alt="">
+									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo1.jpg" alt="">
 									<h3>Lea R. Frith</h3>
 									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
 								</a>
 							</li>
 							<li>
 								<a href="#">
-									<img src="<?php echo base_url(); ?>/assets/vendors/images/photo2.jpg" alt="">
+									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo2.jpg" alt="">
 									<h3>Erik L. Richards</h3>
 									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
 								</a>
 							</li>
 							<li>
 								<a href="#">
-									<img src="<?php echo base_url(); ?>/assets/vendors/images/photo3.jpg" alt="">
+									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo3.jpg" alt="">
 									<h3>John Doe</h3>
 									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
 								</a>
 							</li>
 							<li>
 								<a href="#">
-									<img src="<?php echo base_url(); ?>/assets/vendors/images/photo4.jpg" alt="">
+									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo4.jpg" alt="">
 									<h3>Renee I. Hansen</h3>
 									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
 								</a>
 							</li>
 							<li>
 								<a href="#">
-									<img src="<?php echo base_url(); ?>/assets/vendors/images/img.jpg" alt="">
+									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/img.jpg" alt="">
 									<h3>Vicki M. Coleman</h3>
 									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
 								</a>
@@ -121,7 +121,7 @@
 			<div class="dropdown">
 				<a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown">
 					<span class="user-icon">
-						<img src="<?php echo base_url(); ?>/assets/vendors/images/img.jpg" alt="">
+						<img src="<?php echo base_url(); ?>/public/assets/vendors/images/img.jpg" alt="">
 					</span>
 					<span class="user-name"><?= esc($session->get('firstname').' '.$session->get('midname').' '.$session->get('lastname')); ?></span>
 				</a>
@@ -136,7 +136,7 @@
 			</div>
 		</div>
 		<div class="github-link__">
-			<!-- <a href="https://github.com/dropways/deskapp" target="_blank"><img src="<?php echo base_url(); ?>/assets/vendors/images/github.svg" alt=""></a> -->
+			<!-- <a href="https://github.com/dropways/deskapp" target="_blank"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/github.svg" alt=""></a> -->
 			&nbsp;
 		</div>
 	</div>

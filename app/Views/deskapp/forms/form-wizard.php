@@ -6,9 +6,9 @@
 	<title>DeskApp - Bootstrap Admin Dashboard HTML Template</title>
 
 	<!-- Site favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/assets/vendors/images/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-16x16.png">
 
 	<!-- Mobile Specific Metas -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -16,10 +16,10 @@
 	<!-- Google Font -->
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/core.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/icon-font.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/src/plugins/jquery-steps/jquery.steps.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/style.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/plugins/jquery-steps/jquery.steps.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
@@ -367,7 +367,7 @@
 						<div class="modal-content">
 							<div class="modal-body text-center font-18">
 								<h3 class="mb-20">Form Submitted!</h3>
-								<div class="mb-30 text-center"><img src="<?php echo base_url(); ?>/assets/vendors/images/success.png"></div>
+								<div class="mb-30 text-center"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/success.png"></div>
 								Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
 							</div>
 							<div class="modal-footer justify-content-center">
@@ -382,11 +382,11 @@
 		</div>
 	</div>
 	<!-- js -->
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/script.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/process.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/layout-settings.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/jquery-steps/jquery.steps.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/steps-setting.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/jquery-steps/jquery.steps.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/steps-setting.js"></script>
 </body>
 </html>

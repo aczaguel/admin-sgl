@@ -6,9 +6,9 @@
 	<title>DeskApp - Bootstrap Admin Dashboard HTML Template</title>
 
 	<!-- Site favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/assets/vendors/images/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-16x16.png">
 
 	<!-- Mobile Specific Metas -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -16,11 +16,11 @@
 	<!-- Google Font -->
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/core.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/icon-font.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/src/plugins/datatables/css/responsive.bootstrap4.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/style.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/css/responsive.bootstrap4.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
@@ -184,7 +184,7 @@
 								<li class="d-flex align-items-center justify-content-between">
 									<div class="name-avatar d-flex align-items-center pr-2">
 										<div class="avatar mr-2 flex-shrink-0">
-											<img src="<?php echo base_url(); ?>/assets/vendors/images/photo1.jpg" class="border-radius-100 box-shadow" width="50" height="50" alt="">
+											<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo1.jpg" class="border-radius-100 box-shadow" width="50" height="50" alt="">
 										</div>
 										<div class="txt">
 											<span class="badge badge-pill badge-sm" data-bgcolor="#e7ebf5" data-color="#265ed7">4.9</span>
@@ -199,7 +199,7 @@
 								<li class="d-flex align-items-center justify-content-between">
 									<div class="name-avatar d-flex align-items-center pr-2">
 										<div class="avatar mr-2 flex-shrink-0">
-											<img src="<?php echo base_url(); ?>/assets/vendors/images/photo2.jpg" class="border-radius-100 box-shadow" width="50" height="50" alt="">
+											<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo2.jpg" class="border-radius-100 box-shadow" width="50" height="50" alt="">
 										</div>
 										<div class="txt">
 											<span class="badge badge-pill badge-sm" data-bgcolor="#e7ebf5" data-color="#265ed7">4.9</span>
@@ -214,7 +214,7 @@
 								<li class="d-flex align-items-center justify-content-between">
 									<div class="name-avatar d-flex align-items-center pr-2">
 										<div class="avatar mr-2 flex-shrink-0">
-											<img src="<?php echo base_url(); ?>/assets/vendors/images/photo3.jpg" class="border-radius-100 box-shadow" width="50" height="50" alt="">
+											<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo3.jpg" class="border-radius-100 box-shadow" width="50" height="50" alt="">
 										</div>
 										<div class="txt">
 											<span class="badge badge-pill badge-sm" data-bgcolor="#e7ebf5" data-color="#265ed7">4.9</span>
@@ -229,7 +229,7 @@
 								<li class="d-flex align-items-center justify-content-between">
 									<div class="name-avatar d-flex align-items-center pr-2">
 										<div class="avatar mr-2 flex-shrink-0">
-											<img src="<?php echo base_url(); ?>/assets/vendors/images/photo4.jpg" class="border-radius-100 box-shadow" width="50" height="50" alt="">
+											<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo4.jpg" class="border-radius-100 box-shadow" width="50" height="50" alt="">
 										</div>
 										<div class="txt">
 											<span class="badge badge-pill badge-sm" data-bgcolor="#e7ebf5" data-color="#265ed7">4.9</span>
@@ -267,7 +267,7 @@
 				<div class="col-lg-4 col-md-12 mb-20">
 					<div class="card-box height-100-p pd-20 min-height-200px">
 						<div class="max-width-300 mx-auto">
-							<img src="<?php echo base_url(); ?>/assets/vendors/images/upgrade.svg" alt="">
+							<img src="<?php echo base_url(); ?>/public/assets/vendors/images/upgrade.svg" alt="">
 						</div>
 						<div class="text-center">
 							<div class="h5 mb-1">Upgrade to Pro</div>
@@ -299,7 +299,7 @@
 							<td class="table-plus">
 								<div class="name-avatar d-flex align-items-center">
 									<div class="avatar mr-2 flex-shrink-0">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/photo4.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo4.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
 									</div>
 									<div class="txt">
 										<div class="weight-600">Jennifer O. Oster</div>
@@ -322,7 +322,7 @@
 							<td class="table-plus">
 								<div class="name-avatar d-flex align-items-center">
 									<div class="avatar mr-2 flex-shrink-0">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/photo5.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo5.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
 									</div>
 									<div class="txt">
 										<div class="weight-600">Doris L. Larson</div>
@@ -345,7 +345,7 @@
 							<td class="table-plus">
 								<div class="name-avatar d-flex align-items-center">
 									<div class="avatar mr-2 flex-shrink-0">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/photo6.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo6.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
 									</div>
 									<div class="txt">
 										<div class="weight-600">Joseph	Powell</div>
@@ -368,7 +368,7 @@
 							<td class="table-plus">
 								<div class="name-avatar d-flex align-items-center">
 									<div class="avatar mr-2 flex-shrink-0">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/photo9.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo9.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
 									</div>
 									<div class="txt">
 										<div class="weight-600">Jake Springer</div>
@@ -391,7 +391,7 @@
 							<td class="table-plus">
 								<div class="name-avatar d-flex align-items-center">
 									<div class="avatar mr-2 flex-shrink-0">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/photo1.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo1.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
 									</div>
 									<div class="txt">
 										<div class="weight-600">Paul Buckland</div>
@@ -414,7 +414,7 @@
 							<td class="table-plus">
 								<div class="name-avatar d-flex align-items-center">
 									<div class="avatar mr-2 flex-shrink-0">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/photo2.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo2.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
 									</div>
 									<div class="txt">
 										<div class="weight-600">Neil Arnold</div>
@@ -437,7 +437,7 @@
 							<td class="table-plus">
 								<div class="name-avatar d-flex align-items-center">
 									<div class="avatar mr-2 flex-shrink-0">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/photo8.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo8.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
 									</div>
 									<div class="txt">
 										<div class="weight-600">Christian Dyer</div>
@@ -460,7 +460,7 @@
 							<td class="table-plus">
 								<div class="name-avatar d-flex align-items-center">
 									<div class="avatar mr-2 flex-shrink-0">
-										<img src="<?php echo base_url(); ?>/assets/vendors/images/photo1.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
+										<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo1.jpg" class="border-radius-100 shadow" width="40" height="40" alt="">
 									</div>
 									<div class="txt">
 										<div class="weight-600">Doris L. Larson</div>
@@ -491,7 +491,7 @@
 				<div class="col-md-4 mb-20">
 					<a href="#" class="card-box d-block mx-auto pd-20 text-secondary">
 						<div class="img pb-30">
-							<img src="<?php echo base_url(); ?>/assets/vendors/images/medicine-bro.svg" alt="">
+							<img src="<?php echo base_url(); ?>/public/assets/vendors/images/medicine-bro.svg" alt="">
 						</div>
 						<div class="content">
 							<h3 class="h4">Services</h3>
@@ -502,7 +502,7 @@
 				<div class="col-md-4 mb-20">
 					<a href="#" class="card-box d-block mx-auto pd-20 text-secondary">
 						<div class="img pb-30">
-							<img src="<?php echo base_url(); ?>/assets/vendors/images/remedy-amico.svg" alt="">
+							<img src="<?php echo base_url(); ?>/public/assets/vendors/images/remedy-amico.svg" alt="">
 						</div>
 						<div class="content">
 							<h3 class="h4">Medications</h3>
@@ -513,7 +513,7 @@
 				<div class="col-md-4 mb-20">
 					<a href="#" class="card-box d-block mx-auto pd-20 text-secondary">
 						<div class="img pb-30">
-							<img src="<?php echo base_url(); ?>/assets/vendors/images/paper-map-cuate.svg" alt="">
+							<img src="<?php echo base_url(); ?>/public/assets/vendors/images/paper-map-cuate.svg" alt="">
 						</div>
 						<div class="content">
 							<h3 class="h4">Locations</h3>
@@ -528,15 +528,15 @@
 		</div>
 	</div>
 	<!-- js -->
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/script.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/process.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/layout-settings.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/apexcharts/apexcharts.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/datatables/js/jquery.dataTables.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/datatables/js/dataTables.bootstrap4.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/datatables/js/dataTables.responsive.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/dashboard3.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/apexcharts/apexcharts.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/js/jquery.dataTables.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/js/dataTables.bootstrap4.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/js/dataTables.responsive.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/dashboard3.js"></script>
 </body>
 </html>

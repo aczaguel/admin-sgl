@@ -9,7 +9,7 @@ return [
     'default_language'	=> 'English',
 
     // This is the assets folder where all the JavaScript, CSS, images and font files are located
-    'assets_folder' => '/vendor/grocery-crud/',
+    'assets_folder' => '/public/vendor/grocery-crud/',
 
     // The default per page when a user firstly see a list page
     'default_per_page'	=> 10,

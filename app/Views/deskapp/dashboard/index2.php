@@ -6,9 +6,9 @@
 	<title>DeskApp - Bootstrap Admin Dashboard HTML Template</title>
 
 	<!-- Site favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/assets/vendors/images/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/assets/vendors/images/favicon-16x16.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-16x16.png">
 
 	<!-- Mobile Specific Metas -->
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -16,10 +16,10 @@
 	<!-- Google Font -->
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/core.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/icon-font.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/src/plugins/jvectormap/jquery-jvectormap-2.0.3.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/assets/vendors/styles/style.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/plugins/jvectormap/jquery-jvectormap-2.0.3.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
@@ -112,27 +112,27 @@
 						<div class="browser-visits">
 							<ul>
 								<li class="d-flex flex-wrap align-items-center">
-									<div class="icon"><img src="<?php echo base_url(); ?>/assets/vendors/images/chrome.png" alt=""></div>
+									<div class="icon"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/chrome.png" alt=""></div>
 									<div class="browser-name">Google Chrome</div>
 									<div class="visit"><span class="badge badge-pill badge-primary">50%</span></div>
 								</li>
 								<li class="d-flex flex-wrap align-items-center">
-									<div class="icon"><img src="<?php echo base_url(); ?>/assets/vendors/images/firefox.png" alt=""></div>
+									<div class="icon"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/firefox.png" alt=""></div>
 									<div class="browser-name">Mozilla Firefox</div>
 									<div class="visit"><span class="badge badge-pill badge-secondary">40%</span></div>
 								</li>
 								<li class="d-flex flex-wrap align-items-center">
-									<div class="icon"><img src="<?php echo base_url(); ?>/assets/vendors/images/safari.png" alt=""></div>
+									<div class="icon"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/safari.png" alt=""></div>
 									<div class="browser-name">Safari</div>
 									<div class="visit"><span class="badge badge-pill badge-success">40%</span></div>
 								</li>
 								<li class="d-flex flex-wrap align-items-center">
-									<div class="icon"><img src="<?php echo base_url(); ?>/assets/vendors/images/edge.png" alt=""></div>
+									<div class="icon"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/edge.png" alt=""></div>
 									<div class="browser-name">Microsoft Edge</div>
 									<div class="visit"><span class="badge badge-pill badge-warning">20%</span></div>
 								</li>
 								<li class="d-flex flex-wrap align-items-center">
-									<div class="icon"><img src="<?php echo base_url(); ?>/assets/vendors/images/opera.png" alt=""></div>
+									<div class="icon"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/opera.png" alt=""></div>
 									<div class="browser-name">Opera Mini</div>
 									<div class="visit"><span class="badge badge-pill badge-info">20%</span></div>
 								</li>
@@ -166,15 +166,15 @@
 		</div>
 	</div>
 	<!-- js -->
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/script.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/process.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/layout-settings.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/jQuery-Knob-master/jquery.knob.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/highcharts-6.0.7/code/highcharts.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/highcharts-6.0.7/code/highcharts-more.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/jvectormap/jquery-jvectormap-2.0.3.min.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/src/plugins/jvectormap/jquery-jvectormap-world-mill-en.js"></script>
-	<script src="<?php echo base_url(); ?>/assets/vendors/scripts/dashboard2.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/jQuery-Knob-master/jquery.knob.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/highcharts-6.0.7/code/highcharts.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/highcharts-6.0.7/code/highcharts-more.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/jvectormap/jquery-jvectormap-2.0.3.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/jvectormap/jquery-jvectormap-world-mill-en.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/dashboard2.js"></script>
 </body>
 </html>
