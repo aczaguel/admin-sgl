@@ -58,6 +58,10 @@
 				</div>
 			</div>
 			<div class="row">
+				<div class="col-xl-12 mb-30">
+					<h2>Locales</h2>
+				</div>
+				
 				<div class="col-xl-3 mb-30">
 					<div class="card-box height-100-p widget-style1">
 						<div class="d-flex flex-wrap align-items-center">
@@ -65,8 +69,9 @@
 								<div id="chart"></div>
 							</div>
 							<div class="widget-data">
-								<div class="h4 mb-0">2020</div>
-								<div class="weight-600 font-14">Contact</div>
+								<div class="h4 mb-0">Recientes</div>
+								<div class="weight-600 font-14"><?php echo isset($graph['local']['verde']) ? $graph['local']['verde'] : 0; ?>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -78,8 +83,9 @@
 								<div id="chart2"></div>
 							</div>
 							<div class="widget-data">
-								<div class="h4 mb-0">400</div>
-								<div class="weight-600 font-14">Deals</div>
+								<div class="h4 mb-0">> 5 Días</div>
+								<div class="weight-600 font-14"><?php echo isset($graph['local']['amarillo']) ? $graph['local']['amarillo'] : 0; ?>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -91,8 +97,8 @@
 								<div id="chart3"></div>
 							</div>
 							<div class="widget-data">
-								<div class="h4 mb-0">350</div>
-								<div class="weight-600 font-14">Campaign</div>
+								<div class="h4 mb-0">> 8 Días</div>
+								<div class="weight-600 font-14"><?php echo isset($graph['local']['rojo']) ? $graph['local']['rojo'] : 0; ?></div>
 							</div>
 						</div>
 					</div>
@@ -104,13 +110,77 @@
 								<div id="chart4"></div>
 							</div>
 							<div class="widget-data">
-								<div class="h4 mb-0">$6060</div>
-								<div class="weight-600 font-14">Worth</div>
+								<div class="h4 mb-0">> 12 Días</div>
+								<div class="weight-600 font-14"><?php echo isset($graph['local']['violeta']) ? $graph['local']['violeta'] : 0; ?></div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
+
+			<div class="row">
+				<div class="col-xl-12 mb-30">
+					<h2>Foraneos</h2>
+				</div>
+				<div class="col-xl-3 mb-30">
+					<div class="card-box height-100-p widget-style1">
+						<div class="d-flex flex-wrap align-items-center">
+							<div class="progress-data">
+								<div id="chartf1"></div>
+							</div>
+							<div class="widget-data">
+								<div class="h4 mb-0">Recientes</div>
+								<div class="weight-600 font-14"><?php echo isset($graph['foraneo']['verde']) ? $graph['foraneo']['verde'] : 0; ?>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-xl-3 mb-30">
+					<div class="card-box height-100-p widget-style1">
+						<div class="d-flex flex-wrap align-items-center">
+							<div class="progress-data">
+								<div id="chartf2"></div>
+							</div>
+							<div class="widget-data">
+								<div class="h4 mb-0">> 5 Días</div>
+								<div class="weight-600 font-14"><?php echo isset($graph['foraneo']['amarillo']) ? $graph['foraneo']['amarillo'] : 0; ?>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-xl-3 mb-30">
+					<div class="card-box height-100-p widget-style1">
+						<div class="d-flex flex-wrap align-items-center">
+							<div class="progress-data">
+								<div id="chartf3"></div>
+							</div>
+							<div class="widget-data">
+								<div class="h4 mb-0">> 8 Días</div>
+								<div class="weight-600 font-14"><?php echo isset($graph['foraneo']['rojo']) ? $graph['foraneo']['rojo'] : 0; ?>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-xl-3 mb-30">
+					<div class="card-box height-100-p widget-style1">
+						<div class="d-flex flex-wrap align-items-center">
+							<div class="progress-data">
+								<div id="chartf4"></div>
+							</div>
+							<div class="widget-data">
+								<div class="h4 mb-0">> 12 Días</div>
+								<div class="weight-600 font-14"><?php echo isset($graph['foraneo']['violeta']) ? $graph['foraneo']['violeta'] : 0; ?>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			
 			<div class="row">
 				<div class="col-xl-8 mb-30">
 					<div class="card-box height-100-p pd-20">
@@ -131,6 +201,12 @@
 		</div>
 	</div>
 	<!-- js -->
+	<script>
+		// Pasar los datos de PHP a JavaScript usando JSON
+		var graphData = <?php echo json_encode($graph); ?>;
+		var perMonth = <?php echo json_encode($perMonth); ?>;
+		 // Verifica que los datos se pasen correctamente
+	</script>
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>

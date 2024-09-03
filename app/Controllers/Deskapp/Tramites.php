@@ -94,8 +94,6 @@ class Tramites extends BaseController
             $tramite_crud->setSubject('tramite', 'Tramites');
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
             
-            
-
             $tramite_crud->columns([
                 'created_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
@@ -145,8 +143,6 @@ class Tramites extends BaseController
             
                 return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
             });
-            
-            
 
             $tramite_crud->fields([
                 'folio','contrato','unidad','serie', 
