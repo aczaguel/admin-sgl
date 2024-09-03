@@ -42,7 +42,7 @@ class Users extends BaseController
             $users_crud->defaultOrdering('users.id', 'desc');
             
             // Callback para cifrar la contraseña antes de insertar
-            $users_crud->columns(['id', 'username', 'firstname', 'midname', 'lastname', 'email', 'roles', 'status']);
+            $users_crud->columns(['id', 'username', 'firstname', 'midname', 'lastname', 'email', 'avatar', 'roles', 'status']);
             $users_crud->fields(['username', 'firstname', 'midname', 'lastname', 'email', 'phone', 'avatar', 'password', 'roles', 'status']);
             $users_crud->fieldType('password', 'password'); // Indica que el campo password es de tipo password
             $users_crud->unsetDeleteMultiple();
@@ -65,8 +65,8 @@ class Users extends BaseController
     
             $users_crud->setFieldUpload(
                 'avatar', 
-                '/assets/uploads/documentos/', 
-                '/assets/uploads/documentos/', 
+                'assets/uploads/avatars/', 
+                '/assets/uploads/avatars/', 
                 $uploadValidations
             );
 

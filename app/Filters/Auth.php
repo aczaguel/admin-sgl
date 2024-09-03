@@ -8,10 +8,6 @@ class Auth implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        // echo "<pre>";
-        // print_r(session()->has('username'));
-        // print_r(session()->get('username'));
-        // echo "</pre>";
         if (! session()->has('username') || ! session()->get('username')) {
             if ($request->uri->getPath() !== '/' && $request->uri->getPath() !== 'deskapp/login/auth') {
                 return redirect()->to('/');

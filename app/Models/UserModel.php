@@ -79,4 +79,58 @@ class UserModel extends Model{
         return $roleNames;
     }
 
+    public function getTramitesWithClase()
+    {
+        // Construir la consulta para obtener los trámites con las condiciones especificadas
+        $builder = $this->db->table('tramite');
+        $builder->select('id, ent_municipio_id, DATEDIFF(fecha_conclusion, created_at) AS dias_diferencia');
+        $builder->where('(ent_municipio_id BETWEEN 266 AND 281) OR (ent_municipio_id BETWEEN 657 AND 781)');
+
+        // Ejecutar la consulta
+        $query = $builder->get();
+        $tramites = $query->getResultArray();
+
+        $result = [];
+
+        foreach ($tramites as $tramite) {
+            $diasDiferencia = $tramite['dias_diferencia'];
+            $local = ($tramite['ent_municipio_id'] >= 266 && $tramite['ent_municipio_id'] <= 281) || 
+                    ($tramite['ent_municipio_id'] >= 657 && $tramite['ent_municipio_id'] <= 781);
+
+            // Determinar la clase CSS basada en los días de diferencia y si es Local o Foráneo
+            if ($local) {
+                if ($diasDiferencia < 5) {
+                    $clase = 'claseVerde'; // Cambiar por el valor real de $claseVerde
+                } elseif ($diasDiferencia < 8) {
+                    $clase = 'claseAmarillo'; // Cambiar por el valor real de $claseAmarillo
+                } elseif ($diasDiferencia < 12) {
+                    $clase = 'claseRojo'; // Cambiar por el valor real de $claseRojo
+                } else {
+                    $clase = 'claseVioleta'; // Cambiar por el valor real de $claseVioleta
+                }
+            } else {
+                if ($diasDiferencia < 10) {
+                    $clase = 'claseVerde'; // Cambiar por el valor real de $claseVerde
+                } elseif ($diasDiferencia < 13) {
+                    $clase = 'claseAmarillo'; // Cambiar por el valor real de $claseAmarillo
+                } elseif ($diasDiferencia < 16) {
+                    $clase = 'claseRojo'; // Cambiar por el valor real de $claseRojo
+                } else {
+                    $clase = 'claseVioleta'; // Cambiar por el valor real de $claseVioleta
+                }
+            }
+
+            // Añadir el resultado al arreglo
+            $result[] = [
+                'id' => $tramite['id'],
+                'ent_municipio_id' => $tramite['ent_municipio_id'],
+                'dias_diferencia' => $diasDiferencia,
+                'clase' => $clase
+            ];
+        }
+
+        return $result;
+    }
+
+
 }           
