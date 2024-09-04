@@ -82,9 +82,13 @@
 				<h2 class="h4"><?php echo isset($id) ? 'Actualizar datos del trámite ' : 'Agregar nuevo Trámite'; ?></h2>
 				<hr class="my-4">
 				
-				<button class="btn btn-primary" onclick="authorizeTramite(<?php echo $id?>, 23); return false;" id="boton_autorizar">
+				
+				<?php if (isset($id)): ?>
+					<button class="btn btn-primary" onclick="authorizeTramite(<?php echo $id?>, 23); return false;" id="boton_autorizar">
 					<i class="fas fa-check"></i> Enviar a Proceso Final
 				</button>
+				<?php endif; ?>
+
 			</div>
 				<?php echo form_open(isset($id) ? "/deskapp/tramites/update_save/$id" : '/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'tramiteForm']); ?>
 
