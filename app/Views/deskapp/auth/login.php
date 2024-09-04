@@ -35,13 +35,13 @@
 		<div class="container-fluid d-flex justify-content-between align-items-center">
 			<div class="brand-logo">
 				<a href="login">
-					<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.jpg" alt="">
+					<img width="85%" src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.jpg" alt="">
 				</a>
 			</div>
 			<div class="login-menu">
-				<ul>
+				<!-- <ul>
 					<li><a href="<?php echo base_url('deskapp/register'); ?>">Register</a></li>
-				</ul>
+				</ul> -->
 			</div>
 		</div>
 	</div>
@@ -57,7 +57,7 @@
 				<div class="col-md-6 col-lg-5">
 					<div class="login-box bg-white box-shadow border-radius-10">
 						<div class="login-title">
-							<h2 class="text-center text-primary">Login To DeskApp</h2>
+							<h2 class="text-center text-primary">Inicia Sesión</h2>
 						</div>
 						<form method="post" action="<?php echo base_url() ?>/deskapp/login/auth">
 							<!-- <div class="select-role">
@@ -77,7 +77,7 @@
 								</div>
 							</div> -->
 							<div class="input-group custom">
-								<input name="username" type="text" class="form-control form-control-lg" placeholder="Username">
+								<input name="username" type="text" class="form-control form-control-lg" placeholder="Usuario">
 								<div class="input-group-append custom">
 									<span class="input-group-text"><i class="icon-copy dw dw-user1"></i></span>
 								</div>
@@ -90,13 +90,13 @@
 							</div>
 							<div class="row pb-30">
 								<div class="col-6">
-									<div class="custom-control custom-checkbox">
+									<!-- <div class="custom-control custom-checkbox">
 										<input name="remember" type="checkbox" class="custom-control-input" id="customCheck1">
 										<label class="custom-control-label" for="customCheck1">Remember</label>
-									</div>
+									</div> -->
 								</div>
 								<div class="col-6">
-									<div class="forgot-password"><a href="<?php echo base_url('deskapp/Forgotpassword') ?>">Forgot Password</a></div>
+									<!-- <div class="forgot-password"><a href="<?php echo base_url('deskapp/Forgotpassword') ?>">Forgot Password</a></div> -->
 								</div>
 							</div>
 							<div class="row">
@@ -104,14 +104,14 @@
 									<div class="input-group mb-0">
 										
 											<!-- use code for form submit -->
-											<input class="btn btn-primary btn-lg btn-block" type="submit" value="Sign In">
+											<input class="btn btn-primary btn-lg btn-block" type="submit" value="Entrar">
 										
 										<!-- <a class="btn btn-primary btn-lg btn-block" href="index">Sign In</a> -->
 									</div>
-									<div class="font-16 weight-600 pt-10 pb-10 text-center" data-color="#707373">OR</div>
-									<div class="input-group mb-0">
+									<!-- <div class="font-16 weight-600 pt-10 pb-10 text-center" data-color="#707373">OR</div> -->
+									<!-- <div class="input-group mb-0">
 										<a class="btn btn-outline-primary btn-lg btn-block" href="<?php echo base_url('deskapp/register'); ?>">Register To Create Account</a>
-									</div>
+									</div> -->
 								</div>
 							</div>
 						</form>

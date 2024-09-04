@@ -29,9 +29,7 @@ class Users extends BaseController
             $db2 = $this->_getDbData();
             $session = session();
             $session->get('user_permissions');
-            // echo "<pre>";
-            // print_r($session->get('user_permissions'));
-            // echo "</pre>";die();
+
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
@@ -42,8 +40,8 @@ class Users extends BaseController
             $users_crud->defaultOrdering('users.id', 'desc');
             
             // Callback para cifrar la contraseña antes de insertar
-            $users_crud->columns(['id', 'username', 'firstname', 'midname', 'lastname', 'email', 'avatar', 'roles', 'status']);
-            $users_crud->fields(['username', 'firstname', 'midname', 'lastname', 'email', 'phone', 'avatar', 'password', 'roles', 'status']);
+            $users_crud->columns(['id', 'username', 'firstname', 'midname', 'lastname', 'email', 'avatar', 'roles', 'clientes', 'status']);
+            $users_crud->fields(['username', 'firstname', 'midname', 'lastname', 'email', 'phone', 'avatar', 'password', 'roles', 'clientes', 'status']);
             $users_crud->fieldType('password', 'password'); // Indica que el campo password es de tipo password
             $users_crud->unsetDeleteMultiple();
             $users_crud->displayAs('username','Username');
@@ -109,6 +107,32 @@ class Users extends BaseController
                 }
                 
                 return $stateParameters;
+            });
+
+            // Configura la relación N to N con la tabla cliente_user
+            $users_crud->setRelationNtoN(
+                'clientes',        // Nombre del campo que se usará en el formulario
+                'cliente_user',    // Tabla de unión
+                'cliente',         // Tabla de destino
+                'user_id',         // Llave foránea en la tabla de unión que apunta a la tabla principal ('users')
+                'cliente_id',      // Llave foránea en la tabla de unión que apunta a la tabla relacionada ('cliente')
+                'nombre'           // Campo en la tabla relacionada que se desea mostrar en el multiselect
+            );
+
+            // Callback column para mostrar los clientes asociados con un usuario
+            $users_crud->callbackColumn('clientes', function ($value, $row) {
+                $db = \Config\Database::connect();
+                $builder = $db->table('cliente_user');
+                $builder->select('cliente.nombre');
+                $builder->join('cliente', 'cliente_user.cliente_id = cliente.id');
+                $builder->where('cliente_user.user_id', $row->id);
+                $clientes = $builder->get()->getResult();
+
+                $clienteNombres = array_map(function($cliente) {
+                    return $cliente->nombre;
+                }, $clientes);
+
+                return implode(', ', $clienteNombres); // Mostrar los nombres de los clientes separados por comas
             });
 
             // Encriptar la contraseña antes de guardarla en la base de datos al actualizar un registro existente

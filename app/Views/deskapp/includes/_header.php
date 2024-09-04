@@ -1,6 +1,6 @@
-<div class="pre-loader">
+<!-- <div class="pre-loader">
 	<div class="pre-loader-box">
-		<div class="loader-logo"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.jpg" alt=""></div>
+		<div class="loader-logo"><img width="50%" src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.jpg" alt=""></div>
 		<div class='loader-progress' id="progress_div">
 			<div class='bar' id='bar1'></div>
 		</div>
@@ -10,7 +10,55 @@
 		</div>
 	</div>
 </div>
+ -->
 
+<div class="pre-loader">
+    <div class="pre-loader-box">
+        <div class="loader-logo">
+            <img width="50%" src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.jpg" alt="">
+        </div>
+        <div class='loader-progress' id="progress_div">
+            <div class='bar' id='bar1'></div>
+        </div>
+        <div class='percent' id='percent1'>0%</div>
+        <div class="loading-text">
+            Loading...
+        </div>
+    </div>
+</div>
+<style>
+    .pre-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9); /* Fondo semitransparente */
+        z-index: 9999; /* Asegura que el preloader esté por encima de todo */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .pre-loader-box {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%; /* Ajusta la altura si es necesario */
+        flex-direction: column; /* Asegura que el contenido se apile en una columna */
+    }
+
+    .loader-logo {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .loader-logo img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
 <div class="header">
 	<div class="header-left">
 		<div class="menu-icon dw dw-menu"></div>
