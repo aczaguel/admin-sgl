@@ -1412,7 +1412,7 @@ class Tramites extends BaseController
         ]); 
 
         $crud->columns([
-            "id", "folio_tramite", "tramite_id", "file", "costo", "user_id"
+            "id", "folio_tramite", "tramite_id", "file", "comentario", "costo", "user_id"
         ]);
         
         $crud->where([
