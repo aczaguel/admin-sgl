@@ -46,7 +46,7 @@
 								<span class="micon dw dw-house-1"></span><span class="mtext">Proceso Final</span>
 							</a>
 							<ul class="submenu">
-								<?php if (has_permission('listar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<?php if (has_permission('listar_final_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 									<li><a href="<?php echo base_url('deskapp/proceso/final'); //listar_final_tramite?>">Finalizando</a></li>
 								<?php endif; ?>	
 							</ul>
@@ -93,7 +93,7 @@
 							</ul>
 						</li>
 					<?php endif; ?>	
-					<?php if (has_permission('menu_clientes', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('menu_documentos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 						<li class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle">
 								<span class="micon dw dw-edit2"></span><span class="mtext">Documentos</span>

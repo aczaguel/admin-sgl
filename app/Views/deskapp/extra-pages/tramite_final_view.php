@@ -80,11 +80,13 @@
 				<h2 class="h4"><?php echo isset($id) ? 'Actualizar Fase Final' : 'Agregar Fase Final'; ?></h2>
 				<hr class="my-4">
 				<?php 
-				if($tra_status_id != 20) { ?>
-					<button class="btn btn-primary" onclick="authorizeTramite(<?php echo $id?>, 20); return false;" id="boton_finalizar">
-						<i class="fas fa-check"></i>Autorizar Finalización del Trámite
-					</button>
-				<?php } ?>
+				if (isset($id)) {
+					if($tra_status_id != 20) { ?>
+						<button class="btn btn-primary" onclick="authorizeTramite(<?php echo $id?>, 20); return false;" id="boton_finalizar">
+							<i class="fas fa-check"></i>Autorizar Finalización del Trámite
+						</button>
+					<?php } 
+				} ?>
 				
 
 			</div>
