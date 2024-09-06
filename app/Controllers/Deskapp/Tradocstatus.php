@@ -45,7 +45,7 @@ class Tradocstatus extends BaseController
             'maxUploadSize' => '20M', // 20 Mega Bytes
             'minUploadSize' => '1K', // 1 Kilo Byte
             'allowedFileTypes' => [
-                'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf'
+                'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf', 'xml'
             ]
         ];
 

@@ -83,11 +83,14 @@
 				<hr class="my-4">
 				
 				
-				<?php if (isset($id)): ?>
-					<button class="btn btn-primary" onclick="authorizeTramite(<?php echo $id?>, 23); return false;" id="boton_autorizar">
-					<i class="fas fa-check"></i> Enviar a Proceso Final
-				</button>
-				<?php endif; ?>
+				<?php 
+					if (has_permission('tramite_pasa_a_final', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+						if (isset($id)){ ?>
+							<button class="btn btn-primary" onclick="authorizeTramite(<?php echo $id?>, 23); return false;" id="boton_autorizar">
+							<i class="fas fa-check"></i> Enviar a Proceso Final
+						</button>
+				<?php }
+				} ?>
 
 			</div>
 				<?php echo form_open(isset($id) ? "/deskapp/tramites/update_save/$id" : '/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'tramiteForm']); ?>
@@ -193,7 +196,9 @@
 
 			<div class="text-center mt-4" id="boton_autorizar">
 				<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-				<button type="submit" class="btn btn-primary"><?php echo isset($id) ? 'Actualizar' : 'Guardar'; ?></button>
+				<?php if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
+					<button type="submit" class="btn btn-primary"><?php echo isset($id) ? 'Actualizar' : 'Guardar'; ?></butto
+				<?php } ?>
 			</div>
 
 			<?php echo form_close(); ?>
