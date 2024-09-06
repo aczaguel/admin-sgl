@@ -57,7 +57,7 @@ class Users extends BaseController
                 'maxUploadSize' => '20M',
                 'minUploadSize' => '1K',
                 'allowedFileTypes' => [
-                    'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf'
+                    'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf', 'xml'
                 ]
             ];
     

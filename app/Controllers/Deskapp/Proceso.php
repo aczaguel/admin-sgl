@@ -133,10 +133,6 @@ class Proceso extends BaseController
                 'tra_status_id' => 20                                                                                                                                                                                                                                                                                                                                  
             ]);
             
-            $crud->unsetAdd();
-            $crud->unsetEdit();
-            $crud->unsetDelete();
-            
             if (!has_permission('export_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
                 $crud->unsetExport();
             }
@@ -146,7 +142,7 @@ class Proceso extends BaseController
             if (!has_permission('read_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
                 $crud->unsetRead();
             }
-            if (!has_permission('clone_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('clone_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
                 $crud->setClone();
             }
 
@@ -190,59 +186,11 @@ class Proceso extends BaseController
             $crud->setRelation('reembolso_status_id', 'reembolso_status', 'reembolso_status');
             $crud->displayAs('reembolso_status_id','Estatus de Reembolso');
 
-            // $crud->setRule('folio', 'integer');
-
-            // $crud->setActionButton('Documentos', 'fa fa-file', function ($row) {
-            //     return '/deskapp/tramites/documentostatus/' . $row->folio . '/' . $row->id;
-            // }, true);
-            // $crud->setActionButton('Bitacora', 'icon-copy dw dw-open-book-2', function ($row) {
-            //     return '/deskapp//bitacora/index/' . $row->folio ;
-            // }, true);
-
-            // $crud->callbackEditForm(function ($data) use ($self){
-            //     $session = session();
-            //     $data2 = $data;
-            //     $data3 = $data2->getArrayCopy();
-            //     $flatArray = $self->flattenObject($data3);
-            //     $session->set('data_tramite_final_before_update',  $flatArray);
-            //     $session->set('tramite_final_id',  $flatArray["id"]);
-            //     $session->set('tramite_final_folio',  $flatArray["folio"]);
-            //     return $data;
-            // });
-
             $crud->callbackBeforeUpdate(function ($stateParameters) {
                 $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
                 return $stateParameters;
             });
 
-            // $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
-            //     $db = Database::connect();
-            //     $db2 = $this->_getDbData();
-            //     $session = session();
-            //     $data = $stateParameters->data;
-            //     $myid = $session->get('id');
-
-            //     $bitacoraModel = new BitacoraModel($db2);
-            //     $data_bitacora = $data;                
-            //     $data_prev = $session->get('data_tramite_final_before_update');
-            //     $tramite_id = $session->get('tramite_final_id');
-            //     $folio = $session->get('tramite_final_folio');
-            //     $diferencias = $self->encontrarDiferencias($data_prev, $data_bitacora);
-                
-            //     $insert_bitacora = [
-            //         "tipo" => "update",
-            //         "origen"=>"final",
-            //         "folio_tramite" => $folio,
-            //         "tramite_id" => (int)$tramite_id,
-            //         "cambios" => json_encode($diferencias),
-            //         "user_id" => (int)$myid,
-            //         "created_at" => date('Y-m-d H:i:s'),
-            //         "updated_at" => date('Y-m-d H:i:s'),
-            //         "status" => 1
-            //     ];
-            //     $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
-            // });
-            
             $crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                 return '/deskapp/proceso/update_final/' . $row->id;
             }, true);
@@ -273,6 +221,7 @@ class Proceso extends BaseController
         $ro_impuesto_gestoria = [];
         $ro_derechos_tramite = [];
         $ro_comision_derechos = [];
+
         if($tramite['tra_status_id'] != 23){
             $ro_numero_factura = ["disabled"=>"disabled"];
             $ro_numero_refactura = ["disabled"=>"disabled"];
@@ -283,6 +232,7 @@ class Proceso extends BaseController
             $ro_derechos_tramite = ["disabled"=>"disabled"];
             $ro_comision_derechos = ["disabled"=>"disabled"];
         }    
+        
         // var_dump($tramite);
         $TraTiposModel = new TraTiposModel($db2);
         $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
@@ -521,7 +471,7 @@ class Proceso extends BaseController
             'maxUploadSize' => '20M', // 20 Mega Bytes
             'minUploadSize' => '1K', // 1 Kilo Byte
             'allowedFileTypes' => [
-                'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf'
+                'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf', 'xml'
             ]
         ];
 
@@ -711,7 +661,7 @@ class Proceso extends BaseController
             'maxUploadSize' => '20M', // 20 Mega Bytes
             'minUploadSize' => '1K', // 1 Kilo Byte
             'allowedFileTypes' => [
-                'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf'
+                'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf', 'xml'
             ]
         ];
 
