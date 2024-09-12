@@ -2204,8 +2204,37 @@ class Tramites extends BaseController
 
         try {
             // Actualizar el estatus del trámite
-            $builder->where('id', $tramiteId);
-            $builder->update(['tra_status_id' => $statusId]);
+            // 11 Recoleccion de documentos
+            // 22 Documentos completos
+
+            // $builder->where('id', $tramiteId);
+            // $builder->update(['tra_status_id' => $statusId]);
+            // Obtén la fecha y hora actual en formato datetime
+            $currentDatetime = date('Y-m-d H:i:s');
+
+            // Si el $statusId es 11, guarda en la columna started_at la fecha actual
+            if ($statusId == 11) {
+                $builder->where('id', $tramiteId);
+                $builder->update([
+                    'tra_status_id' => $statusId,
+                    'started_at' => $currentDatetime
+                ]);
+            }
+            // Si el $statusId es 22, guarda en la columna finished_at la fecha actual
+            elseif ($statusId == 22) {
+                $builder->where('id', $tramiteId);
+                $builder->update([
+                    'tra_status_id' => $statusId,
+                    'finished_at' => $currentDatetime
+                ]);
+            }
+            // Si el $statusId no es 11 ni 22, solo actualiza tra_status_id
+            else {
+                $builder->where('id', $tramiteId);
+                $builder->update([
+                    'tra_status_id' => $statusId
+                ]);
+            }
 
             // Opcional: Insertar un registro en tra_user_log
             $session = session();
