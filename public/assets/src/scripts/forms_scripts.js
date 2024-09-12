@@ -238,3 +238,37 @@
         });
     }
 }
+
+function changeStatusTramite(tramiteId, status_id) {
+  if (confirm('¿Estás seguro de que deseas cambiar el estatus de este trámite?')) {
+      $.ajax({
+          url: '/deskapp/tramites/change_status', // Ruta hacia la función en el controlador
+          type: 'POST',
+          data: {
+              tramite_id: tramiteId,
+              status_id: status_id,
+              csrf_token: $('meta[name="csrf_token"]').attr('content') // Asegúrate de incluir el token CSRF
+          },
+          success: function(response) {
+              if (response.success) {
+                  alert('Estatus del trámite actualizado correctamente.');
+                  location.reload(); // Recargar la página para actualizar la lista
+              } else {
+                  alert('Ocurrió un error al cambiar el estatus del trámite.');
+              }
+          },
+          error: function() {
+              alert('Ocurrió un error en la solicitud.');
+          }
+      });
+  }
+}
+$(document).ready(function() {
+  $('.select2').select2({
+      placeholder: 'Seleccione una opción',
+      allowClear: true,
+      width: '100%',
+      dropdownCssClass: 'bootstrap-select',  // Aplica las clases de Bootstrap al dropdown
+      selectionCssClass: 'form-control'      // Asegura que el input tenga el estilo de form-control
+  });
+});

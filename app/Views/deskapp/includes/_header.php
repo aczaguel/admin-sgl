@@ -88,12 +88,37 @@
 		</div>
 	</div>
 	<div class="header-right">
+			<!-- Botones con iconos -->
+			<div class="btn-group ml-2" role="group">
+				<a href="/deskapp/tramites/add" class="btn btn-danger btn-lg ml-3">
+					<i class="fas fa-plus"></i> Solicitud
+				</a>&nbsp;&nbsp;
+				<a href="/deskapp/tramites/tramite" class="btn btn-primary">
+					<i class="fas fa-list"></i> Trámites
+				</a>&nbsp;
+				<a href="/deskapp/tramites/solicitudes" class="btn btn-secondary">
+					<i class="fas fa-file-alt"></i> Solicitudes
+				</a>&nbsp;
+				<a href="/deskapp/tramites/recoleccion" class="btn btn-success">
+					<i class="fas fa-truck"></i> Recolección
+				</a>&nbsp;
+				<a href="/deskapp/tramites/en_tramite" class="btn btn-info">
+					<i class="fas fa-check"></i> Tramitando
+				</a>&nbsp;
+				<a href="/deskapp/tramites/mios" class="btn btn-warning">
+					<i class="fas fa-user"></i> Mios
+				</a>
+			</div>	
 		<div class="dashboard-setting user-notification">
+			<!-- Botones con iconos -->
+			
 			<div class="dropdown">
 				<a class="dropdown-toggle no-arrow" href="javascript:;" data-toggle="right-sidebar">
 					<i class="dw dw-settings2"></i>
 				</a>
+				
 			</div>
+			
 		</div>
 		<!-- <div class="user-notification">
 			<div class="dropdown">

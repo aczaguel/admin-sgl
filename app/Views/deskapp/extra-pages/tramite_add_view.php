@@ -12,7 +12,7 @@
     <?php endforeach; ?>
 	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.css">
-	<link rel="stylesheet" href="/assets/src/styles/forms_styles.css">
+	<link rel="stylesheet" href="/public/assets/src/styles/forms_styles.css">
 
     <style>
         .form-container {
@@ -38,6 +38,25 @@
         .error-message {
             font-size: 0.875em; /* Smaller font size for error messages */
         }
+		.select2-container--default .select2-selection--single {
+			height: calc(2.25rem + 2px); /* Tamaño del campo ajustado a Bootstrap */
+			padding: 0.375rem 0.75rem;    /* Padding ajustado a los inputs de Bootstrap */
+			border: 1px solid #ced4da;    /* Estilo del borde de Bootstrap */
+			border-radius: 0.25rem;       /* Bordes redondeados típicos de Bootstrap */
+		}
+
+		.select2-selection__rendered {
+			line-height: calc(2.25rem);   /* Alineación vertical del texto dentro del select */
+		}
+
+		.select2-container .select2-selection--single .select2-selection__arrow {
+			height: calc(2.25rem);        /* Tamaño del icono de la flecha */
+		}
+
+		.select2-container--default .select2-selection--single .select2-selection__rendered {
+			color: #444;
+			line-height: 15px !important;
+		}
     </style>
 	<!-- Site favicon -->
 	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
@@ -57,6 +76,12 @@
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 
 	<script>
 		window.dataLayer = window.dataLayer || [];
@@ -84,10 +109,10 @@
 				
 				
 				<?php 
-					if (has_permission('tramite_pasa_a_final', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+					if (isset($target_title)){
 						if (isset($id)){ ?>
-							<button class="btn btn-primary" onclick="authorizeTramite(<?php echo $id?>, 23); return false;" id="boton_autorizar">
-							<i class="fas fa-check"></i> Enviar a Proceso Final
+							<button class="btn btn-primary" onclick="changeStatusTramite(<?php echo $id?>, <?php echo $target_id?>); return false;" id="boton_autorizar">
+							<i class="fas fa-check"></i> <?php echo $target_title; ?>
 						</button>
 				<?php }
 				} ?>
@@ -114,7 +139,7 @@
 										<?php if ($field_info['type'] == 'text'): ?>
 											<input type="text" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 										<?php elseif ($field_info['type'] == 'select'): ?>
-											<select class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
+											<select class="form-control select2" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
 												<?php foreach ($field_info['options'] as $option_value => $option_label): ?>
 													<option value="<?php echo $option_value; ?>" <?php echo set_select($field_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
 												<?php endforeach; ?>
@@ -161,7 +186,7 @@
 										<?php if ($field_info['type'] == 'text'): ?>
 											<input type="text" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 										<?php elseif ($field_info['type'] == 'select'): ?>
-											<select class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
+											<select class="form-control select2" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
 												<?php foreach ($field_info['options'] as $option_value => $option_label): ?>
 													<option value="<?php echo $option_value; ?>" <?php echo set_select($field_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
 												<?php endforeach; ?>

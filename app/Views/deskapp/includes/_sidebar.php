@@ -22,9 +22,15 @@
 							<ul class="submenu">
 								<?php if (has_permission('listar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 									<li><a href="<?php echo base_url('deskapp/tramites/tramite'); //listar_tramite?>">Trámites</a></li>
+								<?php endif; ?>
+								<?php if (has_permission('listar_solicitudes_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+									<li><a href="<?php echo base_url('deskapp/tramites/solicitudes'); //listar_mios?>">Solicitudes Recientes</a></li>
+								<?php endif; ?>
+								<?php if (has_permission('listar_recoleccion_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+									<li><a href="<?php echo base_url('deskapp/tramites/recoleccion'); //listar_mios?>">Recolección de Documentos</a></li>
 								<?php endif; ?>	
-								<?php if (has_permission('listar_en_proceso_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-									<li><a href="<?php echo base_url('deskapp/tramites/en_proceso'); //listar_mios?>">En Proceso</a></li>
+								<?php if (has_permission('listar_en_tramite_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+									<li><a href="<?php echo base_url('deskapp/tramites/en_tramite'); //listar_mios?>">En Trámite</a></li>
 								<?php endif; ?>	
 								<?php if (has_permission('listar_mis_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 									<li><a href="<?php echo base_url('deskapp/tramites/mios'); //listar_mios?>">Mis Trámites</a></li>
@@ -101,6 +107,7 @@
 							<ul class="submenu">
 								<li><a href="<?php echo base_url('deskapp/documentos/documento'); //listar_documentos?>">Documento</a></li>
 								<li><a href="<?php echo base_url('deskapp/documentos/status'); //listar_st_documentos?>">Estatus</a></li>
+								<li><a href="<?php echo base_url('deskapp/documentos/por_tramite'); //listar_st_documentos?>">Estatus</a></li>
 							</ul>
 						</li>
 					<?php endif; ?>	

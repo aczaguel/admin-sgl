@@ -60,35 +60,33 @@ $(document).ready(function() {
     $("#costo_total").val(suma);
   });
 
-  // document.addEventListener('DOMContentLoaded', function () {
-      function applyBackgroundColors() {
-          // Encuentra todas las celdas con el contenido específico y aplica el estilo al <td>
-          document.querySelectorAll('td:has(span.background-verde)').forEach(function(td) {
-              td.style.backgroundColor = '#a4c3b2';
-          });
-          document.querySelectorAll('td:has(span.background-amarillo)').forEach(function(td) {
-              td.style.backgroundColor = '#f5e1a4';
-          });
-          document.querySelectorAll('td:has(span.background-rojo)').forEach(function(td) {
-              td.style.backgroundColor = '#dba498';
-          });
-          document.querySelectorAll('td:has(span.background-violeta)').forEach(function(td) {
-              td.style.backgroundColor = '#b3a2c9';
-          });
-      }
+      // function applyBackgroundColors() {
+      //     // Encuentra todas las celdas con el contenido específico y aplica el estilo al <td>
+      //     document.querySelectorAll('td:has(span.background-verde)').forEach(function(td) {
+      //         td.style.backgroundColor = '#a4c3b2';
+      //     });
+      //     document.querySelectorAll('td:has(span.background-amarillo)').forEach(function(td) {
+      //         td.style.backgroundColor = '#f5e1a4';
+      //     });
+      //     document.querySelectorAll('td:has(span.background-rojo)').forEach(function(td) {
+      //         td.style.backgroundColor = '#dba498';
+      //     });
+      //     document.querySelectorAll('td:has(span.background-violeta)').forEach(function(td) {
+      //         td.style.backgroundColor = '#b3a2c9';
+      //     });
+      // }
 
-      // Ejecuta la función después de un breve retraso para asegurar que la tabla haya cargado
-      setTimeout(applyBackgroundColors, 1000);
+      // // Ejecuta la función después de un breve retraso para asegurar que la tabla haya cargado
+      // setTimeout(applyBackgroundColors, 1000);
 
-      // Opcional: Reintenta la aplicación de estilos cada segundo, en caso de cargas más lentas
-      let retries = 5;
-      const interval = setInterval(function() {
-          if (retries > 0) {
-              applyBackgroundColors();
-              retries--;
-          } else {
-              clearInterval(interval);
-          }
-      }, 1000);
-  // });
+      // // Opcional: Reintenta la aplicación de estilos cada segundo, en caso de cargas más lentas
+      // let retries = 5;
+      // const interval = setInterval(function() {
+      //     if (retries > 0) {
+      //         applyBackgroundColors();
+      //         retries--;
+      //     } else {
+      //         clearInterval(interval);
+      //     }
+      // }, 1000);
 });

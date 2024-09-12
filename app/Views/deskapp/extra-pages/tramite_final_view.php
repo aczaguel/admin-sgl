@@ -83,7 +83,7 @@
 				if (has_permission('final_autoriza_termino', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
 					if (isset($id)) {
 						if($tra_status_id != 20) { ?>
-							<button class="btn btn-primary" onclick="authorizeTramite(<?php echo $id?>, 20); return false;" id="boton_finalizar">
+							<button class="btn btn-primary" onclick="changeStatusTramite(<?php echo $id?>, 20); return false;" id="boton_finalizar">
 								<i class="fas fa-check"></i>Autorizar Finalización del Trámite
 							</button>
 						<?php } 

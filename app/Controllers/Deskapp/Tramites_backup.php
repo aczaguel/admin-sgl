@@ -174,7 +174,7 @@ class Tramites extends BaseController
 
                 $tra_tipos_id = $data["tra_tipos_id"];
                 $condition = ['tra_tipos_id' => $tra_tipos_id];
-                $query = $db->table('tra_tipo_documentos')->where($condition)->get();
+                $query = $db->table(''gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf', 'xml'')->where($condition)->get();
                 $resultados = $query->getResultArray();
 
                 $session = session();
