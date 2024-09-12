@@ -1,6 +1,6 @@
 <div class="left-side-bar">
 		<div class="brand-logo">
-			<a href="<?php echo base_url('deskapp/tramites'); ?>">
+			<a href="<?php echo base_url('deskapp/dashboard'); ?>">
 				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo">
 				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt_white.png" alt="" class="light-logo">
 			</a>
