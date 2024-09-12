@@ -53,22 +53,7 @@ class Proceso extends BaseController
             $crud->unsetEdit();
             $crud->unsetDelete();
             $crud->unsetDeleteMultiple();
-
-            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
-                $crud->unsetExport();
-            }
-
-            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
-                $crud->unsetPrint();
-            }
-
-            if (!has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
-                $crud->unsetRead();
-            }
-
-            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
-                $crud->setClone();
-            }
+            $crud->unsetClone();
 
             $crud->setCsrfTokenName(csrf_token());
             $crud->setCsrfTokenValue(csrf_hash());
@@ -142,9 +127,7 @@ class Proceso extends BaseController
             if (!has_permission('read_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
                 $crud->unsetRead();
             }
-            if (has_permission('clone_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
-                $crud->setClone();
-            }
+            
 
             /* SELECT Se configura el tipo de tramite */
             $crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');

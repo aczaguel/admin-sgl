@@ -29,12 +29,9 @@ for (let key in perMonth) {
     let nombreMes = meses[parseInt(mesNumero) - 1] + ' ' + anio; // Convertir a nombre de mes y año
     
     categories.push(nombreMes); // Añadir el nombre del mes a las categorías
-    enProcesoData.push(parseInt(perMonth[key].en_proceso)); // Añadir los datos de "En Proceso"
+    enProcesoData.push(parseInt(perMonth[key].recoleccion)); // Añadir los datos de "En Proceso"
     concluidosData.push(parseInt(perMonth[key].concluidos)); // Añadir los datos de "Concluidos"
 }
-
-
-
 
 var options = {
 	series: [85],

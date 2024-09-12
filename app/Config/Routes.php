@@ -91,8 +91,11 @@ $routes->post('/tramites/tramite', 'Deskapp/Tramites::tramite');
 $routes->get('/tramites/mios', 'Deskapp/Tramites::mios',['filter' => 'auth']);
 $routes->post('/tramites/mios', 'Deskapp/Tramites::mios');
 
-$routes->get('/tramites/en_proceso', 'Deskapp/Tramites::en_proceso',['filter' => 'auth']);
-$routes->post('/tramites/en_proceso', 'Deskapp/Tramites::en_proceso');
+$routes->get('/tramites/recoleccion', 'Deskapp/Tramites::recoleccion',['filter' => 'auth']);
+$routes->post('/tramites/recoleccion', 'Deskapp/Tramites::recoleccion');
+
+$routes->get('/tramites/en_tramite', 'Deskapp/Tramites::en_tramite',['filter' => 'auth']);
+$routes->post('/tramites/en_tramite', 'Deskapp/Tramites::en_tramite');
 
 $routes->get('/tramites/autorizar', 'Deskapp/Tramites::autorizar',['filter' => 'auth']);
 $routes->post('/tramites/autorizar', 'Deskapp/Tramites::autorizar');

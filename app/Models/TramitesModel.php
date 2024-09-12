@@ -185,7 +185,7 @@ class TramitesModel extends Model
         $select->columns([
             'mes' => new Expression('MONTH(created_at)'),
             'anio' => new Expression('YEAR(created_at)'),
-            'en_proceso' => new Expression("SUM(CASE WHEN tra_status_id IN (11, 22, 23) THEN 1 ELSE 0 END)"),
+            'recoleccion' => new Expression("SUM(CASE WHEN tra_status_id IN (11, 22, 23) THEN 1 ELSE 0 END)"),
             'concluidos' => new Expression("SUM(CASE WHEN tra_status_id = 20 THEN 1 ELSE 0 END)")
         ]);
         $select->where(new PredicateExpression('created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)'));
@@ -205,7 +205,7 @@ class TramitesModel extends Model
             $mes = $row['mes'];
             $anio = $row['anio'];
             $tramitesPorMes["$anio-$mes"] = [
-                'en_proceso' => $row['en_proceso'],
+                'recoleccion' => $row['recoleccion'],
                 'concluidos' => $row['concluidos']
             ];
         }

@@ -31,7 +31,7 @@ if (! function_exists('is_client')) {
 if (! function_exists('is_read_only')) {
     function is_read_only(array $roles)
     {
-        $roRoles = ['Starter', 'Cliente', 'Viewer'];
+        $roRoles = ['Starter', 'Cliente', 'Viewer', 'Executer'];
         foreach ($roRoles as $role) {
             if (in_array($role, $roles)) {
                 return true; // Retorna true si al menos uno de los roles está presente
