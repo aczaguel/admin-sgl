@@ -62,7 +62,7 @@ class Proceso extends BaseController
             $crud->setSubject('tramite', 'Tramites');
             $crud->columns(["created_at", "id", "folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id",'ent_municipio_id', "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", 
             "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite", "comision_derechos", "costo_total", "numero_factura", "numero_refactura",
-            "reembolso_status_id", "tra_status_id", "cobro_status_id", "observaciones", "status"]); 
+            "reembolso_status_id", "tra_status_id", "cobro_status_id", "observaciones"]); 
 
             $crud->displayAs("created_at", "Desde Creación");
 
@@ -109,10 +109,10 @@ class Proceso extends BaseController
 
             $crud->fields(["folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id", 
             "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite",
-            "comision_derechos", "costo_total", "numero_factura", "numero_refactura", "reembolso_status_id", "tra_status_id", "cobro_status_id", "observaciones", "status"]);
+            "comision_derechos", "costo_total", "numero_factura", "numero_refactura", "reembolso_status_id", "tra_status_id", "cobro_status_id", "observaciones"]);
 
             $crud->readOnlyFields(["folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id", "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id",
-            "gestor_id", "fecha_asignacion", "fecha_conclusion", "numero_factura", "numero_refactura", "reembolso_status_id", "tra_status_id", "observaciones", "status"]);
+            "gestor_id", "fecha_asignacion", "fecha_conclusion", "numero_factura", "numero_refactura", "reembolso_status_id", "tra_status_id", "observaciones"]);
 
             $crud->where([
                 'tra_status_id' => 20                                                                                                                                                                                                                                                                                                                                  
@@ -270,10 +270,8 @@ class Proceso extends BaseController
             
             "costo_total" => ["label" => "Costo Total", "type" => "number", "value" => $tramite['costo_total'], "readonly"=>"readonly"],
 
-
             "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "readonly"=>"readonly", "disabled"=>"disabled"],
             "tra_status_id" => ["label" => "Estatus del Trámite", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id'], "readonly"=>"readonly", "disabled"=>"disabled"],
-            "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status'], "readonly"=>"readonly", "disabled"=>"disabled"],
             "user_id" => ["label" => "User Id", "type" => "hidden", "value" => "$myid"],
         ];
         // echo "<pre>";
@@ -352,8 +350,7 @@ class Proceso extends BaseController
                 // "folio_tramite" => $folio,
                 "tramite_id" => (int)$id,
                 "cambios" => json_encode($diferencias),
-                "user_id" => (int)$myid,
-                "status" => 1
+                "user_id" => (int)$myid
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
 
@@ -418,8 +415,7 @@ class Proceso extends BaseController
                     "origen"=>"final",
                     "tramite_id" => (int)$tramite_id,
                     "cambios" => json_encode($diferencias),
-                    "user_id" => (int)$myid,
-                    "status" => 1
+                    "user_id" => (int)$myid
                 ];
                 $bitacoraModel->insert($insert_bitacora, 'bitacora');
             }
@@ -444,8 +440,7 @@ class Proceso extends BaseController
                 "origen"=>"final",
                 "tramite_id" => (int)$tramite_id,
                 "cambios" => json_encode($diferencias),
-                "user_id" => (int)$myid,
-                "status" => 1
+                "user_id" => (int)$myid
             ];
             $bitacoraModel->insert($insert_bitacora, 'bitacora');
         });
@@ -633,8 +628,7 @@ class Proceso extends BaseController
                 "cambios" => json_encode($diferencias),
                 "user_id" => (int)$myid,
                 "created_at" => date('Y-m-d H:i:s'),
-                "updated_at" => date('Y-m-d H:i:s'),
-                "status" => 1
+                "updated_at" => date('Y-m-d H:i:s')
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
 

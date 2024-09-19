@@ -99,7 +99,7 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status'
+                'observaciones'
             ]);
             $tramite_crud->displayAs("created_at", "Desde Creación");
 
@@ -149,7 +149,7 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status', 'user_id'
+                'observaciones', 'user_id'
             ]); 
             
             /* SELECT Se configura el tipo de tramite */
@@ -263,7 +263,6 @@ class Tramites extends BaseController
             "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options], // Asumiendo que tienes un array $tra_status_options
             // "cobro_status_id" => ["label" => "Cobro Status Id", "type" => "select", "options" => $cobro_status_options], // Asumiendo que tienes un array $cobro_status_options
             "observaciones" => ["label" => "Observaciones", "type" => "textarea"],
-            "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"]],
             "user_id" => ["label" => "User Id", "type" => "hidden", "value" => "$myid"]
         ];
 
@@ -351,8 +350,7 @@ class Tramites extends BaseController
                         "status_documento_id" => 11,
                         "file" => null,
                         "comentario" => null,
-                        "user_id" => (int)$myid,
-                        "status" => 1
+                        "user_id" => (int)$myid
                     ];
                     // Inserta los datos en la base de datos utilizando el modelo apropiado (ejemplo: usando CodeIgniter Model)
                     // var_dump($insert_data);
@@ -369,8 +367,7 @@ class Tramites extends BaseController
                     "folio_tramite" => $newFolio,
                     "tramite_id" => (int)$lastInsertID,
                     "cambios" => json_encode($diferencias),
-                    "user_id" => (int)$myid,
-                    "status" => 1
+                    "user_id" => (int)$myid
                 ];
                 $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
 
@@ -454,8 +451,7 @@ class Tramites extends BaseController
                 "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id'], "disabled"=>"disabled"],
                 "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion'], "disabled"=>"disabled"],
                 "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id'], "disabled"=>"disabled"],
-                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"],
-                "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status'], "disabled"=>"disabled"]
+                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"]
             ];
         }else{
             $form->fields = [
@@ -472,8 +468,7 @@ class Tramites extends BaseController
                 "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id']],
                 "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion']],
                 "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id']],
-                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']],
-                "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status']]
+                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']]
             ];
         }
 
@@ -558,8 +553,7 @@ class Tramites extends BaseController
                 "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id'], "disabled"=>"disabled"],
                 "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion'], "disabled"=>"disabled"],
                 "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id'], "disabled"=>"disabled"],
-                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"],
-                "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status'], "disabled"=>"disabled"]
+                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"]
             ];
         }else{
             $form->fields = [
@@ -576,8 +570,7 @@ class Tramites extends BaseController
                 "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id']],
                 "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion']],
                 "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id']],
-                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']],
-                "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status']]
+                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']]
             ];
         }
 
@@ -663,8 +656,7 @@ class Tramites extends BaseController
                 "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id'], "disabled"=>"disabled"],
                 "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion'], "disabled"=>"disabled"],
                 "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id'], "disabled"=>"disabled"],
-                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"],
-                "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status'], "disabled"=>"disabled"]
+                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"]
             ];
         }else{
             $form->fields = [
@@ -681,8 +673,7 @@ class Tramites extends BaseController
                 "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id']],
                 "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion']],
                 "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id']],
-                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']],
-                "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status']]
+                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']]
             ];
         }
 
@@ -768,8 +759,7 @@ class Tramites extends BaseController
                 "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id'], "disabled"=>"disabled"],
                 "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion'], "disabled"=>"disabled"],
                 "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id'], "disabled"=>"disabled"],
-                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"],
-                "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status'], "disabled"=>"disabled"]
+                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"]
             ];
         }else{
             $form->fields = [
@@ -786,8 +776,7 @@ class Tramites extends BaseController
                 "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id']],
                 "fecha_asignacion" => ["label" => "Fecha Asignacion", "type" => "datetime", "value" => $tramite['fecha_asignacion']],
                 "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id']],
-                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']],
-                "status" => ["label" => "Status", "type" => "radio", "options" => ["1" => "Activo", "0" => "Inactivo"], "value" => $tramite['status']]
+                "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']]
             ];
         }
 
@@ -888,8 +877,7 @@ class Tramites extends BaseController
                 "folio_tramite" => $folio,
                 "tramite_id" => (int)$id,
                 "cambios" => json_encode($diferencias),
-                "user_id" => (int)$myid,
-                "status" => 1
+                "user_id" => (int)$myid
             ];
             $bitacoraModel->insert($insert_bitacora, 'bitacora');
 
@@ -989,7 +977,7 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status'
+                'observaciones'
             ]);
 
             $tramite_crud->displayAs("created_at", "Desde Creación");
@@ -1040,7 +1028,7 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status', 'user_id'
+                'observaciones', 'user_id'
             ]); 
             // $tramite_crud->readOnlyFields(["folio"]);
             $tramite_crud->unsetDeleteMultiple();
@@ -1125,7 +1113,7 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status'
+                'observaciones'
             ]);
 
             $tramite_crud->displayAs("created_at", "Desde Creación");
@@ -1176,7 +1164,7 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status', 'user_id'
+                'observaciones', 'user_id'
             ]); 
             // $tramite_crud->readOnlyFields(["folio"]);
             $tramite_crud->unsetDeleteMultiple();
@@ -1261,7 +1249,7 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status'
+                'observaciones'
             ]);
 
             $tramite_crud->displayAs("created_at", "Desde Creación");
@@ -1312,7 +1300,7 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status', 'user_id'
+                'observaciones', 'user_id'
             ]); 
             // $tramite_crud->readOnlyFields(["folio"]);
             $tramite_crud->unsetDeleteMultiple();
@@ -1397,7 +1385,7 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status'
+                'observaciones'
             ]);
 
             $tramite_crud->displayAs("created_at", "Desde Creación");
@@ -1448,7 +1436,7 @@ class Tramites extends BaseController
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id','fecha_asignacion',
                 'tra_status_id','cobro_status_id',
-                'observaciones', 'status', 'user_id'
+                'observaciones', 'user_id'
             ]); 
             // $tramite_crud->readOnlyFields(["folio"]);
             $tramite_crud->unsetDeleteMultiple();
@@ -1674,8 +1662,7 @@ class Tramites extends BaseController
                 "folio_tramite" => $data['folio_tramite'],
                 "tramite_id" => (int)$tramite_id,
                 "cambios" => json_encode($diferencias),
-                "user_id" => (int)$myid,
-                "status" => 1
+                "user_id" => (int)$myid
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
 
@@ -1807,8 +1794,7 @@ class Tramites extends BaseController
                 "folio_tramite" => $data['folio_tramite'],
                 "tramite_id" => (int)$tramite_id,
                 "cambios" => json_encode($diferencias),
-                "user_id" => (int)$myid,
-                "status" => 1
+                "user_id" => (int)$myid
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
 
@@ -1900,8 +1886,7 @@ class Tramites extends BaseController
                     "folio_tramite" => $folio_tramite,
                     "tramite_id" => (int)$tramite_id,
                     "cambios" => json_encode($diferencias),
-                    "user_id" => (int)$myid,
-                    "status" => 1
+                    "user_id" => (int)$myid
                 ];
                 $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
             }
@@ -1937,8 +1922,7 @@ class Tramites extends BaseController
                 "folio_tramite" => $data['folio_tramite'],
                 "tramite_id" => (int)$tramite_id,
                 "cambios" => json_encode($diferencias),
-                "user_id" => (int)$myid,
-                "status" => 1
+                "user_id" => (int)$myid
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
 
@@ -2046,8 +2030,7 @@ class Tramites extends BaseController
                     "folio_tramite" => $folio_tramite,
                     "tramite_id" => (int)$tramite_id,
                     "cambios" => json_encode($diferencias),
-                    "user_id" => (int)$myid,
-                    "status" => 1
+                    "user_id" => (int)$myid
                 ];
                 $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
             }
@@ -2085,8 +2068,7 @@ class Tramites extends BaseController
                 "folio_tramite" => $folio_tramite,
                 "tramite_id" => (int)$tramite_id,
                 "cambios" => json_encode($diferencias),
-                "user_id" => (int)$myid,
-                "status" => 1
+                "user_id" => (int)$myid
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
         });

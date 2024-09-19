@@ -2,39 +2,53 @@
 .background-verde {
     background-color: #a4c3b2;  /* Pantone 5585 C */
     color: black;  /* Asegura buena legibilidad */
-    padding: 15px 30px;
-    border-radius: 5px;
-    line-height: 1.5;
-    min-height: 40px;
+    padding: 10px 25px;
+    /* border-radius: 5px; */
+    min-height: 25px;
     display: inline-block;
+    width: 90px;
+    height: 30px;
 }
 
 .background-amarillo {
     background-color: #f5e1a4;  /* Pantone 1205 C */
     color: black;
-    padding: 15px 30px;
-    border-radius: 5px;
-    line-height: 1.5;
-    min-height: 40px;
+    padding: 10px 25px;
+    /* border-radius: 5px; */
+    min-height: 25px;
     display: inline-block;
+    width: 90px;
+    height: 30px;
 }
 
 .background-rojo {
     background-color: #dba498;  /* Pantone 7612 C */
     color: white;  /* Mejora la legibilidad en fondos oscuros */
-    padding: 15px 30px;
-    border-radius: 5px;
-    line-height: 1.5;
-    min-height: 40px;
+    padding: 10px 25px;
+    /* border-radius: 5px; */
+    min-height: 25px;
     display: inline-block;
+    width: 90px;
+    height: 30px;
 }
 
 .background-violeta {
     background-color: #b3a2c9;  /* Pantone 7671 C */
     color: white;
-    padding: 15px 30px;
-    border-radius: 5px;
-    line-height: 1.5;
-    min-height: 40px;
+    padding: 10px 25px;
+    /* border-radius: 5px; */
+    min-height: 25px;
     display: inline-block;
+    width: 90px;
+    height: 30px;
+}
+
+/* Ajustar la altura de las filas en las tablas de Grocery CRUD */
+.grocery-crud table tbody tr {
+    height: 40px; /* Cambia este valor al tamaño que desees */
+}
+
+/* Asegurar que el contenido dentro de las celdas esté alineado verticalmente al centro */
+.grocery-crud table tbody td {
+    vertical-align: middle;
 }

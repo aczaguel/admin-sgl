@@ -47,20 +47,22 @@
     }
 
 	.btn-custom {
-        width: auto; /* Ajusta el ancho automáticamente según el contenido */
         padding: 5px 15px; /* Relleno reducido para hacer los botones más estilizados */
-        font-size: 12px; /* Tipografía más pequeña */
-        font-weight: 400; /* Tipografía más clara */
+        font-size: 11px !important; /* Tipografía más pequeña */
+        font-weight: 200; /* Tipografía más clara */
         border-radius: 5px; /* Borde redondeado */
+		width: 120px;
+		height: 35px;
+		margin-top: 20px;
     }
 
     .btn-custom i {
-        margin-right: 5px; /* Separación entre el ícono y el texto */
+        margin-right: 1px; /* Separación entre el ícono y el texto */
     }
 
-    .btn-danger.btn-lg {
-        font-size: 14px; /* Hacer el botón "Solicitud" un poco más grande */
-    }
+    /* .btn-danger.btn-lg {
+        font-size: 14px; 
+    } */
 
     .btn-group a {
         margin-right: 5px; /* Separar los botones ligeramente */
@@ -110,22 +112,25 @@
 	<div class="header-right">
 			<!-- Botones con iconos -->
 			<div class="btn-group ml-2" role="group">
+				<a href="/deskapp/tramites/tramite" class="btn btn-info btn-custom">
+					<i class="fas fa-list"></i> Consolidado
+				</a>
 				<a href="/deskapp/tramites/add" class="btn btn-danger btn-lg ml-3 btn-custom">
-					<i class="fas fa-plus"></i> Solicitud
+					<i class="fas fa-plus"></i> Nuevo
 				</a>
-				<a href="/deskapp/tramites/tramite" class="btn btn-primary btn-custom">
-					<i class="fas fa-list"></i> Trámites
-				</a>
-				<a href="/deskapp/tramites/solicitudes" class="btn btn-secondary btn-custom">
+				<a href="/deskapp/tramites/solicitudes" class="btn btn-info btn-custom">
 					<i class="fas fa-file-alt"></i> Solicitudes
 				</a>
-				<a href="/deskapp/tramites/recoleccion" class="btn btn-success btn-custom">
-					<i class="fas fa-truck"></i> Recolección
+				<a href="/deskapp/tramites/recoleccion" class="btn btn-info btn-custom">
+					<i class="fas fa-truck"></i> Asignaciones
 				</a>
 				<a href="/deskapp/tramites/en_tramite" class="btn btn-info btn-custom">
-					<i class="fas fa-check"></i> Tramitando
+					<i class="fas fa-check"></i> En Trámite
 				</a>
-				<a href="/deskapp/tramites/mios" class="btn btn-warning btn-custom">
+				<a href="/deskapp/proceso/final" class="btn btn-info btn-custom">
+					<i class="fas fa-user"></i> Entregados
+				</a>
+				<a href="/deskapp/tramites/mios" class="btn btn-info btn-custom">
 					<i class="fas fa-user"></i> Mios
 				</a>
 			</div>
@@ -203,7 +208,7 @@
 					<span class="user-icon">
 						<img src="<?php echo base_url(); ?>/public/assets/vendors/images/img.jpg" alt="">
 					</span>
-					<span class="user-name"><?= esc($session->get('firstname').' '.$session->get('midname').' '.$session->get('lastname')); ?></span>
+					<!-- <span class="user-name"><?= esc($session->get('firstname').' '.$session->get('midname').' '.$session->get('lastname')); ?></span> -->
 				</a>
 				<div class="dropdown-menu dropdown-menu-right dropdown-menu-icon-list">
 					<?php if (has_permission('listar_settings', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>

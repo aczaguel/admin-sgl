@@ -20,6 +20,7 @@
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/forms_styles.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/my_grocery.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
@@ -32,6 +33,10 @@
 
 		gtag('config', 'UA-119386393-1');
 	</script>
+	<!-- Archivo CSS personalizado para Grocery CRUD -->
+<style>
+    
+</style>
 </head>
 <body>
 	<!-- echo header,rightsidebar,leftsidebar and loader -->
@@ -44,13 +49,7 @@
 	<div class="main-container">
 		<div class="pd-ltr-20 xs-pd-20-10">
 			<div class="min-height-200px">
-				<?php if(isset($insert_button_url)){ ?>
-					<div class="gc-datagrid-tools-95">
-						<div><a class="gc-simple-button-101 btn btn-outline-dark gc-bottom-space-102" href="<?php echo $insert_button_url?>" title="Añadir tramite" rel="noreferrer"><i class="fas fa-plus"></i>&nbsp;Añadir tramite</a>
-						</div>
-					</div>
-				<?php } ?>
-				<br>
+				
 				<!-- <div class="pd-20 bg-white border-radius-4 box-shadow mb-30"> -->
 					<!-- Beginning of main content -->
 					<!-- <div style='height:20px;'></div>  -->
@@ -80,5 +79,7 @@ if (!empty($js_files)) {
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/my_scripts.js"></script>
+	
 </body>
 </html>
+

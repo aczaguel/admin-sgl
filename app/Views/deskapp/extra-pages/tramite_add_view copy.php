@@ -13,8 +13,6 @@
 	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.css">
 	<link rel="stylesheet" href="/public/assets/src/styles/forms_styles.css">
-	<link rel="stylesheet" href="/public/assets/src/styles/my_wizard.scss">
-	<link rel="stylesheet" href="/public/assets/src/styles/my_grocery.css">
 
     <style>
         .form-container {
@@ -85,7 +83,6 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
-
 	<script>
 		window.dataLayer = window.dataLayer || [];
 		function gtag(){dataLayer.push(arguments);}
@@ -105,19 +102,22 @@
 	<div class="main-container">
 		<div class="pd-ltr-20 xs-pd-20-10">
 			<div class="min-height-200px">
-				<div class="page-header">
-					<h2 class="h4"><?php echo isset($id) ? 'Actualizar datos del trámite ' : 'Agregar nuevo Trámite'; ?></h2>
-					
-					<?php 
-						if (isset($target_title)){
-							if (isset($id)){ ?>
-								<button class="btn btn-primary" onclick="changeStatusTramite(<?php echo $id?>, <?php echo $target_id?>); return false;" id="boton_autorizar">
-								<i class="fas fa-check"></i> <?php echo $target_title; ?>
-							</button>
-					<?php }
-					} ?>
 
-				</div>
+			<div class="page-header">
+				<h2 class="h4"><?php echo isset($id) ? 'Actualizar datos del trámite ' : 'Agregar nuevo Trámite'; ?></h2>
+				<!-- <hr class="my-4"> -->
+				
+				
+				<?php 
+					if (isset($target_title)){
+						if (isset($id)){ ?>
+							<button class="btn btn-primary" onclick="changeStatusTramite(<?php echo $id?>, <?php echo $target_id?>); return false;" id="boton_autorizar">
+							<i class="fas fa-check"></i> <?php echo $target_title; ?>
+						</button>
+				<?php }
+				} ?>
+
+			</div>
 				<?php echo form_open(isset($id) ? "/deskapp/tramites/update_save/$id" : '/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'tramiteForm']); ?>
 
 				<div class="row">
@@ -217,41 +217,43 @@
 					</div>
 				</div>
 
-				<div class="text-center mt-4" id="boton_autorizar">
-					<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-					<?php if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
-						<button type="submit" class="btn btn-primary"><?php echo isset($id) ? 'Actualizar' : 'Guardar'; ?></button>
-					<?php } ?>
-				</div>
 
-				<?php echo form_close(); ?>
-				
-				<script>
-					var empresaGestoraId = "<?php echo isset($fields['empresa_gestora']['value']) ? $fields['empresa_gestora']['value'] : ''; ?>";
-					var gestorId = "<?php echo isset($fields['gestor_id']['value']) ? $fields['gestor_id']['value'] : ''; ?>";
-					var cliDirectoId = "<?php echo isset($fields['cli_directo']['value']) ? $fields['cli_directo']['value'] : ''; ?>";
-					var ejecutivoId = "<?php echo isset($fields['cli_directo_ejecutivo_id']['value']) ? $fields['cli_directo_ejecutivo_id']['value'] : ''; ?>";
-				</script>
+
+			<div class="text-center mt-4" id="boton_autorizar">
+				<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
+				<?php if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
+					<button type="submit" class="btn btn-primary"><?php echo isset($id) ? 'Actualizar' : 'Guardar'; ?></butto
+				<?php } ?>
+			</div>
+
+			<?php echo form_close(); ?>
+			
+			<script>
+				var empresaGestoraId = "<?php echo isset($fields['empresa_gestora']['value']) ? $fields['empresa_gestora']['value'] : ''; ?>";
+				var gestorId = "<?php echo isset($fields['gestor_id']['value']) ? $fields['gestor_id']['value'] : ''; ?>";
+				var cliDirectoId = "<?php echo isset($fields['cli_directo']['value']) ? $fields['cli_directo']['value'] : ''; ?>";
+				var ejecutivoId = "<?php echo isset($fields['cli_directo_ejecutivo_id']['value']) ? $fields['cli_directo_ejecutivo_id']['value'] : ''; ?>";
+			</script>
 			</div>
 			<br>
 			<?php
-				if (!empty($output)) {
-						echo $output;
-				}
-			?>
+									if (!empty($output)) {
+											echo $output;
+									}
+									?>
+			<!-- footer -->
+			<?php echo view('deskapp/includes/_footer'); ?>
 		</div>
 	</div>
-	<!-- footer -->
-	<?php echo view('deskapp/includes/_footer'); ?>
-
 	<!-- js -->
-	<?php
-	if (!empty($js_files)) {
-		foreach($js_files as $file) { ?>
-			<script src="<?php echo $file; ?>"></script>
-		<?php }
-	}
-	?>
+
+<?php
+if (!empty($js_files)) {
+    foreach($js_files as $file) { ?>
+        <script src="<?php echo $file; ?>"></script>
+    <?php }
+}
+?>
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
@@ -259,7 +261,5 @@
 	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/my_scripts.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/forms_scripts.js"></script>
-	
 </body>
 </html>
-
