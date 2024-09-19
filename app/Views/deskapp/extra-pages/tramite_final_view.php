@@ -10,8 +10,11 @@
     <?php foreach($js_files as $file): ?>
         <script src="<?php echo $file; ?>"></script>
     <?php endforeach; ?>
-	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css
+	 "> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.css">
+	<link rel="stylesheet" href="/public/assets/src/styles/my_wizard.scss">
+	<link rel="stylesheet" href="/public/assets/src/styles/my_grocery.css">
     <style>
         .form-container {
             display: flex;

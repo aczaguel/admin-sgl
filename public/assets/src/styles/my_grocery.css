@@ -1,0 +1,103 @@
+/* Personalizar las tablas (grids) */
+.grocery-crud {
+    font-size: 16px; /* Tamaño de letra en las tablas */
+    border-color: #ccc; /* Color de los bordes */
+}
+
+/* Personalizar los encabezados de la tabla */
+.grocery-crud thead th {
+    font-size: 12px; /* Tamaño de letra en los encabezados */
+    font-weight: bold;
+    background-color: #f8f9fa; /* Color de fondo de los encabezados */
+    color: #333; /* Color de texto de los encabezados */
+    padding: 12px; /* Espaciado (padding) dentro de las celdas del encabezado */
+}
+
+/* Personalizar las celdas de datos */
+.grocery-crud tbody td {
+    padding-left: 4px !important; /* Espaciado dentro de las celdas */
+    padding-right: 4px !important; /* Espaciado dentro de las celdas */
+    font-size: 11px; /* Tamaño de letra de las celdas */
+    color: #555; /* Color de texto de las celdas */
+}
+
+.grocery-crud tbody tr {
+    padding: 12px; /* Espaciado dentro de las celdas */
+    font-size: 11px; /* Tamaño de letra de las celdas */
+    color: #555; /* Color de texto de las celdas */
+}
+
+.grocery-crud .btn-outline-dark {
+    color: #343a40;
+    border-color: #343a40;
+    font-size: 10px;
+}
+
+/* Personalizar los formularios */
+.grocery-crud-form {
+    font-size: 14px; /* Tamaño de letra de los formularios */
+}
+
+/* Personalizar etiquetas de los formularios */
+.grocery-crud-form label {
+    font-size: 14px;
+    color: #333; /* Color de las etiquetas */
+    font-weight: bold;
+}
+
+/* Personalizar los campos de entrada en los formularios */
+.grocery-crud-form input,
+.grocery-crud-form select,
+.grocery-crud-form textarea {
+    font-size: 13px; /* Tamaño de letra en los campos de formulario */
+    padding: 8px; /* Espaciado interno en los campos */
+    border-radius: 5px; /* Bordes redondeados */
+    border: 1px solid #ccc; /* Bordes de los campos */
+}
+
+/* Personalizar botones en Grocery CRUD */
+.grocery-crud-form .btn {
+    font-size: 14px;
+    padding: 10px 15px; /* Espaciado en los botones */
+    border-radius: 5px; /* Bordes redondeados */
+    background-color: #007bff; /* Color de fondo del botón */
+    color: #fff; /* Color de texto del botón */
+    border: none; /* Quitar borde del botón */
+}
+
+/* Hover sobre botones */
+.grocery-crud-form .btn:hover {
+    background-color: #0056b3; /* Color al pasar el mouse sobre el botón */
+}
+
+/* Personalizar el tamaño de letra de los mensajes de error o validación */
+.grocery-crud-form .error-message {
+    font-size: 12px;
+    color: red; /* Color de los mensajes de error */
+}
+.table td, .table th {
+    padding: 0.05rem !important;
+}
+.form-control{
+    font-size: 11px !important;
+}
+.css-1xlet33-control{
+    min-height: 31px !important;
+    height: 31px !important;
+    font-size: 11px !important;
+}
+
+button.gc-warning-button-100.btn.btn-warning {
+    font-size: 10px !important;
+}	
+
+.table-bordered thead td, .table-bordered thead th {
+    border-bottom-width: 2px;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+}
+
+.gc-caption-title {
+    font-size: 18px !important;
+    font-weight: 500 !important;
+}

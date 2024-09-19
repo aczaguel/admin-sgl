@@ -91,6 +91,12 @@ $routes->post('/tramites/tramite', 'Deskapp/Tramites::tramite');
 $routes->get('/tramites/mios', 'Deskapp/Tramites::mios',['filter' => 'auth']);
 $routes->post('/tramites/mios', 'Deskapp/Tramites::mios');
 
+$routes->get('/wizard', 'Deskapp/Wizard::index',['filter' => 'auth']);
+$routes->post('/wizard/step1', 'Deskapp/Wizard::step1');
+$routes->post('/wizard/step2', 'Deskapp/Wizard::step2');
+$routes->post('/wizard/step3', 'Deskapp/Wizard::step3');
+$routes->post('/wizard/complete', 'Deskapp/Wizard::complete');
+
 $routes->get('/tramites/recoleccion', 'Deskapp/Tramites::recoleccion',['filter' => 'auth']);
 $routes->post('/tramites/recoleccion', 'Deskapp/Tramites::recoleccion');
 
