@@ -3,9 +3,7 @@
 .env.*  # Si tienes múltiples archivos .env
 .htaccess
 
-
 .env
-/app/Config/App.php
 
 # Ignorar dependencias instaladas
 */config/development
