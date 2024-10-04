@@ -70,6 +70,9 @@ $routes->post('/tramites/single_documentostatus', 'Deskapp/Tramites::single_docu
 $routes->get('/tramites/single_documentostatus/(:id)', 'Deskapp/Tramites::single_documentostatus/(:id)',['filter' => 'auth']);
 $routes->post('/tramites/single_documentostatus/(:id)', 'Deskapp/Tramites::single_documentostatus/(:id)');
 
+$routes->get('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_comprobante/(:id)',['filter' => 'auth']);
+$routes->post('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_comprobante/(:id)');
+
 $routes->get('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/(:id)',['filter' => 'auth']);
 $routes->post('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/(:id)');
 
@@ -120,6 +123,9 @@ $routes->post('/tramites/evidencias/(:tramite_id)', 'Deskapp/Tramites::evidencia
 
 $routes->get('/documentos/documento', 'Deskapp/Documentos::documento',['filter' => 'auth']);
 $routes->post('/documentos/status', 'Deskapp/Documentos::status');
+
+$routes->get('/documentos/tp_doctos_tramite', 'Deskapp/Documentos::tp_doctos_tramite',['filter' => 'auth']);
+$routes->post('/documentos/tp_doctos_tramite', 'Deskapp/Documentos::tp_doctos_tramite');
 
 $routes->get('/gestores/gestores', 'Deskapp/Gestores:gestores',['filter' => 'auth']);
 $routes->post('/gestores/gestor', 'Deskapp/Gestores::gestor');

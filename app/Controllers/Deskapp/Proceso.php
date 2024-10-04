@@ -67,9 +67,9 @@ class Proceso extends BaseController
             $crud->displayAs("created_at", "Desde Creación");
 
             $crud->callbackColumn('created_at', function ($value, $row) {
-                $fechaCreacion = new \DateTime($row->created_at);
+                $fechaAsignacion = new \DateTime($row->started_at);
                 $fechaActual = new \DateTime();
-                $diasDiferencia = $fechaCreacion->diff($fechaActual)->days;
+                $diasDiferencia = $fechaAsignacion->diff($fechaActual)->days;
             
                 // Definir clases CSS según los días
                 $claseVerde = 'background-verde';  // Clase CSS para verde
@@ -392,7 +392,6 @@ class Proceso extends BaseController
             'id', 'tramite_id','file', 
             'costo', 'created_at'
         ]); 
-
 
         $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {

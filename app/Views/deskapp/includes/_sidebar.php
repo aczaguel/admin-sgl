@@ -1,8 +1,8 @@
 <div class="left-side-bar">
 		<div class="brand-logo">
 			<a href="<?php echo base_url('deskapp/dashboard'); ?>">
-				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo">
-				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt_white.png" alt="" class="light-logo">
+				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo" width="150px">
+				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt_white.png" alt="" class="light-logo" width="150px">
 			</a>
 			<div class="close-sidebar" data-toggle="left-sidebar-close">
 				<i class="ion-close-round"></i>
@@ -12,7 +12,7 @@
 			<div class="sidebar-menu">
 				<ul id="accordion-menu">
 					<li>
-						<div class="dropdown-divider"></div>
+					<br>
 					</li>
 					<?php if (has_permission('menu_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 						<li class="dropdown">
@@ -59,9 +59,7 @@
 						</li>
 					<?php endif; ?>	
 					<?php if (has_permission('menu_gestores', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<li>
-							<div class="dropdown-divider"></div>
-						</li>
+						<br>
 						<li class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle">
 								<span class="micon dw dw-library"></span><span class="mtext">Gestores</span>
@@ -86,9 +84,7 @@
 						</li>
 					<?php endif; ?>	
 					<?php if (has_permission('menu_configuracion', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<li>
-							<div class="dropdown-divider"></div>
-						</li>
+						<br>
 						<li class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle">
 								<span class="micon dw dw-edit2"></span><span class="mtext">Configuración</span>
@@ -112,13 +108,9 @@
 						</li>
 					<?php endif; ?>	
 					<?php if (has_permission('menu_permisos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<li>
-							<div class="dropdown-divider"></div>
-						</li>
+						<br>
 						
-						<li>
-							<div class="dropdown-divider"></div>
-						</li>
+						<br>
 						<li class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle">
 								<span class="micon dw dw-library"></span><span class="mtext">Permisos</span>
@@ -135,13 +127,9 @@
 					<?php endif; ?>	
 
 					<?php if (has_permission('menu_erp_sa', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<li>
-							<div class="dropdown-divider"></div>
-						</li>
+						<br>
 						
-						<li>
-							<div class="dropdown-divider"></div>
-						</li>
+						<br>
 						<li>
 							<a href="<?php echo base_url('deskapp/calendar'); ?>" class="dropdown-toggle no-arrow">
 								<span class="micon dw dw-calendar1"></span><span class="mtext">Calendar</span>
@@ -276,13 +264,9 @@
 								<span class="micon dw dw-invoice"></span><span class="mtext">Invoice</span>
 							</a>
 						</li>
-						<li>
-							<div class="dropdown-divider"></div>
-						</li>
+						<br>
 						
-						<li>
-							<div class="dropdown-divider"></div>
-						</li>
+						<br>
 						<li>
 							<div class="sidebar-small-cap">Extra</div>
 						</li>
