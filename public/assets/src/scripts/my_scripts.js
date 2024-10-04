@@ -1,6 +1,5 @@
 $(document).ready(function() {
   "use strict";
-  console.log("comenzando");
   // Asignar evento onclick utilizando delegación de eventos
 
   $('body').on('click', '#gc-form-costo_total', function() {

@@ -1,6 +1,6 @@
-$(document).ready(function () {
-    $("#wizard").aiiaWizard();
-});
+// $(document).ready(function () {
+//     $("#wizard").aiiaWizard();
+// });
 
 ;(function ($, window, document, undefined) {
 

@@ -101,3 +101,7 @@ button.gc-warning-button-100.btn.btn-warning {
     font-size: 18px !important;
     font-weight: 500 !important;
 }
+
+.wizard > .content {
+    min-height: 30em !important;
+}
