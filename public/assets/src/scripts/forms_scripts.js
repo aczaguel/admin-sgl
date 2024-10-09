@@ -1,4 +1,27 @@
-
+function loadDependentData(type, parentId, targetId, selectedId = null) {
+  $.ajax({
+      url: `/deskapp/tramites/getDependentData/${type}/${parentId}`,
+      method: 'GET',
+      dataType: 'json',
+      success: function(data) {
+          const $targetElement = $(`#${targetId}`);
+          $targetElement.empty().append('<option value="">Seleccione...</option>');
+          $.each(data, function(index, item) {
+              const $option = $('<option></option>')
+                  .val(item.id)
+                  .text(item.nombre); // Ajustar según la estructura de tu tabla
+              if (selectedId && selectedId == item.id) {
+                  $option.prop('selected', true);
+              }
+              $targetElement.append($option);
+          });
+      },
+      error: function(xhr, status, error) {
+          console.error('Error:', error);
+      }
+  });
+}
+  
   $(document).ready(function() {
     $('#cli_directo_id').change(function() {
         var clienteDirectoId = $(this).val();
@@ -21,80 +44,63 @@
         }
     });
 
-  $(document).ready(function() {
-      $('#empresa_gestora_id').change(function() {
-        var empresaGestoraId = $(this).val();
-        if(empresaGestoraId) {
-          $.ajax({
-            url: '/public/deskapp/tramites/getGestoresByEmpresaId/' + empresaGestoraId,
-            type: 'GET',
-            dataType: 'json',
-            success: function(data) {
-              $('#gestor_id').empty();
-              $('#gestor_id').append('<option value="">Seleccione un Gestor</option>');
-              $.each(data, function(key, value) {
-                $('#gestor_id').append('<option value="'+ key +'">'+ value +'</option>');
-              });
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.error('Error loading gestores: ' + textStatus);
-            }
-          });
-        } else {
-          $('#gestor_id').empty();
-          $('#gestor_id').append('<option value="">Seleccione un Gestor</option>');
-        }
-      });
+    $('#empresa_gestora_id').change(function() {
+      var empresaGestoraId = $(this).val();
+      if(empresaGestoraId) {
+        $.ajax({
+          url: '/public/deskapp/tramites/getGestoresByEmpresaId/' + empresaGestoraId,
+          type: 'GET',
+          dataType: 'json',
+          success: function(data) {
+            $('#gestor_id').empty();
+            $('#gestor_id').append('<option value="">Seleccione un Gestor</option>');
+            $.each(data, function(key, value) {
+              $('#gestor_id').append('<option value="'+ key +'">'+ value +'</option>');
+            });
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Error loading gestores: ' + textStatus);
+          }
+        });
+      } else {
+        $('#gestor_id').empty();
+        $('#gestor_id').append('<option value="">Seleccione un Gestor</option>');
+      }
     });
+});
+
+  $(document).ready(function() {
+    // Inicializar flatpickr
+    $('.datetime-picker').flatpickr({
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+    });
+
+    // Función para cargar datos dependientes
+    
+
+    // Agregar listeners para los campos padres
+    $('#empresa_gestora_id').on('change', function() {
+        loadDependentData('gestor', $(this).val(), 'gestor_id');
+    });
+
+    $('#cli_directo_id').on('change', function() {
+        loadDependentData('ejecutivo', $(this).val(), 'cli_directo_ejecutivo_id');
+    });
+
+    // Carga inicial para formularios de actualización
+    const empresaGestoraId = $('#empresa_gestora_id').val();
+    if (empresaGestoraId) {
+        loadDependentData('gestor', empresaGestoraId, 'gestor_id', gestorId);
+    }
+
+    const cliDirectoId = $('#cli_directo_id').val();
+    // const ejecutivoId = '<?php echo isset($fields['cli_directo_ejecutivo_id']['value']) ? $fields['cli_directo_ejecutivo_id']['value'] : ''; ?>';
+    if (cliDirectoId) {
+        loadDependentData('ejecutivo', cliDirectoId, 'cli_directo_ejecutivo_id', ejecutivoId);
+    }
   });
 
-  document.addEventListener('DOMContentLoaded', function() {
-      flatpickr('.datetime-picker', {
-          enableTime: true,
-          dateFormat: "Y-m-d H:i",
-      });
-      
-      // Function to load dependent data
-      function loadDependentData(type, parentId, targetId, selectedId = null) {
-          fetch(`/deskapp/tramites/getDependentData/${type}/${parentId}`)
-              .then(response => response.json())
-              .then(data => {
-                  const targetElement = document.getElementById(targetId);
-                  targetElement.innerHTML = '<option value="">Seleccione...</option>';
-                  data.forEach(item => {
-                      const option = document.createElement('option');
-                      option.value = item.id;
-                      option.text = item.nombre; // Adjust according to your table structure
-                      if (selectedId && selectedId == item.id) {
-                          option.selected = true;
-                      }
-                      targetElement.appendChild(option);
-                  });
-              })
-              .catch(error => console.error('Error:', error));
-      }
-
-      // Add event listeners for your parent fields
-      document.getElementById('empresa_gestora_id').addEventListener('change', function() {
-          loadDependentData('gestor', this.value, 'gestor_id');
-      });
-
-      document.getElementById('cli_directo_id').addEventListener('change', function() {
-          loadDependentData('ejecutivo', this.value, 'cli_directo_ejecutivo_id');
-      });
-
-      // Initial load for update forms
-      const empresaGestoraId = document.getElementById('empresa_gestora_id').value;
-      if (empresaGestoraId) {
-          loadDependentData('gestor', empresaGestoraId, 'gestor_id', gestorId);
-      }
-
-      const cliDirectoId = document.getElementById('cli_directo_id').value;
-      //const ejecutivoId = '<?php echo isset($fields['cli_directo_ejecutivo_id']['value']) ? $fields['cli_directo_ejecutivo_id']['value'] : ''; ?>';
-      if (cliDirectoId) {
-          loadDependentData('ejecutivo', cliDirectoId, 'cli_directo_ejecutivo_id', ejecutivoId);
-      }
-  });
 
   // Form submission handler
   $('#tramiteForm').on('submit', function(event) {
@@ -808,6 +814,12 @@ $(document).ready(function() {
         }
     });
 }); 
+$('#empresa_gestora_id').on('change', function() {
+  loadDependentData('gestor', $(this).val(), 'gestor_id');
+});
 
+$('#cli_directo_id').on('change', function() {
+  loadDependentData('ejecutivo', $(this).val(), 'cli_directo_ejecutivo_id');
+});
 
 });
