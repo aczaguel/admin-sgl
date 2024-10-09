@@ -24,8 +24,8 @@ class App extends BaseConfig
 	 * @var string
 	 */
 
-	// public $baseURL = 'http://admin-sgl/';
-	public $baseURL = 'http://18.206.55.94/';
+	public $baseURL = 'http://admin-sgl/';
+	// public $baseURL = 'http://18.206.55.94/';
 	
 	public $displayErrorDetails = true;
 	/**
