@@ -117,14 +117,14 @@ class Tramites extends BaseController
 
             $tramite_crud->setActionButton('Documentos', 'fa fa-file', function ($row) {
                 return '/deskapp/tramites/documentostatus/' . $row->folio . '/' . $row->id;
-            }, true);
+            }, false);
             $tramite_crud->setActionButton('Evidencias', 'fa fa-tasks', function ($row) {
                 return '/deskapp/tramites/evidencias/' . $row->folio . '/' . $row->id;
-            }, true);
+            }, false);
 
             $tramite_crud->setActionButton('Bitacora', 'icon-copy dw dw-open-book-2', function ($row) {
                 return '/deskapp/bitacora/index/' . $row->folio ;
-            }, true);
+            }, false);
             
             $tramite_crud->callbackAddForm(function ($data) use ($self){
                 $session = session();
@@ -734,14 +734,15 @@ class Tramites extends BaseController
 
             $crud->setActionButton('Documentos', 'fa fa-file', function ($row) {
                 return '/deskapp/tramites/documentostatus/' . $row->folio . '/' . $row->id;
-            }, true);
+            }, false);
+            
             $crud->setActionButton('Evidencias', 'fa fa-tasks', function ($row) {
                 return '/deskapp/tramites/evidencias/' . $row->folio . '/' . $row->id;
-            }, true);
+            }, false);
 
             $crud->setActionButton('Bitacora', 'icon-copy dw dw-open-book-2', function ($row) {
                 return '/deskapp/bitacora/index/' . $row->folio ;
-            }, true);
+            }, false);
             
             $crud->callbackAddForm(function ($data) use ($self){
                 $session = session();
