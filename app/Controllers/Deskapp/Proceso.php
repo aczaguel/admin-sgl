@@ -60,13 +60,13 @@ class Proceso extends BaseController
 
             $crud->setTable('tramite');
             $crud->setSubject('tramite', 'Tramites');
-            $crud->columns(["created_at", "id", "folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id",'ent_municipio_id', "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", 
+            $crud->columns(["started_at", "id", "folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id",'ent_municipio_id', "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", 
             "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite", "comision_derechos", "costo_total", "numero_factura", "numero_refactura",
             "reembolso_status_id", "tra_status_id", "cobro_status_id", "observaciones"]); 
 
-            $crud->displayAs("created_at", "Desde Creación");
+            $crud->displayAs("started_at", "Desde Creación");
 
-            $crud->callbackColumn('created_at', function ($value, $row) {
+            $crud->callbackColumn('started_at', function ($value, $row) {
                 $fechaAsignacion = new \DateTime($row->started_at);
                 $fechaActual = new \DateTime();
                 $diasDiferencia = $fechaAsignacion->diff($fechaActual)->days;
@@ -176,7 +176,7 @@ class Proceso extends BaseController
 
             $crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                 return '/deskapp/proceso/update_final/' . $row->id;
-            }, true);
+            }, false);
             $salida = $crud->render();
             $salida2 = array_merge((array)$salida, $data);
             return $this->_example_output($salida2);

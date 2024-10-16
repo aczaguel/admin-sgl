@@ -62,7 +62,7 @@ class Tramites extends BaseController
             if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
-                }, true);
+                }, false);
             }
 
             if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
@@ -80,7 +80,7 @@ class Tramites extends BaseController
             if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
-                }, true);
+                }, false);
             }
 
             if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
@@ -245,9 +245,9 @@ class Tramites extends BaseController
         $output->fields = [
             "folio" => ["label" => "Folio", "type" => "hidden", "readonly"=>"readonly"],
             "contrato" => ["label" => "Contrato", "type" => "text", "required"=>"required"],
-            "unidad" => ["label" => "Unidad", "type" => "text", "required"=>"required"],
+            "unidad" => ["label" => "Unidad", "type" => "text"],
             "serie" => ["label" => "Serie", "type" => "text", "required"=>"required"],
-            "placas" => ["label" => "Placas", "type" => "text", "required"=>"required"],
+            "placas" => ["label" => "Placas", "type" => "text"],
             "tra_tipos_id" => ["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "required"=>"required"], // Asumiendo que tienes un array $tra_tipos_options
             "cli_directo_id" => ["label" => "Cliente", "type" => "select", "options" => $cli_directo_options, "required"=>"required"], // Asumiendo que tienes un array $cli_directo_options
             "cli_directo_ejecutivo_id" => ["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "required"=>"required"], // Asumiendo que tienes un array $cli_directo_ejecutivo_options
@@ -1392,7 +1392,7 @@ class Tramites extends BaseController
 
             $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                 return '/deskapp/tramites/update/' . $row->id;
-            }, true);
+            }, false);
 
             $tramite_salida = $tramite_crud->render();
             
@@ -1528,7 +1528,7 @@ class Tramites extends BaseController
 
             $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                 return '/deskapp/tramites/update_solicitud/' . $row->id;
-            }, true);
+            }, false);
 
             $tramite_salida = $tramite_crud->render();
             
@@ -1664,7 +1664,7 @@ class Tramites extends BaseController
 
             $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                 return '/deskapp/tramites/update_recoleccion/' . $row->id;
-            }, true);
+            }, false);
 
             $tramite_salida = $tramite_crud->render();
             
@@ -1800,7 +1800,7 @@ class Tramites extends BaseController
 
             $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                 return '/deskapp/tramites/update_en_tramite/' . $row->id;
-            }, true);
+            }, false);
 
             $tramite_salida = $tramite_crud->render();
             
