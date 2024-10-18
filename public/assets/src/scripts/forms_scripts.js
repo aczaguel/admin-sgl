@@ -590,34 +590,101 @@ $(document).ready(function() {
     dateFormat: "Y-m-d H:i",
   });
 
-  // $('#tramiteForm').on('submit', function(e) {
-  //   e.preventDefault(); // Evitar que el formulario haga un submit normal
-  //   // Recoger los datos del formulario
-  //   var formData = $(this).serialize();
-  //   $.ajax({
-  //       url: '/deskapp/tramites/update_save/' + tramite_id, // URL a donde va la solicitud
-  //       type: 'POST',
-  //       data: formData, // Datos del formulario
-  //       success: function(response) {
-  //           // Manejamos la respuesta del servidor
-  //           $('#tramite_mensaje').html(response.message); // Muestra la respuesta en un div
-  //           $('#tramite_respuesta').show(); // Mostramos el alert
-  //           // Ocultar el mensaje automáticamente después de 5 segundos
-  //           setTimeout(function() {
-  //               $('#tramite_respuesta').fadeOut('slow'); // Desaparece suavemente
-  //           }, 3000); // 3000 milisegundos = 3 segundos
-  //       },
-  //       error: function(xhr, status, error) {
-  //           // Manejamos el error si ocurre
-  //           console.log(xhr.responseText);
-  //           $('#tramite_mensaje_error').html(response.message);
-  //           $('#tramite_respuesta_error').show(); // Mostramos el alert
+  $('#tramiteForm').on('submit', function(e) {
+    e.preventDefault(); // Evitar que el formulario haga un submit normal
+    // Recoger los datos del formulario
+    var formData = $(this).serialize();
+    console.log("formData", formData);
+    $.ajax({
+        url: '/deskapp/tramites/update_save/' + tramite_id, // URL a donde va la solicitud
+        type: 'POST',
+        data: formData, // Datos del formulario
+        success: function(response) {
+            // Manejamos la respuesta del servidor
+            $('#tramite_mensaje').html(response.message); // Muestra la respuesta en un div
+            $('#tramite_respuesta').show(); // Mostramos el alert
+            // Ocultar el mensaje automáticamente después de 5 segundos
+            setTimeout(function() {
+                $('#tramite_respuesta').fadeOut('slow'); // Desaparece suavemente
+            }, 3000); // 3000 milisegundos = 3 segundos
+        },
+        error: function(xhr, status, error) {
+            // Manejamos el error si ocurre
+            console.log(xhr.responseText);
+            $('#tramite_mensaje_error').html(response.message);
+            $('#tramite_respuesta_error').show(); // Mostramos el alert
             
-  //           // Ocultar el mensaje automáticamente después de 5 segundos
-  //           setTimeout(function() {
-  //               $('#tramite_respuesta_error').fadeOut('slow'); // Desaparece suavemente
-  //           }, 5000); // 5000 milisegundos = 5 segundos
+            // Ocultar el mensaje automáticamente después de 5 segundos
+            setTimeout(function() {
+                $('#tramite_respuesta_error').fadeOut('slow'); // Desaparece suavemente
+            }, 5000); // 5000 milisegundos = 5 segundos
+        }
+    });
+  });
+
+
+  // $('#tramiteForm').on('submit', function(event) {
+  //   event.preventDefault();
+
+  //   let form = event.target;
+  //   let formData = new FormData(form);
+  //   let hasErrors = false;
+
+  //   form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
+
+  //   if (!form.checkValidity()) {
+  //     form.classList.add('was-validated');
+  //     hasErrors = true;
+  //   }
+
+  //   if (hasErrors) {
+  //     let errorAlert = document.createElement('div');
+  //     errorAlert.className = 'alert alert-danger';
+  //     errorAlert.innerHTML = '<strong>Error:</strong> Por favor, corrija los campos marcados.';
+  //     form.prepend(errorAlert);
+  //     return;
+  //   }
+
+  //   fetch(form.action, {
+  //     method: form.method,
+  //     body: formData,
+  //     headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  //   })
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     if (data.success) {
+  //       window.location.href = data.redirect;
+  //     } else {
+  //       let errorAlert = document.createElement('div');
+  //       errorAlert.className = 'alert alert-danger alert-dismissible fade show';
+  //       errorAlert.setAttribute('role', 'alert');
+
+  //       let errorList = '<strong>Error:</strong> No se pudo guardar el trámite. Por favor, revise los campos marcados.';
+        
+  //       if (data !== "undefined" && data.success === false) {
+  //         if (typeof data.message !== "undefined") {
+  //           errorList += `<li>${mapErrorMessage(data.message)}</li>`;
+  //         } else if (typeof data.errors !== "undefined") {
+  //           for (let field in data.errors) {
+  //             if (data.errors.hasOwnProperty(field)) {
+  //               errorList += `<li>${data.errors[field]}</li>`;
+  //             }
+  //           }
+  //         } else {
+  //           errorList += `<li>Ocurrió un error desconocido.</li>`;
+  //         }
   //       }
+
+  //       errorAlert.innerHTML = errorList;
+  //       form.prepend(errorAlert);
+  //     }
+  //   })
+  //   .catch(error => {
+  //     let errorAlert = document.createElement('div');
+  //     errorAlert.className = 'alert alert-danger alert-dismissible fade show';
+  //     errorAlert.setAttribute('role', 'alert');
+  //     errorAlert.innerHTML = `<strong>Error:</strong> Ocurrió un error al guardar el trámite. ${error.message}`;
+  //     form.prepend(errorAlert);
   //   });
   // });
 
