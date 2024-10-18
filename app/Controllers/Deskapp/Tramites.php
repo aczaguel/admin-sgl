@@ -14,6 +14,7 @@ use App\Models\TramiteAfterInsert;
 use App\Models\BitacoraModel;
 use App\Models\TraTiposModel;
 use App\Models\EntMunicipioModel;
+use App\Models\EntidadesModel;
 use App\Models\ClienteModel;
 use App\Models\ClienteDirectoModel;
 use App\Models\ClienteDirectoEjecutivoModel;
@@ -229,6 +230,10 @@ class Tramites extends BaseController
         $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
         $entMunicipios = new EntMunicipioModel($db2);
         $ent_municipio_options = $entMunicipios->getEntMunicipios();
+
+        $entidades = new EntidadesModel($db2);
+        $entidad_options = $entidades->getEntidades();
+
         $clienteDirecto = new ClienteDirectoModel($db2);
         $cli_directo_options = $clienteDirecto->getClientesDirectosOptions();
         $empGestora = new EmpresaGestoraModel($db2);
@@ -253,7 +258,8 @@ class Tramites extends BaseController
             "cli_directo_ejecutivo_id" => ["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "required"=>"required"], // Asumiendo que tienes un array $cli_directo_ejecutivo_options
             // "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options], // Asumiendo que tienes un array $empresa_gestora_options
             // "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => $gestor_options], // Asumiendo que tienes un array $gestor_options
-            "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "required"=>"required"], // Asumiendo que tienes un array $ent_municipio_options
+            "entidad_id" => ["label" => "Entidad", "type" => "select", "options" => $entidad_options, "required"=>"required"],
+            "ent_municipio_id" => ["label" => "Entidad - Municipio", "type" => "select", "options" => $ent_municipio_options, "disabled"=>"disabled"], // Asumiendo que tienes un array $ent_municipio_options
             // "cobro_status_id" => ["label" => "Cobro Status Id", "type" => "select", "options" => $cobro_status_options], // Asumiendo que tienes un array $cobro_status_options
             "observaciones" => ["label" => "Observaciones", "type" => "textarea"],
             "user_id" => ["label" => "User Id", "type" => "hidden", "value" => "$myid"]
@@ -263,10 +269,10 @@ class Tramites extends BaseController
         $output->bancario_campos = [];
         $output->final_campos = [];
 
-        if (!has_permission('tramite_view_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
-            unset($output->fields['empresa_gestora_id']);
-            unset($output->fields['gestor_id']);
-        }
+        // if (!has_permission('tramite_view_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+        //     unset($output->fields['empresa_gestora_id']);
+        //     unset($output->fields['gestor_id']);
+        // }
 
         $crud = $this->_getGroceryCrudEnterprise();
         $crudOutput = $crud->render();
@@ -419,6 +425,8 @@ class Tramites extends BaseController
         $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
         $entMunicipios = new EntMunicipioModel($db2);
         $ent_municipio_options = $entMunicipios->getEntMunicipios();
+        $entidades = new EntidadesModel($db2);
+        $entidad_options = $entidades->getEntidades();
         $clienteDirecto = new ClienteDirectoModel($db2);
         $cli_directo_options = $clienteDirecto->getClientesDirectosOptions();
         $empGestora = new EmpresaGestoraModel($db2);
@@ -442,15 +450,16 @@ class Tramites extends BaseController
         // if (is_read_only(esc($session->get('user_roles')))){
             $form->fields = [
                 "folio" => ["label" => "Folio", "type" => "hidden", "value" => $tramite['folio'], "disabled"=>"disabled"],
-                "contrato" => ["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required", "disabled"=>"disabled"],
+                "contrato" => ["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required"],
                 "unidad" => ["label" => "Unidad", "type" => "text", "value" => $tramite['unidad'], "disabled"=>"disabled"],
                 "serie" => ["label" => "Serie", "type" => "text", "value" => $tramite['serie'], "disabled"=>"disabled"],
                 "placas" => ["label" => "Placas", "type" => "text", "value" => $tramite['placas'], "disabled"=>"disabled"],
-                "tra_tipos_id" => ["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "value" => $tramite['tra_tipos_id'], "disabled"=>"disabled"],
+                "tra_tipos_id" => ["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "value" => $tramite['tra_tipos_id']],
                 "cli_directo_id" => ["label" => "Cliente", "type" => "select", "options" => $cli_directo_options, "value" => $tramite['cli_directo_id'], "disabled"=>"disabled"],
                 "cli_directo_ejecutivo_id" => ["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "value" => $tramite['cli_directo_ejecutivo_id'], "disabled"=>"disabled"],
                 // "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id'], "disabled"=>"disabled"],
                 // "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "disabled"=>"disabled"],
+                "entidad_id" => ["label" => "Entidad", "type" => "select", "options" => $entidad_options, "required"=>"required"],
                 "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id'], "disabled"=>"disabled"],
                 // "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id'], "disabled"=>"disabled"],
                 "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"]
@@ -480,10 +489,10 @@ class Tramites extends BaseController
         //         "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "disabled"=>"disabled"]
         //     ];
         // }else{
-            $form->gestor_campos = [
-                "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id'], "required" => "required"],
-                "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "required" => "required"]
-            ];
+        $form->gestor_campos = [
+            "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id'], "required" => "required"],
+            "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "required" => "required"]
+        ];
         // }
         
         $form->derechos_campos = [
@@ -531,7 +540,7 @@ class Tramites extends BaseController
         $form->js_files = $crudOutput->js_files;
         
         // Load the view with the fields and current data
-        if (!is_read_only(esc($session->get('user_roles')))){
+        // if (!is_read_only(esc($session->get('user_roles')))){
             $cruddocstatus = $this->_getGroceryCrudEnterprise();
             $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/'.$id);
             $output = $cruddocstatus->render();
@@ -550,7 +559,7 @@ class Tramites extends BaseController
             $form->outputevidencias_finales = $outputevidencias_finales->output;
 
             $form->output = $output->output;
-        }
+        // }
 
         $form = array_merge((array)$form, $data);
         return $this->_example_output_2($form, 'update');
@@ -2333,11 +2342,11 @@ class Tramites extends BaseController
         $crud->defaultOrdering('tra_evidencias.created_at', 'desc');
 
         $crud->fields([
-            "folio_tramite", "tramite_id", "file", "comentario", "user_id"
+            "folio_tramite", "tramite_id", "comentario", "user_id"
         ]); 
 
         $crud->columns([
-            "created_at", "id", "file", "comentario", "user_id"
+            "created_at", "id", "comentario", "user_id"
         ]);
 
         $crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');

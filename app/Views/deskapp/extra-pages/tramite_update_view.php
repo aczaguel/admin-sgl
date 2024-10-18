@@ -429,7 +429,7 @@
 									</div>
 									<div class="text-center mt-4" id="boton_autorizar">
 										<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-										<?php if (has_permission('editar_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
+										<?php if (has_permission('editar_gestores', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
 											<button type="submit" class="btn btn-primary">Guardar</button>
 										<?php } ?>
 									</div>

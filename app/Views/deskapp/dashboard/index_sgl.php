@@ -51,7 +51,7 @@
 							¡Bienvenido de nuevo, <span class="weight-600 font-30 text-blue"><?= esc($session->get('firstname')); ?>!</span>
 						</h4>
 						<p class="font-18 max-width-600">
-							Bienvenido al sistema de administración SGL, donde podrás dar de alta, modificar y dar seguimiento a trámites de SGL. ¡Nos alegra tenerte de vuelta!
+							Bienvenido al sistema de administración SGL, donde podrás dar de alta, modificar y dar seguimiento a trámites. ¡Nos alegra tenerte de vuelta!
 						</p>
 					</div>
 
