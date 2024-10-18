@@ -98,12 +98,13 @@ class Tramites extends BaseController
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
             
             $tramite_crud->columns([
-                'started_at', 'id', 'folio','contrato','unidad','serie', 
+                'created_at', 'started_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
                 'tra_status_id','cobro_status_id',
                 'observaciones'
             ]);
+            
             $tramite_crud->displayAs("started_at", "Desde Asignación");
 
             $tramite_crud->callbackColumn('started_at', function ($value, $row) {
@@ -154,7 +155,7 @@ class Tramites extends BaseController
                 'tra_status_id','cobro_status_id',
                 'observaciones', 'user_id'
             ]); 
-            
+            $tramite_crud->displayAs("created_at", "Creación");
             /* SELECT Se configura el tipo de tramite */
             $tramite_crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
             $tramite_crud->displayAs('tra_tipos_id','Tipo de Tramite');
@@ -459,7 +460,7 @@ class Tramites extends BaseController
                 "cli_directo_ejecutivo_id" => ["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "value" => $tramite['cli_directo_ejecutivo_id'], "disabled"=>"disabled"],
                 // "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id'], "disabled"=>"disabled"],
                 // "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "disabled"=>"disabled"],
-                "entidad_id" => ["label" => "Entidad", "type" => "select", "options" => $entidad_options, "required"=>"required"],
+                "entidad_id" => ["label" => "Entidad", "type" => "select", "options" => $entidad_options, "value" => $tramite['entidad_id'], "required"=>"required"],
                 "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id'], "disabled"=>"disabled"],
                 // "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id'], "disabled"=>"disabled"],
                 "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"]
