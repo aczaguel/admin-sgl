@@ -1308,13 +1308,13 @@ class Tramites extends BaseController
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
             
             $tramite_crud->columns([
-                'started_at', 'id', 'folio','contrato','unidad','serie', 
+                'created_at', 'started_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
                 'tra_status_id','cobro_status_id',
                 'observaciones'
             ]);
-
+            $tramite_crud->displayAs('created_at','Creación');  
             $tramite_crud->displayAs("started_at", "Desde Asignacion");
 
             $tramite_crud->callbackColumn('started_at', function ($value, $row) {
@@ -1444,7 +1444,7 @@ class Tramites extends BaseController
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
             
             $tramite_crud->columns([
-                'started_at', 'id', 'folio','contrato','unidad','serie', 
+                'created_at', 'started_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
                 'tra_status_id','cobro_status_id',
@@ -1452,7 +1452,7 @@ class Tramites extends BaseController
             ]);
 
             $tramite_crud->displayAs("started_at", "Desde Asignación");
-
+            $tramite_crud->displayAs('created_at','Creación'); 
             $tramite_crud->callbackColumn('started_at', function ($value, $row) {
                 $fechaAsignacion = new \DateTime($row->started_at);
                 $fechaActual = new \DateTime();
@@ -1537,7 +1537,7 @@ class Tramites extends BaseController
             $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
 
             $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
-                return '/deskapp/tramites/update_solicitud/' . $row->id;
+                return '/deskapp/tramites/update/' . $row->id;
             }, false);
 
             $tramite_salida = $tramite_crud->render();
@@ -1580,7 +1580,7 @@ class Tramites extends BaseController
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
             
             $tramite_crud->columns([
-                'started_at', 'id', 'folio','contrato','unidad','serie', 
+                'created_at', 'started_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
                 'tra_status_id','cobro_status_id',
@@ -1588,6 +1588,7 @@ class Tramites extends BaseController
             ]);
 
             $tramite_crud->displayAs("started_at", "Desde Asignación");
+            $tramite_crud->displayAs('created_at','Creación'); 
 
             $tramite_crud->callbackColumn('started_at', function ($value, $row) {
                 $fechaAsignacion = new \DateTime($row->started_at);
@@ -1673,7 +1674,7 @@ class Tramites extends BaseController
             $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
 
             $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
-                return '/deskapp/tramites/update_recoleccion/' . $row->id;
+                return '/deskapp/tramites/update/' . $row->id;
             }, false);
 
             $tramite_salida = $tramite_crud->render();
@@ -1716,7 +1717,7 @@ class Tramites extends BaseController
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
             
             $tramite_crud->columns([
-                'started_at', 'id', 'folio','contrato','unidad','serie', 
+                'created_at', 'started_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
                 'tra_status_id','cobro_status_id',
@@ -1724,7 +1725,8 @@ class Tramites extends BaseController
             ]);
 
             $tramite_crud->displayAs("started_at", "Desde Asignación");
-
+            $tramite_crud->displayAs('created_at','Creación'); 
+            
             $tramite_crud->callbackColumn('started_at', function ($value, $row) {
                 $fechaAsignacion = new \DateTime($row->started_at);
                 $fechaActual = new \DateTime();
@@ -1809,7 +1811,7 @@ class Tramites extends BaseController
             $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
 
             $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
-                return '/deskapp/tramites/update_en_tramite/' . $row->id;
+                return '/deskapp/tramites/update/' . $row->id;
             }, false);
 
             $tramite_salida = $tramite_crud->render();
