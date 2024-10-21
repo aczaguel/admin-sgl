@@ -595,11 +595,22 @@ $(document).ready(function() {
     // Recoger los datos del formulario
     var formData = $(this).serialize();
     console.log("formData", formData);
+    if (typeof tramite_id !== 'undefined' && tramite_id) {
+      var url = '/deskapp/tramites/update_save/' + tramite_id;
+    } else {
+        var url = '/deskapp/tramites/insert';
+    }
+  
+
     $.ajax({
-        url: '/deskapp/tramites/update_save/' + tramite_id, // URL a donde va la solicitud
+        url: url, // URL a donde va la solicitud
         type: 'POST',
         data: formData, // Datos del formulario
         success: function(response) {
+            console.log("response ", response);
+            if (response.from == 'insert') {
+                window.location.href = response.redirect;
+            } 
             // Manejamos la respuesta del servidor
             $('#tramite_mensaje').html(response.message); // Muestra la respuesta en un div
             $('#tramite_respuesta').show(); // Mostramos el alert

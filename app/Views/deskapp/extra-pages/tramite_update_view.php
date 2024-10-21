@@ -703,12 +703,25 @@
 
 										<!-- Mostrar la imagen si existe -->
 										<div class="mb-3 row justify-content-center">
-											<?php if (!empty($derechos_comprobante)): ?>
+											<?php if (!empty($derechos_comprobante)): 
+												$derechos_comprobante_path = base_url() . "/assets/uploads/tramites/" . $derechos_comprobante;
+												$extension = pathinfo($derechos_comprobante, PATHINFO_EXTENSION);
+												
+												// Si es un PDF, cargamos el ícono del PDF, de lo contrario, la imagen subida
+												$is_pdf = strtolower($extension) === 'pdf';
+												?>
 												<div class="mb-3 text-center">
-													<img src="<?php echo base_url() . "/assets/uploads/tramites/" . $derechos_comprobante; ?>" 
+
+													<img src="<?php echo $is_pdf ? base_url() . '/public/assets/src/images/pdf-icon.png' : $derechos_comprobante_path; ?>"
 														alt="Comprobante de Derechos" 
 														id="current-image"
 														style="max-width: 100px; border: 1px solid #ddd; border-radius: 8px; padding: 5px; display: block; margin: 0 auto;">
+													<!-- Nombre del archivo centrado y descargable -->
+													<a href="<?php echo $derechos_comprobante_path; ?>" download="<?php echo basename($derechos_comprobante); ?>" 
+													style="display: block; margin-top: 10px; font-size: 14px; color: #333; text-decoration: none;">
+														<?php echo basename($derechos_comprobante); ?>
+													</a>
+
 												</div>
 											<?php endif; ?>
 										</div>
