@@ -55,6 +55,9 @@ class Tramites extends BaseController
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
+            $tramite_crud->where('tra_status_id NOT IN (20, 21)');
+
+            
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
             $tramite_crud->unsetRead();
@@ -98,14 +101,19 @@ class Tramites extends BaseController
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
             
             $tramite_crud->columns([
-                'created_at', 'started_at', 'id', 'folio','contrato','unidad','serie', 
-                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
-                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
-                'tra_status_id','cobro_status_id',
+                'id', 'created_at', 'started_at', 'tra_status_id', 'folio', 'contrato', 'unidad', 'serie', 
+                'placas', 'tra_tipos_id', 'ent_municipio_id', 'cli_directo_id',
+                'cli_directo_ejecutivo_id', 'empresa_gestora_id', 'gestor_id',
+                'tra_status_id', 'cobro_status_id', 'user_id',
                 'observaciones'
             ]);
             
+
             $tramite_crud->displayAs("started_at", "Desde Asignación");
+
+
+            $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+            $tramite_crud->displayAs("user_id", "Ejecutivo");
 
             $tramite_crud->callbackColumn('started_at', function ($value, $row) {
                 $fechaAsignacion = new \DateTime($row->started_at); 
@@ -155,6 +163,7 @@ class Tramites extends BaseController
                 'tra_status_id','cobro_status_id',
                 'observaciones', 'user_id'
             ]); 
+
             $tramite_crud->displayAs("created_at", "Creación");
             /* SELECT Se configura el tipo de tramite */
             $tramite_crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
@@ -229,8 +238,8 @@ class Tramites extends BaseController
 
         $TraTiposModel = new TraTiposModel($db2);
         $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
-        $entMunicipios = new EntMunicipioModel($db2);
-        $ent_municipio_options = $entMunicipios->getEntMunicipios();
+        // $entMunicipios = new EntMunicipioModel($db2);
+        // $ent_municipio_options = $entMunicipios->getEntMunicipios();
 
         $entidades = new EntidadesModel($db2);
         $entidad_options = $entidades->getEntidades();
@@ -260,7 +269,7 @@ class Tramites extends BaseController
             // "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options], // Asumiendo que tienes un array $empresa_gestora_options
             // "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => $gestor_options], // Asumiendo que tienes un array $gestor_options
             "entidad_id" => ["label" => "Entidad", "type" => "select", "options" => $entidad_options, "required"=>"required"],
-            "ent_municipio_id" => ["label" => "Entidad - Municipio", "type" => "select", "options" => $ent_municipio_options, "disabled"=>"disabled"], // Asumiendo que tienes un array $ent_municipio_options
+            // "ent_municipio_id" => ["label" => "Entidad - Municipio", "type" => "select", "options" => $ent_municipio_options, "disabled"=>"disabled"], // Asumiendo que tienes un array $ent_municipio_options
             // "cobro_status_id" => ["label" => "Cobro Status Id", "type" => "select", "options" => $cobro_status_options], // Asumiendo que tienes un array $cobro_status_options
             "observaciones" => ["label" => "Observaciones", "type" => "textarea"],
             "user_id" => ["label" => "User Id", "type" => "hidden", "value" => "$myid"]
@@ -386,6 +395,7 @@ class Tramites extends BaseController
                 // Si la solicitud es AJAX, devuelve una respuesta JSON indicando éxito
                 if ($this->request->isAJAX()) {
                     return $this->response->setJSON([
+                        'from' => 'insert',
                         'success' => true,
                         'redirect' => '/deskapp/tramites/update/'.$lastInsertID
                     ]);
@@ -508,6 +518,7 @@ class Tramites extends BaseController
         ];
 
         $form->final_campos = [
+            "id_give_cliente" => ["label" => "ID del cliente", "type" => "text", "value" => $tramite['id_give_cliente'], "required" => "required"],
             "numero_factura" => ["label" => "Número de Factura", "type" => "text", "value" => $tramite['numero_factura'], "required" => "required"],
             "numero_refactura" => ["label" => "Número de Refactura", "type" => "text", "value" => $tramite['numero_refactura']],
             "reembolso_status_id" => ["label" => "Estatus del Reembolso", "type" => "select", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']],
@@ -878,11 +889,11 @@ class Tramites extends BaseController
             // Definir reglas de validación para el archivo
             $validation->setRules([
                 'image' => [
-                    'rules' => 'uploaded[image]|max_size[image,2048]|ext_in[image,jpg,jpeg,png]',
+                    'rules' => 'uploaded[image]|max_size[image,2048]|ext_in[image,jpg,jpeg,png,pdf]',
                     'errors' => [
                         'uploaded' => 'No se seleccionó ningún archivo.',
                         'max_size' => 'El tamaño máximo del archivo es de 2MB.',
-                        'ext_in' => 'Solo se permiten archivos con extensiones jpg, jpeg, png.',
+                        'ext_in' => 'Solo se permiten archivos con extensiones jpg, jpeg, png, pdf.',
                     ]
                 ]
             ]);
@@ -1293,7 +1304,8 @@ class Tramites extends BaseController
 
             if(is_starter($session->get('user_roles'))){
                 $tramite_crud->where([
-                    '(tramite.user_id = ? AND tramite.tra_status_id = ?)' => [$myid, 11]
+                    '(tramite.user_id = ? AND tramite.tra_status_id = ?)' => [$myid, 11],
+                    'tramite.tra_status_id NOT IN (20, 21)' => null 
                 ]);
             }elseif(is_executer($session->get('user_roles'))){
                     $tramite_crud->where([
@@ -1311,11 +1323,13 @@ class Tramites extends BaseController
                 'created_at', 'started_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
-                'tra_status_id','cobro_status_id',
+                'tra_status_id','cobro_status_id', 'user_id',
                 'observaciones'
             ]);
             $tramite_crud->displayAs('created_at','Creación');  
             $tramite_crud->displayAs("started_at", "Desde Asignacion");
+            $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+            $tramite_crud->displayAs("user_id", "Ejecutivo");
 
             $tramite_crud->callbackColumn('started_at', function ($value, $row) {
                 $fechaAsignacion = new \DateTime($row->started_at);
@@ -1447,12 +1461,14 @@ class Tramites extends BaseController
                 'created_at', 'started_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
-                'tra_status_id','cobro_status_id',
+                'tra_status_id','cobro_status_id', 'user_id',
                 'observaciones'
             ]);
 
             $tramite_crud->displayAs("started_at", "Desde Asignación");
             $tramite_crud->displayAs('created_at','Creación'); 
+            $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+            $tramite_crud->displayAs("user_id", "Ejecutivo");
             $tramite_crud->callbackColumn('started_at', function ($value, $row) {
                 $fechaAsignacion = new \DateTime($row->started_at);
                 $fechaActual = new \DateTime();
@@ -1583,13 +1599,14 @@ class Tramites extends BaseController
                 'created_at', 'started_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
-                'tra_status_id','cobro_status_id',
+                'tra_status_id','cobro_status_id', 'user_id',
                 'observaciones'
             ]);
 
             $tramite_crud->displayAs("started_at", "Desde Asignación");
             $tramite_crud->displayAs('created_at','Creación'); 
-
+            $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+            $tramite_crud->displayAs("user_id", "Ejecutivo");
             $tramite_crud->callbackColumn('started_at', function ($value, $row) {
                 $fechaAsignacion = new \DateTime($row->started_at);
                 $fechaActual = new \DateTime();
@@ -1720,13 +1737,14 @@ class Tramites extends BaseController
                 'created_at', 'started_at', 'id', 'folio','contrato','unidad','serie', 
                 'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
                 'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
-                'tra_status_id','cobro_status_id',
+                'tra_status_id','cobro_status_id', 'user_id',
                 'observaciones'
             ]);
 
             $tramite_crud->displayAs("started_at", "Desde Asignación");
             $tramite_crud->displayAs('created_at','Creación'); 
-            
+            $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+            $tramite_crud->displayAs("user_id", "Ejecutivo");
             $tramite_crud->callbackColumn('started_at', function ($value, $row) {
                 $fechaAsignacion = new \DateTime($row->started_at);
                 $fechaActual = new \DateTime();
@@ -1824,8 +1842,6 @@ class Tramites extends BaseController
             exit($e->getMessage());
         }
     }
-
-    
 
     public function getGestoresByEmpresaId($empresaGestoraId)
     {

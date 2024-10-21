@@ -21,6 +21,7 @@
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/forms_styles.css">
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/my_grocery.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/colResizable.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
@@ -79,7 +80,38 @@ if (!empty($js_files)) {
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/my_scripts.js"></script>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/colResizable.min.js"></script>
+	<script type="text/javascript">
+
+		//callback function
+		var onSlide = function(e){
+			var columns = $(e.currentTarget).find("td");
+			var ranges = [], total = 0, i, s ="Ranges: ", w;
+			for(i = 0; i<columns.length; i++){
+				w = columns.eq(i).width()-10 - (i==0?1:0);
+				ranges.push(w);
+				total+=w;
+			}		 
+			for(i=0; i<columns.length; i++){			
+				ranges[i] = 100*ranges[i]/total;
+				carriage = ranges[i]-w
+				s+=" "+ Math.round(ranges[i]) + "%,";			
+			}		
+			s=s.slice(0,-1);			
+			$("#text").html(s);
+		}
+		
+		//colResize the table
+		$(".grocery-crud").colResizable({
+			liveDrag:true, 
+			draggingClass:"rangeDrag", 
+			gripInnerHtml:"<div class='rangeGrip'></div>", 
+			onResize:onSlide,
+			minWidth:8
+			});
 	
+  </script>
 </body>
 </html>
 

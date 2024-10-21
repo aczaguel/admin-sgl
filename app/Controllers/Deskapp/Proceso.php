@@ -62,10 +62,12 @@ class Proceso extends BaseController
             $crud->setSubject('tramite', 'Tramites');
             $crud->columns(['created_at', "started_at", "id", "folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id",'ent_municipio_id', "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", 
             "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite", "comision_derechos", "costo_total", "numero_factura", "numero_refactura",
-            "reembolso_status_id", "tra_status_id", "cobro_status_id", "observaciones"]); 
+            "reembolso_status_id", "tra_status_id", "cobro_status_id", "user_id", "observaciones"]); 
 
             $crud->displayAs("started_at", "Desde Creación");
             $crud->displayAs('created_at','Creación'); 
+            $crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+            $crud->displayAs("user_id", "Ejecutivo");
             $crud->callbackColumn('started_at', function ($value, $row) {
                 $fechaAsignacion = new \DateTime($row->started_at);
                 $fechaActual = new \DateTime();

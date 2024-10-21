@@ -1,6 +1,7 @@
 /* Define colores de fondo según el Pantone */
 .background-verde {
     background-color: #a4c3b2;  /* Pantone 5585 C */
+    background-color: #00FF00;  /* Pantone 5585 C */
     color: black;  /* Asegura buena legibilidad */
     padding: 10px 25px;
     /* border-radius: 5px; */
@@ -11,7 +12,8 @@
 }
 
 .background-amarillo {
-    background-color: #f5e1a4;  /* Pantone 1205 C */
+    /*background-color: #f5e1a4;   Pantone 1205 C */
+    background-color: #FFFF00;  /* Pantone 1205 C */
     color: black;
     padding: 10px 25px;
     /* border-radius: 5px; */
@@ -22,7 +24,9 @@
 }
 
 .background-rojo {
-    background-color: #dba498;  /* Pantone 7612 C */
+    /* background-color: #dba498;  Pantone 7612 C */
+    background-color: #FF0000;  /* Pantone 7612 C */
+
     color: white;  /* Mejora la legibilidad en fondos oscuros */
     padding: 10px 25px;
     /* border-radius: 5px; */
@@ -33,7 +37,9 @@
 }
 
 .background-violeta {
-    background-color: #b3a2c9;  /* Pantone 7671 C */
+    /*background-color: #b3a2c9;  Pantone 7671 C */
+    background-color: #FF00FF;  /* Pantone 7671 C */
+
     color: white;
     padding: 10px 25px;
     /* border-radius: 5px; */
