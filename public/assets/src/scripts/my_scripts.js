@@ -30,30 +30,30 @@ $(document).ready(function() {
     $("#gc-form-costo_total").val(suma);
   });
 
-
-  $('body').on('click', '#costo_total', function() {
+  $('#costo_total').on("click", function() {
     console.log('Se hizo clic en costo_total');
     $('#costo_total').prop('readonly', true);
   });
-  $('body').on('keyup', '#costo_gestoria', function() {
+  
+  $('#costo_gestoria').on("keyup", function() {
       console.log('Se hizo clic en costo_gestoria');
       var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#derechos_tramite").val()) + parseInt($("#comision_derechos").val()) 
       $("#costo_total").val(suma)
   });
 
-  $('body').on('keyup', '#impuesto_gestoria', function() {
+  $('#impuesto_gestoria').on("keyup", function() {
     console.log('Se hizo clic en impuesto_gestoria');
     var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#derechos_tramite").val()) + parseInt($("#comision_derechos").val()); 
     $("#costo_total").val(suma)
   });
 
-  $('body').on('keyup', '#derechos_tramite', function() {
+  $('#derechos_tramite').on("keyup", function() {
     console.log('Se hizo clic en derechos_tramite');
     var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#derechos_tramite").val()) + parseInt($("#comision_derechos").val());
     $("#costo_total").val(suma);
   });
 
-  $('body').on('keyup', '#comision_derechos', function() {
+  $('#comision_derechos').on("keyup", function() {
     console.log('Se hizo clic en comision_derechos');
     var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#derechos_tramite").val()) + parseInt($("#comision_derechos").val());
     $("#costo_total").val(suma);

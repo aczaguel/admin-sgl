@@ -798,6 +798,34 @@
 																	</div>
 																<?php elseif ($final_campo_info['type'] == 'datetime'): ?>
 																	<input type="text" class="form-control datetime-picker" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $disabled; ?>>
+																
+																<?php elseif ($final_campo_info['type'] == 'file'): ?>
+																	<input type="file" class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+																	<?php if (!empty($value)): ?>
+																		<div class="mt-2 text-center">
+																			<?php if (pathinfo($value, PATHINFO_EXTENSION) === 'pdf'): ?>
+																				<img src="<?php echo base_url() . '/public/assets/src/images/pdf-icon.png'; ?>"
+																					alt="<?php echo $final_campo_name; ?>" 
+																					id="current-image"
+																					style="max-width: 40px; border: 1px solid #ddd; border-radius: 8px; padding: 5px; display: block; margin: 0 auto;">
+																				<!-- Nombre del archivo centrado y descargable -->
+																				<a href="<?php echo $value; ?>" download="<?php echo basename($value); ?>" 
+																				style="display: block; margin-top: 10px; font-size: 14px; color: #333; text-decoration: none;">
+																					<?php echo basename($value); ?>
+																				</a>
+																			<?php else: ?>
+																				<img src="<?php echo base_url() . '/public/assets/src/images/xml-file.png'; ?>"
+																					alt="<?php echo $final_campo_name; ?>" 
+																					id="current-image"
+																					style="max-width: 40px; border: 1px solid #ddd; border-radius: 8px; padding: 5px; display: block; margin: 0 auto;">
+																				<!-- Nombre del archivo centrado y descargable -->
+																				<a href="<?php echo $value; ?>" download="<?php echo basename($value); ?>" 
+																				style="display: block; margin-top: 10px; font-size: 14px; color: #333; text-decoration: none;">
+																					<?php echo basename($value); ?>
+																				</a>
+																			<?php endif; ?>
+																		</div>
+																	<?php endif; ?>
 																<?php endif; ?>
 																<div class="invalid-feedback">
 																	<?php echo \Config\Services::validation()->showError($final_campo_name); ?>
@@ -846,6 +874,33 @@
 																	</div>
 																<?php elseif ($final_campo_info['type'] == 'datetime'): ?>
 																	<input type="text" class="form-control datetime-picker" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
+																	<?php elseif ($final_campo_info['type'] == 'file'): ?>
+																	<input type="file" class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+																	<?php if (!empty($value)): ?>
+																		<div class="mt-2 text-center">
+																		<?php if (pathinfo($value, PATHINFO_EXTENSION) === 'pdf'): ?>
+																				<img src="<?php echo base_url() . '/public/assets/src/images/pdf-icon.png'; ?>"
+																					alt="<?php echo $final_campo_name; ?>" 
+																					id="current-image"
+																					style="max-width: 40px; border: 1px solid #ddd; border-radius: 8px; padding: 5px; display: block; margin: 0 auto;">
+																				<!-- Nombre del archivo centrado y descargable -->
+																				<a href="<?php echo $value; ?>" download="<?php echo basename($value); ?>" 
+																				style="display: block; margin-top: 10px; font-size: 14px; color: #333; text-decoration: none;">
+																					<?php echo basename($value); ?>
+																				</a>
+																			<?php else: ?>
+																				<img src="<?php echo base_url() . '/public/assets/src/images/xml-file.png'; ?>"
+																					alt="<?php echo $final_campo_name; ?>" 
+																					id="current-image"
+																					style="max-width: 40px; border: 1px solid #ddd; border-radius: 8px; padding: 5px; display: block; margin: 0 auto;">
+																				<!-- Nombre del archivo centrado y descargable -->
+																				<a href="<?php echo $value; ?>" download="<?php echo basename($value); ?>" 
+																				style="display: block; margin-top: 10px; font-size: 14px; color: #333; text-decoration: none;">
+																					<?php echo basename($value); ?>
+																				</a>
+																			<?php endif; ?>
+																		</div>
+																	<?php endif; ?>
 																<?php endif; ?>
 																<div class="invalid-feedback">
 																	<?php echo \Config\Services::validation()->showError($final_campo_name); ?>

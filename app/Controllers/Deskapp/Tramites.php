@@ -102,7 +102,7 @@ class Tramites extends BaseController
             
             $tramite_crud->columns([
                 'id', 'created_at', 'started_at', 'tra_status_id', 'folio', 'contrato', 'unidad', 'serie', 
-                'placas', 'tra_tipos_id', 'ent_municipio_id', 'cli_directo_id',
+                'placas', 'tra_tipos_id', 'entidad_id', 'ent_municipio_id', 'cli_directo_id',
                 'cli_directo_ejecutivo_id', 'empresa_gestora_id', 'gestor_id',
                 'tra_status_id', 'cobro_status_id', 'user_id',
                 'observaciones'
@@ -182,6 +182,10 @@ class Tramites extends BaseController
             $tramite_crud->displayAs('cli_directo_ejecutivo_id','Ejecutivo del Cliente');
 
             $tramite_crud->setDependentRelation('cli_directo_ejecutivo_id','cli_directo_id','cli_directo_id');
+
+            /* SELECT Se configura el la entidad */
+            $tramite_crud->setRelation('entidad_id', 'entidad', 'entidad');
+            $tramite_crud->displayAs('entidad_id','Entidad');
 
             /* SELECT Se configura el municipio */
             $tramite_crud->setRelation('ent_municipio_id', 'rel_ent_municipio', 'ent_municipality');
@@ -526,7 +530,10 @@ class Tramites extends BaseController
             "costo_gestoria" => ["label" => "Costo de Gestoría", "type" => "number", "value" => $tramite['costo_gestoria'], "required" => "required"],
             "impuesto_gestoria" => ["label" => "Impuesto de Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria'], "required" => "required"],
             "comision_derechos" => ["label" => "Comisión de Derechos", "type" => "number", "value" => $tramite['comision_derechos'], "required" => "required"],
-            "costo_total" => ["label" => "Costo Total", "type" => "number", "value" => $tramite['costo_total'], "required" => "required"],
+            "costo_total" => ["label" => "Costo Total", "type" => "number", "value" => $tramite['costo_total'], "required" => "required", "disabled"=>"disabled"],
+            "costos_factura_pdf" => ["label" => "PDF", "type" => "file", "value" => $tramite['costos_factura_pdf']],
+            "costos_factura_xml" => ["label" => "XML", "type" => "file", "value" => $tramite['costos_factura_xml']],
+
         ];
         
         // if (!has_permission('tramite_view_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
@@ -880,46 +887,66 @@ class Tramites extends BaseController
         return $this->_example_output_2($form, 'add');
     }
 
-    public function upload_comprobante()
-    {   
+    public function upload_comprobante(){   
         $db2 = $this->_getDbData();
         if ($this->request->isAJAX()) {
             $validation = \Config\Services::validation();
-    
+
             // Definir reglas de validación para el archivo
             $validation->setRules([
                 'image' => [
-                    'rules' => 'uploaded[image]|max_size[image,2048]|ext_in[image,jpg,jpeg,png,pdf]',
+                    'rules' => 'uploaded[image]|max_size[image,10240]|ext_in[image,jpg,jpeg,png,pdf]',
                     'errors' => [
                         'uploaded' => 'No se seleccionó ningún archivo.',
-                        'max_size' => 'El tamaño máximo del archivo es de 2MB.',
+                        'max_size' => 'El tamaño máximo del archivo es de 10MB.',
                         'ext_in' => 'Solo se permiten archivos con extensiones jpg, jpeg, png, pdf.',
                     ]
                 ]
             ]);
-    
+
             if (!$validation->withRequest($this->request)->run()) {
                 // Retornar los errores de validación
                 return $this->response->setJSON(['success' => false, 'errors' => $validation->getErrors()]);
             }
-    
+
             // Obtener el archivo subido
             $file = $this->request->getFile('image');
-    
+            $tramiteId = $this->request->getPost('tramite_id');
+
             // Mover el archivo a la carpeta deseada
             if ($file->isValid() && !$file->hasMoved()) {
                 $fileName = $file->getRandomName();
                 $file->move('assets/uploads/tramites/', $fileName);
-    
-                // Actualizar la base de datos con el nombre del archivo
+
+                // Obtener el archivo anterior usando el Query Builder
+                $db = \Config\Database::connect();
+                $builder = $db->table('tramite');
+                $builder->select('derechos_comprobante');
+                $builder->where('id', $tramiteId);
+                $existingData = $builder->get()->getRowArray();
+
+                // Verificar si existe un archivo anterior y eliminarlo
+                if (!empty($existingData['derechos_comprobante'])) {
+                    $previousFilePath = FCPATH . 'assets/uploads/tramites/' . $existingData['derechos_comprobante'];
+                    
+                    if (file_exists($previousFilePath)) {
+                        if (unlink($previousFilePath)) {
+                            // Archivo eliminado correctamente
+                        } else {
+                            // Error al eliminar el archivo
+                            return $this->response->setJSON(['success' => false, 'message' => 'Error al eliminar el archivo anterior']);
+                        }
+                    }
+                }
+
+                // Actualizar la base de datos con el nombre del archivo nuevo
                 $data = [
                     'derechos_comprobante' => $fileName,
                 ];
-    
-                $tramiteModel = new TramitesModel($db2);
-                $tramiteModel->setTableName('tramite');
-                $tramiteModel->update($this->request->getPost('tramite_id'), $data);
-    
+
+                $builder->where('id', $tramiteId);
+                $builder->update($data);
+
                 // Retornar respuesta JSON de éxito
                 return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido correctamente']);
             } else {
@@ -927,10 +954,11 @@ class Tramites extends BaseController
                 return $this->response->setJSON(['success' => false, 'message' => 'Error al subir el archivo']);
             }
         }
-    
         return $this->response->setJSON(['success' => false, 'message' => 'Solicitud no válida']);
-    
     }
+
+
+
     public function getDependentData($type, $parentId) {
         $db = \Config\Database::connect();
     
@@ -1195,38 +1223,115 @@ class Tramites extends BaseController
         $id = $this->request->uri->getSegment(4);
         $validation = \Config\Services::validation();   
         $db2 = $this->_getDbData();    
+
+        // Obtener registros actuales de los archivos PDF y XML de la base de datos
+        $db = \Config\Database::connect();
+        $builder = $db->table('tramite');
+        $builder->where('id', $id);
+        $existingData = $builder->select('costos_factura_pdf, costos_factura_xml')->where('id', $id)->get()->getRowArray();
+        
+        // Reglas de validación para los campos numéricos
         $validation->setRules([
-            "numero_factura"=> "required",
+            "numero_factura" => "required",
             "costo_gestoria" => "required"
         ]);
+        
+        // Reglas de validación condicionales para los archivos PDF y XML
+        $fileRules = [];
+
+        if (empty($existingData['costos_factura_pdf'])) {
+            $fileRules['costos_factura_pdf'] = [
+                'label' => 'Factura PDF',
+                'rules' => 'uploaded[costos_factura_pdf]|mime_in[costos_factura_pdf,application/pdf]|max_size[costos_factura_pdf,10240]',
+                'errors' => [
+                    'uploaded' => 'El archivo PDF es obligatorio.',
+                    'mime_in' => 'Solo se permiten archivos PDF.',
+                    'max_size' => 'El archivo PDF no debe exceder 10MB.'
+                ]
+            ];
+        }
+
+        if (empty($existingData['costos_factura_xml'])) {
+            $fileRules['costos_factura_xml'] = [
+                'label' => 'Factura XML',
+                'rules' => 'uploaded[costos_factura_xml]|mime_in[costos_factura_xml,text/xml,application/xml]|max_size[costos_factura_xml,10240]',
+                'errors' => [
+                    'uploaded' => 'El archivo XML es obligatorio.',
+                    'mime_in' => 'Solo se permiten archivos XML.',
+                    'max_size' => 'El archivo XML no debe exceder 10MB.'
+                ]
+            ];
+        }
+
+        if (!empty($fileRules)) {
+            $validation->setRules($fileRules);
+        }
+
         if ($validation->withRequest($this->request)->run() === FALSE) {
-            // Validation failed, return errors as JSON
+            // Validación fallida, retornar errores como JSON
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => $validation->getErrors()
             ]);
         } else {
-            // Update the data in the database
+            // Obtener los datos del formulario
             $data = $this->request->getPost();
-            $db = \Config\Database::connect();
-            $builder = $db->table('tramite');
-            $builder->where('id', $id);
             $data["user_id"] = $myid;
+
+            // Subida y manejo de archivos
+            $costosFacturaPdf = $this->request->getFile('costos_factura_pdf');
+            $costosFacturaXml = $this->request->getFile('costos_factura_xml');
+
+            // Verificar si se subió un archivo PDF nuevo
+            if ($costosFacturaPdf && $costosFacturaPdf->isValid() && !$costosFacturaPdf->hasMoved()) {
+                // Eliminar el archivo PDF anterior si existe
+                if (!empty($existingData['costos_factura_pdf'])) {
+                    $pdfFilePath = FCPATH . $existingData['costos_factura_pdf']; 
+
+                    if (file_exists($pdfFilePath)) {
+                        unlink($pdfFilePath);
+                    }
+                }
+
+                $newPdfName = $costosFacturaPdf->getRandomName(); 
+                $costosFacturaPdf->move('assets/uploads/tramites/facturas/', $newPdfName); 
+                $data['costos_factura_pdf'] = '/assets/uploads/tramites/facturas/' . $newPdfName; 
+            }
+
+            // Verificar si se subió un archivo XML nuevo
+            if ($costosFacturaXml && $costosFacturaXml->isValid() && !$costosFacturaXml->hasMoved()) {
+                // Eliminar el archivo XML anterior si existe
+                if (!empty($existingData['costos_factura_xml'])) {
+                    $xmlFilePath = FCPATH . $existingData['costos_factura_xml'];
+
+                    if (file_exists($xmlFilePath)) {
+                        unlink($xmlFilePath);
+                    }
+                }
+
+                $newXmlName = $costosFacturaXml->getRandomName(); 
+                $costosFacturaXml->move('assets/uploads/tramites/facturas/', $newXmlName); 
+                $data['costos_factura_xml'] = '/assets/uploads/tramites/facturas/' . $newXmlName;
+            }
+
+            // Actualizar los datos en la tabla 'tramite'
             $builder->update($data);
-            #adding bitacora
+
+            // Agregar registro en bitácora
             $bitacoraModel = new BitacoraModel($db2);
             $data_bitacora = $data;
             $diferencias = $this->encontrarDiferencias($data_bitacora, []);
             $insert_bitacora = [
-                "id"=>null,
-                "tipo"=>"update",
-                "origen"=>"tramite",
+                "id" => null,
+                "tipo" => "update",
+                "origen" => "tramite",
                 "tramite_id" => (int)$id,
                 "cambios" => json_encode($diferencias),
                 "user_id" => (int)$myid
             ];
             $bitacoraModel->insert($insert_bitacora, 'bitacora');
 
+            // Registrar en la tabla tra_user_log
             $tra_user_log = new TraUserLogModel($db2);
             $log = [
                 "tramite_id"    => (int)$id,
@@ -1235,11 +1340,11 @@ class Tramites extends BaseController
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
-            // Return success message as JSON
+            // Retornar mensaje de éxito como JSON
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'El trámite se guardó correctamente.',
-                'redirect' => '/deskapp/tramites/update/'.$id
+                'redirect' => '/deskapp/tramites/update/' . $id
             ]);
         }
     }
