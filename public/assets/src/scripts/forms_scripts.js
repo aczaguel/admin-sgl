@@ -815,42 +815,47 @@ $(document).ready(function() {
   });
 
   $('#finalForm').on('submit', function(e) {
-    e.preventDefault(); // Evitar que el formulario haga un submit normal
-    // Recoger los datos del formulario
-    var formData = $(this).serialize();
-    $.ajax({
-        url: '/deskapp/tramites/update_final_save/' + tramite_id, // URL a donde va la solicitud
-        type: 'POST',
-        data: formData, // Datos del formulario
-        success: function(response) {
-          if(response.success === true){
-            $('#final_mensaje').html(response.message); 
-            $('#final_respuesta').show();
-            
-            setTimeout(function() {
-                $('#final_respuesta').fadeOut('slow'); 
-            }, 3000); 
-          }else{
-              $('#final_mensaje_error').html("Favor de revisar los campos requeridos");
-              $('#final_respuesta_error').show();
+      e.preventDefault(); // Evitar que el formulario haga un submit normal
+
+      // Crear un objeto FormData para recoger todos los datos, incluyendo archivos
+      var formData = new FormData(this);
+
+      $.ajax({
+          url: '/deskapp/tramites/update_final_save/' + tramite_id, // URL a donde va la solicitud
+          type: 'POST',
+          data: formData, // Datos del formulario incluyendo archivos
+          processData: false, // Evitar que jQuery procese los datos
+          contentType: false, // Evitar que jQuery establezca el tipo de contenido, será automático con FormData
+          success: function(response) {
+              if(response.success === true){
+                  $('#final_mensaje').html(response.message); 
+                  $('#final_respuesta').show();
+
+                  setTimeout(function() {
+                      $('#final_respuesta').fadeOut('slow'); 
+                  }, 3000); 
+              } else {
+                  $('#final_mensaje_error').html("Favor de revisar los campos requeridos");
+                  $('#final_respuesta_error').show();
+                  setTimeout(function() {
+                      $('#final_respuesta_error').fadeOut('slow'); 
+                  }, 5000);
+              }
+          },
+          error: function(xhr, status, error) {
+              // Manejamos el error si ocurre
+              console.log(xhr.responseText);
+              $('#final_mensaje_error').html(xhr.responseText);
+              $('#final_respuesta_error').show(); // Mostramos el alert
+              
+              // Ocultar el mensaje automáticamente después de 5 segundos
               setTimeout(function() {
-                  $('#final_respuesta_error').fadeOut('slow'); 
-              }, 5000);
+                  $('#final_respuesta_error').fadeOut('slow'); // Desaparece suavemente
+              }, 5000); // 5000 milisegundos = 5 segundos
           }
-        },
-        error: function(xhr, status, error) {
-            // Manejamos el error si ocurre
-            console.log(xhr.responseText);
-            $('#final_mensaje_error').html(response.message);
-            $('#final_respuesta_error').show(); // Mostramos el alert
-            
-            // Ocultar el mensaje automáticamente después de 5 segundos
-            setTimeout(function() {
-                $('#final_respuesta_error').fadeOut('slow'); // Desaparece suavemente
-            }, 5000); // 5000 milisegundos = 5 segundos
-        }
-    });
+      });
   });
+
   $('#uploadForm').on('submit', function(e) {
     e.preventDefault(); // Evitar el comportamiento de envío normal del formulario
 
