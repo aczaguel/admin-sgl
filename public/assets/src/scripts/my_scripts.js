@@ -37,25 +37,25 @@ $(document).ready(function() {
   
   $('#costo_gestoria').on("keyup", function() {
       console.log('Se hizo clic en costo_gestoria');
-      var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#derechos_tramite").val()) + parseInt($("#comision_derechos").val()) 
+      var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#comision_derechos").val()) 
       $("#costo_total").val(suma)
   });
 
   $('#impuesto_gestoria').on("keyup", function() {
     console.log('Se hizo clic en impuesto_gestoria');
-    var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#derechos_tramite").val()) + parseInt($("#comision_derechos").val()); 
+    var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#comision_derechos").val()); 
     $("#costo_total").val(suma)
   });
 
-  $('#derechos_tramite').on("keyup", function() {
-    console.log('Se hizo clic en derechos_tramite');
-    var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#derechos_tramite").val()) + parseInt($("#comision_derechos").val());
-    $("#costo_total").val(suma);
-  });
+  // $('#derechos_tramite').on("keyup", function() {
+  //   console.log('Se hizo clic en derechos_tramite');
+  //   var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#comision_derechos").val());
+  //   $("#costo_total").val(suma);
+  // });
 
   $('#comision_derechos').on("keyup", function() {
     console.log('Se hizo clic en comision_derechos');
-    var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#derechos_tramite").val()) + parseInt($("#comision_derechos").val());
+    var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#comision_derechos").val());
     $("#costo_total").val(suma);
   });
 

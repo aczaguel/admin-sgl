@@ -142,9 +142,15 @@
 		echo view('deskapp/includes/_sidebar');
 
 	?>
-
+	<?php if(isset($tra_status_id) && $tra_status_id == 23) : ?>
+		<li class="nav-item">
+			<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
+		</li>
+	<?php endif; ?>
 	<div class="main-container">
 		<div class="header_wizard">
+				<!-- Botón para abrir el modal -->
+			
 			<div class="header_wizard-row">
 				<div>
 					<strong>FECHA INICIO: </strong> <?php echo (isset($created_at)?$created_at:"-- / -- / ----	--:--:--"); ?>
@@ -164,6 +170,13 @@
 			<div class="header_wizard-bottom">
 				<strong>FOLIO: <?php echo (isset($folio)?$folio:"");?> </strong>
 			</div>
+			<!-- <div class="header_wizard-bottom">
+				<div><button type="button" class="btn btn-lg btn-danger" data-toggle="modal" data-target="#Medium-modal"">
+					Cancelar Servicio
+				</button>
+				
+				</div>
+			</div> -->
 		</div>
 		<br>
 		<script>
@@ -962,6 +975,38 @@
 			</div>
 		</div>
 	</div>	
+
+<!-- Medium modal -->
+<div class="col-md-4 col-sm-12 mb-30">
+	<div class="pd-20 card-box height-100-p">
+		<h5 class="h4">Medium modal</h5>
+		<div class="modal fade" id="Medium-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title" id="myLargeModalLabel">Cancelar Servicio</h4>
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+					</div>
+					<div class="modal-body">
+						<!-- Campo para motivo de cancelación -->
+						<form id="cancelForm">
+						<div class="mb-3">
+							<label for="motivo" class="form-label">Motivo de Cancelación</label>
+							<textarea class="form-control" id="motivo" rows="3" required></textarea>
+						</div>
+						<input type="hidden" id="tramite_id" value="<!-- ID del trámite aquí -->">
+						<input type="hidden" id="status_id" value="<!-- ID del estatus a cancelar aquí -->">
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+						<button type="button" class="btn btn-primary" id="saveCancelBtn">Continuar</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 <!-- footer -->
 <?php echo view('deskapp/includes/_footer'); ?>
 	<!-- js -->
