@@ -896,13 +896,30 @@ $(document).ready(function() {
             }, 5000);
         }
     });
-}); 
-$('#empresa_gestora_id').on('change', function() {
-  loadDependentData('gestor', $(this).val(), 'gestor_id');
-});
+  }); 
 
-$('#cli_directo_id').on('change', function() {
-  loadDependentData('ejecutivo', $(this).val(), 'cli_directo_ejecutivo_id');
-});
+  $('#empresa_gestora_id').on('change', function() {
+    loadDependentData('gestor', $(this).val(), 'gestor_id');
+  });
+
+  $('#cli_directo_id').on('change', function() {
+    loadDependentData('ejecutivo', $(this).val(), 'cli_directo_ejecutivo_id');
+  });
+
+  $('#saveCancelBtn').on('click', function() {
+    // Obtener los valores del formulario
+    // var tramiteId = $('#tramite_id').val();
+    var statusId = 21;
+    var motivo = $('#motivo').val();
+
+    // Validar si el campo motivo está lleno
+    if (motivo.trim() === '') {
+        alert('Por favor, ingresa el motivo de la cancelación.');
+        return;
+    }
+    console.log("cancelando tramite " + tramite_id)
+    changeStatusTramite(tramite_id, statusId);
+    
+  });
 
 });

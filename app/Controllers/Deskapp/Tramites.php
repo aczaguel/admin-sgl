@@ -1408,10 +1408,8 @@ class Tramites extends BaseController
             $tramite_crud->setSubject('tramite', 'Mis Tramites');
 
             if(is_starter($session->get('user_roles'))){
-                $tramite_crud->where([
-                    '(tramite.user_id = ? AND tramite.tra_status_id = ?)' => [$myid, 11],
-                    'tramite.tra_status_id NOT IN (20, 21)' => null 
-                ]);
+                $tramite_crud->where(['(tramite.user_id = ? AND tramite.tra_status_id = ?)' => [$myid, 11]])
+                    ->where('tramite.tra_status_id NOT IN (20, 21)');
             }elseif(is_executer($session->get('user_roles'))){
                     $tramite_crud->where([
                         '(tramite.user_id = ? AND tramite.tra_status_id = ?)' => [$myid, 22]
