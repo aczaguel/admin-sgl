@@ -554,7 +554,7 @@ class Tramites extends BaseController
 
         $crud = $this->_getGroceryCrudEnterprise();
         $crudOutput = $crud->render();
-
+        
         $form->css_files = $crudOutput->css_files;
         $form->js_files = $crudOutput->js_files;
         
@@ -572,10 +572,15 @@ class Tramites extends BaseController
             $crudevidencias_finales->setApiUrlPath('/deskapp/proceso/single_evidencias_finales/' . $id);
             $outputevidencias_finales = $crudevidencias_finales->render();
             
+            $crud_derechos = $this->_getGroceryCrudEnterprise();
+            $crud_derechos->setApiUrlPath('/deskapp/tramites/single_pago_derechos/' . $id);
+            $output_derechos = $crud_derechos->render();
+            
             $output->output .= "<hr>".$outputevidencias->output;
             // $form->output_docs = $output->output;
             $form->output_bitacora = $outputevidencias->output;
             $form->outputevidencias_finales = $outputevidencias_finales->output;
+            $form->output_derechos = $output_derechos->output;
 
             $form->output = $output->output;
         // }
@@ -1315,6 +1320,8 @@ class Tramites extends BaseController
             }
 
             // Actualizar los datos en la tabla 'tramite'
+            $builder->where('id', $id);
+            // echo $builder->set($data)->getCompiledUpdate();exit;
             $builder->update($data);
 
             // Agregar registro en bitácora
@@ -2588,6 +2595,142 @@ class Tramites extends BaseController
             $myid = $session->get('id');
             $data['user_id'] = $myid;
             $data['folio_tramite'] = $folio_tramite;
+            $data['tramite_id'] = $tramite_id;
+            return $data;
+        });
+
+        $salida = $crud->render();
+        $salida2 = array_merge((array)$salida, $data);
+        return $this->_example_output($salida2);
+    }
+
+    public function single_pago_derechos(){
+        $session = session();
+        $data['session'] = \Config\Services::session();
+        $data['username'] = $session->get('user_name');
+        $db2 = $this->_getDbData();
+        $self = $this;
+        $request = \Config\Services::request();
+
+        $uri = $request->getUri();
+        $tramite_id = (int) $uri->getSegment(4);
+    
+        $crud = $this->_getGroceryCrudEnterprise();
+        $crud->setCsrfTokenName(csrf_token());
+        $crud->setCsrfTokenValue(csrf_hash());
+        $crud->unsetRead();
+        // $tramite_crud->setTheme('bootstrap-v5');
+        $crud->unsetDeleteMultiple();
+        $crud->unsetDelete();
+        $crud->unsetExport();
+        $crud->unsetPrint();
+        $crud->unsetFilters();
+        $crud->unsetClone();
+        $crud->setTable('tra_pago_derechos');
+        $crud->setSubject('Pago', 'Pagos de Derechos');
+        $crud->defaultOrdering('tra_pago_derechos.created_at', 'desc');
+
+        $crud->fields([
+            "file", "costo", "comentario", "tramite_id", "user_id"
+        ]); 
+
+        $crud->columns([
+            "created_at", "file", "costo", "comentario", "user_id"
+        ]);
+
+        $crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+
+        $crud->where([
+            'tramite_id' => $tramite_id
+        ]);   
+
+        $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
+            if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
+                $session = session();
+                $parameters = $stateParameters;
+                $db2 = $this->_getDbData();
+                $data = $parameters->data;
+                $request = \Config\Services::request();
+                $uri = $request->getUri();
+                $tramite_id = (int) $uri->getSegment(4);
+
+                $myid = $session->get('id');
+                                
+                $bitacoraModel = new BitacoraModel($db2);
+                $data_bitacora = $data;
+                $diferencias = $self->encontrarDiferencias($data_bitacora, []);
+                $insert_bitacora = [
+                    "id"=>null,
+                    "tipo"=>"insert",
+                    "origen"=>"derechos",
+                    "tramite_id" => (int)$tramite_id,
+                    "cambios" => json_encode($diferencias),
+                    "user_id" => (int)$myid
+                ];
+                $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+            }
+            return $stateParameters;
+        });
+
+        $crud->callbackEditForm(function ($data) use ($self){
+            $session = session();
+            $data2 = $data;
+            $data3 = $data2->getArrayCopy();
+            $flatArray = $self->flattenObject($data3);
+            $session->set('data_evidencias_before_update',  $flatArray);
+            $session->set('doc_tramite_evidencia_id',  $flatArray["id"]);
+            return $data;
+        });
+
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
+            $db = Database::connect();
+            $db2 = $this->_getDbData();
+            $session = session();
+            $data = $stateParameters->data;
+            $myid = $session->get('id');
+            
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+
+            $bitacoraModel = new BitacoraModel($db2);
+            $data_bitacora = $data;
+            $diferencias = $self->encontrarDiferencias($data_bitacora, []);
+            $insert_bitacora = [
+                "tipo"=>"update",
+                "origen"=>"derechos",
+                "tramite_id" => (int)$tramite_id,
+                "cambios" => json_encode($diferencias),
+                "user_id" => (int)$myid
+            ];
+            $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+        });
+
+        $uploadValidations = [
+            'maxUploadSize' => '20M', // 20 Mega Bytes
+            'minUploadSize' => '1K', // 1 Kilo Byte
+            'allowedFileTypes' => [
+                'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf', 'xml'
+            ]
+        ];
+
+        $crud->setFieldUploadMultiple(
+            'file', 
+            'assets/uploads/pago_derechos/', 
+            '/assets/uploads/pago_derechos/', 
+            $uploadValidations
+        );
+
+        $crud->fieldType('user_id','hidden');
+        $crud->fieldType('tramite_id','hidden');
+     
+        $crud->callbackAddForm(function ($data) {
+            $session = session();
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+            $myid = $session->get('id');
+            $data['user_id'] = $myid;
             $data['tramite_id'] = $tramite_id;
             return $data;
         });

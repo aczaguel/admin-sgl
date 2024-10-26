@@ -76,6 +76,9 @@ $routes->post('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_co
 $routes->get('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/(:id)',['filter' => 'auth']);
 $routes->post('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/(:id)');
 
+$routes->get('/tramites/single_pago_derechos/(:id)', 'Deskapp/Tramites::single_pago_derechos/(:id)',['filter' => 'auth']);
+$routes->post('/tramites/single_pago_derechos/(:id)', 'Deskapp/Tramites::single_pago_derechos/(:id)');
+
 $routes->get('/tramites/getEjecutivosByClienteId/(:cliente_directo_id)', 'Deskapp/Tramites::getEjecutivosByClienteId/$1',['filter' => 'auth']);
 $routes->post('/tramites/getEjecutivosByClienteId/(:cliente_directo_id)', 'Deskapp/Tramites::getEjecutivosByClienteId/$1');
 
