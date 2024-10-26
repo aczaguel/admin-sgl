@@ -24,8 +24,8 @@
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/colResizable.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<!-- <script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script> -->
+	<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
 
 	<script>
 		window.dataLayer = window.dataLayer || [];
@@ -76,10 +76,10 @@ if (!empty($js_files)) {
 }
 ?>
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
+	<!-- <script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script> -->
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
-	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/my_scripts.js"></script>
+	<!-- <script src="<?php echo base_url(); ?>/public/assets/src/scripts/my_scripts.js"></script> -->
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/colResizable.min.js"></script>
 	<script type="text/javascript">

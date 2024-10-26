@@ -104,6 +104,7 @@ button.gc-warning-button-100.btn.btn-warning {
 
 .wizard > .content {
     min-height: 50em !important;
+    background: #fff !important;
 }
 
 .modal-body {

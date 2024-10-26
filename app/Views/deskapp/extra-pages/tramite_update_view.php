@@ -691,72 +691,13 @@
 								</section>
 								<h3>Pago de Derechos</h3>
 								<section>
-									<!-- <form action="<?= site_url("/deskapp/tramites/upload_comprobante/$id") ?>" method="post" enctype="multipart/form-data">
-										<div class="mb-3 row">
-											<label for="image" class="col-sm-4 col-form-label">Subir Imagen</label>
-											<div class="col-sm-8">
-												<input type="file" class="form-control" id="image" name="image" required>
-											</div>
-										</div>
-							
-										<div class="text-center mt-4">
-											<button type="submit" class="btn btn-primary">Guardar Imagen</button>
-										</div>
-									</form> -->
+									<?php 
+										if (!empty($output_derechos)) {
+												echo $output_derechos;
+										}
+									?>
+								
 									
-									<form id="uploadForm" method="post" enctype="multipart/form-data">
-										<div id="upload_respuesta" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-											<span id="upload_mensaje"></span>
-										</div>
-										<div id="upload_respuesta_error" class="alert alert-warning alert-dismissible fade show" role="alert" style="display: none;">
-											<span id="upload_mensaje_error"></span>
-										</div>
-										
-										<input type="hidden" name="tramite_id" value="<?php echo $id?>">
-
-										<!-- Mostrar la imagen si existe -->
-										<div class="mb-3 row justify-content-center">
-											<?php if (!empty($derechos_comprobante)): 
-												$derechos_comprobante_path = base_url() . "/assets/uploads/tramites/" . $derechos_comprobante;
-												$extension = pathinfo($derechos_comprobante, PATHINFO_EXTENSION);
-												
-												// Si es un PDF, cargamos el ícono del PDF, de lo contrario, la imagen subida
-												$is_pdf = strtolower($extension) === 'pdf';
-												?>
-												<div class="mb-3 text-center">
-
-													<img src="<?php echo $is_pdf ? base_url() . '/public/assets/src/images/pdf-icon.png' : $derechos_comprobante_path; ?>"
-														alt="Comprobante de Derechos" 
-														id="current-image"
-														style="max-width: 100px; border: 1px solid #ddd; border-radius: 8px; padding: 5px; display: block; margin: 0 auto;">
-													<!-- Nombre del archivo centrado y descargable -->
-													<a href="<?php echo $derechos_comprobante_path; ?>" download="<?php echo basename($derechos_comprobante); ?>" 
-													style="display: block; margin-top: 10px; font-size: 14px; color: #333; text-decoration: none;">
-														<?php echo basename($derechos_comprobante); ?>
-													</a>
-
-												</div>
-											<?php endif; ?>
-										</div>
-
-										<!-- Subir nueva imagen -->
-										<div class="mb-3 row">
-											<label for="image" class="col-sm-4 col-form-label">Subir Imagen</label>
-											<div class="col-sm-8">
-												<input type="file" class="form-control" id="image" name="image" required>
-											</div>
-										</div>
-
-										<div class="text-center mt-4">
-											<button type="submit" class="btn btn-primary">Guardar Imagen</button>
-											<?php if(isset($tra_status_id) && $tra_status_id == 22) : ?>
-												<button type="button" class="btn btn-danger" id="" onclick="changeStatusTramite(<?php echo $id;?>, 23)">Aprobar Proceso</button>
-											<?php endif; ?>
-										</div>
-									</form>
-
-									<!-- Contenedor para mostrar mensajes de éxito o error -->
-									<div id="responseMessage"></div>
 								</section>
 							<?php endif; ?>
 
