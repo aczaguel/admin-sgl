@@ -539,6 +539,32 @@ function changeStatusTramite(tramiteId, status_id) {
   }
 }
 
+function cancelarTramite(tramiteId, status_id, motivo) {
+  if (confirm('¿Estás seguro de que deseas cancelar este trámite?')) {
+      $.ajax({
+          url: '/deskapp/tramites/cancelar_tramite', // Ruta hacia la función en el controlador
+          type: 'POST',
+          data: {
+              tramite_id: tramiteId,
+              status_id: status_id,
+              motivo: motivo,
+              csrf_token: $('meta[name="csrf_token"]').attr('content') // Asegúrate de incluir el token CSRF
+          },
+          success: function(response) {
+              if (response.success) {
+                  alert('Trámite cancelado correctamente.');
+                  location.reload(); // Recargar la página para actualizar la lista
+              } else {
+                  alert('Ocurrió un error al cancelar el trámite.');
+              }
+          },
+          error: function() {
+              alert('Ocurrió un error en la solicitud de cancelación.');
+          }
+      });
+  }
+}
+
 $(document).ready(function() {
   $.fn.steps.setStep = function (step)
   {
@@ -917,8 +943,8 @@ $(document).ready(function() {
         alert('Por favor, ingresa el motivo de la cancelación.');
         return;
     }
-    console.log("cancelando tramite " + tramite_id)
-    changeStatusTramite(tramite_id, statusId);
+    
+    cancelarTramite(tramite_id, statusId, motivo);
     
   });
 

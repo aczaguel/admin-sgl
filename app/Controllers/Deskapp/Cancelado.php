@@ -23,7 +23,7 @@ use App\Models\CobroStatusModel;
 use App\Models\BitacoraModel;
 use App\Models\ReembolsoStatusModel;
 use App\Models\EntidadesModel;
-class Proceso extends BaseController
+class Cancelado extends BaseController
 {
     public function __construct() {
         // parent::__construct();
@@ -40,219 +40,7 @@ class Proceso extends BaseController
         return $this->_example_output($output);
     }
 
-    public function encontrarDiferencias($datos1, $datos2) {
-        $diferencias = [];
-        foreach ($datos1 as $clave => $valor) {
-            // Verificar si la clave existe en el segundo conjunto de datos y si los valores son diferentes
-            if (array_key_exists($clave, $datos2) && $datos2[$clave] !== $valor) {
-                $diferencias[$clave] = [
-                    'valor_original' => $valor,
-                    'valor_nuevo' => $datos2[$clave]
-                ];
-            }
-        }
-        return $diferencias;
-    }
-    public function flattenObject($object, &$result = [], $prefix = '') {
-        foreach ($object as $key => $value) {
-            if (is_object($value)) {
-                // $this->flattenObject($value, $result, $prefix . $key . '_');
-            } else {
-                $result[$key] = $value;
-            }
-        }
-        return $result;
-    }
-
-    public function tipo()
-    {
-        $session = session();
-        $data['session'] = \Config\Services::session();
-        $data['username'] = $session->get('user_name');
-    
-        $crud = $this->_getGroceryCrudEnterprise();
-
-        $crud->setCsrfTokenName(csrf_token());
-        $crud->setCsrfTokenValue(csrf_hash());
-
-        $crud->setTable('tra_tipos');
-        $crud->setSubject('Tipo de Tramite', 'Tipos de Tramite');
-
-        $crud->setRelationNtoN(
-            "Documentos",
-            "tra_tipo_documentos",
-            "documento",
-            "tra_tipos_id",
-            "documento_id", 
-            "documento"
-        );
-        $crud->callbackBeforeInsert(function ($stateParameters) {
-            $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
-        });
-        $crud->callbackAddForm(function ($data) {
-            $session = session();
-            $myid = $session->get('id');
-            $data['user_id'] = $myid;
-            return $data;
-        });
-        $salida = $crud->render();
-        $salida2 = array_merge((array)$salida, $data);
-        return $this->_example_output($salida2);
-    }
-
-    public function status()
-    {
-        $session = session();
-        $data['session'] = \Config\Services::session();
-        $data['username'] = $session->get('user_name');
-    
-        $crud = $this->_getGroceryCrudEnterprise();
-
-        $crud->setCsrfTokenName(csrf_token());
-        $crud->setCsrfTokenValue(csrf_hash());
-
-        $crud->setTable('tra_status');
-        $crud->setSubject('Etatus de Tramite', 'Estatuses de Tramite');
-
-        $salida = $crud->render();
-        $salida2 = array_merge((array)$salida, $data);
-        return $this->_example_output($salida2);
-    }
-
-    public function documentostatus()
-    {
-        $self = $this;
-        $request = \Config\Services::request();
-        $uri = $request->getUri();
-        $folio_tramite = (int) $uri->getSegment(4);
-        $tramite_id = (int) $uri->getSegment(5);
-
-        $db = Database::connect();
-        $session = session();
-        $data['session'] = \Config\Services::session();
-        $data['username'] = $session->get('user_name');
-    
-        $crud = $this->_getGroceryCrudEnterprise();
-
-        $crud->setCsrfTokenName(csrf_token());
-        $crud->setCsrfTokenValue(csrf_hash());
-
-        $crud->setTable('tra_doc_status');
-        $crud->setSubject('Documento', 'Documentos');
-
-        $crud->where([
-            'folio_tramite' => $folio_tramite
-        ]);        
-        
-        /* SELECT Se configura el documento */
-        $crud->setRelation('documento_id', 'documento', 'documento');
-        $crud->displayAs('documento_id','Documento');
-
-        /* SELECT Se configura el doc_status */
-        $crud->setRelation('status_documento_id', 'doc_statuses', 'st_documento');
-        $crud->displayAs('status_documento_id','Status del Documento');
-
-        $crud->callbackEditForm(function ($data) use ($self){
-            $session = session();
-            $data2 = $data;
-            $data3 = $data2->getArrayCopy();
-            $flatArray = $self->flattenObject($data3);
-            $session->set('data_documents_before_update',  $flatArray);
-            $session->set('doc_tramite_id',  $flatArray["id"]);
-            return $data;
-        });
-
-        $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
-            $db = Database::connect();
-            $db2 = $this->_getDbData();
-            $session = session();
-            $data = $stateParameters->data;
-            $myid = $session->get('id');
-
-            ($db2);
-            $data_bitacora = $data;            
-
-            $data_prev = $session->get('data_documents_before_update');
-            $tramite_id = $session->get('doc_tramite_id');
-            $diferencias = $self->encontrarDiferencias($data_prev, $data_bitacora);
-            $diferencias["documento_id"] = $data["documento_id"];
-            $insert_bitacora = [
-                "tipo" => "update",
-                "origen"=>"documentos",
-                "folio_tramite" => $data['folio_tramite'],
-                "tramite_id" => (int)$tramite_id,
-                "cambios" => json_encode($diferencias),
-                "user_id" => (int)$myid,
-                "created_at" => date('Y-m-d H:i:s'),
-                "updated_at" => date('Y-m-d H:i:s')
-            ];
-            $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
-
-        });
-
-        $uploadValidations = [
-            'maxUploadSize' => '20M', // 20 Mega Bytes
-            'minUploadSize' => '1K', // 1 Kilo Byte
-            'allowedFileTypes' => [
-                'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf', 'xml'
-            ]
-        ];
-
-        $crud->setFieldUploadMultiple(
-            'file', 
-            'assets/uploads/proceso/', 
-            '/assets/uploads/proceso/', 
-            $uploadValidations
-        );
-
-        $crud->fieldType('user_id','hidden');
-        $crud->fieldType('created_at','hidden');
-        $crud->fieldType('updated_at','hidden');
-
-        $crud->callbackAddForm(function ($data) {
-            $request = \Config\Services::request();
-            $uri = $request->getUri();
-            $folio_tramite = (int) $uri->getSegment(4);
-            $tramite_id = (int) $uri->getSegment(5);
-
-            $session = session();
-            $myid = $session->get('id');
-            $data['user_id'] = $myid;
-            $data['folio_tramite'] = $folio_tramite;
-            $data['tramite_id'] = $tramite_id;
-            return $data;
-        });
-
-        $crud->callbackBeforeInsert(function ($stateParameters) {
-            $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
-        });
-
-        $crud->callbackBeforeUpdate(function ($stateParameters) {
-            $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
-            return $stateParameters;
-        });
-
-        $salida = $crud->render();
-        $salida2 = array_merge((array)$salida, $data);
-        return $this->_example_output($salida2);
-    }
-
-    private function _example_output($salida = null) {
-        $salida = (object)esc($salida, 'raw');
-        if ($salida->isJSONResponse) {
-            header('Content-Type: application/json; charset=utf-8');
-            echo $salida->output;
-            exit;
-        }
-        // return view('example.php', (array)$salida);
-        return view('/deskapp/extra-pages/grocery_page.php', (array)$salida);
-    }
-
-    public function final($id) {
+    public function cancelado($id) {
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -354,19 +142,19 @@ class Proceso extends BaseController
         // Load the view with the fields and current data
         // if (!is_read_only(esc($session->get('user_roles')))){
         $cruddocstatus = $this->_getGroceryCrudEnterprise();
-        $cruddocstatus->setApiUrlPath('/deskapp/proceso/final_documentostatus/'.$id);
+        $cruddocstatus->setApiUrlPath('/deskapp/cancelado/cancelado_documentostatus/'.$id);
         $output = $cruddocstatus->render();
         $form->output_docs = $output->output;
         $crudevidencias = $this->_getGroceryCrudEnterprise();
-        $crudevidencias->setApiUrlPath('/deskapp/proceso/final_evidencias/'.$id);
+        $crudevidencias->setApiUrlPath('/deskapp/cancelado/cancelado_evidencias/'.$id);
         $outputevidencias = $crudevidencias->render();
 
         $crudevidencias_finales = $this->_getGroceryCrudEnterprise();
-        $crudevidencias_finales->setApiUrlPath('/deskapp/proceso/final_evidencias_finales/' . $id);
+        $crudevidencias_finales->setApiUrlPath('/deskapp/cancelado/cancelado_evidencias_finales/' . $id);
         $outputevidencias_finales = $crudevidencias_finales->render();
         
         $crud_derechos = $this->_getGroceryCrudEnterprise();
-        $crud_derechos->setApiUrlPath('/deskapp/proceso/final_pago_derechos/' . $id);
+        $crud_derechos->setApiUrlPath('/deskapp/cancelado/cancelado_pago_derechos/' . $id);
         $output_derechos = $crud_derechos->render();
         
         $output->output .= "<hr>".$outputevidencias->output;
@@ -381,11 +169,8 @@ class Proceso extends BaseController
         $form = array_merge((array)$form, $data);
         return $this->_example_output_2($form, 'canceled');
     }
-    private function _example_output_2($output = null, $page = 'index') {
-        return view('/deskapp/extra-pages/tramite_' . $page . '_view', (array)$output);
-    }
 
-    public function final_documentostatus()
+    public function cancelado_documentostatus()
     {
         $session = session();
         $data['session'] = \Config\Services::session();
@@ -533,7 +318,7 @@ class Proceso extends BaseController
         return $this->_example_output($salida2);
     }
 
-    public function final_evidencias(){
+    public function cancelado_evidencias(){
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -704,7 +489,7 @@ class Proceso extends BaseController
         return $this->_example_output($salida2);
     }
 
-    public function final_pago_derechos(){
+    public function cancelado_pago_derechos(){
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -849,7 +634,7 @@ class Proceso extends BaseController
         return $this->_example_output($salida2);
     }
 
-    public function final_evidencias_finales(){
+    public function cancelado_evidencias_finales(){
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -974,8 +759,21 @@ class Proceso extends BaseController
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
     }
+    private function _example_output_2($output = null, $page = 'index') {
+        return view('/deskapp/extra-pages/tramite_' . $page . '_view', (array)$output);
+    }
 
-
+    private function _example_output($salida = null) {
+        $salida = (object)esc($salida, 'raw');
+        if ($salida->isJSONResponse) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo $salida->output;
+            exit;
+        }
+        // return view('example.php', (array)$salida);
+        return view('/deskapp/extra-pages/grocery_page.php', (array)$salida);
+    }
+    
     private function _getDbData() {
         $db = (new ConfigDatabase())->default;
         return [
