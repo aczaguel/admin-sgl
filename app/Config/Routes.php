@@ -154,12 +154,37 @@ $routes->post('/proceso/final', 'Deskapp/Proceso::final');
 $routes->get('/tramites/update_final/(:id)', 'Deskapp/Tramites::update_final/$1',['filter' => 'auth']);
 $routes->post('/tramites/update_final/(:id)', 'Deskapp/Tramites::update_final/$1');
 
-$routes->get('/proceso/update_final_save/(:id)', 'Deskapp/Proceso::update_final_save/$1',['filter' => 'auth']);
-$routes->post('/proceso/update_final_save/(:id)', 'Deskapp/Proceso::update_final_save/$1');
+$routes->get('/tramites/cancelado/(:id)', 'Deskapp/Tramites::cancelado/$1',['filter' => 'auth']);
+$routes->post('/tramites/cancelado/(:id)', 'Deskapp/Tramites::cancelado/$1');
 
 
-$routes->get('/proceso/single_evidencias_finales/(:id)', 'Deskapp/Proceso::single_evidencias_finales/$1',['filter' => 'auth']);
-$routes->post('/proceso/single_evidencias_finales/(:id)', 'Deskapp/Proceso::single_evidencias_finales/$1');
+$routes->get('/proceso/final_documentostatus/(:id)', 'Deskapp/Proceso::final_documentostatus/$1',['filter' => 'auth']);
+$routes->post('/proceso/final_documentostatus/(:id)', 'Deskapp/Proceso::final_documentostatus/$1');
+
+$routes->get('/proceso/final_evidencias/(:id)', 'Deskapp/Proceso::final_evidencias/$1',['filter' => 'auth']);
+$routes->post('/proceso/final_evidencias/(:id)', 'Deskapp/Proceso::final_evidencias/$1');
+
+$routes->get('/proceso/final_evidencias_finales/(:id)', 'Deskapp/Proceso::final_evidencias_finales/$1',['filter' => 'auth']);
+$routes->post('/proceso/final_evidencias_finales/(:id)', 'Deskapp/Proceso::final_evidencias_finales/$1');
+
+$routes->get('/proceso/final_pago_derechos/(:id)', 'Deskapp/Proceso::final_pago_derechos/$1',['filter' => 'auth']);
+$routes->post('/proceso/final_pago_derechos/(:id)', 'Deskapp/Proceso::final_pago_derechos/$1');
+
+$routes->get('/cancelado/cancelado', 'Deskapp/Cancelado::cancelado',['filter' => 'auth']);
+$routes->post('/cancelado/cancelado', 'Deskapp/Cancelado::cancelado');
+
+$routes->get('/cancelado/cancelado_documentostatus/(:id)', 'Deskapp/Cancelado::cancelado_documentostatus/$1',['filter' => 'auth']);
+$routes->post('/cancelado/cancelado_documentostatus/(:id)', 'Deskapp/Cancelado::cancelado_documentostatus/$1');
+
+$routes->get('/cancelado/cancelado_evidencias/(:id)', 'Deskapp/Cancelado::cancelado_evidencias/$1',['filter' => 'auth']);
+$routes->post('/cancelado/cancelado_evidencias/(:id)', 'Deskapp/Cancelado::cancelado_evidencias/$1');
+
+$routes->get('/cancelado/cancelado_evidencias_finales/(:id)', 'Deskapp/Cancelado::cancelado_evidencias_finales/$1',['filter' => 'auth']);
+$routes->post('/cancelado/cancelado_evidencias_finales/(:id)', 'Deskapp/Cancelado::cancelado_evidencias_finales/$1');
+
+$routes->get('/cancelado/cancelado_pago_derechos/(:id)', 'Deskapp/Cancelado::cancelado_pago_derechos/$1',['filter' => 'auth']);
+$routes->post('/cancelado/cancelado_pago_derechos/(:id)', 'Deskapp/Cancelado::cancelado_pago_derechos/$1');
+
 
 /*
  * --------------------------------------------------------------------

@@ -2941,4 +2941,39 @@ class Tramites extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+
+    public function cancelar_tramite(){
+        $tramiteId = $this->request->getPost('tramite_id');
+        $motivo = $this->request->getPost('motivo');
+        $statusId = $this->request->getPost('status_id');
+        $db = \Config\Database::connect();
+        $db2 = $this->_getDbData();
+        $builder = $db->table('tramite');
+
+        try {
+            // Actualizar el estatus del trámite
+
+            $builder->where('id', $tramiteId);
+            $builder->update([
+                'tra_status_id' => $statusId,
+                'cancelacion_motivo' => $motivo
+            ]);
+            
+            // Opcional: Insertar un registro en tra_user_log
+            $session = session();
+            $myid = $session->get('id');
+            $tra_user_log = new TraUserLogModel($db2);
+            $logData = [
+                'tramite_id' => $tramiteId,
+                'user_id' => $myid,
+                'tra_status_id' => $statusId
+            ];
+
+            $tra_user_log->insert($logData, 'tra_user_log');
+
+            return $this->response->setJSON(['success' => true]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
 }

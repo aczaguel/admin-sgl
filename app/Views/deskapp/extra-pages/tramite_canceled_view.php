@@ -1,18 +1,3 @@
-<?php 
-if(isset($tra_status_id) && $tra_status_id == 21) {
-	// Obtener la URL actual
-	$currentUrl = $_SERVER['REQUEST_URI'];
-
-	// Definir la URL de destino
-	$targetUrl = "/deskapp/cancelado/cancelado/1";
-
-	// Comparar la URL actual con la de destino y redirigir solo si son diferentes
-	if ($currentUrl !== $targetUrl) {
-		header("Location: " . $targetUrl);
-		exit;
-	}
-}
-?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -157,11 +142,11 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 		echo view('deskapp/includes/_sidebar');
 
 	?>
-	<?php if(isset($tra_status_id) && $tra_status_id == 23) : ?>
-		<li class="nav-item">
-			<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
-		</li>
-	<?php endif; ?>
+	
+	<li class="nav-item">
+		<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
+	</li>
+	
 	<div class="main-container">
 		<div class="header_wizard">
 				<!-- Botón para abrir el modal -->
@@ -185,13 +170,6 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 			<div class="header_wizard-bottom">
 				<strong>FOLIO: <?php echo (isset($folio)?$folio:"");?> </strong>
 			</div>
-			<div class="header_wizard-bottom">
-				<div><button type="button" class="btn btn-lg btn-danger" data-toggle="modal" data-target="#Medium-modal"">
-					Cancelar Servicio
-				</button>
-				
-				</div>
-			</div>
 		</div>
 		<br>
 		<script>
@@ -208,11 +186,11 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 				<li class="nav-item">
 					<a class="nav-link text-blue" data-toggle="tab" href="#contact" role="tab" aria-selected="false">Bitácora</a>
 				</li>
-				<?php if(isset($tra_status_id) && $tra_status_id == 23) : ?>
-					<li class="nav-item">
-						<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
-					</li>
-				<?php endif; ?>
+				
+				<li class="nav-item">
+					<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
+				</li>
+				
 
 			</ul>
 			<div class="tab-content">
@@ -330,12 +308,7 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 
 
 
-									<div class="text-center mt-4" id="boton_autorizar">
-										<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-										<?php if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
-											<button type="submit" class="btn btn-primary">Guardar</button>
-										<?php } ?>
-									</div>
+									
 
 									<?php echo form_close(); ?>
 
@@ -455,12 +428,7 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 											<?php endforeach; ?>
 										</div>
 									</div>
-									<div class="text-center mt-4" id="boton_autorizar">
-										<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-										<?php if (has_permission('editar_gestores', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
-											<button type="submit" class="btn btn-primary">Guardar</button>
-										<?php } ?>
-									</div>
+									
 
 								<?php echo form_close(); ?>
 								<script>
@@ -468,7 +436,7 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 									var gestorId = "<?php echo isset($gestor_campos['gestor_id']['value']) ? $gestor_campos['gestor_id']['value'] : ''; ?>";
 								</script>
 							</section>
-							<?php if(isset($tra_status_id) && $tra_status_id == 22 || $tra_status_id == 23) : ?>			
+									
 								<!-- Step 3: Formulario de paso 3 -->
 								<h3>Pago de Derechos</h3>
 								<section>
@@ -577,12 +545,7 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 												<?php endforeach; ?>
 											</div>
 										</div>
-										<div class="text-center mt-4" id="boton_autorizar">
-											<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-											<?php if (has_permission('editar_derechos', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
-												<button type="submit" class="btn btn-primary">Guardar</button>
-											<?php } ?>
-										</div>
+										
 
 									<?php echo form_close(); ?>
 								</section>
@@ -695,12 +658,7 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 													<?php endforeach; ?>
 												</div>
 											</div>
-											<div class="text-center mt-4" id="boton_autorizar">
-												<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-												<?php if (has_permission('editar_bancario', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
-													<button type="submit" class="btn btn-primary">Guardar</button>
-												<?php } ?>
-											</div>
+											
 
 										<?php echo form_close(); ?>
 								</section>
@@ -714,10 +672,8 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 								
 									
 								</section>
-							<?php endif; ?>
 
 
-							<?php if(isset($tra_status_id) && $tra_status_id == 23) : ?>
 								<h3>Costos</h3>
 								<section>
 									<?php echo form_open(isset($id) ? "/deskapp/tramites/update_final_save/$id" : '/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'finalForm']); ?>
@@ -880,16 +836,10 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 												<?php endforeach; ?>
 											</div>
 										</div>
-										<div class="text-center mt-4" id="boton_autorizar">            
-											<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-											<?php if (has_permission('editar_final', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
-												<button type="submit" class="btn btn-primary">Guardar</button>
-											<?php } ?>
-										</div>
+										
 
 									<?php echo form_close(); ?>
 								</section>
-							<?php endif; ?>
 						</div>
 					</div>
 				</div>
@@ -915,7 +865,6 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 						</div>			
 					</div>
 				</div>
-				<?php if(isset($tra_status_id) && $tra_status_id == 23) : ?>
 					<div class="tab-pane fade" id="final_evi" role="tabpanel">
 						<div class="pd-20">
 							<div class="pd-ltr-20 xs-pd-20-10">
@@ -927,7 +876,6 @@ if(isset($tra_status_id) && $tra_status_id == 21) {
 							</div>			
 						</div>
 					</div>
-				<?php endif; ?>
 			</div>
 		</div>
 	</div>	
