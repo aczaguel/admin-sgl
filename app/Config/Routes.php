@@ -170,6 +170,23 @@ $routes->post('/proceso/final_evidencias_finales/(:id)', 'Deskapp/Proceso::final
 $routes->get('/proceso/final_pago_derechos/(:id)', 'Deskapp/Proceso::final_pago_derechos/$1',['filter' => 'auth']);
 $routes->post('/proceso/final_pago_derechos/(:id)', 'Deskapp/Proceso::final_pago_derechos/$1');
 
+
+$routes->get('/proceso/concluido', 'Deskapp/Proceso::cancelado',['filter' => 'auth']);
+$routes->post('/proceso/concluido', 'Deskapp/Proceso::cancelado');
+
+$routes->get('/proceso/concluido_documentostatus/(:id)', 'Deskapp/Proceso::concluido_documentostatus/$1',['filter' => 'auth']);
+$routes->post('/proceso/concluido_documentostatus/(:id)', 'Deskapp/Proceso::concluido_documentostatus/$1');
+
+$routes->get('/proceso/concluido_evidencias/(:id)', 'Deskapp/Proceso::concluido_evidencias/$1',['filter' => 'auth']);
+$routes->post('/proceso/concluido_evidencias/(:id)', 'Deskapp/Proceso::concluido_evidencias/$1');
+
+$routes->get('/proceso/concluido_evidencias_finales/(:id)', 'Deskapp/Proceso::concluido_evidencias_finales/$1',['filter' => 'auth']);
+$routes->post('/proceso/concluido_evidencias_finales/(:id)', 'Deskapp/Proceso::concluido_evidencias_finales/$1');
+
+$routes->get('/proceso/concluido_pago_derechos/(:id)', 'Deskapp/Proceso::concluido_pago_derechos/$1',['filter' => 'auth']);
+$routes->post('/proceso/concluido_pago_derechos/(:id)', 'Deskapp/Proceso::concluido_pago_derechos/$1');
+
+
 $routes->get('/cancelado/cancelado', 'Deskapp/Cancelado::cancelado',['filter' => 'auth']);
 $routes->post('/cancelado/cancelado', 'Deskapp/Cancelado::cancelado');
 

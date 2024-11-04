@@ -1,18 +1,25 @@
 <?php 
-if(isset($tra_status_id) && $tra_status_id == 21) {
-	// Obtener la URL actual
-	$currentUrl = $_SERVER['REQUEST_URI'];
+if (isset($tra_status_id)) {
+    // Obtener la URL actual
+    $currentUrl = $_SERVER['REQUEST_URI'];
 
-	// Definir la URL de destino
-	$targetUrl = "/deskapp/cancelado/cancelado/$id";
+    // Definir la URL de destino según el valor de $tra_status_id
+    if ($tra_status_id == 21) {
+        $targetUrl = "/deskapp/cancelado/cancelado/$id";
+    } elseif ($tra_status_id == 20) {
+        $targetUrl = "/deskapp/proceso/concluido/$id";
+    } else {
+        $targetUrl = "/deskapp/tramites/update/$id";
+    }
 
-	// Comparar la URL actual con la de destino y redirigir solo si son diferentes
-	if ($currentUrl !== $targetUrl) {
-		header("Location: " . $targetUrl);
-		exit;
-	}
+    // Comparar la URL actual con la de destino y redirigir solo si son diferentes
+    if ($currentUrl !== $targetUrl) {
+        header("Location: " . $targetUrl);
+        exit;
+    }
 }
 ?>
+
 <!DOCTYPE html>
 <html>
 <head>
