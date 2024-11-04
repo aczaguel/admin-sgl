@@ -240,6 +240,6 @@ if (!empty($js_files)) {
 	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/my_scripts.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/forms_scripts.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/forms_scripts.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
