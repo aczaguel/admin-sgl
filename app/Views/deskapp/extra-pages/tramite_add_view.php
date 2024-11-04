@@ -134,6 +134,9 @@
 
 		gtag('config', 'UA-119386393-1');
 	</script>
+	<script>
+		var wiz_step = 0;
+	</script>
 </head>
 <body>
 	<!-- echo header,rightsidebar,leftsidebar and loader -->
