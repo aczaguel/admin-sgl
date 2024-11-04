@@ -63,7 +63,10 @@ class Cancelado extends BaseController
         $empresa_gestora_options = $empGestora->getEmpresasGestorasOptions();
 
         $traStatus = new TraStatusModel($db2);
-        $tra_status_options = $traStatus->getTraStatusOptions();
+        $tra_status_obj = $traStatus->getTraStatusOptions();
+        $tra_status_options = $tra_status_obj["tra_status"];
+        // $tra_status_steps = $tra_status_obj["steps"];
+
         $reembolso_status = new ReembolsoStatusModel($db2);
         $reembolso_status_options = $reembolso_status->getReembolsoStatusOptions();
 

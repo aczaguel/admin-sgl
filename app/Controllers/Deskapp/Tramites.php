@@ -55,8 +55,7 @@ class Tramites extends BaseController
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
-            $tramite_crud->where('tra_status_id NOT IN (20, 21)');
-
+            //$tramite_crud->where('tra_status_id NOT IN (20, 21)');
             
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -121,39 +120,55 @@ class Tramites extends BaseController
                 $diasDiferencia = $fechaAsignacion->diff($fechaActual)->days;
             
                 // Definir clases CSS según los días
-                $claseVerde = 'background-verde';  // Clase CSS para verde
-                $claseAmarillo = 'background-amarillo';  // Clase CSS para amarillo
-                $claseRojo = 'background-rojo';  // Clase CSS para rojo
-                $claseVioleta = 'background-violeta';  // Clase CSS para violeta
+                $claseVerde = 'background-verde';
+                $claseAmarillo = 'background-amarillo';
+                $claseRojo = 'background-rojo';
+                $claseVioleta = 'background-violeta';
+                $claseGris = 'background-gris';  // Clase CSS para gris claro
+                $claseAzulClaro = 'background-azul-claro';  // Clase CSS para azul claro
+                $claseAzul = 'background-azul';  // Clase CSS para azul
             
-                // Determinar si es Local o Foráneo
-                $local = ($row->ent_municipio_id >= 266 && $row->ent_municipio_id <= 281) || 
-                ($row->ent_municipio_id >= 657 && $row->ent_municipio_id <= 781);
-                
-                // Determinar la clase CSS basada en los días de diferencia y si es Local o Foráneo
-                if ($local) {
-                    if ($diasDiferencia < 5) {
-                        $clase = $claseVerde;
-                    } elseif ($diasDiferencia < 8) {
-                        $clase = $claseAmarillo;
-                    } elseif ($diasDiferencia < 12) {
-                        $clase = $claseRojo;
-                    } else {
-                        $clase = $claseVioleta;
-                    }
+                // Verificar tra_status_id para colores especiales
+                if ($row->tra_status_id == 23) {
+                    $clase = $claseAzulClaro;
+                } elseif ($row->tra_status_id == 21) {
+                    $clase = $claseGris;
+                } elseif ($row->tra_status_id == 20) {
+                    $clase = $claseAzul;
                 } else {
-                    if ($diasDiferencia < 10) {
-                        $clase = $claseVerde;
-                    } elseif ($diasDiferencia < 13) {
-                        $clase = $claseAmarillo;
-                    } elseif ($diasDiferencia < 16) {
-                        $clase = $claseRojo;
+                    // Determinar si es Local o Foráneo
+                    $local = ($row->ent_municipio_id >= 266 && $row->ent_municipio_id <= 281) || 
+                             ($row->ent_municipio_id >= 657 && $row->ent_municipio_id <= 781);
+                    
+                    // Determinar la clase CSS basada en los días de diferencia y si es Local o Foráneo
+                    if ($local) {
+                        if ($diasDiferencia < 5) {
+                            $clase = $claseVerde;
+                        } elseif ($diasDiferencia < 8) {
+                            $clase = $claseAmarillo;
+                        } elseif ($diasDiferencia < 12) {
+                            $clase = $claseRojo;
+                        } else {
+                            $clase = $claseVioleta;
+                        }
                     } else {
-                        $clase = $claseVioleta;
+                        if ($diasDiferencia < 10) {
+                            $clase = $claseVerde;
+                        } elseif ($diasDiferencia < 13) {
+                            $clase = $claseAmarillo;
+                        } elseif ($diasDiferencia < 16) {
+                            $clase = $claseRojo;
+                        } else {
+                            $clase = $claseVioleta;
+                        }
                     }
                 }
+                $arrFilter = [20, 21, 23];
+                if (!in_array($row->tra_status_id, $arrFilter)) {
+                    return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
+                }
             
-                return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
+                return '<span class="' . $clase . '"></span>';
             });
 
             $tramite_crud->fields([
@@ -448,7 +463,10 @@ class Tramites extends BaseController
         $empresa_gestora_options = $empGestora->getEmpresasGestorasOptions();
 
         $traStatus = new TraStatusModel($db2);
-        $tra_status_options = $traStatus->getTraStatusOptions();
+        $tra_status_obj = $traStatus->getTraStatusOptions();
+        $tra_status_options = $tra_status_obj["tra_status"];
+        $tra_status_steps = $tra_status_obj["steps"];
+
         $reembolso_status = new ReembolsoStatusModel($db2);
         $reembolso_status_options = $reembolso_status->getReembolsoStatusOptions();
 
@@ -547,6 +565,8 @@ class Tramites extends BaseController
         $data['tra_status'] = $tra_status_options[$tramite['tra_status_id']];
         $data['tra_status_id'] = $tramite['tra_status_id'];
         $data['created_at'] = $tramite['created_at'];
+        var_dump($tra_status_steps);
+        $data['step'] = $tra_status_steps[$tramite['tra_status_id']];
         $data['started_at'] = $tramite['started_at'];
         $data['derechos_comprobante'] = $tramite['derechos_comprobante'];
         
@@ -613,7 +633,9 @@ class Tramites extends BaseController
         $empresa_gestora_options = $empGestora->getEmpresasGestorasOptions();
 
         $traStatus = new TraStatusModel($db2);
-        $tra_status_options = $traStatus->getTraStatusOptions();
+        $tra_status_obj = $traStatus->getTraStatusOptions();
+        $tra_status_options = $tra_status_obj["tra_status"];
+        // $tra_status_steps = $tra_status_obj["steps"];
 
         $cobroStatuses = new CobroStatusesModel($db2);
         // $cobro_status_options = $cobroStatuses->getCobroStatusesOptions();
@@ -714,7 +736,9 @@ class Tramites extends BaseController
         $empresa_gestora_options = $empGestora->getEmpresasGestorasOptions();
 
         $traStatus = new TraStatusModel($db2);
-        $tra_status_options = $traStatus->getTraStatusOptions();
+        $tra_status_obj = $traStatus->getTraStatusOptions();
+        $tra_status_options = $tra_status_obj["tra_status"];
+        // $tra_status_steps = $tra_status_obj["steps"];
 
         $cobroStatuses = new CobroStatusesModel($db2);
         // $cobro_status_options = $cobroStatuses->getCobroStatusesOptions();
@@ -815,8 +839,9 @@ class Tramites extends BaseController
         $empresa_gestora_options = $empGestora->getEmpresasGestorasOptions();
 
         $traStatus = new TraStatusModel($db2);
-        $tra_status_options = $traStatus->getTraStatusOptions();
-
+        $tra_status_obj = $traStatus->getTraStatusOptions();
+        $tra_status_options = $tra_status_obj["tra_status"];
+        // $tra_status_steps = $tra_status_obj["steps"];
         $cobroStatuses = new CobroStatusesModel($db2);
         // $cobro_status_options = $cobroStatuses->getCobroStatusesOptions();
         $form = new \stdClass();
@@ -1238,7 +1263,7 @@ class Tramites extends BaseController
         // Reglas de validación para los campos numéricos
         $validation->setRules([
             "numero_factura" => "required",
-            "costo_gestoria" => "required"
+            "costo_gestoria" => "required|decimal"
         ]);
         
         // Reglas de validación condicionales para los archivos PDF y XML
@@ -1318,6 +1343,8 @@ class Tramites extends BaseController
                 $costosFacturaXml->move('assets/uploads/tramites/facturas/', $newXmlName); 
                 $data['costos_factura_xml'] = '/assets/uploads/tramites/facturas/' . $newXmlName;
             }
+
+            $data["costo_total"] = $data["costo_gestoria"] + $data["impuesto_gestoria"] + $data["comision_derechos"];
 
             // Actualizar los datos en la tabla 'tramite'
             $builder->where('id', $id);

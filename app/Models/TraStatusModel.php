@@ -22,11 +22,14 @@ class TraStatusModel extends Model
         $result = $statement->execute();
         
         $options = [];
-        
+        $tra_status = [];
+        $steps = [];
         foreach ($result as $row) {
-            $options[$row['id']] = $row['tra_status'];
+            $tra_status[$row['id']] = $row['tra_status'];
+            $steps[$row['id']] = $row['step'];
         }
-
+        $options['tra_status'] = $tra_status;
+        $options['steps'] = $steps;
         return $options;
     }
 }
