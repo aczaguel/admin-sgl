@@ -593,15 +593,16 @@ $(document).ready(function() {
     },
     onStepChanged: function (event, currentIndex) {
       // Guarda el índice de la pestaña actual en localStorage
-      localStorage.setItem("wizardStep", currentIndex);
+      // localStorage.setItem("wizardStep", currentIndex);
     }
   });
   
-  var savedStep = localStorage.getItem("wizardStep");
-
+  // var savedStep = localStorage.getItem("wizardStep");
+  
   // Si hay un paso guardado, mostrarlo al recargar la página
-  if (savedStep !== null) {
-      $("#wizard").steps("setStep", parseInt(savedStep));
+  if (wiz_step !== null) {
+      console.log("wiz_step", wiz_step);
+      $("#wizard").steps("setStep", parseInt(wiz_step));
   }
 
   $('.select2').select2({
