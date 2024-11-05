@@ -366,7 +366,7 @@ class Tramites extends BaseController
                 $condition = ['tra_tipos_id' => $tra_tipos_id];
                 $query = $db->table('tra_tipo_documentos')->where($condition)->get();
                 $resultados = $query->getResultArray();
-                // var_dump($resultados);
+
                 $session = session();
                 $myid = $session->get('id');
                 
@@ -385,7 +385,7 @@ class Tramites extends BaseController
                         "user_id" => (int)$myid
                     ];
                     // Inserta los datos en la base de datos utilizando el modelo apropiado (ejemplo: usando CodeIgniter Model)
-                    // var_dump($insert_data);
+
                     $result = $traDocStatusModel->insert($insert_data, 'tra_doc_status');
                 }
 
@@ -447,10 +447,7 @@ class Tramites extends BaseController
         $db2 = $this->_getDbData();
         // Retrieve the record
         $tramite = $builder->getWhere(['id' => $id])->getRowArray();
-        // if($tramite['tra_status_id'] == 23){
-        //     return redirect()->to('/deskapp/proceso/update_final/'. $id);
-        // }
-        // var_dump($tramite);
+
         $TraTiposModel = new TraTiposModel($db2);
         $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
         $entMunicipios = new EntMunicipioModel($db2);
@@ -565,7 +562,7 @@ class Tramites extends BaseController
         $data['tra_status'] = $tra_status_options[$tramite['tra_status_id']];
         $data['tra_status_id'] = $tramite['tra_status_id'];
         $data['created_at'] = $tramite['created_at'];
-        var_dump($tra_status_steps);
+
         $data['step'] = $tra_status_steps[$tramite['tra_status_id']];
         $data['started_at'] = $tramite['started_at'];
         $data['derechos_comprobante'] = $tramite['derechos_comprobante'];
@@ -589,7 +586,7 @@ class Tramites extends BaseController
             $outputevidencias = $crudevidencias->render();
 
             $crudevidencias_finales = $this->_getGroceryCrudEnterprise();
-            $crudevidencias_finales->setApiUrlPath('/deskapp/proceso/single_evidencias_finales/' . $id);
+            $crudevidencias_finales->setApiUrlPath('/deskapp/tramites/single_evidencias_finales/' . $id);
             $outputevidencias_finales = $crudevidencias_finales->render();
             
             $crud_derechos = $this->_getGroceryCrudEnterprise();
@@ -1096,8 +1093,13 @@ class Tramites extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
             $builder->where('id', $id);
-            $data["user_id"] = $myid;
-            $data["tra_status_id"] = 22;
+
+            $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
+            $arr_status = [22, 25, 26, 27, 23, 20, 21];
+            if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(25, $arr_status)){
+                $data["tra_status_id"] = 25;
+            }
+
             $data["started_at"] = date('Y-m-d H:i:s');
             $builder->update($data);
             #adding bitacora
@@ -1155,7 +1157,12 @@ class Tramites extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
             $builder->where('id', $id);
-            $data["user_id"] = $myid;
+            $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
+            $arr_status = [22, 25, 26, 27, 23, 20, 21];
+            if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(26, $arr_status)){
+                $data["tra_status_id"] = 26;
+            }
+
             $builder->update($data);
             #adding bitacora
             $bitacoraModel = new BitacoraModel($db2);
@@ -1212,7 +1219,13 @@ class Tramites extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
             $builder->where('id', $id);
-            $data["user_id"] = $myid;
+
+            $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
+            $arr_status = [22, 25, 26, 27, 23, 20, 21];
+            if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(27, $arr_status)){
+                $data["tra_status_id"] = 27;
+            }
+
             $builder->update($data);
             #adding bitacora
             $bitacoraModel = new BitacoraModel($db2);
@@ -2876,7 +2889,7 @@ class Tramites extends BaseController
             $myid = $session->get('id');
             $data['user_id'] = $myid;
             $data['tramite_id'] = $tramite_id;
-            // var_dump($data);
+
             return $data;
         });
 
