@@ -1009,7 +1009,7 @@ if (!empty($js_files)) {
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/forms_scripts.js"></script>
+	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/forms_scripts.js?v=<?php echo time(); ?>"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/my_scripts.js"></script>
 </body>
 </html>
