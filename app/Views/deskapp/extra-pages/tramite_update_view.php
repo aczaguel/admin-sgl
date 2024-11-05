@@ -485,7 +485,7 @@ if (isset($tra_status_id)) {
 									</script>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_pago_derechos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('section_pago_derechos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
 								<!-- Step 3: Formulario de paso 3 -->
 								<h3>Pago de Derechos</h3>
 								<section>
@@ -608,7 +608,7 @@ if (isset($tra_status_id)) {
 									<?php echo form_close(); ?>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_linea_captura', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('section_linea_captura', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
 								<!-- Step 4: Imagen -->
 								<h3>Linea de Captura</h3>
 								<section>
@@ -730,7 +730,7 @@ if (isset($tra_status_id)) {
 									<?php echo form_close(); ?>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_documentos_pago', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('section_documentos_pago', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
 								<h3>Documentos de Pago</h3>
 								<section>
 									<?php if (has_permission('important_pasar_a_pagos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
@@ -750,7 +750,7 @@ if (isset($tra_status_id)) {
 							
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && $tra_status_id == 23): ?>
 								<h3>Costos</h3>
 								<section>
 									<?php echo form_open("/deskapp/tramites/update_final_save/$id", ['class' => 'form-horizontal', 'id' => 'finalForm']); ?>
