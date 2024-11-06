@@ -745,9 +745,6 @@ if (isset($tra_status_id)) {
 												echo $output_derechos;
 										}
 									?>
-									
-									
-							
 								</section>
 							<?php endif; ?>
 							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && $tra_status_id == 23): ?>

@@ -450,8 +450,10 @@ class Tramites extends BaseController
 
         $TraTiposModel = new TraTiposModel($db2);
         $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
-        $entMunicipios = new EntMunicipioModel($db2);
-        $ent_municipio_options = $entMunicipios->getEntMunicipios();
+
+        // $entMunicipios = new EntMunicipioModel($db2);
+        // $ent_municipio_options = $entMunicipios->getEntMunicipios();
+
         $entidades = new EntidadesModel($db2);
         $entidad_options = $entidades->getEntidades();
         $clienteDirecto = new ClienteDirectoModel($db2);
@@ -490,7 +492,7 @@ class Tramites extends BaseController
                 // "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id'], "disabled"=>"disabled"],
                 // "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "disabled"=>"disabled"],
                 "entidad_id" => ["label" => "Entidad", "type" => "select", "options" => $entidad_options, "value" => $tramite['entidad_id'], "required"=>"required"],
-                "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id'], "disabled"=>"disabled"],
+                // "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id'], "disabled"=>"disabled"],
                 // "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id'], "disabled"=>"disabled"],
                 "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"]
             ];
@@ -703,6 +705,7 @@ class Tramites extends BaseController
 
             $form->output = $output->output;
         }
+        
         $data['target_title'] = 'Asignarme este trámite';
         $data['target_id'] = 11;
         $form = array_merge((array)$form, $data);
@@ -1033,8 +1036,9 @@ class Tramites extends BaseController
             $data = $this->request->getPost();
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
-            $builder->where('id', $id);
             $data["user_id"] = $myid;
+            $builder->where('id', $id);
+
             $builder->update($data);
             $folio = $data["folio"];
             #adding bitacora
@@ -1099,8 +1103,13 @@ class Tramites extends BaseController
             if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(25, $arr_status)){
                 $data["tra_status_id"] = 25;
             }
+            if (empty($tramite_base['started_at'])) {
+                $data["started_at"] = date('Y-m-d H:i:s');
+            }
 
-            $data["started_at"] = date('Y-m-d H:i:s');
+            $builder->where('id', $id);
+            // echo $builder->set($data)->getCompiledUpdate(); // Esto imprime la consulta SQL completa
+            // die();
             $builder->update($data);
             #adding bitacora
             $bitacoraModel = new BitacoraModel($db2);
@@ -1162,7 +1171,7 @@ class Tramites extends BaseController
             if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(26, $arr_status)){
                 $data["tra_status_id"] = 26;
             }
-
+            $builder->where('id', $id);
             $builder->update($data);
             #adding bitacora
             $bitacoraModel = new BitacoraModel($db2);
@@ -1225,7 +1234,7 @@ class Tramites extends BaseController
             if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(27, $arr_status)){
                 $data["tra_status_id"] = 27;
             }
-
+            $builder->where('id', $id);
             $builder->update($data);
             #adding bitacora
             $bitacoraModel = new BitacoraModel($db2);
@@ -2656,9 +2665,11 @@ class Tramites extends BaseController
         $tramite_id = (int) $uri->getSegment(4);
     
         $crud = $this->_getGroceryCrudEnterprise();
+        $crud->setSkin('bootstrap');
         $crud->setCsrfTokenName(csrf_token());
         $crud->setCsrfTokenValue(csrf_hash());
         $crud->unsetRead();
+
         // $tramite_crud->setTheme('bootstrap-v5');
         $crud->unsetDeleteMultiple();
         $crud->unsetDelete();
@@ -2960,9 +2971,18 @@ class Tramites extends BaseController
             // Actualizar el estatus del trámite
 
             $builder->where('id', $tramiteId);
-            $builder->update([
-                'tra_status_id' => $statusId
-            ]);
+            if($statusId == 20){
+                $builder->update([
+                    'finished_at' => date('Y-m-d H:i:s'),
+                    'tra_status_id' => $statusId
+                ]);
+            }else{
+                $builder->update([
+                    'tra_status_id' => $statusId
+                ]);
+            }
+                
+
             
             // Opcional: Insertar un registro en tra_user_log
             $session = session();
