@@ -220,6 +220,10 @@ if (isset($tra_status_id)) {
 				<li class="nav-item">
 					<a class="nav-link text-blue" data-toggle="tab" href="#contact" role="tab" aria-selected="false">Bitácora</a>
 				</li>
+				<li class="nav-item">
+					<a class="nav-link text-blue" data-toggle="tab" href="#documentos_pago" role="tab" aria-selected="false">Pagos de Derecho</a>
+				</li>
+				
 				<?php if(isset($tra_status_id) && $tra_status_id == 23) : ?>
 					<li class="nav-item">
 						<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
@@ -740,11 +744,14 @@ if (isset($tra_status_id)) {
 									endif; ?>
 									
 									<hr>
-									<?php 
-										if (!empty($output_derechos)) {
-												echo $output_derechos;
-										}
-									?>
+									<div>
+										<?php 
+											if (!empty($output_derechos)) {
+													echo $output_derechos;
+											}
+										?>
+									</div>
+									
 								</section>
 							<?php endif; ?>
 							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && $tra_status_id == 23): ?>
@@ -953,6 +960,19 @@ if (isset($tra_status_id)) {
 						</div>			
 					</div>
 				</div>
+				<div class="tab-pane fade" id="documentos_pago" role="tabpanel">
+					<div class="pd-20">
+						<div class="pd-ltr-20 xs-pd-20-10">
+									<?php 
+										if (!empty($output_derechos)) {
+												echo $output_derechos;
+										}
+									?>
+						</div>			
+					</div>
+				</div>
+
+				
 				<?php if(isset($tra_status_id) && $tra_status_id == 23) : ?>
 					<div class="tab-pane fade" id="final_evi" role="tabpanel">
 						<div class="pd-20">
