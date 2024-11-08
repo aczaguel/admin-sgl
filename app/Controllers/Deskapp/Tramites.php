@@ -581,27 +581,34 @@ class Tramites extends BaseController
         // if (!is_read_only(esc($session->get('user_roles')))){
             $cruddocstatus = $this->_getGroceryCrudEnterprise();
             $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/'.$id);
-            $output = $cruddocstatus->render();
-            $form->output_docs = $output->output;
+            $output_docs = $cruddocstatus->render();            
+            
+
             $crudevidencias = $this->_getGroceryCrudEnterprise();
             $crudevidencias->setApiUrlPath('/deskapp/tramites/single_evidencias/'.$id);
             $outputevidencias = $crudevidencias->render();
 
+
+
             $crudevidencias_finales = $this->_getGroceryCrudEnterprise();
             $crudevidencias_finales->setApiUrlPath('/deskapp/tramites/single_evidencias_finales/' . $id);
             $outputevidencias_finales = $crudevidencias_finales->render();
+
+
             
             $crud_derechos = $this->_getGroceryCrudEnterprise();
             $crud_derechos->setApiUrlPath('/deskapp/tramites/single_pago_derechos/' . $id);
             $output_derechos = $crud_derechos->render();
             
-            $output->output .= "<hr>".$outputevidencias->output;
+
+            // $output_docs->output .= "<hr>".$outputevidencias->output;
             // $form->output_docs = $output->output;
+            $form->output_docs = $output_docs->output;
             $form->output_bitacora = $outputevidencias->output;
             $form->outputevidencias_finales = $outputevidencias_finales->output;
             $form->output_derechos = $output_derechos->output;
 
-            $form->output = $output->output;
+            // $form->output = $output_docs->output;
         // }
 
         $form = array_merge((array)$form, $data);
