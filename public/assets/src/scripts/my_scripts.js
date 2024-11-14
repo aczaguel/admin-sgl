@@ -8,25 +8,25 @@ $(document).ready(function() {
   });
   $('body').on('keyup', '#gc-form-costo_gestoria', function() {
       console.log('Se hizo clic en gc-form-costo_gestoria');
-      var suma = parseInt($("#gc-form-costo_gestoria").val()) + parseInt($("#gc-form-impuesto_gestoria").val()) + parseInt($("#gc-form-derechos_tramite").val()) + parseInt($("#gc-form-comision_derechos").val()) 
+      var suma = parseFloat($("#gc-form-costo_gestoria").val()) + parseFloat($("#gc-form-impuesto_gestoria").val()) + parseFloat($("#gc-form-derechos_tramite").val()) + parseFloat($("#gc-form-comision_derechos").val()) 
       $("#gc-form-costo_total").val(suma)
   });
 
   $('body').on('keyup', '#gc-form-impuesto_gestoria', function() {
     console.log('Se hizo clic en gc-form-impuesto_gestoria');
-    var suma = parseInt($("#gc-form-costo_gestoria").val()) + parseInt($("#gc-form-impuesto_gestoria").val()) + parseInt($("#gc-form-derechos_tramite").val()) + parseInt($("#gc-form-comision_derechos").val()); 
+    var suma = parseFloat($("#gc-form-costo_gestoria").val()) + parseFloat($("#gc-form-impuesto_gestoria").val()) + parseFloat($("#gc-form-derechos_tramite").val()) + parseFloat($("#gc-form-comision_derechos").val()); 
     $("#gc-form-costo_total").val(suma)
   });
 
   $('body').on('keyup', '#gc-form-derechos_tramite', function() {
     console.log('Se hizo clic en gc-form-derechos_tramite');
-    var suma = parseInt($("#gc-form-costo_gestoria").val()) + parseInt($("#gc-form-impuesto_gestoria").val()) + parseInt($("#gc-form-derechos_tramite").val()) + parseInt($("#gc-form-comision_derechos").val());
+    var suma = parseFloat($("#gc-form-costo_gestoria").val()) + parseFloat($("#gc-form-impuesto_gestoria").val()) + parseFloat($("#gc-form-derechos_tramite").val()) + parseFloat($("#gc-form-comision_derechos").val());
     $("#gc-form-costo_total").val(suma);
   });
 
   $('body').on('keyup', '#gc-form-comision_derechos', function() {
     console.log('Se hizo clic en gc-form-comision_derechos');
-    var suma = parseInt($("#gc-form-costo_gestoria").val()) + parseInt($("#gc-form-impuesto_gestoria").val()) + parseInt($("#gc-form-derechos_tramite").val()) + parseInt($("#gc-form-comision_derechos").val());
+    var suma = parseFloat($("#gc-form-costo_gestoria").val()) + parseFloat($("#gc-form-impuesto_gestoria").val()) + parseFloat($("#gc-form-derechos_tramite").val()) + parseFloat($("#gc-form-comision_derechos").val());
     $("#gc-form-costo_total").val(suma);
   });
 
@@ -37,25 +37,25 @@ $(document).ready(function() {
   
   $('#costo_gestoria').on("keyup", function() {
       console.log('Se hizo clic en costo_gestoria');
-      var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#comision_derechos").val()) 
+      var suma = parseFloat($("#costo_gestoria").val()) + parseFloat($("#impuesto_gestoria").val()) + parseFloat($("#comision_derechos").val()) 
       $("#costo_total").val(suma)
   });
 
   $('#impuesto_gestoria').on("keyup", function() {
     console.log('Se hizo clic en impuesto_gestoria');
-    var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#comision_derechos").val()); 
+    var suma = parseFloat($("#costo_gestoria").val()) + parseFloat($("#impuesto_gestoria").val()) + parseFloat($("#comision_derechos").val()); 
     $("#costo_total").val(suma)
   });
 
   // $('#derechos_tramite').on("keyup", function() {
   //   console.log('Se hizo clic en derechos_tramite');
-  //   var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#comision_derechos").val());
+  //   var suma = parseFloat($("#costo_gestoria").val()) + parseFloat($("#impuesto_gestoria").val()) + parseFloat($("#comision_derechos").val());
   //   $("#costo_total").val(suma);
   // });
 
   $('#comision_derechos').on("keyup", function() {
     console.log('Se hizo clic en comision_derechos');
-    var suma = parseInt($("#costo_gestoria").val()) + parseInt($("#impuesto_gestoria").val()) + parseInt($("#comision_derechos").val());
+    var suma = parseFloat($("#costo_gestoria").val()) + parseFloat($("#impuesto_gestoria").val()) + parseFloat($("#comision_derechos").val());
     $("#costo_total").val(suma);
   });
 

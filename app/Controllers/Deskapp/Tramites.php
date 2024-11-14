@@ -1374,10 +1374,12 @@ class Tramites extends BaseController
             }
 
             $data["costo_total"] = $data["costo_gestoria"] + $data["impuesto_gestoria"] + $data["comision_derechos"];
-
+            // print_r($data);
             // Actualizar los datos en la tabla 'tramite'
             $builder->where('id', $id);
-            // echo $builder->set($data)->getCompiledUpdate();exit;
+            // echo $builder->set($data)->getCompiledUpdate();
+            // exit;
+
             $builder->update($data);
 
             // Agregar registro en bitácora

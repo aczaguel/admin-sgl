@@ -950,3 +950,54 @@ $(document).ready(function() {
   });
 
 });
+$(document).ready(function() {
+  $('#costo_total').on('input', function () {
+    // Permitir solo números y hasta dos decimales
+    let value = $(this).val();
+    
+    // Usar expresión regular para permitir solo dos decimales
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
+        $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
+    }
+  });
+
+  $('#costo_gestoria').on('input', function () {
+    // Permitir solo números y hasta dos decimales
+    let value = $(this).val();
+    
+    // Usar expresión regular para permitir solo dos decimales
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
+        $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
+    }
+  });
+
+  $('#impuesto_gestoria').on('input', function () {
+    // Permitir solo números y hasta dos decimales
+    let value = $(this).val();
+    
+    // Usar expresión regular para permitir solo dos decimales
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
+        $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
+    }
+  });
+
+  $('#comision_derechos').on('input', function () {
+    // Permitir solo números y hasta dos decimales
+    let value = $(this).val();
+    
+    // Usar expresión regular para permitir solo dos decimales
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
+        $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
+    }
+  });
+
+  $('#derechos_tramite').on('input', function () {
+    // Permitir solo números y hasta dos decimales
+    let value = $(this).val();
+    
+    // Usar expresión regular para permitir solo dos decimales
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
+        $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
+    }
+  });
+});
