@@ -266,7 +266,7 @@ if (isset($tra_status_id)) {
 															<label for="<?php echo $field_name; ?>" class="col-sm-4 col-form-label"><?php echo $field_info['label']; ?></label>
 															<div class="col-sm-8">
 																<?php if ($field_info['type'] == 'text'): ?>
-																	<input type="text" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+																	<input type="text" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($field_info['type'] == 'number') echo 'step="any"';?>>
 																<?php elseif ($field_info['type'] == 'select'): ?>
 																	<select class="form-control select2" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
 																		<?php foreach ($field_info['options'] as $option_value => $option_label): ?>
@@ -313,7 +313,7 @@ if (isset($tra_status_id)) {
 															<label for="<?php echo $field_name; ?>" class="col-sm-4 col-form-label"><?php echo $field_info['label']; ?></label>
 															<div class="col-sm-8">
 																<?php if ($field_info['type'] == 'text'): ?>
-																	<input type="text" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+																	<input type="text" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($field_info['type'] == 'number') echo 'step="any"';?>>
 																<?php elseif ($field_info['type'] == 'select'): ?>
 																	<select class="form-control select2" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
 																		<?php foreach ($field_info['options'] as $option_value => $option_label): ?>
@@ -394,7 +394,7 @@ if (isset($tra_status_id)) {
 															<label for="<?php echo $gestor_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $gestor_campo_info['label']; ?></label>
 															<div class="col-sm-8">
 																<?php if ($gestor_campo_info['type'] == 'text'): ?>
-																	<input type="text" class="form-control" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
+																	<input type="text" class="form-control" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($gestor_campo_info['type'] == 'number') echo 'step="any"';?>>
 																<?php elseif ($gestor_campo_info['type'] == 'select'): ?>
 																	<select class="form-control select2" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
 																		<option value="">Seleccione</option>
@@ -517,9 +517,7 @@ if (isset($tra_status_id)) {
 															<label for="<?php echo $derechos_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $derechos_campo_info['label']; ?></label>
 															<div class="col-sm-8">
 																<?php if ($derechos_campo_info['type'] == 'text' || $derechos_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $derechos_campo_info['type'] ?>" class="form-control" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?><?php if ($derechos_campo_info['type'] == 'number'): ?>
-																		step="0.01" 
-																	<?php endif; ?> >
+																	<input type="<?php echo $derechos_campo_info['type'] ?>" class="form-control" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($derechos_campo_info['type'] == 'number') echo 'step="any"';?>>
 																<?php elseif ($derechos_campo_info['type'] == 'select'): ?>
 																	<select class="form-control select2" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
 																		<option value="">Seleccione</option>
@@ -567,9 +565,7 @@ if (isset($tra_status_id)) {
 															<label for="<?php echo $derechos_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $derechos_campo_info['label']; ?></label>
 															<div class="col-sm-8">
 																<?php if ($derechos_campo_info['type'] == 'text' || $derechos_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $derechos_campo_info['type'] ?>" class="form-control" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?><?php if ($derechos_campo_info['type'] == 'number'): ?>
-																		step="0.01" 
-																	<?php endif; ?> >
+																	<input type="<?php echo $derechos_campo_info['type'] ?>" class="form-control" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($derechos_campo_info['type'] == 'number') echo 'step="any"';?>>
 																<?php elseif ($derechos_campo_info['type'] == 'select'): ?>
 																	<select class="form-control select2" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
 																		<option value="">Seleccione</option>
@@ -640,9 +636,7 @@ if (isset($tra_status_id)) {
 															<label for="<?php echo $bancario_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $bancario_campo_info['label']; ?></label>
 															<div class="col-sm-8">
 																<?php if ($bancario_campo_info['type'] == 'text' || $bancario_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $bancario_campo_info['type'] ?>" class="form-control" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?><?php if ($derechos_campo_info['type'] == 'number'): ?>
-																	step="0.01" 
-																<?php endif; ?> >
+																	<input type="<?php echo $bancario_campo_info['type'] ?>" class="form-control" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($bancario_campo_info['type'] == 'number') echo 'step="any"';?>>
 																<?php elseif ($bancario_campo_info['type'] == 'select'): ?>
 																	<select class="form-control select2" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
 																		<option value="">Seleccione</option>
@@ -690,9 +684,7 @@ if (isset($tra_status_id)) {
 															<label for="<?php echo $bancario_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $bancario_campo_info['label']; ?></label>
 															<div class="col-sm-8">
 																<?php if ($bancario_campo_info['type'] == 'text' || $bancario_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $bancario_campo_info['type'] ?>" class="form-control" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?><?php if ($derechos_campo_info['type'] == 'number'): ?>
-																	step="0.01" 
-																<?php endif; ?> >
+																	<input type="<?php echo $bancario_campo_info['type'] ?>" class="form-control" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($bancario_campo_info['type'] == 'number') echo 'step="any"';?>>
 																<?php elseif ($bancario_campo_info['type'] == 'select'): ?>
 																	<select class="form-control select2" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
 																		<option value="">Seleccione</option>
@@ -781,9 +773,7 @@ if (isset($tra_status_id)) {
 															<label for="<?php echo $final_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $final_campo_info['label']; ?></label>
 															<div class="col-sm-8">
 																<?php if ($final_campo_info['type'] == 'text' || $final_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $final_campo_info['type'] ?>" class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?><?php if ($derechos_campo_info['type'] == 'number'): ?>
-																		step="0.01" 
-																	<?php endif; ?> >
+																	<input type="<?php echo $final_campo_info['type'] ?>" class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($final_campo_info['type'] == 'number') echo 'step="any"';?>>
 																<?php elseif ($final_campo_info['type'] == 'select'): ?>
 																	<select class="form-control select2" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
 																		<option value="">Seleccione</option>
@@ -859,9 +849,7 @@ if (isset($tra_status_id)) {
 															<label for="<?php echo $final_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $final_campo_info['label']; ?></label>
 															<div class="col-sm-8">
 																<?php if ($final_campo_info['type'] == 'text' || $final_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $final_campo_info['type'] ?>" class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?><?php if ($derechos_campo_info['type'] == 'number'): ?>
-																		step="0.01" 
-																	<?php endif; ?> >
+																	<input type="<?php echo $final_campo_info['type'] ?>" class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($final_campo_info['type'] == 'number') echo 'step="any"';?>>
 																<?php elseif ($final_campo_info['type'] == 'select'): ?>
 																	<select class="form-control select2" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
 																		<option value="">Seleccione</option>
