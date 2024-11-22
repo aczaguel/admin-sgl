@@ -20,6 +20,7 @@ class Filters extends BaseConfig
 		'toolbar'  => DebugToolbar::class,
 		'honeypot' => Honeypot::class,
 		'auth'     => \App\Filters\Auth::class,
+		'apilog' => \App\Filters\ApiLogFilter::class,
 	];
 
 	/**
@@ -36,6 +37,7 @@ class Filters extends BaseConfig
 		],
 		'after'  => [
 			'toolbar',
+			'apilog' => [], // Ejecutar después de cada solicitud
 			// 'honeypot',
 		],
 	];
@@ -62,3 +64,4 @@ class Filters extends BaseConfig
 	 */
 	public $filters = [];
 }
+

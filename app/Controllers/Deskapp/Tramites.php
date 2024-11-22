@@ -28,6 +28,7 @@ use App\Models\ReembolsoStatusModel;
 use App\Models\CobroStatusModel;
 class Tramites extends BaseController
 {
+    public $tableName = "";
     public function __construct() {
         // parent::__construct();
         helper(['form', 'url']);
@@ -106,7 +107,6 @@ class Tramites extends BaseController
                 'tra_status_id', 'cobro_status_id', 'user_id',
                 'observaciones'
             ]);
-            
 
             $tramite_crud->displayAs("started_at", "Desde Asignación");
 
@@ -2426,6 +2426,10 @@ class Tramites extends BaseController
             return $stateParameters;
         });
 
+        $crud->callbackColumn('comentario', function($value, $row) {
+            return '<div style="white-space: normal;">' . htmlspecialchars($value, ENT_QUOTES) . '</div>';
+        });
+
         $crud->callbackEditForm(function ($data) use ($self){
             $session = session();
             $data2 = $data;
@@ -2541,6 +2545,17 @@ class Tramites extends BaseController
         $crud->where([
             'folio_tramite' => $folio_tramite
         ]);   
+        $crud->callbackColumn('comentario', function($value, $row) {
+            // Recortar el texto si es muy largo
+            $shortened_value = strlen($value) > 50 ? substr($value, 0, 50) . '...' : $value;
+        
+            // Retornar el texto con un tooltip para ver el contenido completo
+            return '<span title="' . htmlspecialchars($value, ENT_QUOTES) . '">' . $shortened_value . '</span>';
+        });
+        // $crud->callbackColumn('comentario', function($value, $row) {
+        //     return '<div style="white-space: normal;">' . htmlspecialchars($value, ENT_QUOTES) . '</div>';
+        // });
+
 
         $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
@@ -2645,8 +2660,6 @@ class Tramites extends BaseController
             $request = \Config\Services::request();
             $uri = $request->getUri();
 
-            $request = \Config\Services::request();
-            $uri = $request->getUri();
             $tramite_id = (int) $uri->getSegment(4);
             $folio_tramite = $session->get('folio_tramite_id');
 
@@ -2742,28 +2755,62 @@ class Tramites extends BaseController
             return $data;
         });
 
-        $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
-            $db = Database::connect();
-            $db2 = $this->_getDbData();
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($self) {
+            $db = \Config\Database::connect();
             $session = session();
-            $data = $stateParameters->data;
-            $myid = $session->get('id');
-            
             $request = \Config\Services::request();
-            $uri = $request->getUri();
-            $tramite_id = (int) $uri->getSegment(4);
-
-            $bitacoraModel = new BitacoraModel($db2);
-            $data_bitacora = $data;
-            $diferencias = $self->encontrarDiferencias($data_bitacora, []);
-            $insert_bitacora = [
-                "tipo"=>"update",
-                "origen"=>"derechos",
-                "tramite_id" => (int)$tramite_id,
-                "cambios" => json_encode($diferencias),
-                "user_id" => (int)$myid
+        
+            // Datos generales
+            $userId = $session->get('id'); // ID del usuario actual
+            $uri = $request->getUri(); // URI completa
+            $method = $request->getMethod(); // Método HTTP
+            $endpoint = $uri->getPath(); // Ruta completa como endpoint
+            $primaryKeyValue = $stateParameters->primaryKeyValue; // ID afectado
+            $data = $stateParameters->data; // Datos enviados desde Grocery CRUD
+        
+            // Extraer controlador y acción de la URL
+            $pathParts = explode('/', $endpoint);
+            $controller = $pathParts[1] ?? null; // El segundo segmento como controlador
+            $action = $pathParts[2] ?? null; // El tercer segmento como acción
+        
+            // Buscar números en la URL
+            preg_match_all('/\d+/', $endpoint, $matches);
+            $numbers = $matches[0] ?? [];
+        
+            // Obtener ID principal y números adicionales
+            $sent_id = $numbers[0] ?? 0; // Primer número
+            $additional_ids = array_slice($numbers, 1); // Números adicionales
+        
+            // Determinar las diferencias de datos
+            $oldData = []; // Aquí puedes incluir lógica para obtener datos anteriores si es necesario
+            $diferencias = $self->encontrarDiferencias($data, $oldData);
+        
+            // Obtener la respuesta del estado de Grocery CRUD
+            $response = [
+                'success' => $stateParameters->success,
+                'message' => $stateParameters->message,
+                'data'    => $stateParameters->data,
             ];
-            $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+        
+            // Registrar el log
+            $logModel = new \App\Models\ApiLogModel($db);
+            $logData = [
+                'method'     => $method,
+                'endpoint'   => $endpoint,
+                'controller' => $controller,
+                'action'     => $action,
+                'sent_id'    => $sent_id,
+                'vista'      => implode(',', $additional_ids), // Números adicionales concatenados
+                'body'       => json_encode($data), // Datos enviados a Grocery CRUD
+                'response'   => json_encode($response), // Respuesta generada por Grocery CRUD
+                'user_id'    => $userId,
+                'ip_address' => $request->getIPAddress(),
+                'user_agent' => $request->getUserAgent()->getAgentString(),
+            ];
+        
+            $logModel->insert($logData);
+        
+            return $stateParameters; // Continuar con el flujo normal
         });
 
         $uploadValidations = [
@@ -2795,9 +2842,80 @@ class Tramites extends BaseController
             return $data;
         });
 
+        $this->tableName = 'tra_pago_derechos';
+        // Callbacks para registrar el log
+        $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return $this->logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return $this->logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return $this->logOperation($stateParameters, $tableName);
+        });
+
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
+    }
+
+    public function logOperation($postArray, $tableName)
+    {
+        $userId = session()->get('id'); // Obtener el ID del usuario desde la sesión
+        $uri = $this->request->getUri()->getPath(); // Obtener el path completo de la URL
+
+        // Verificar exclusiones: si es la raíz ("/") o contiene 'login', omitir
+        if ($uri === '/' || strpos($uri, 'login') !== false) {
+            return; // Omitir registros de la raíz y de login
+        }
+
+        // Filtrar solo solicitudes de tipo insert, update o delete
+        $method = $this->request->getMethod();
+        if (!in_array(strtolower($method), ['post', 'put', 'delete', 'patch'])) {
+            return; // Si no es POST, PUT o DELETE, salir
+        }
+
+        // Extraer controlador y acción
+        $controller = $this->request->uri->getSegment(2); // Segundo segmento como controlador
+        $action = $this->request->uri->getSegment(3);     // Tercer segmento como acción
+
+        // Capturar todos los números de la URL como IDs
+        preg_match_all('/\d+/', $uri, $matches);
+        $numbers = $matches[0] ?? []; // Acceder al primer índice del arreglo
+
+        $sent_id = isset($numbers[0]) ? (int)$numbers[0] : null; // Primer número encontrado
+        $actionIds = count($numbers) > 1 ? implode(',', array_slice($numbers, 1)) : null; // Resto de los números concatenados
+
+        // Determinar el contenido de la respuesta
+        $responseContent = $this->response->getHeaderLine('Content-Type');
+        $responseBody = (strpos($responseContent, 'application/json') !== false) 
+                        ? $this->response->getBody() 
+                        : 'html response';
+
+        $logModel = new \App\Models\ApiLogModel();
+
+        // Preparar datos para registrar en la base de datos
+        $logData = [
+            'method'     => $method,
+            'endpoint'   => $uri,
+            'controller' => $controller,
+            'action'     => $action,
+            'sent_id'      => $sent_id,              // Primer número encontrado
+            'vista' => $actionIds,         // Números restantes concatenados
+            'body'       => json_encode($this->request->getPost() ?: $this->request->getJSON(true)), // Datos enviados
+            'tabla'      =>  $tableName, // Nombre de la tabla afectada
+            'response'   => $responseBody,
+            'user_id'    => $userId,
+            'ip_address' => $this->request->getIPAddress(),
+            'user_agent' => $this->request->getUserAgent()->getAgentString(),
+        ];
+        // Registrar en el log
+        $logModel->insert($logData);
+
+        return $postArray; // Regresar el array para continuar con la operación
     }
 
     public function single_evidencias_finales(){

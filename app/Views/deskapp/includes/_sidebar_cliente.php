@@ -23,9 +23,6 @@
 								<?php if (has_permission('listar_tramite_cliente', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 									<li><a href="<?php echo base_url('deskapp/customers/list'); //listar_tramite?>">Trámites</a></li>
 								<?php endif; ?>
-								<?php if (has_permission('listar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-									<li><a href="<?php echo base_url('deskapp/tramites/tramite'); //listar_tramite?>">Trámites</a></li>
-								<?php endif; ?>
 								<?php if (has_permission('listar_solicitudes_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 									<li><a href="<?php echo base_url('deskapp/tramites/solicitudes'); //listar_mios?>">Solicitudes Recientes</a></li>
 								<?php endif; ?>

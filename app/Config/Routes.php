@@ -203,6 +203,27 @@ $routes->get('/cancelado/cancelado_pago_derechos/(:id)', 'Deskapp/Cancelado::can
 $routes->post('/cancelado/cancelado_pago_derechos/(:id)', 'Deskapp/Cancelado::cancelado_pago_derechos/$1');
 
 
+
+$routes->get('/customers/list', 'Deskapp/Customers::list',['filter' => 'auth']);
+$routes->post('/customers/list', 'Deskapp/Customers::list');
+
+
+$routes->get('/customers/tramite/(:id)', 'Deskapp/Customers::tramite/$1',['filter' => 'auth']);
+$routes->post('/customers/tramite/(:id)', 'Deskapp/Customers::tramite/$1');
+
+$routes->get('/customers/proceso_documentostatus/(:id)', 'Deskapp/Customers::proceso_documentostatus/$1',['filter' => 'auth']);
+$routes->post('/customers/proceso_documentostatus/(:id)', 'Deskapp/Customers::proceso_documentostatus/$1');
+
+$routes->get('/customers/proceso_evidencias/(:id)', 'Deskapp/Customers::proceso_evidencias/$1',['filter' => 'auth']);
+$routes->post('/customers/proceso_evidencias/(:id)', 'Deskapp/Customers::proceso_evidencias/$1');
+
+$routes->get('/customers/proceso_evidencias_finales/(:id)', 'Deskapp/Customers::proceso_evidencias_finales/$1',['filter' => 'auth']);
+$routes->post('/customers/proceso_evidencias_finales/(:id)', 'Deskapp/Customers::proceso_evidencias_finales/$1');
+
+$routes->get('/customers/proceso_pago_derechos/(:id)', 'Deskapp/Customers::proceso_pago_derechos/$1',['filter' => 'auth']);
+$routes->post('/customers/proceso_pago_derechos/(:id)', 'Deskapp/Customers::proceso_pago_derechos/$1');
+
+
 /*
  * --------------------------------------------------------------------
  * Additional Routing
