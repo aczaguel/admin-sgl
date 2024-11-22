@@ -99,45 +99,62 @@ class Customers extends BaseController
             $crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
             $crud->displayAs("user_id", "Ejecutivo");
             $crud->callbackColumn('started_at', function ($value, $row) {
-                $fechaAsignacion = new \DateTime($row->started_at);
+                $fechaAsignacion = new \DateTime($row->started_at); 
                 $fechaActual = new \DateTime();
                 $diasDiferencia = $fechaAsignacion->diff($fechaActual)->days;
             
                 // Definir clases CSS según los días
-                $claseVerde = 'background-verde';  // Clase CSS para verde
-                $claseAmarillo = 'background-amarillo';  // Clase CSS para amarillo
-                $claseRojo = 'background-rojo';  // Clase CSS para rojo
-                $claseVioleta = 'background-violeta';  // Clase CSS para violeta
+                $claseVerde = 'background-verde';
+                $claseAmarillo = 'background-amarillo';
+                $claseRojo = 'background-rojo';
+                $claseVioleta = 'background-violeta';
+                $claseGris = 'background-gris';  // Clase CSS para gris claro
+                $claseAzulClaro = 'background-azul-claro';  // Clase CSS para azul claro
+                $claseAzul = 'background-azul';  // Clase CSS para azul
             
-                // Determinar si es Local o Foráneo
-                $local = ($row->ent_municipio_id >= 266 && $row->ent_municipio_id <= 281) || 
-                ($row->ent_municipio_id >= 657 && $row->ent_municipio_id <= 781);
-                
-                // Determinar la clase CSS basada en los días de diferencia y si es Local o Foráneo
-                if ($local) {
-                    if ($diasDiferencia < 5) {
-                        $clase = $claseVerde;
-                    } elseif ($diasDiferencia < 8) {
-                        $clase = $claseAmarillo;
-                    } elseif ($diasDiferencia < 12) {
-                        $clase = $claseRojo;
-                    } else {
-                        $clase = $claseVioleta;
-                    }
+                // Verificar tra_status_id para colores especiales
+                if ($row->tra_status_id == 23) {
+                    $clase = $claseAzulClaro;
+                } elseif ($row->tra_status_id == 21) {
+                    $clase = $claseGris;
+                } elseif ($row->tra_status_id == 20) {
+                    $clase = $claseAzul;
                 } else {
-                    if ($diasDiferencia < 10) {
-                        $clase = $claseVerde;
-                    } elseif ($diasDiferencia < 13) {
-                        $clase = $claseAmarillo;
-                    } elseif ($diasDiferencia < 16) {
-                        $clase = $claseRojo;
+                    // Determinar si es Local o Foráneo
+                    $local = ($row->ent_municipio_id >= 266 && $row->ent_municipio_id <= 281) || 
+                             ($row->ent_municipio_id >= 657 && $row->ent_municipio_id <= 781);
+                    
+                    // Determinar la clase CSS basada en los días de diferencia y si es Local o Foráneo
+                    if ($local) {
+                        if ($diasDiferencia < 5) {
+                            $clase = $claseVerde;
+                        } elseif ($diasDiferencia < 8) {
+                            $clase = $claseAmarillo;
+                        } elseif ($diasDiferencia < 12) {
+                            $clase = $claseRojo;
+                        } else {
+                            $clase = $claseVioleta;
+                        }
                     } else {
-                        $clase = $claseVioleta;
+                        if ($diasDiferencia < 10) {
+                            $clase = $claseVerde;
+                        } elseif ($diasDiferencia < 13) {
+                            $clase = $claseAmarillo;
+                        } elseif ($diasDiferencia < 16) {
+                            $clase = $claseRojo;
+                        } else {
+                            $clase = $claseVioleta;
+                        }
                     }
                 }
+                $arrFilter = [20, 21, 23];
+                if (!in_array($row->tra_status_id, $arrFilter)) {
+                    return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
+                }
             
-                return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
+                return '<span class="' . $clase . '"></span>';
             });
+
             $crud->fields(["folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id", 
             "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite",
             "comision_derechos", "costo_total", "numero_factura", "numero_refactura", "reembolso_status_id", "tra_status_id", "cobro_status_id", "observaciones"]);
