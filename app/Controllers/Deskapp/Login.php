@@ -21,7 +21,7 @@
 	        $model = new UserModel();
 	        $username = $this->request->getPost('username');
 	        $password = $this->request->getPost('password');
-	        $data = $model->where('username', $username)->first();
+	        $data = $model->where('username', $username)->where('status', 1)->first();
 	        if($data){
 	            $pass = $data['password'];
 	            $verify_pass = password_verify($password, $pass);

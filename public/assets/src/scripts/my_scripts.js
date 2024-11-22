@@ -59,33 +59,15 @@ $(document).ready(function() {
     $("#costo_total").val(suma);
   });
 
-      // function applyBackgroundColors() {
-      //     // Encuentra todas las celdas con el contenido específico y aplica el estilo al <td>
-      //     document.querySelectorAll('td:has(span.background-verde)').forEach(function(td) {
-      //         td.style.backgroundColor = '#a4c3b2';
-      //     });
-      //     document.querySelectorAll('td:has(span.background-amarillo)').forEach(function(td) {
-      //         td.style.backgroundColor = '#f5e1a4';
-      //     });
-      //     document.querySelectorAll('td:has(span.background-rojo)').forEach(function(td) {
-      //         td.style.backgroundColor = '#dba498';
-      //     });
-      //     document.querySelectorAll('td:has(span.background-violeta)').forEach(function(td) {
-      //         td.style.backgroundColor = '#b3a2c9';
-      //     });
-      // }
+  $(document).ajaxSend(function(event, jqxhr, settings) {
+    if (settings.url.includes('ajax_list')) {
+        // Agrega un delay de 2 segundos antes de enviar la solicitud
+        jqxhr.abort(); // Cancela la solicitud original
 
-      // // Ejecuta la función después de un breve retraso para asegurar que la tabla haya cargado
-      // setTimeout(applyBackgroundColors, 1000);
+        setTimeout(function() {
+            $.ajax(settings); // Vuelve a enviar la solicitud después del delay
+        }, 5000); // 2 segundos
+    }
+  });
 
-      // // Opcional: Reintenta la aplicación de estilos cada segundo, en caso de cargas más lentas
-      // let retries = 5;
-      // const interval = setInterval(function() {
-      //     if (retries > 0) {
-      //         applyBackgroundColors();
-      //         retries--;
-      //     } else {
-      //         clearInterval(interval);
-      //     }
-      // }, 1000);
 });
