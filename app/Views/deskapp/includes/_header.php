@@ -111,29 +111,31 @@
 	</div>
 	<div class="header-right">
 			<!-- Botones con iconos -->
-			<div class="btn-group ml-2" role="group">
-				<a href="/deskapp/tramites/tramite" class="btn btn-info btn-custom">
-					<i class="fas fa-list"></i> Consolidado
-				</a>
-				<a href="/deskapp/tramites/add" class="btn btn-danger btn-lg ml-3 btn-custom">
-					<i class="fas fa-plus"></i> Nuevo
-				</a>
-				<a href="/deskapp/tramites/solicitudes" class="btn btn-info btn-custom">
-					<i class="fas fa-file-alt"></i> Solicitudes
-				</a>
-				<a href="/deskapp/tramites/recoleccion" class="btn btn-info btn-custom">
-					<i class="fas fa-truck"></i> Asignaciones
-				</a>
-				<a href="/deskapp/tramites/en_tramite" class="btn btn-info btn-custom">
-					<i class="fas fa-check"></i> En Trámite
-				</a>
-				<a href="/deskapp/proceso/final" class="btn btn-info btn-custom">
-					<i class="fas fa-user"></i> Entregados
-				</a>
-				<a href="/deskapp/tramites/mios" class="btn btn-info btn-custom">
-					<i class="fas fa-user"></i> Mios
-				</a>
-			</div>
+			<?php if (has_permission('header_buttons', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+				<div class="btn-group ml-2" role="group">
+					<a href="/deskapp/tramites/tramite" class="btn btn-info btn-custom">
+						<i class="fas fa-list"></i> Consolidado
+					</a>
+					<a href="/deskapp/tramites/add" class="btn btn-danger btn-lg ml-3 btn-custom">
+						<i class="fas fa-plus"></i> Nuevo
+					</a>
+					<a href="/deskapp/tramites/solicitudes" class="btn btn-info btn-custom">
+						<i class="fas fa-file-alt"></i> Solicitudes
+					</a>
+					<a href="/deskapp/tramites/recoleccion" class="btn btn-info btn-custom">
+						<i class="fas fa-truck"></i> Asignaciones
+					</a>
+					<a href="/deskapp/tramites/en_tramite" class="btn btn-info btn-custom">
+						<i class="fas fa-check"></i> En Trámite
+					</a>
+					<a href="/deskapp/proceso/final" class="btn btn-info btn-custom">
+						<i class="fas fa-user"></i> Entregados
+					</a>
+					<a href="/deskapp/tramites/mios" class="btn btn-info btn-custom">
+						<i class="fas fa-user"></i> Mios
+					</a>
+				</div>
+			<?php endif; ?>
 		<div class="dashboard-setting user-notification">
 			<!-- Botones con iconos -->
 			
