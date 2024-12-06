@@ -63,6 +63,20 @@ class Clidirecto extends BaseController
         $crud->setRelation('cliente_id', 'cliente', 'nombre');
         $crud->displayAs('cliente_id','Cliente');
 
+         // Callbacks para registrar el log
+         $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
@@ -104,6 +118,21 @@ class Clidirecto extends BaseController
             $data['user_id'] = $myid;
             return $data;
         });
+
+         // Callbacks para registrar el log
+         $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);

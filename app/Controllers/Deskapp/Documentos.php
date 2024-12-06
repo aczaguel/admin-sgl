@@ -61,6 +61,20 @@ class Documentos extends BaseController
             $uploadValidations
         );
 
+         // Callbacks para registrar el log
+         $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
@@ -91,6 +105,19 @@ class Documentos extends BaseController
         $crud->fieldType('created_at','hidden');
         $crud->fieldType('updated_at','hidden');
 
+         // Callbacks para registrar el log
+         $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
 
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);

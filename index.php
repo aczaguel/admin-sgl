@@ -35,6 +35,7 @@ $bootstrap = rtrim($paths->systemDirectory, '\\/ ') . DIRECTORY_SEPARATOR . 'boo
 $app       = require realpath($bootstrap) ?: $bootstrap;
 helper(['permissions_heleper']);
 helper(['session_helper']);
+helper(['log_helper']);
 /*
  *---------------------------------------------------------------
  * LAUNCH THE APPLICATION

@@ -60,7 +60,20 @@ class Roles extends BaseController
                 'permission_id', // Llave foránea en la tabla de unión que apunta a la tabla de permisos
                 'permission_name' // Campo que se desea mostrar en el multiselect
             );
-            
+
+            $roles_crud->callbackAfterInsert(function ($stateParameters) use ($roles_crud) {
+                $tableName = $roles_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $roles_crud->callbackAfterUpdate(function ($stateParameters) use ($roles_crud) {
+                $tableName = $roles_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $roles_crud->callbackAfterDelete(function ($stateParameters) use ($roles_crud) {
+                $tableName = $roles_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+
             $roles_output = $roles_crud->render();
             $final_output = array_merge((array)$roles_output, $data);
             echo $this->_example_output($final_output);
@@ -90,6 +103,19 @@ class Roles extends BaseController
             // Relaciones
             $role_permissions_crud->setRelation('role_id', 'us_roles', 'role_name');
             $role_permissions_crud->setRelation('permission_id', 'us_permissions', 'permission_name');
+
+            $role_permissions_crud->callbackAfterInsert(function ($stateParameters) use ($role_permissions_crud) {
+                $tableName = $role_permissions_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $role_permissions_crud->callbackAfterUpdate(function ($stateParameters) use ($role_permissions_crud) {
+                $tableName = $role_permissions_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $role_permissions_crud->callbackAfterDelete(function ($stateParameters) use ($role_permissions_crud) {
+                $tableName = $role_permissions_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
 
             $role_permissions_output = $role_permissions_crud->render();
             $final_output = array_merge((array)$role_permissions_output, $data);

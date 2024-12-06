@@ -143,6 +143,19 @@ class Users extends BaseController
                 }
                 return $stateParameters;
             });
+             // Callbacks para registrar el log
+            $users_crud->callbackAfterInsert(function ($stateParameters) use ($users_crud) {
+                $tableName = $users_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $users_crud->callbackAfterUpdate(function ($stateParameters) use ($users_crud) {
+                $tableName = $users_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $users_crud->callbackAfterDelete(function ($stateParameters) use ($users_crud) {
+                $tableName = $users_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
 
             $users_output = $users_crud->render();
             $final_output = array_merge((array)$users_output, $data);
@@ -173,6 +186,19 @@ class Users extends BaseController
             // Relaciones$user_roles_crud->setRelation('user_id', 'us_users', 'username');
             $user_roles_crud->setRelation('role_id', 'us_roles', 'role_name');
             $user_roles_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+
+            $user_roles_crud->callbackAfterInsert(function ($stateParameters) use ($user_roles_crud) {
+                $tableName = $user_roles_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $user_roles_crud->callbackAfterUpdate(function ($stateParameters) use ($user_roles_crud) {
+                $tableName = $user_roles_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $user_roles_crud->callbackAfterDelete(function ($stateParameters) use ($user_roles_crud) {
+                $tableName = $user_roles_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
 
             $user_roles_output = $user_roles_crud->render();
             $final_output = array_merge((array)$user_roles_output, $data);

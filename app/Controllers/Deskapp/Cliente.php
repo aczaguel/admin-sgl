@@ -56,6 +56,19 @@ class Cliente extends BaseController
             $data['user_id'] = $myid;
             return $data;
         });
+         // Callbacks para registrar el log
+         $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
