@@ -45,6 +45,20 @@ class Permisos extends BaseController
             $permissions_crud->fields(['permission_name', 'description']);
             $permissions_crud->unsetDeleteMultiple();
 
+            $permissions_crud->callbackAfterInsert(function ($stateParameters) use ($permissions_crud) {
+                $tableName = $permissions_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $permissions_crud->callbackAfterUpdate(function ($stateParameters) use ($permissions_crud) {
+                $tableName = $permissions_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $permissions_crud->callbackAfterDelete(function ($stateParameters) use ($permissions_crud) {
+                $tableName = $permissions_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+
+
             $permissions_output = $permissions_crud->render();
             $final_output = array_merge((array)$permissions_output, $data);
             echo $this->_example_output($final_output);

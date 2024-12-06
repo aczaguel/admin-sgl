@@ -28,7 +28,6 @@ use App\Models\ReembolsoStatusModel;
 use App\Models\CobroStatusModel;
 class Tramites extends BaseController
 {
-    public $tableName = "";
     public function __construct() {
         // parent::__construct();
         helper(['form', 'url']);
@@ -583,26 +582,21 @@ class Tramites extends BaseController
             $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/'.$id);
             $output_docs = $cruddocstatus->render();            
             
-
             $crudevidencias = $this->_getGroceryCrudEnterprise();
             $crudevidencias->setApiUrlPath('/deskapp/tramites/single_evidencias/'.$id);
             $outputevidencias = $crudevidencias->render();
-
-
 
             $crudevidencias_finales = $this->_getGroceryCrudEnterprise();
             $crudevidencias_finales->setApiUrlPath('/deskapp/tramites/single_evidencias_finales/' . $id);
             $outputevidencias_finales = $crudevidencias_finales->render();
 
-
-            
             $crud_derechos = $this->_getGroceryCrudEnterprise();
             $crud_derechos->setApiUrlPath('/deskapp/tramites/single_pago_derechos/' . $id);
             $output_derechos = $crud_derechos->render();
             
-
             // $output_docs->output .= "<hr>".$outputevidencias->output;
             // $form->output_docs = $output->output;
+            
             $form->output_docs = $output_docs->output;
             $form->output_bitacora = $outputevidencias->output;
             $form->outputevidencias_finales = $outputevidencias_finales->output;
@@ -2098,6 +2092,19 @@ class Tramites extends BaseController
             $data['user_id'] = $myid;
             return $data;
         });
+         // Callbacks para registrar el log
+         $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
@@ -2116,6 +2123,20 @@ class Tramites extends BaseController
 
         $crud->setTable('tra_status');
         $crud->setSubject('Etatus de Tramite', 'Estatuses de Tramite');
+
+        // Callbacks para registrar el log
+        $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
 
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
@@ -2364,6 +2385,19 @@ class Tramites extends BaseController
             return $data;
         });
 
+        // Callbacks para registrar el log
+        $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
 
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
@@ -2669,6 +2703,19 @@ class Tramites extends BaseController
             $data['tramite_id'] = $tramite_id;
             return $data;
         });
+        // Callbacks para registrar el log
+        $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
 
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
@@ -2842,80 +2889,23 @@ class Tramites extends BaseController
             return $data;
         });
 
-        $this->tableName = 'tra_pago_derechos';
         // Callbacks para registrar el log
         $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
             $tableName = $crud->getTable();
-            return $this->logOperation($stateParameters, $tableName);
+            return logOperation($stateParameters, $tableName);
         });
         $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
             $tableName = $crud->getTable();
-            return $this->logOperation($stateParameters, $tableName);
+            return logOperation($stateParameters, $tableName);
         });
         $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
             $tableName = $crud->getTable();
-            return $this->logOperation($stateParameters, $tableName);
+            return logOperation($stateParameters, $tableName);
         });
 
         $salida = $crud->render();
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
-    }
-
-    public function logOperation($postArray, $tableName)
-    {
-        $userId = session()->get('id'); // Obtener el ID del usuario desde la sesión
-        $uri = $this->request->getUri()->getPath(); // Obtener el path completo de la URL
-
-        // Verificar exclusiones: si es la raíz ("/") o contiene 'login', omitir
-        if ($uri === '/' || strpos($uri, 'login') !== false) {
-            return; // Omitir registros de la raíz y de login
-        }
-
-        // Filtrar solo solicitudes de tipo insert, update o delete
-        $method = $this->request->getMethod();
-        if (!in_array(strtolower($method), ['post', 'put', 'delete', 'patch'])) {
-            return; // Si no es POST, PUT o DELETE, salir
-        }
-
-        // Extraer controlador y acción
-        $controller = $this->request->uri->getSegment(2); // Segundo segmento como controlador
-        $action = $this->request->uri->getSegment(3);     // Tercer segmento como acción
-
-        // Capturar todos los números de la URL como IDs
-        preg_match_all('/\d+/', $uri, $matches);
-        $numbers = $matches[0] ?? []; // Acceder al primer índice del arreglo
-
-        $sent_id = isset($numbers[0]) ? (int)$numbers[0] : null; // Primer número encontrado
-        $actionIds = count($numbers) > 1 ? implode(',', array_slice($numbers, 1)) : null; // Resto de los números concatenados
-
-        // Determinar el contenido de la respuesta
-        $responseContent = $this->response->getHeaderLine('Content-Type');
-        $responseBody = (strpos($responseContent, 'application/json') !== false) 
-                        ? $this->response->getBody() 
-                        : 'html response';
-
-        $logModel = new \App\Models\ApiLogModel();
-
-        // Preparar datos para registrar en la base de datos
-        $logData = [
-            'method'     => $method,
-            'endpoint'   => $uri,
-            'controller' => $controller,
-            'action'     => $action,
-            'sent_id'      => $sent_id,              // Primer número encontrado
-            'vista' => $actionIds,         // Números restantes concatenados
-            'body'       => json_encode($this->request->getPost() ?: $this->request->getJSON(true)), // Datos enviados
-            'tabla'      =>  $tableName, // Nombre de la tabla afectada
-            'response'   => $responseBody,
-            'user_id'    => $userId,
-            'ip_address' => $this->request->getIPAddress(),
-            'user_agent' => $this->request->getUserAgent()->getAgentString(),
-        ];
-        // Registrar en el log
-        $logModel->insert($logData);
-
-        return $postArray; // Regresar el array para continuar con la operación
     }
 
     public function single_evidencias_finales(){
@@ -3029,6 +3019,20 @@ class Tramites extends BaseController
             $data['tramite_id'] = $tramite_id;
 
             return $data;
+        });
+
+        // Callbacks para registrar el log
+        $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            $tableName = $crud->getTable();
+            return logOperation($stateParameters, $tableName);
         });
 
         $salida = $crud->render();

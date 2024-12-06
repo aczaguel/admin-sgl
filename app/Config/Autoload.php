@@ -43,7 +43,7 @@ class Autoload extends AutoloadConfig
 		APP_NAMESPACE => APPPATH, // For custom app namespace
 		'Config'      => APPPATH . 'Config',
 	];
-
+	public $helpers = ['log_helper'];
 	/**
 	 * -------------------------------------------------------------------
 	 * Class Map
@@ -63,5 +63,4 @@ class Autoload extends AutoloadConfig
 	 * @var array<string, string>
 	 */
 	public $classmap = [];
-	
 }
