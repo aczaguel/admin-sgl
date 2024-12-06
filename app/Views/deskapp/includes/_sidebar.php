@@ -50,7 +50,7 @@
 						</ul>
 					</li> -->
 					<?php if (has_permission('menu_proceso_final', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<li class="dropdown">
+						<!-- <li class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle">
 								<span class="micon dw dw-house-1"></span><span class="mtext">Proceso Final</span>
 							</a>
@@ -59,7 +59,7 @@
 									<li><a href="<?php echo base_url('deskapp/proceso/final'); //listar_final_tramite?>">Finalizando</a></li>
 								<?php endif; ?>	
 							</ul>
-						</li>
+						</li> -->
 					<?php endif; ?>	
 					<?php if (has_permission('menu_gestores', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 						<br>
