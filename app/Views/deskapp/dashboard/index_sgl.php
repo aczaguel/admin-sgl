@@ -171,9 +171,11 @@
 		var graphData = <?= json_encode($graph ?? []); ?>;
 		var perMonth = <?= json_encode($perMonth ?? []); ?>;
 	</script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 	<script src="<?= $assets ?>/src/plugins/datatables/js/dataTables.bootstrap4.min.js"></script>
-	<script src="<?= $assets ?>/src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
-	<script src="<?= $assets ?>/src/plugins/apexcharts/apexcharts.min.js"></script>
-	<script src="<?= $assets ?>/vendors/scripts/dashboard.js"></script>
+	<script src="<?= $assets ?>/src/plugins/datatables/js/responsive.bootstrap4.min.js"></script> -->
+	
 <?= $this->endSection() ?>
+
+<script src="<?= $assets ?>/src/plugins/apexcharts/apexcharts.min.js"></script>
+<script src="<?= $assets ?>/vendors/scripts/dashboard.js"></script>
