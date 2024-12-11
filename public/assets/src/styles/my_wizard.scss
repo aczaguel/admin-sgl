@@ -17,3 +17,88 @@ html {
 .step-content {
     padding:40px 0;
 }
+
+
+.form-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+.form-group {
+    width: 50%;
+    box-sizing: border-box;
+    padding: 10px;
+}
+.form-group label {
+    display: block;
+}
+.form-group input,
+.form-group select {
+    width: 100%;
+}
+
+.error {
+    color: red;
+}
+.error-message {
+    font-size: 0.875em; /* Smaller font size for error messages */
+}
+.select2-container--default .select2-selection--single {
+    height: calc(2.25rem + 2px); /* Tamaño del campo ajustado a Bootstrap */
+    padding: 0.375rem 0.75rem;    /* Padding ajustado a los inputs de Bootstrap */
+    border: 1px solid #ced4da;    /* Estilo del borde de Bootstrap */
+    border-radius: 0.25rem;       /* Bordes redondeados típicos de Bootstrap */
+}
+
+.select2-selection__rendered {
+    line-height: calc(2.25rem);   /* Alineación vertical del texto dentro del select */
+}
+
+.select2-container .select2-selection--single .select2-selection__arrow {
+    height: calc(2.25rem);        /* Tamaño del icono de la flecha */
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #444;
+    line-height: 15px !important;
+}
+
+.header_wizard {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border: 1px solid #ccc;
+    width: 100%;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-style: italic;
+    border-radius: 5px;
+}
+
+.header_wizard-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.header_wizard-bottom {
+    text-align: right;
+    margin-top: 10px;
+}
+.wizard > .steps > ul > li {
+    width: 12.5% !important;
+}
+
+
+a.nav-link.active.text-blue {
+    font-size: 14px !important;
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link {
+    border: 1px solid transparent;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    font-size: 14px !important;
+    color: #000 !important;
+    font-weight: 400;
+}

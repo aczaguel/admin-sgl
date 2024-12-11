@@ -43,7 +43,7 @@ class Autoload extends AutoloadConfig
 		APP_NAMESPACE => APPPATH, // For custom app namespace
 		'Config'      => APPPATH . 'Config',
 	];
-	public $helpers = ['log_helper'];
+	public $helpers = ['log_helper', 'wizard_form_helper'];
 	/**
 	 * -------------------------------------------------------------------
 	 * Class Map

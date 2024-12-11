@@ -36,6 +36,7 @@ $app       = require realpath($bootstrap) ?: $bootstrap;
 helper(['permissions_heleper']);
 helper(['session_helper']);
 helper(['log_helper']);
+helper(['wizard_form_helper']);
 /*
  *---------------------------------------------------------------
  * LAUNCH THE APPLICATION
