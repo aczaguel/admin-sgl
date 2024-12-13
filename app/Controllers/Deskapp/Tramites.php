@@ -26,6 +26,8 @@ use App\Models\CobroStatusesModel;
 use App\Models\TraUserLogModel;
 use App\Models\ReembolsoStatusModel;
 use App\Models\CobroStatusModel;
+use App\Models\PagoDerechosModel;
+
 class Tramites extends BaseController
 {
     public function __construct() {
@@ -471,6 +473,8 @@ class Tramites extends BaseController
         $cobro_status = new CobroStatusModel($db2);
         $cobro_status_options = $cobro_status->getCobroStatusOptions();
 
+        $pago_derechos = new PagoDerechosModel($db2);
+        $pago_derechos_db = $pago_derechos->getImgDerechosByTramiteId($id);
 
         // $cobroStatuses = new CobroStatusesModel($db2);
         // $cobro_status_options = $cobroStatuses->getCobroStatusesOptions();
@@ -537,6 +541,100 @@ class Tramites extends BaseController
             "derechos_refer_banc" => ["label" => "Referencia Bancaria", "type" => "text", "value" => $tramite['derechos_refer_banc'], "required" => "required"],
         ];
 
+
+        // $db = \Config\Database::connect();
+        // $builder = $db->table('tra_pago_derechos');
+        // $builder->select('id, file, comentario, costo, created_at, updated_at');
+        // $builder->where('tramite_id', $tramiteId);
+        // $builder->where('status', 1);
+
+        // $query = $builder->get();
+        // $result = $query->getResultArray();
+
+        // $pagos_derechos = $this->response->setHeader('Content-Type', 'application/json')
+        //                     ->setJSON($result);
+
+
+        $storeFolder = 'assets/uploads/pago_derechos/'.$id;
+        if (!file_exists($storeFolder)) {
+            if (mkdir($storeFolder, 0777, true)) { // true permite crear directorios recursivamente
+                chmod($storeFolder, 0777); // Asegura que los permisos sean 777
+                // echo "Carpeta creada exitosamente con permisos 777.";
+            } else {
+                // echo "No se pudo crear la carpeta.";
+            }
+        } else {
+            // echo "La carpeta ya existe.";
+        }
+
+        
+        // $result  = array();
+        $result = [];
+    $ds = DIRECTORY_SEPARATOR;
+
+    // Rutas de carpetas
+    $storeFolderGeneral = 'assets/uploads/pago_derechos/';
+    $storeFolderSpecific = 'assets/uploads/pago_derechos/' . $id . $ds;
+
+    // Consulta a la base de datos
+    $pago_derechos_db = $db->table('tra_pago_derechos')
+                           ->select('file')
+                           ->where('tramite_id', $id)
+                           ->get()
+                           ->getResultObject();
+
+    // Función para asignar íconos personalizados según el tipo de archivo
+    $assignIcon = function ($extension) {
+        $icons = [
+            'pdf'  => '/public/assets/src/images/pdf-icon.png',
+            'doc'  => '/public/assets/src/images/doc-icon.png',
+            'docx' => '/public/assets/src/images/docx-icon.png',
+            'xls'  => '/public/assets/src/images/xls-icon.png',
+            'xlsx' => '/public/assets/src/images/xlsx-icon.png',
+            'txt'  => '/public/assets/src/images/txt-icon.png',
+            'zip'  => '/public/assets/src/images/zip-icon.png',
+            'rar'  => '/public/assets/src/images/rar-icon.png',
+        ];
+        return $icons[$extension] ?? '/public/assets/src/images/file-icon.png'; // Ícono genérico por defecto
+    };
+
+    // 1. Validar archivos registrados en la base de datos (carpeta global)
+    foreach ($pago_derechos_db as $dbFile) {
+        $filePath = FCPATH . $storeFolderGeneral . $dbFile->file;
+        if (file_exists($filePath)) {
+            $extension = pathinfo($dbFile->file, PATHINFO_EXTENSION);
+            $obj['name'] = $dbFile->file;
+            $obj['size'] = filesize($filePath);
+            $obj['existing_path'] = base_url($storeFolderGeneral . $dbFile->file); // Ruta para la vista
+            $obj['icon'] = $assignIcon($extension); // Asignar ícono según extensión
+            $result[] = $obj;
+        }
+    }
+
+    // 2. Validar archivos en la carpeta específica
+    if (is_dir(FCPATH . $storeFolderSpecific)) {
+        $filesSpecific = scandir(FCPATH . $storeFolderSpecific);
+        if ($filesSpecific !== false) {
+            foreach ($filesSpecific as $file) {
+                if ($file !== '.' && $file !== '..') {
+                    $filePath = FCPATH . $storeFolderSpecific . $file;
+                    if (file_exists($filePath)) {
+                        $extension = pathinfo($file, PATHINFO_EXTENSION);
+                        $obj['name'] = $file;
+                        $obj['size'] = filesize($filePath);
+                        $obj['existing_path'] = base_url($storeFolderSpecific . $file); // Ruta para la vista
+                        $obj['icon'] = $assignIcon($extension); // Asignar ícono según extensión
+                        $result[] = $obj;
+                    }
+                }
+            }
+        }
+    }
+
+        $images_derechos = $result;
+
+
+
         $form->final_campos = [
             "id_give_cliente" => ["label" => "ID del cliente", "type" => "text", "value" => $tramite['id_give_cliente'], "required" => "required"],
             "numero_factura" => ["label" => "Número de Factura", "type" => "text", "value" => $tramite['numero_factura'], "required" => "required"],
@@ -556,7 +654,7 @@ class Tramites extends BaseController
         //     unset($output->fields['empresa_gestora_id']);
         //     unset($output->fields['gestor_id']);
         // }
-
+        
         $data['id'] = $id;
         $data['folio'] = $tramite['folio'];
         $data['tra_tipo'] = $tra_tipos_options[$tramite['tra_tipos_id']];
@@ -567,7 +665,7 @@ class Tramites extends BaseController
         $data['step'] = $tra_status_steps[$tramite['tra_status_id']];
         $data['started_at'] = $tramite['started_at'];
         $data['derechos_comprobante'] = $tramite['derechos_comprobante'];
-        
+        $data['images_derechos_comprobante'] = $images_derechos;
         $form->id = $id;
 
         $crud = $this->_getGroceryCrudEnterprise();
@@ -918,75 +1016,181 @@ class Tramites extends BaseController
         return $this->_example_output_2($form, 'add');
     }
 
-    public function upload_comprobante(){   
-        $db2 = $this->_getDbData();
-        if ($this->request->isAJAX()) {
-            $validation = \Config\Services::validation();
+    // public function upload_comprobante()
+    // {
 
-            // Definir reglas de validación para el archivo
-            $validation->setRules([
-                'image' => [
-                    'rules' => 'uploaded[image]|max_size[image,10240]|ext_in[image,jpg,jpeg,png,pdf]',
-                    'errors' => [
-                        'uploaded' => 'No se seleccionó ningún archivo.',
-                        'max_size' => 'El tamaño máximo del archivo es de 10MB.',
-                        'ext_in' => 'Solo se permiten archivos con extensiones jpg, jpeg, png, pdf.',
-                    ]
-                ]
-            ]);
+    //     $request = \Config\Services::request();
 
-            if (!$validation->withRequest($this->request)->run()) {
-                // Retornar los errores de validación
-                return $this->response->setJSON(['success' => false, 'errors' => $validation->getErrors()]);
-            }
+    //     $uri = $request->getUri();
+    //     $tramiteId = (int) $uri->getSegment(4);
 
-            // Obtener el archivo subido
-            $file = $this->request->getFile('image');
-            $tramiteId = $this->request->getPost('tramite_id');
+    //     if ($tramiteId === null) {
+    //         return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+    //     }
 
-            // Mover el archivo a la carpeta deseada
-            if ($file->isValid() && !$file->hasMoved()) {
-                $fileName = $file->getRandomName();
-                $file->move('assets/uploads/tramites/', $fileName);
+    //     // $tramiteId = $this->request->getPost('tramiteId');
+    //     $file = $this->request->getFile('file');
 
-                // Obtener el archivo anterior usando el Query Builder
+    //     if ($file->isValid() && !$file->hasMoved()) {
+    //         $fileName = $file->getRandomName();
+    //         $filePath = WRITEPATH . "assets/uploads/tramites/{$tramiteId}/";
+            
+    //         if (!is_dir($filePath)) {
+    //             mkdir($filePath, 0777, true); // Crear carpeta si no existe
+    //         }
+
+    //         $file->move($filePath, $fileName);
+
+    //         return $this->response->setJSON(['success' => true, 'fileName' => $fileName]);
+    //     }
+
+    //     return $this->response->setJSON(['success' => false, 'message' => 'Error al subir archivo']);
+    // }
+
+    // public function delete_comprobante()
+    // {
+    //     $fileName = $this->request->getPost('fileName');
+    //     $tramiteId = $this->request->getPost('tramiteId');
+
+    //     $filePath = WRITEPATH . "assets/uploads/tramites/{$tramiteId}/{$fileName}";
+
+    //     if (file_exists($filePath)) {
+    //         unlink($filePath); // Eliminar archivo
+    //         return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente']);
+    //     }
+
+    //     return $this->response->setJSON(['success' => false, 'message' => 'Archivo no encontrado']);
+    // }
+
+
+
+    public function upload_comprobante()
+    {
+        $request = \Config\Services::request();
+
+        $uri = $request->getUri();
+        $tramiteId = (int) $uri->getSegment(4);
+
+        if ($tramiteId === null) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        }
+
+        $ds = DIRECTORY_SEPARATOR; 
+        $storeFolder = 'assets/uploads/pago_derechos/' . $tramiteId; // Carpeta destino para los archivos
+        $targetPath = FCPATH . $storeFolder . $ds;
+
+        if (!is_dir($targetPath)) {
+            mkdir($targetPath, 0777, true); // Crear carpeta si no existe
+        }
+
+        if (!empty($_FILES['file'])) {
+            // Subir archivo
+            $tempFile = $_FILES['file']['tmp_name'];         
+            $originalFileName = pathinfo($_FILES['file']['name'], PATHINFO_FILENAME); // Nombre del archivo sin extensión
+            $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION); // Extensión del archivo
+            
+            // Generar cadena aleatoria del tipo "-00ffbb"
+            $randomHex = '-' . substr(bin2hex(random_bytes(3)), 0, 6);
+
+            // Concatenar la cadena aleatoria al nombre del archivo
+            $fileName = $originalFileName . $randomHex . '.' . $extension;         
+            $targetFile = $targetPath . $fileName;
+
+            if (move_uploaded_file($tempFile, $targetFile)) {
+                // Guardar el registro en la tabla tra_pago_derechos
                 $db = \Config\Database::connect();
-                $builder = $db->table('tramite');
-                $builder->select('derechos_comprobante');
-                $builder->where('id', $tramiteId);
-                $existingData = $builder->get()->getRowArray();
-
-                // Verificar si existe un archivo anterior y eliminarlo
-                if (!empty($existingData['derechos_comprobante'])) {
-                    $previousFilePath = FCPATH . 'assets/uploads/tramites/' . $existingData['derechos_comprobante'];
-                    
-                    if (file_exists($previousFilePath)) {
-                        if (unlink($previousFilePath)) {
-                            // Archivo eliminado correctamente
-                        } else {
-                            // Error al eliminar el archivo
-                            return $this->response->setJSON(['success' => false, 'message' => 'Error al eliminar el archivo anterior']);
-                        }
-                    }
-                }
-
-                // Actualizar la base de datos con el nombre del archivo nuevo
+                $builder = $db->table('tra_pago_derechos');
                 $data = [
-                    'derechos_comprobante' => $fileName,
+                    'tramite_id' => $tramiteId,
+                    'file' => $fileName,
+                    'user_id' => session()->get('user_id'), // Asume que el ID del usuario está en la sesión
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'status' => 1
                 ];
+                $builder->insert($data);
 
-                $builder->where('id', $tramiteId);
-                $builder->update($data);
-
-                // Retornar respuesta JSON de éxito
-                return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido correctamente']);
+                return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente']);
             } else {
-                // Error al mover el archivo
-                return $this->response->setJSON(['success' => false, 'message' => 'Error al subir el archivo']);
+                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
             }
         }
-        return $this->response->setJSON(['success' => false, 'message' => 'Solicitud no válida']);
+
+        return $this->response->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
     }
+
+
+
+
+    // public function upload_comprobante(){   
+    //     $db2 = $this->_getDbData();
+    //     if ($this->request->isAJAX()) {
+    //         $validation = \Config\Services::validation();
+
+    //         // Definir reglas de validación para el archivo
+    //         $validation->setRules([
+    //             'image' => [
+    //                 'rules' => 'uploaded[image]|max_size[image,10240]|ext_in[image,jpg,jpeg,png,pdf]',
+    //                 'errors' => [
+    //                     'uploaded' => 'No se seleccionó ningún archivo.',
+    //                     'max_size' => 'El tamaño máximo del archivo es de 10MB.',
+    //                     'ext_in' => 'Solo se permiten archivos con extensiones jpg, jpeg, png, pdf.',
+    //                 ]
+    //             ]
+    //         ]);
+
+    //         if (!$validation->withRequest($this->request)->run()) {
+    //             // Retornar los errores de validación
+    //             return $this->response->setJSON(['success' => false, 'errors' => $validation->getErrors()]);
+    //         }
+
+    //         // Obtener el archivo subido
+    //         $file = $this->request->getFile('image');
+    //         $tramiteId = $this->request->getPost('tramite_id');
+
+    //         // Mover el archivo a la carpeta deseada
+    //         if ($file->isValid() && !$file->hasMoved()) {
+    //             $fileName = $file->getRandomName();
+    //             $file->move('assets/uploads/tramites/', $fileName);
+
+    //             // Obtener el archivo anterior usando el Query Builder
+    //             $db = \Config\Database::connect();
+    //             $builder = $db->table('tramite');
+    //             $builder->select('derechos_comprobante');
+    //             $builder->where('id', $tramiteId);
+    //             $existingData = $builder->get()->getRowArray();
+
+    //             // Verificar si existe un archivo anterior y eliminarlo
+    //             if (!empty($existingData['derechos_comprobante'])) {
+    //                 $previousFilePath = FCPATH . 'assets/uploads/tramites/' . $existingData['derechos_comprobante'];
+                    
+    //                 if (file_exists($previousFilePath)) {
+    //                     if (unlink($previousFilePath)) {
+    //                         // Archivo eliminado correctamente
+    //                     } else {
+    //                         // Error al eliminar el archivo
+    //                         return $this->response->setJSON(['success' => false, 'message' => 'Error al eliminar el archivo anterior']);
+    //                     }
+    //                 }
+    //             }
+
+    //             // Actualizar la base de datos con el nombre del archivo nuevo
+    //             $data = [
+    //                 'derechos_comprobante' => $fileName,
+    //             ];
+
+    //             $builder->where('id', $tramiteId);
+    //             $builder->update($data);
+
+    //             // Retornar respuesta JSON de éxito
+    //             return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido correctamente']);
+    //         } else {
+    //             // Error al mover el archivo
+    //             return $this->response->setJSON(['success' => false, 'message' => 'Error al subir el archivo']);
+    //         }
+    //     }
+    //     return $this->response->setJSON(['success' => false, 'message' => 'Solicitud no válida']);
+    // }
 
 
 

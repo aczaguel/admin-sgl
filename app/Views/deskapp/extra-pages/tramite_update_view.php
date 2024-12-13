@@ -1,4 +1,8 @@
 <?php 
+// var_dump(json_decode($images_derechos_comprobante));
+// $images_derechos_comprobante = json_decode(json_encode($images_derechos_comprobante));
+// var_dump($images_derechos_comprobante);
+
 if (isset($tra_status_id)) {
     // Obtener la URL actual
     $currentUrl = $_SERVER['REQUEST_URI'];
@@ -23,6 +27,25 @@ if (isset($tra_status_id)) {
 
 <?= $this->section('additional_css') ?>
 <!-- CSS adicionales -->
+<style>
+        .file-preview {
+            border: 1px solid #ddd;
+            padding: 3px;
+            border-radius: 5px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .file-preview img {
+            max-width: 100px;
+            height: auto;
+            max-height: 100px;
+            margin-bottom: 10px;
+        }
+        .file-preview a {
+            display: block;
+            word-wrap: break-word;
+        }
+    </style>
 <?php $assets = base_url('/public/assets'); ?>
 	<?php foreach($css_files as $file): ?>
         <link type="text/css" rel="stylesheet" href="<?php echo $file; ?>" />
@@ -31,6 +54,7 @@ if (isset($tra_status_id)) {
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.css">
 	<link rel="stylesheet" href="<?= $assets ?>/src/styles/my_wizard.scss">
 	<link rel="stylesheet" href="<?= $assets ?>/src/styles/jquery.steps.css">
+	<link rel="stylesheet" href="<?= $assets ?>/src/styles/dropzone.css">
 	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 	<script>
 		var wiz_step = "<?php echo isset($step) ? (int)($step - 1) : 0; ?>";
@@ -40,13 +64,14 @@ if (isset($tra_status_id)) {
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>	
-		
+	
 	<?php if(isset($tra_status_id) && $tra_status_id == 23) : ?>
 		<li class="nav-item">
 			<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
 		</li>
 	<?php endif; ?>
 	<div class="main-container">
+		
 		<div class="header_wizard">
 				<!-- Botón para abrir el modal -->
 			
@@ -527,10 +552,56 @@ if (isset($tra_status_id)) {
 									<hr>
 									<div>
 										<?php 
-											if (!empty($output_derechos)) {
-													echo $output_derechos;
-											}
+											// if (!empty($output_derechos)) {
+											// 		echo $output_derechos;
+											// }
+											
 										?>
+											<form action="/deskapp/tramites/upload_comprobante/3" class="dropzone"></form>	
+											</hr>
+											<br><br>
+										<!-- <div class="container mt-5">
+											<h1 class="mb-4">Archivos Subidos</h1> -->
+											<div class="row">
+    <?php foreach ($images_derechos_comprobante as $file): ?>
+        <div class="col-md-2">
+            <div class="file-preview text-center">
+                <?php 
+                    // Verificar si el archivo es una imagen
+                    $isImage = in_array(pathinfo($file['name'], PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                ?>
+
+                <?php if ($isImage): ?>
+                    <!-- Mostrar imagen -->
+                    <a href="<?php echo $file['existing_path']; ?>" target="_blank">
+                        <img src="<?php echo $file['existing_path']; ?>" 
+                             alt="<?php echo $file['name']; ?>" 
+                             class="img-thumbnail" 
+                             style="width: 100px; height: auto;">
+                    </a>
+                <?php else: ?>
+                    <!-- Mostrar ícono según el tipo de archivo -->
+                    <a href="<?php echo $file['existing_path']; ?>" target="_blank">
+                        <img src="<?php echo $file['icon']; ?>" 
+                             alt="File Icon" 
+                             class="img-thumbnail" 
+                             style="width: 70px; height: auto;">
+                    </a>
+                <?php endif; ?>
+
+                <p style="font-size: 12px; color: #555;"><?php echo $file['name']; ?></p>
+            </div>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+
+										<!-- </div> -->
+
+
+
+											
+										
 									</div>
 									
 								</section>
@@ -815,6 +886,8 @@ if (isset($tra_status_id)) {
 	<script src="<?= $assets ?>/src/scripts/forms_scripts.js?v=<?php echo time(); ?>"></script>
 	<script src="<?= $assets ?>/src/scripts/my_scripts.js?v=<?php echo time(); ?>"></script>
 	<script src="<?= $assets ?>/src/scripts/my_wizard.js?v=<?php echo time(); ?>"></script>
+	<script src="<?= $assets ?>/src/scripts/dropzone.js?v=<?php echo time(); ?>"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <?= $this->endSection() ?>
 
 

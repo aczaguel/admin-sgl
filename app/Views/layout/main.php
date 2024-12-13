@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
         <title><?= $title ?? 'SGL - Dashboard' ?></title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
 
         <!-- Favicon -->
         <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('/public/assets/vendors/images/apple-touch-icon.png') ?>">
@@ -35,7 +36,7 @@
     </head>
     <body>
         	<!-- Scripts -->
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+            <script src="https://unpkg.com/jquery@3.6.4/dist/jquery.min.js"></script>
             <script src="<?= $assets ?>/vendors/scripts/core.js"></script>
             <script src="<?= $assets ?>/vendors/scripts/script.min.js"></script>
             <script src="<?= $assets ?>/vendors/scripts/process.js"></script>

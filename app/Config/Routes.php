@@ -73,6 +73,10 @@ $routes->post('/tramites/single_documentostatus/(:id)', 'Deskapp/Tramites::singl
 $routes->get('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_comprobante/(:id)',['filter' => 'auth']);
 $routes->post('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_comprobante/(:id)');
 
+$routes->get('/tramites/delete_comprobante/(:id)', 'Deskapp/Tramites::delete_comprobante/(:id)',['filter' => 'auth']);
+$routes->post('/tramites/delete_comprobante/(:id)', 'Deskapp/Tramites::delete_comprobante/(:id)');
+
+
 $routes->get('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/(:id)',['filter' => 'auth']);
 $routes->post('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/(:id)');
 
