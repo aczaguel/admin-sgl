@@ -591,12 +591,52 @@ $(document).ready(function() {
       previous: "Anterior",
       loading: "Cargando..."
     },
-    onStepChanged: function (event, currentIndex) {
-      // Guarda el índice de la pestaña actual en localStorage
-      // localStorage.setItem("wizardStep", currentIndex);
+    // onStepChanged: function (event, currentIndex) {
+    //   // Guarda el índice de la pestaña actual en localStorage
+    //   // localStorage.setItem("wizardStep", currentIndex);
+    // },
+    onStepChanging: function (event, currentIndex, newIndex) {
+      // Validar o inicializar scripts antes de cambiar de paso
+      return true; // Devuelve true para permitir el cambio de paso
+    },
+    onStepChanged: function (event, currentIndex, priorIndex) {
+        // Reejecutar inicializaciones cuando se cambia de paso
+        reinitializeScripts();
     }
+
+    
   });
-  
+    function reinitializeScripts() {
+        // Inicializar Dropzone
+      if (Dropzone.instances.length > 0) {
+        Dropzone.instances.forEach(function (dz) {
+            dz.destroy(); // Destruir instancias previas para evitar conflictos
+        });
+      }
+      // Reactivación de Grocery CRUD
+      if (typeof groceryCrud !== 'undefined') {
+        groceryCrud();
+      }   
+
+      $(".dropzone").each(function () {
+          const dropzone = new Dropzone(this, {
+              url: $(this).data("action") || "/deskapp/tramites/upload_comprobante/"+tramite_id, // URL de destino, puedes personalizarla
+              maxFilesize: 10, // Tamaño máximo en MB
+              acceptedFiles: "image/jpeg,image/png,application/pdf", // Tipos permitidos
+              init: function () {
+                  this.on("success", function (file, response) {
+                      console.log("Archivo subido correctamente:", response);
+                  });
+                  this.on("error", function (file, errorMessage) {
+                      console.error("Error al subir archivo:", errorMessage);
+                  });
+              }
+          });
+      });
+      // Por ejemplo, inicializar un plugin de jQuery o un evento
+      $('.datepicker').datepicker();
+      $('.select2').select2();
+    }
   // var savedStep = localStorage.getItem("wizardStep");
   
   // Si hay un paso guardado, mostrarlo al recargar la página
