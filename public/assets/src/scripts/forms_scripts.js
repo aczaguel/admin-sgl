@@ -677,11 +677,6 @@ $(document).ready(function() {
               init: function () {
                   dropzones[index] = this; // Almacenar instancia Dropzone en el array
       
-                  // Evento cuando se elimina un archivo manualmente
-                  this.on("sending", function (file, xhr, formData) {
-                    // Envía el nuevo nombre al servidor
-                    formData.append("newFilename", this.options.renameFilename(file.name));
-                  });
                   this.on("removedfile", function (file) {
                       console.log("Archivo eliminado:", file.name);
       
