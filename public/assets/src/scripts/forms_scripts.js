@@ -1,3 +1,5 @@
+
+"use strict";
 function loadDependentData(type, parentId, targetId, selectedId = null) {
   $.ajax({
       url: `/deskapp/tramites/getDependentData/${type}/${parentId}`,
@@ -591,6 +593,13 @@ $(document).ready(function() {
       previous: "Anterior",
       loading: "Cargando..."
     },
+
+    onInit: function () {
+        // Mueve los botones a la parte superior
+        var $buttonContainer = $(".aiia-wizard-buttons");
+        $("#wizard").prepend($buttonContainer);
+    },
+  
     // onStepChanged: function (event, currentIndex) {
     //   // Guarda el índice de la pestaña actual en localStorage
     //   // localStorage.setItem("wizardStep", currentIndex);
@@ -618,21 +627,126 @@ $(document).ready(function() {
         groceryCrud();
       }   
 
-      $(".dropzone").each(function () {
+
+
+      $(document).ready(function () {
+        let dropzones = []; // Array para almacenar las instancias Dropzone
+    
+        $(".dropzone").each(function (index) {
           const dropzone = new Dropzone(this, {
-              url: $(this).data("action") || "/deskapp/tramites/upload_comprobante/"+tramite_id, // URL de destino, puedes personalizarla
+              url: $(this).data("action") || "/deskapp/tramites/upload_comprobante/" + tramite_id,
+              autoProcessQueue: false, // No subir automáticamente
               maxFilesize: 10, // Tamaño máximo en MB
-              acceptedFiles: "image/jpeg,image/png,application/pdf", // Tipos permitidos
+              acceptedFiles: "image/jpeg,image/png,application/pdf", // Archivos permitidos
+              addRemoveLinks: true, // Botón "Quitar"
+              dictRemoveFile: "Quitar", // Texto para el botón de quitar
+              
+              renameFile: function(file){
+                const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
+                    .map(byte => byte.toString(16).padStart(2, '0'))
+                    .join('');
+                // Concatenar el nombre original del archivo con la cadena aleatoria
+                const originalName = file.name.split('.').slice(0, -1).join('.'); // Nombre sin la extensión
+                const extension = file.name.split('.').pop(); // Obtener la extensión
+                var newname = originalName + randomHex + '.' + extension;
+                console.log("Archivo agregado con nuevo nombre:", newname);
+                file.name = newname;
+                return newname;
+              },
+              // Renombrar archivo antes de subir
+              // renameFilename: function (file) {
+              //     const randomHex = '-' + Math.random().toString(16).substring(2, 8); // Generar cadena aleatoria
+              //     const timestamp = Date.now(); // Agregar un timestamp
+              //     const extension = file.name.split('.').pop(); // Obtener la extensión del archivo
+              //     return `${timestamp}${randomHex}.${extension}`; // Nombre renombrado
+              // },
+              // renameFile: function (file) {
+              //   const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
+              //       .map(byte => byte.toString(16).padStart(2, '0'))
+              //       .join('');
+
+              //   // Concatenar el nombre original del archivo con la cadena aleatoria
+              //   const originalName = file.name.split('.').slice(0, -1).join('.'); // Nombre sin la extensión
+              //   const extension = file.name.split('.').pop(); // Obtener la extensión
+              //   file.name = originalName + randomHex + '.' + extension;
+              //   console.log("Archivo agregado con nuevo nombre:", file.name);
+              //   return file.name;
+                
+              // },
+              // Eventos
               init: function () {
+                  dropzones[index] = this; // Almacenar instancia Dropzone en el array
+      
+                  // Evento cuando se elimina un archivo manualmente
+                  this.on("sending", function (file, xhr, formData) {
+                    // Envía el nuevo nombre al servidor
+                    formData.append("newFilename", this.options.renameFilename(file.name));
+                  });
+                  this.on("removedfile", function (file) {
+                      console.log("Archivo eliminado:", file.name);
+      
+                      // Enviar una solicitud al servidor para eliminar el archivo
+                      $.ajax({
+                          url: "/deskapp/tramites/removedfile", // Endpoint para eliminar archivo
+                          type: "POST",
+                          data: {
+                              tramite_id: tramite_id, // ID del trámite
+                              file: file.name, // Nombre del archivo
+                          },
+                          success: function (response) {
+                              if (response.success) {
+                                  console.log("Archivo eliminado del servidor y base de datos:", response.message);
+                              } else {
+                                  console.error("Error al eliminar archivo en el servidor:", response.message);
+                              }
+                          },
+                          error: function (xhr, status, error) {
+                              console.error("Error en la solicitud de eliminación:", error);
+                          },
+                      });
+                  });
+                  
+                  // Evento cuando se agrega un archivo
+                  this.on("addedfile", function (file) {
+                      // // Generar cadena aleatoria del tipo "-00ffbb"
+                      // const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
+                      // .map(byte => byte.toString(16).padStart(2, '0'))
+                      // .join('');
+
+                      // // Concatenar el nombre original del archivo con la cadena aleatoria
+                      // const originalName = file.name.split('.').slice(0, -1).join('.'); // Nombre sin la extensión
+                      // const extension = file.name.split('.').pop(); // Obtener la extensión
+                      // file.name = originalName + randomHex + '.' + extension;
+
+                      console.log("Archivo agregado con el nombre:", file.name);
+                  });
+      
+                  // Evento en caso de éxito
                   this.on("success", function (file, response) {
                       console.log("Archivo subido correctamente:", response);
                   });
+      
+                  // Evento en caso de error
                   this.on("error", function (file, errorMessage) {
                       console.error("Error al subir archivo:", errorMessage);
                   });
-              }
+              },
           });
       });
+        // Botón Subir para activar el procesamiento manual de archivos
+        $("#btnSubir").on("click", function () {
+            dropzones.forEach(function (dz) {
+                if (dz.files.length > 0) {
+                    dz.processQueue(); // Procesar archivos en la cola
+                } else {
+                    console.log("No hay archivos para subir en esta Dropzone.");
+                }
+            });
+        });
+      });
+
+
+
       // Por ejemplo, inicializar un plugin de jQuery o un evento
       $('.datepicker').datepicker();
       $('.select2').select2();

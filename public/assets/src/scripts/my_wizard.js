@@ -1,5 +1,11 @@
 $(document).ready(function () {
-    $("#wizard").aiiaWizard();
+    $("#wizard").aiiaWizard({
+		onInit: function () {
+			// Mueve los botones a la parte superior
+			var $buttonContainer = $(".aiia-wizard-buttons");
+			$("#wizard").prepend($buttonContainer);
+		}
+	});
 });
 
 ;(function ($, window, document, undefined) {
