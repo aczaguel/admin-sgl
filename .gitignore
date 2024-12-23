@@ -4,6 +4,8 @@
 .htaccess
 
 .env
+*.DS_Store
+
 
 # Ignorar dependencias instaladas
 */config/development

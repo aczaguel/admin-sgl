@@ -570,70 +570,70 @@ class Tramites extends BaseController
         
         // $result  = array();
         $result = [];
-    $ds = DIRECTORY_SEPARATOR;
+        $ds = DIRECTORY_SEPARATOR;
 
-    // Rutas de carpetas
-    $storeFolderGeneral = 'assets/uploads/pago_derechos/';
-    $storeFolderSpecific = 'assets/uploads/pago_derechos/' . $id . $ds;
+        // Rutas de carpetas
+        $storeFolderGeneral = 'assets/uploads/pago_derechos/';
+        $storeFolderSpecific = 'assets/uploads/pago_derechos/' . $id . $ds;
 
-    // Consulta a la base de datos
-    $pago_derechos_db = $db->table('tra_pago_derechos')
-                           ->select('file')
-                           ->where('tramite_id', $id)
-                           ->get()
-                           ->getResultObject();
+        // Consulta a la base de datos
+        $pago_derechos_db = $db->table('tra_pago_derechos')
+                            ->select('id, file') // Seleccionamos también el id
+                            ->where('tramite_id', $id)
+                            ->get()
+                            ->getResultObject();
 
-    // Función para asignar íconos personalizados según el tipo de archivo
-    $assignIcon = function ($extension) {
-        $icons = [
-            'pdf'  => '/public/assets/src/images/pdf-icon.png',
-            'doc'  => '/public/assets/src/images/doc-icon.png',
-            'docx' => '/public/assets/src/images/docx-icon.png',
-            'xls'  => '/public/assets/src/images/xls-icon.png',
-            'xlsx' => '/public/assets/src/images/xlsx-icon.png',
-            'txt'  => '/public/assets/src/images/txt-icon.png',
-            'zip'  => '/public/assets/src/images/zip-icon.png',
-            'rar'  => '/public/assets/src/images/rar-icon.png',
-        ];
-        return $icons[$extension] ?? '/public/assets/src/images/file-icon.png'; // Ícono genérico por defecto
-    };
+        // Función para asignar íconos personalizados según el tipo de archivo
+        $assignIcon = function ($extension) {
+            $icons = [
+                'pdf'  => '/public/assets/src/images/pdf-icon.png',
+                'doc'  => '/public/assets/src/images/doc-icon.png',
+                'docx' => '/public/assets/src/images/docx-icon.png',
+                'xls'  => '/public/assets/src/images/xls-icon.png',
+                'xlsx' => '/public/assets/src/images/xlsx-icon.png',
+                'txt'  => '/public/assets/src/images/txt-icon.png',
+                'zip'  => '/public/assets/src/images/zip-icon.png',
+                'rar'  => '/public/assets/src/images/rar-icon.png',
+            ];
+            return $icons[$extension] ?? '/public/assets/src/images/file-icon.png'; // Ícono genérico por defecto
+        };
 
-    // 1. Validar archivos registrados en la base de datos (carpeta global)
-    foreach ($pago_derechos_db as $dbFile) {
-        $filePath = FCPATH . $storeFolderGeneral . $dbFile->file;
-        if (file_exists($filePath)) {
-            $extension = pathinfo($dbFile->file, PATHINFO_EXTENSION);
-            $obj['name'] = $dbFile->file;
-            $obj['size'] = filesize($filePath);
-            $obj['existing_path'] = base_url($storeFolderGeneral . $dbFile->file); // Ruta para la vista
-            $obj['icon'] = $assignIcon($extension); // Asignar ícono según extensión
-            $result[] = $obj;
-        }
-    }
+        // 1. Validar archivos registrados en la base de datos (carpeta global)
+        // foreach ($pago_derechos_db as $dbFile) {
+        //     $filePath = FCPATH . $storeFolderGeneral . $dbFile->file;
+        //     if (file_exists($filePath)) {
+        //         $extension = pathinfo($dbFile->file, PATHINFO_EXTENSION);
+        //         $obj['id'] = $dbFile->id; // Agregar el id de la base de datos
+        //         $obj['name'] = $dbFile->file;
+        //         $obj['size'] = filesize($filePath);
+        //         $obj['existing_path'] = base_url($storeFolderGeneral . $dbFile->file); // Ruta para la vista
+        //         $obj['icon'] = $assignIcon($extension); // Asignar ícono según extensión
+        //         $result[] = $obj;
+        //     }
+        // }
 
-    // 2. Validar archivos en la carpeta específica
-    if (is_dir(FCPATH . $storeFolderSpecific)) {
-        $filesSpecific = scandir(FCPATH . $storeFolderSpecific);
-        if ($filesSpecific !== false) {
-            foreach ($filesSpecific as $file) {
-                if ($file !== '.' && $file !== '..') {
-                    $filePath = FCPATH . $storeFolderSpecific . $file;
-                    if (file_exists($filePath)) {
-                        $extension = pathinfo($file, PATHINFO_EXTENSION);
-                        $obj['name'] = $file;
-                        $obj['size'] = filesize($filePath);
-                        $obj['existing_path'] = base_url($storeFolderSpecific . $file); // Ruta para la vista
-                        $obj['icon'] = $assignIcon($extension); // Asignar ícono según extensión
-                        $result[] = $obj;
+        // 2. Validar archivos en la carpeta específica
+        if (is_dir(FCPATH . $storeFolderSpecific)) {
+            $filesSpecific = scandir(FCPATH . $storeFolderSpecific);
+            if ($filesSpecific !== false) {
+                foreach ($filesSpecific as $file) {
+                    if ($file !== '.' && $file !== '..') {
+                        $filePath = FCPATH . $storeFolderSpecific . $file;
+                        if (file_exists($filePath)) {
+                            $extension = pathinfo($file, PATHINFO_EXTENSION);
+                            $obj['id'] = null; // Archivos que no están en la base de datos
+                            $obj['name'] = $file;
+                            $obj['size'] = filesize($filePath);
+                            $obj['existing_path'] = base_url($storeFolderSpecific . $file); // Ruta para la vista
+                            $obj['icon'] = $assignIcon($extension);
+                            $result[] = $obj;
+                        }
                     }
                 }
             }
         }
-    }
 
         $images_derechos = $result;
-
-
 
         $form->final_campos = [
             "id_give_cliente" => ["label" => "ID del cliente", "type" => "text", "value" => $tramite['id_give_cliente'], "required" => "required"],
@@ -649,11 +649,6 @@ class Tramites extends BaseController
             "costos_factura_xml" => ["label" => "XML", "type" => "file", "value" => $tramite['costos_factura_xml']],
 
         ];
-        
-        // if (!has_permission('tramite_view_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
-        //     unset($output->fields['empresa_gestora_id']);
-        //     unset($output->fields['gestor_id']);
-        // }
         
         $data['id'] = $id;
         $data['folio'] = $tramite['folio'];
@@ -1047,20 +1042,52 @@ class Tramites extends BaseController
     //     return $this->response->setJSON(['success' => false, 'message' => 'Error al subir archivo']);
     // }
 
-    // public function delete_comprobante()
-    // {
-    //     $fileName = $this->request->getPost('fileName');
-    //     $tramiteId = $this->request->getPost('tramiteId');
+    public function delete_comprobante()
+    {
+        $request = \Config\Services::request();
 
-    //     $filePath = WRITEPATH . "assets/uploads/tramites/{$tramiteId}/{$fileName}";
+        // Obtener el ID del trámite desde la URI
+        $uri = $request->getUri();
+        $tramiteId = (int) $uri->getSegment(4);
 
-    //     if (file_exists($filePath)) {
-    //         unlink($filePath); // Eliminar archivo
-    //         return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente']);
-    //     }
+        // Validar que se haya proporcionado el ID del trámite
+        if ($tramiteId === null) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        }
 
-    //     return $this->response->setJSON(['success' => false, 'message' => 'Archivo no encontrado']);
-    // }
+        // Obtener el nombre del archivo desde la solicitud POST
+        $fileName = $request->getPost('file');
+        if (empty($fileName)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado']);
+        }
+
+        // Ruta base del directorio de los archivos
+        $ds = DIRECTORY_SEPARATOR;
+        $storeFolder = 'assets/uploads/pago_derechos/' . $tramiteId;
+        $filePath = FCPATH . $storeFolder . $ds . $fileName;
+
+        // Eliminar archivo de la carpeta si existe
+        if (file_exists($filePath)) {
+            if (!unlink($filePath)) {
+                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor']);
+            }
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'El archivo no existe en el servidor']);
+        }
+
+        // Conectar a la base de datos y eliminar el registro
+        $db = \Config\Database::connect();
+        $builder = $db->table('tra_pago_derechos');
+        $builder->where('tramite_id', $tramiteId);
+        $builder->where('file', $fileName);
+
+        if (!$builder->delete()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el registro en la base de datos']);
+        }
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente']);
+    }
+
 
 
 
@@ -1090,10 +1117,10 @@ class Tramites extends BaseController
             $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION); // Extensión del archivo
             
             // Generar cadena aleatoria del tipo "-00ffbb"
-            $randomHex = '-' . substr(bin2hex(random_bytes(3)), 0, 6);
+            // $randomHex = '-' . substr(bin2hex(random_bytes(3)), 0, 6);
 
             // Concatenar la cadena aleatoria al nombre del archivo
-            $fileName = $originalFileName . $randomHex . '.' . $extension;         
+            $fileName = $originalFileName /*. $randomHex*/ .'.' . $extension;         
             $targetFile = $targetPath . $fileName;
 
             if (move_uploaded_file($tempFile, $targetFile)) {
@@ -2937,6 +2964,71 @@ class Tramites extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
     
+        // Paso 1: Definir directorios
+        $sourceDir = FCPATH . 'assets/uploads/pago_derechos/';
+        $targetDir = FCPATH . 'assets/uploads/pago_derechos/' . $tramite_id . '/';
+
+        // Verificar si el directorio de destino existe
+        if (!is_dir($targetDir)) {
+            // Intentar crear el directorio con permisos 777
+            if (!mkdir($targetDir, 0777, true)) {
+                return json_encode([
+                    'status' => 'error',
+                    'message' => 'No se pudo crear el directorio de destino. Verifica permisos.'
+                ]);
+            }
+            chmod($targetDir, 0777); // Asegurar permisos
+        }
+
+        // Paso 2: Consultar las imágenes vinculadas en la tabla tra_pago_derechos
+        $db = \Config\Database::connect();
+        $builder = $db->table('tra_pago_derechos');
+        $builder->select('file');
+        $builder->where('tramite_id', $tramite_id);
+        $query = $builder->get();
+        $files = $query->getResultArray();
+        // var_dump($files);
+        // if (!$files) {
+        //     return json_encode([
+        //         'status' => 'error',
+        //         'message' => 'No se encontraron archivos asociados al trámite.'
+        //     ]);
+        // }
+
+        // Paso 3: Recorrer las imágenes vinculadas
+        foreach ($files as $file) {
+            $fileName = $file['file'];
+            $sourceFilePath = $sourceDir . $fileName;
+            $targetFilePath = $targetDir . $fileName;
+
+            // Verificar si el archivo existe en el directorio fuente
+            if (file_exists($sourceFilePath)) {
+                // Copiar archivo solo si no existe en el directorio destino
+                if (!file_exists($targetFilePath)) {
+                    if (!copy($sourceFilePath, $targetFilePath)) {
+                        return json_encode([
+                            'status' => 'error',
+                            'message' => "Error al copiar el archivo $fileName a $targetDir."
+                        ]);
+                    }
+                }
+            } 
+
+            // else {
+            //     return json_encode([
+            //         'status' => 'error',
+            //         'message' => "El archivo $fileName no existe en el directorio fuente. $sourceFilePath"
+            //     ]);
+            // }
+        }
+
+        // Continuar con el proceso normal
+        // return json_encode([
+        //     'status' => 'success',
+        //     'message' => 'Archivos copiados correctamente y directorio listo.'
+        // ]);
+
+        
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setSkin('bootstrap');
         $crud->setCsrfTokenName(csrf_token());
@@ -2945,10 +3037,11 @@ class Tramites extends BaseController
 
         // $tramite_crud->setTheme('bootstrap-v5');
         $crud->unsetDeleteMultiple();
-        $crud->unsetDelete();
+        // $crud->unsetDelete();
+        $crud->unsetAdd();
         $crud->unsetExport();
         $crud->unsetPrint();
-        $crud->unsetFilters();
+        // $crud->unsetFilters();
         $crud->unsetClone();
         $crud->setTable('tra_pago_derechos');
         $crud->setSubject('Pago', 'Pagos de Derechos');
@@ -2959,7 +3052,7 @@ class Tramites extends BaseController
         ]); 
 
         $crud->columns([
-            "created_at", "file", "costo", "comentario", "user_id"
+            "id", "created_at", "file", "costo", "comentario", "user_id"
         ]);
 
         $crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
@@ -3072,13 +3165,68 @@ class Tramites extends BaseController
             ]
         ];
 
+
         $crud->setFieldUploadMultiple(
             'file', 
-            'assets/uploads/pago_derechos/', 
-            '/assets/uploads/pago_derechos/', 
+            'assets/uploads/pago_derechos/'.$tramite_id.'/', 
+            '/assets/uploads/pago_derechos/'.$tramite_id.'/', 
             $uploadValidations
         );
 
+        $crud->callbackBeforeDelete(function ($stateParameters) {
+            // Access the primary key value directly from the $stateParameters object
+            // var_dump($stateParameters->primaryKeyValue);die();
+
+            $primaryKeyValue = (int)$stateParameters->primaryKeyValue;
+        
+            // Log the primary key value for debugging purposes
+            log_message('debug', "Primary Key Value: var_dump($primaryKeyValue)");
+        
+            // Database connection
+            $db = \Config\Database::connect();
+        
+            // Query to retrieve file and tramite_id using the primary key
+            $builder = $db->table('tra_pago_derechos');
+            $builder->select('file, tramite_id');
+            $builder->where('id', $primaryKeyValue);
+        
+            $query = $builder->get();
+            $row = $query->getRowArray();
+        
+            if ($row) {
+                $tramite_id = $row['tramite_id'];
+                $fileName = $row['file'];
+        
+                // Define the base image path
+                $baseImagePath = FCPATH . 'assets/uploads/pago_derechos/';
+        
+                // Ensure tramite_id and fileName are available
+                if ($tramite_id && $fileName) {
+                    // Construct the full file path
+                    $filePath = $baseImagePath . $tramite_id . '/' . $fileName;
+        
+                    // Check if the file exists
+                    if (file_exists($filePath)) {
+                        // Attempt to delete the file
+                        if (unlink($filePath)) {
+                            log_message('info', "File successfully deleted: $filePath");
+                        } else {
+                            log_message('error', "Failed to delete file: $filePath");
+                        }
+                    } else {
+                        log_message('warning', "File does not exist: $filePath");
+                    }
+                } else {
+                    log_message('error', "Incomplete data: Tramite ID: $tramite_id, File: $fileName");
+                }
+            } else {
+                log_message('error', "No record found for Primary Key: $primaryKeyValue");
+            }
+        
+            // Continue with the delete operation
+            return $stateParameters;
+        });
+        
         $crud->fieldType('user_id','hidden');
         $crud->fieldType('tramite_id','hidden');
      
@@ -3112,6 +3260,21 @@ class Tramites extends BaseController
         return $this->_example_output($salida2);
     }
 
+    private function logDeletedImage($primaryKey, $row)
+    {
+        // Ruta base de las imágenes
+        $imageField = 'file'; // Cambia según el nombre de tu campo de imagen
+        $imagePath = '/assets/uploads/pago_derechos/'.$primaryKey.'/'; // Cambia según tu configuración
+
+        // Construir la ruta completa de la imagen
+        $imageFile = isset($row[$imageField]) ? $imagePath . $row[$imageField] : 'No definido';
+
+        // Registrar en el log el ID y la ruta de la imagen
+        log_message('info', "Registro eliminado: ID = $primaryKey, Imagen = $imageFile");
+        // echo "Registro eliminado: ID = $primaryKey, Imagen = $imageFile";die();
+        // Retornar true para continuar el flujo normal
+        return true;
+    }
     public function single_evidencias_finales(){
         $session = session();
         $data['session'] = \Config\Services::session();

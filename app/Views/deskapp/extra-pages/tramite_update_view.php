@@ -45,6 +45,47 @@ if (isset($tra_status_id)) {
             display: block;
             word-wrap: break-word;
         }
+
+
+		/* Contenedor principal */
+        .dropzone-container {
+            text-align: center;
+            margin: 30px auto;
+            width: 50%;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+
+        /* Botón de subida */
+        #btnSubir {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #btnSubir:hover {
+            background-color: #0056b3;
+        }
+
+        /* Dropzone personalizado */
+        .dz-default.dz-message .dz-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .dz-default.dz-message img {
+            width: 90px;
+        }
     </style>
 <?php $assets = base_url('/public/assets'); ?>
 	<?php foreach($css_files as $file): ?>
@@ -557,43 +598,71 @@ if (isset($tra_status_id)) {
 											// }
 											
 										?>
-											<form action="/deskapp/tramites/upload_comprobante/3" class="dropzone"></form>	
+											<div class="dropzone-container">
+												<form class="dropzone" id="miDropzone">
+													<div class="dz-default dz-message">
+														<button class="dz-button" type="button">
+															<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+														</button>
+													</div>
+												</form>
+											</div>
+
+											<!-- Botón Subir -->
+											<button id="btnSubir">Subir</button>
+
+
 											</hr>
 											<br><br>
 										<!-- <div class="container mt-5">
 											<h1 class="mb-4">Archivos Subidos</h1> -->
-											<div class="row">
-    <?php foreach ($images_derechos_comprobante as $file): ?>
-        <div class="col-md-2">
-            <div class="file-preview text-center">
-                <?php 
-                    // Verificar si el archivo es una imagen
-                    $isImage = in_array(pathinfo($file['name'], PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-                ?>
-
-                <?php if ($isImage): ?>
-                    <!-- Mostrar imagen -->
-                    <a href="<?php echo $file['existing_path']; ?>" target="_blank">
-                        <img src="<?php echo $file['existing_path']; ?>" 
-                             alt="<?php echo $file['name']; ?>" 
-                             class="img-thumbnail" 
-                             style="width: 100px; height: auto;">
-                    </a>
-                <?php else: ?>
-                    <!-- Mostrar ícono según el tipo de archivo -->
-                    <a href="<?php echo $file['existing_path']; ?>" target="_blank">
-                        <img src="<?php echo $file['icon']; ?>" 
-                             alt="File Icon" 
-                             class="img-thumbnail" 
-                             style="width: 70px; height: auto;">
-                    </a>
-                <?php endif; ?>
-
-                <p style="font-size: 12px; color: #555;"><?php echo $file['name']; ?></p>
-            </div>
+											<div class="row mb-3">
+        <div class="col-12 text-center">
+            <h6 style="color: #d9534f; font-weight: bold;">
+                Si deseas eliminar un archivo debes solicitarlo al administrador
+            </h6>
         </div>
-    <?php endforeach; ?>
-</div>
+    </div>
+
+    <!-- Galería de Imágenes -->
+    <div class="row">
+        <?php foreach ($images_derechos_comprobante as $file): 
+			if($file['name'] != '.DS_Store'):
+			?>
+            <?php 
+                // Verificar si el archivo es una imagen
+                $isImage = in_array(pathinfo($file['name'], PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+            ?>
+            <div class="col-md-1 mb-3 text-center">
+                <div class="file-preview" style="border: 1px solid #ddd; border-radius: 5px; padding: 5px; background-color: #f9f9f9;">
+                    <?php if ($isImage): ?>
+                        <!-- Mostrar Imagen en Miniatura -->
+                        <a href="<?php echo $file['existing_path']; ?>" target="_blank">
+                            <img src="<?php echo $file['existing_path']; ?>" 
+                                 alt="<?php echo $file['name']; ?>" 
+                                 class="img-thumbnail" 
+                                 style="width: 60px; height: 60px; object-fit: cover;">
+                        </a>
+                    <?php else: ?>
+                        <!-- Mostrar Ícono según el tipo de archivo -->
+                        <a href="<?php echo $file['existing_path']; ?>" target="_blank">
+                            <img src="<?php echo $file['icon']; ?>" 
+                                 alt="File Icon" 
+                                 class="img-thumbnail" 
+                                 style="width: 60px; height: 60px; object-fit: cover;">
+                        </a>
+                    <?php endif; ?>
+
+                    <!-- Nombre del Archivo -->
+                    <p style="font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <?php echo $file['name']; ?>
+                    </p>
+                </div>
+            </div>
+        <?php 
+		endif;
+	endforeach; ?>
+    </div>
 
 
 										<!-- </div> -->
