@@ -650,7 +650,7 @@ $(document).ready(function() {
                 const extension = file.name.split('.').pop(); // Obtener la extensión
                 var newname = originalName + randomHex + '.' + extension;
                 console.log("Archivo agregado con nuevo nombre:", newname);
-                file.name = newname;
+                // file.name = newname;
                 return newname;
               },
               // Renombrar archivo antes de subir
