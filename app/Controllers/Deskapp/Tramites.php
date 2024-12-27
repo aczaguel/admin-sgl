@@ -1048,7 +1048,7 @@ class Tramites extends BaseController
 
         // Obtener el ID del trámite desde la URI
         $uri = $request->getUri();
-        $tramiteId = (int) $uri->getSegment(4);
+        $tramiteId = $request->getPost('tramite_id');
 
         // Validar que se haya proporcionado el ID del trámite
         if ($tramiteId === null) {
@@ -1065,7 +1065,7 @@ class Tramites extends BaseController
         $ds = DIRECTORY_SEPARATOR;
         $storeFolder = 'assets/uploads/pago_derechos/' . $tramiteId;
         $filePath = FCPATH . $storeFolder . $ds . $fileName;
-
+        // echo "<br>" . $filePath; die();
         // Eliminar archivo de la carpeta si existe
         if (file_exists($filePath)) {
             if (!unlink($filePath)) {
@@ -1507,7 +1507,7 @@ class Tramites extends BaseController
         $id = $this->request->uri->getSegment(4);
         $validation = \Config\Services::validation();   
         $db2 = $this->_getDbData();    
-
+    
         // Obtener registros actuales de los archivos PDF y XML de la base de datos
         $db = \Config\Database::connect();
         $builder = $db->table('tramite');
@@ -1522,7 +1522,7 @@ class Tramites extends BaseController
         
         // Reglas de validación condicionales para los archivos PDF y XML
         $fileRules = [];
-
+    
         if (empty($existingData['costos_factura_pdf'])) {
             $fileRules['costos_factura_pdf'] = [
                 'label' => 'Factura PDF',
@@ -1534,7 +1534,7 @@ class Tramites extends BaseController
                 ]
             ];
         }
-
+    
         if (empty($existingData['costos_factura_xml'])) {
             $fileRules['costos_factura_xml'] = [
                 'label' => 'Factura XML',
@@ -1546,11 +1546,11 @@ class Tramites extends BaseController
                 ]
             ];
         }
-
+    
         if (!empty($fileRules)) {
             $validation->setRules($fileRules);
         }
-
+    
         if ($validation->withRequest($this->request)->run() === FALSE) {
             // Validación fallida, retornar errores como JSON
             return $this->response->setJSON([
@@ -1561,52 +1561,51 @@ class Tramites extends BaseController
             // Obtener los datos del formulario
             $data = $this->request->getPost();
             $data["user_id"] = $myid;
-
+    
             // Subida y manejo de archivos
             $costosFacturaPdf = $this->request->getFile('costos_factura_pdf');
             $costosFacturaXml = $this->request->getFile('costos_factura_xml');
-
+    
             // Verificar si se subió un archivo PDF nuevo
             if ($costosFacturaPdf && $costosFacturaPdf->isValid() && !$costosFacturaPdf->hasMoved()) {
-                // Eliminar el archivo PDF anterior si existe
-                if (!empty($existingData['costos_factura_pdf'])) {
-                    $pdfFilePath = FCPATH . $existingData['costos_factura_pdf']; 
-
-                    if (file_exists($pdfFilePath)) {
-                        unlink($pdfFilePath);
-                    }
+                $pdfFilePath = 'assets/uploads/tramites/facturas/' . $costosFacturaPdf->getName();
+    
+                // Verificar si existe un archivo con el mismo nombre
+                if (file_exists(FCPATH . $pdfFilePath)) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Ya existe un archivo PDF con el mismo nombre.'
+                    ]);
                 }
-
-                $newPdfName = $costosFacturaPdf->getRandomName(); 
-                $costosFacturaPdf->move('assets/uploads/tramites/facturas/', $newPdfName); 
-                $data['costos_factura_pdf'] = '/assets/uploads/tramites/facturas/' . $newPdfName; 
+    
+                // Mover el archivo al destino con el mismo nombre
+                $costosFacturaPdf->move('assets/uploads/tramites/facturas/');
+                $data['costos_factura_pdf'] = '/assets/uploads/tramites/facturas/' . $costosFacturaPdf->getName();
             }
-
+    
             // Verificar si se subió un archivo XML nuevo
             if ($costosFacturaXml && $costosFacturaXml->isValid() && !$costosFacturaXml->hasMoved()) {
-                // Eliminar el archivo XML anterior si existe
-                if (!empty($existingData['costos_factura_xml'])) {
-                    $xmlFilePath = FCPATH . $existingData['costos_factura_xml'];
-
-                    if (file_exists($xmlFilePath)) {
-                        unlink($xmlFilePath);
-                    }
+                $xmlFilePath = 'assets/uploads/tramites/facturas/' . $costosFacturaXml->getName();
+    
+                // Verificar si existe un archivo con el mismo nombre
+                if (file_exists(FCPATH . $xmlFilePath)) {
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'Ya existe un archivo XML con el mismo nombre.'
+                    ]);
                 }
-
-                $newXmlName = $costosFacturaXml->getRandomName(); 
-                $costosFacturaXml->move('assets/uploads/tramites/facturas/', $newXmlName); 
-                $data['costos_factura_xml'] = '/assets/uploads/tramites/facturas/' . $newXmlName;
+    
+                // Mover el archivo al destino con el mismo nombre
+                $costosFacturaXml->move('assets/uploads/tramites/facturas/');
+                $data['costos_factura_xml'] = '/assets/uploads/tramites/facturas/' . $costosFacturaXml->getName();
             }
-
+    
             $data["costo_total"] = $data["costo_gestoria"] + $data["impuesto_gestoria"] + $data["comision_derechos"];
-            // print_r($data);
+    
             // Actualizar los datos en la tabla 'tramite'
             $builder->where('id', $id);
-            // echo $builder->set($data)->getCompiledUpdate();
-            // exit;
-
             $builder->update($data);
-
+    
             // Agregar registro en bitácora
             $bitacoraModel = new BitacoraModel($db2);
             $data_bitacora = $data;
@@ -1620,7 +1619,7 @@ class Tramites extends BaseController
                 "user_id" => (int)$myid
             ];
             $bitacoraModel->insert($insert_bitacora, 'bitacora');
-
+    
             // Registrar en la tabla tra_user_log
             $tra_user_log = new TraUserLogModel($db2);
             $log = [
@@ -1629,7 +1628,7 @@ class Tramites extends BaseController
                 "tra_status_id" => 22
             ];
             $tra_user_log->insert($log, 'tra_user_log');
-
+    
             // Retornar mensaje de éxito como JSON
             return $this->response->setJSON([
                 'success' => true,
@@ -1638,6 +1637,7 @@ class Tramites extends BaseController
             ]);
         }
     }
+    
 
     private function _example_output_2($output = null, $page = 'index') {
         return view('/deskapp/extra-pages/tramite_' . $page . '_view', (array)$output);
