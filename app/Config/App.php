@@ -25,7 +25,7 @@ class App extends BaseConfig
 	 */
 
 	// public $baseURL = 'http://admin-sgl/';
-	public $baseURL = 'http://18.206.55.94/';
+	public $baseURL = 'http://backend.sglservicio.com.mx/';
 	
 	public $displayErrorDetails = true;
 	/**
