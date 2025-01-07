@@ -98,6 +98,9 @@ $routes->post('/tramites/update_save/(:id)', 'Deskapp/Tramites::update_save/$1')
 $routes->get('/tramites/tramite', 'Deskapp/Tramites::tramite',['filter' => 'auth']);
 $routes->post('/tramites/tramite', 'Deskapp/Tramites::tramite');
 
+$routes->get('/tramites/tramite_2024', 'Deskapp/Tramites::tramite_2024',['filter' => 'auth']);
+$routes->post('/tramites/tramite_2024', 'Deskapp/Tramites::tramite_2024');
+
 $routes->get('/tramites/mios', 'Deskapp/Tramites::mios',['filter' => 'auth']);
 $routes->post('/tramites/mios', 'Deskapp/Tramites::mios');
 
