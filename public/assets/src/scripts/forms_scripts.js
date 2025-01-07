@@ -593,11 +593,11 @@ $(document).ready(function() {
       previous: "Anterior",
       loading: "Cargando..."
     },
-
+    
     onInit: function () {
         // Mueve los botones a la parte superior
-        var $buttonContainer = $(".aiia-wizard-buttons");
-        $("#wizard").prepend($buttonContainer);
+        // var $buttonContainer = $(".aiia-wizard-buttons");
+        // $("#wizard").prepend($buttonContainer);
     },
   
     // onStepChanged: function (event, currentIndex) {
@@ -615,6 +615,16 @@ $(document).ready(function() {
 
     
   });
+    // Reorganiza los elementos
+    var wizard = $(".wizard");
+    var steps = wizard.find(".steps");      // Pasos
+    var actions = wizard.find(".actions"); // Botones
+    var content = wizard.find(".content"); // Contenido
+
+    // Cambiar el orden en el DOM
+    wizard.append(steps);   // Mover pasos al principio
+    wizard.append(actions); // Mover botones después de los pasos
+    wizard.append(content); // Mover contenido al final
     function reinitializeScripts() {
         // Inicializar Dropzone
       if (Dropzone.instances.length > 0) {
@@ -1197,6 +1207,11 @@ $(document).ready(function() {
   });
 
 });
+
+window.addEventListener('gcrud.datagrid.ready', () => {
+    console.log('datagrid ready triggered');
+});
+
 $(document).ready(function() {
   $('#costo_total').on('input', function () {
     // Permitir solo números y hasta dos decimales
