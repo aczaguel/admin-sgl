@@ -86,6 +86,23 @@ if (isset($tra_status_id)) {
         .dz-default.dz-message img {
             width: 90px;
         }
+
+		.wizard {
+			display: flex;
+			flex-direction: column; /* Asegura que sea un diseño vertical */
+		}
+
+		.wizard .steps {
+			order: 1; /* Pasos en primer lugar */
+		}
+
+		.wizard .actions {
+			order: 2; /* Botones en segundo lugar */
+		}
+
+		.wizard .content {
+			order: 3; /* Contenido al final */
+		}
     </style>
 <?php $assets = base_url('/public/assets'); ?>
 	<?php foreach($css_files as $file): ?>
@@ -617,7 +634,7 @@ if (isset($tra_status_id)) {
 										<!-- <div class="container mt-5">
 											<h1 class="mb-4">Archivos Subidos</h1> -->
 											<div class="row mb-3">
-        <div class="col-12 text-center">
+        	<div class="col-12 text-center">
             <h6 style="color: #d9534f; font-weight: bold;">
                 Si deseas eliminar un archivo debes solicitarlo al administrador
             </h6>
@@ -907,8 +924,9 @@ if (isset($tra_status_id)) {
 		</div>
 	</div>	
 
+
 <!-- Medium modal -->
-<div class="col-md-4 col-sm-12 mb-30" id="my_modal" display="none">
+<div class="col-md-4 col-sm-12 mb-30" id="my_modal" style="display: none;">
 	<div class="pd-20 card-box height-100-p">
 		<h5 class="h4">Medium modal</h5>
 		<div class="modal fade" id="Medium-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
