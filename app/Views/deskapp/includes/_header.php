@@ -113,7 +113,7 @@
 			<!-- Botones con iconos -->
 			<?php if (has_permission('header_buttons', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 				<div class="btn-group ml-2" role="group">
-					<a href="/deskapp/tramites/tramite" class="btn btn-success btn-custom">
+					<a href="/deskapp/tramites/tramite_2024" class="btn btn-success btn-custom">
 						<i class="fas fa-list"></i> 2024
 					</a	>
 					<a href="/deskapp/tramites/tramite" class="btn btn-info btn-custom">
