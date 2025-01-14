@@ -637,216 +637,210 @@ $(document).ready(function() {
         groceryCrud();
       }   
 
-
-
       $(document).ready(function () {
-        let dropzones = []; // Array para almacenar las instancias Dropzone
-        let renamedFiles = {}; // Objeto para almacenar los nombres renombrados
+        // Renombrados por categoría
+        const renamedFilesDocumentos = {};
+        const renamedFilesGestor = {};
+        const renamedFilesCliente = {};
 
-        $(".dropzone").each(function (index) {
-            const dropzoneElement = this;
+        // Dropzone para Documentos
+        const dropzoneDocumentos = new Dropzone(".dropzone-documentos", {
+            url: "/deskapp/tramites/upload_comprobante/" + tramite_id,
+            autoProcessQueue: false,
+            maxFilesize: 10,
+            acceptedFiles: "image/jpeg,image/png,application/pdf/doc/docx",
+            addRemoveLinks: true,
+            dictRemoveFile: "Quitar",
 
-            const dropzone = new Dropzone(dropzoneElement, {
-                url: $(this).data("action") || "/deskapp/tramites/upload_comprobante/" + tramite_id,
-                autoProcessQueue: false, // No subir automáticamente
-                maxFilesize: 10, // Tamaño máximo en MB
-                acceptedFiles: "image/jpeg,image/png,application/pdf", // Archivos permitidos
-                addRemoveLinks: true, // Botón "Quitar"
-                dictRemoveFile: "Quitar", // Texto para el botón de quitar
+            renameFile: function (file) {
+                const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
+                    .map(byte => byte.toString(16).padStart(2, '0'))
+                    .join('');
+                const originalName = file.name.split('.').slice(0, -1).join('.');
+                const extension = file.name.split('.').pop();
+                const newname = originalName + randomHex + '.' + extension;
 
-                renameFile: function (file) {
-                    const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
-                        .map(byte => byte.toString(16).padStart(2, '0'))
-                        .join('');
-                    const originalName = file.name.split('.').slice(0, -1).join('.'); // Nombre sin extensión
-                    const extension = file.name.split('.').pop(); // Extensión
-                    const newname = originalName + randomHex + '.' + extension;
-
-                    // Almacenar el nombre renombrado en el objeto, si el archivo tiene un `uuid`
-                    if (file.upload) {
-                        renamedFiles[file.upload.uuid] = newname;
-                    }
-
-                    console.log("Archivo agregado con nuevo nombre:", newname);
-                    return newname;
-                },
-
-                init: function () {
-                    dropzones[index] = this; // Almacenar instancia Dropzone en el array
-
-                    // Evento cuando se elimina un archivo
-                    this.on("removedfile", function (file) {
-                        // Verificar si `file.upload` existe y obtener el nombre renombrado
-                        console.log(renamedFiles);
-                        const renamedName = file.upload ? file.upload.filename : null;
-
-                        if (!renamedName) {
-                            console.error("No se pudo encontrar el nombre renombrado del archivo eliminado.");
-                            return;
-                        }
-
-                        console.log("Archivo eliminado:", renamedName);
-
-                        // Enviar solicitud al servidor para eliminar el archivo
-                        $.ajax({
-                            url: "/deskapp/tramites/delete_comprobante", // Endpoint para eliminar archivo
-                            type: "POST",
-                            data: {
-                                tramite_id: tramite_id, // ID del trámite
-                                file: renamedName, // Nombre del archivo renombrado
-                            },
-                            success: function (response) {
-                                if (response.success) {
-                                    console.log("Archivo eliminado del servidor y base de datos:", response.message);
-                                } else {
-                                    console.error("Error al eliminar archivo en el servidor:", response.message);
-                                }
-                            },
-                            error: function (xhr, status, error) {
-                                console.error("Error en la solicitud de eliminación:", error);
-                            },
-                        });
-
-                        // Eliminar el nombre renombrado del objeto
-                        if (file.upload) {
-                            delete renamedFiles[file.upload.uuid];
-                        }
-                    });
-
-                    // Evento cuando se agrega un archivo
-                    this.on("addedfile", function (file) {
-                        const renamedName = file.upload ? renamedFiles[file.upload.uuid] : file.name;
-                        console.log("Archivo agregado con el nombre:", renamedName);
-                    });
-
-                    // Evento en caso de éxito
-                    this.on("success", function (file, response) {
-                        console.log("Archivo subido correctamente:", response);
-                    });
-
-                    // Evento en caso de error
-                    this.on("error", function (file, errorMessage) {
-                        console.error("Error al subir archivo:", errorMessage);
-                    });
-                },
-            });
-        });
-
-        // Botón Subir para procesar los archivos manualmente
-        $("#btnSubir").on("click", function () {
-            dropzones.forEach(function (dz) {
-                if (dz.files.length > 0) {
-                    dz.processQueue(); // Procesar archivos en la cola
-                } else {
-                    console.log("No hay archivos para subir en esta Dropzone.");
+                if (file.upload) {
+                    renamedFilesDocumentos[file.upload.uuid] = newname;
                 }
-            });
-        });
+                return newname;
+            },
 
-        let dropzones_final = []; // Array para almacenar las instancias Dropzone
-        let renamedFiles_final = {}; // Objeto para almacenar los nombres renombrados
+            init: function () {
+                this.on("removedfile", function (file) {
+                    const renamedName = file.upload ? file.upload.filename : null;
+                    if (!renamedName) return;
 
-        $(".dropzone_final").each(function (index) {
-            const dropzoneElement = this;
+                    $.ajax({
+                        url: "/deskapp/tramites/delete_comprobante",
+                        type: "POST",
+                        data: { tramite_id: tramite_id, file: renamedName },
+                        success: function (response) {
+                            if (response.success) {
+                                console.log(response.message);
+                                $(`#documentos-container img[data-file="${renamedName}"]`).remove();
+                            }
+                        },
+                        error: function () {
+                            console.error("Error al eliminar archivo.");
+                        },
+                    });
 
-            const dropzone = new Dropzone(dropzoneElement, {
-                url: $(this).data("action") || "/deskapp/tramites/upload_costos_final/" + tramite_id,
-                autoProcessQueue: false, // No subir automáticamente
-                maxFilesize: 10, // Tamaño máximo en MB
-                acceptedFiles: "image/jpeg,image/png,application/pdf", // Archivos permitidos
-                addRemoveLinks: true, // Botón "Quitar"
-                dictRemoveFile: "Quitar", // Texto para el botón de quitar
+                    if (file.upload) delete renamedFilesDocumentos[file.upload.uuid];
+                });
 
-                renameFile: function (file) {
-                    const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
-                        .map(byte => byte.toString(16).padStart(2, '0'))
-                        .join('');
-                    const originalName = file.name.split('.').slice(0, -1).join('.'); // Nombre sin extensión
-                    const extension = file.name.split('.').pop(); // Extensión
-                    const newname = originalName + randomHex + '.' + extension;
-
-                    // Almacenar el nombre renombrado en el objeto, si el archivo tiene un `uuid`
-                    if (file.upload) {
-                        renamedFiles_final[file.upload.uuid] = newname;
+                this.on("success", function (file, response) {
+                    if (response.success && response.filePath) {
+                        const imgElement = `
+                            <img src="${response.filePath}" alt="${response.originalName}" data-file="${response.fileName}" class="uploaded-img">
+                        `;
+                        $("#documentos-container").append(imgElement);
                     }
-
-                    console.log("Archivo agregado con nuevo nombre:", newname);
-                    return newname;
-                },
-
-                init: function () {
-                    dropzones_final[index] = this; // Almacenar instancia Dropzone en el array
-
-                    // Evento cuando se elimina un archivo
-                    this.on("removedfile", function (file) {
-                        // Verificar si `file.upload` existe y obtener el nombre renombrado
-                        console.log(renamedFiles_final);
-                        const renamedName = file.upload ? file.upload.filename : null;
-
-                        if (!renamedName) {
-                            console.error("No se pudo encontrar el nombre renombrado del archivo eliminado.");
-                            return;
-                        }
-
-                        console.log("Archivo eliminado:", renamedName);
-
-                        // Enviar solicitud al servidor para eliminar el archivo
-                        $.ajax({
-                            url: "/deskapp/tramites/delete_costos_final", // Endpoint para eliminar archivo
-                            type: "POST",
-                            data: {
-                                tramite_id: tramite_id, // ID del trámite
-                                file: renamedName, // Nombre del archivo renombrado
-                            },
-                            success: function (response) {
-                                if (response.success) {
-                                    console.log("Archivo eliminado del servidor y base de datos:", response.message);
-                                } else {
-                                    console.error("Error al eliminar archivo en el servidor:", response.message);
-                                }
-                            },
-                            error: function (xhr, status, error) {
-                                console.error("Error en la solicitud de eliminación:", error);
-                            },
-                        });
-
-                        // Eliminar el nombre renombrado del objeto
-                        if (file.upload) {
-                            delete renamedFiles_final[file.upload.uuid];
-                        }
-                    });
-
-                    // Evento cuando se agrega un archivo
-                    this.on("addedfile", function (file) {
-                        const renamedName = file.upload ? renamedFiles_final[file.upload.uuid] : file.name;
-                        console.log("Archivo agregado con el nombre:", renamedName);
-                    });
-
-                    // Evento en caso de éxito
-                    this.on("success", function (file, response) {
-                        console.log("Archivo subido correctamente:", response);
-                    });
-
-                    // Evento en caso de error
-                    this.on("error", function (file, errorMessage) {
-                        console.error("Error al subir archivo:", errorMessage);
-                    });
-                },
-            });
+                });
+            },
         });
 
-        // Botón Subir para procesar los archivos manualmente
-        $("#btnSubirFinal").on("click", function () {
-            dropzones_final.forEach(function (dz) {
-                if (dz.files.length > 0) {
-                    dz.processQueue(); // Procesar archivos en la cola
-                } else {
-                    console.log("No hay archivos para subir en esta Dropzone.");
+        $("#btnSubirDocumentos").on("click", function () {
+            if (dropzoneDocumentos.files.length > 0) {
+                dropzoneDocumentos.processQueue();
+            } else {
+                console.log("No hay archivos para subir en documentos.");
+            }
+        });
+
+        // Dropzone para Pago a Gestor
+        const dropzoneGestor = new Dropzone(".dropzone-gestor", {
+            url: "/deskapp/tramites/upload_pago_gestor/" + tramite_id,
+            autoProcessQueue: false,
+            maxFilesize: 10,
+            acceptedFiles: "image/jpeg,image/png,application/pdf/doc/docx",
+            addRemoveLinks: true,
+            dictRemoveFile: "Quitar",
+
+            renameFile: function (file) {
+                const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
+                    .map(byte => byte.toString(16).padStart(2, '0'))
+                    .join('');
+                const originalName = file.name.split('.').slice(0, -1).join('.');
+                const extension = file.name.split('.').pop();
+                const newname = originalName + randomHex + '.' + extension;
+
+                if (file.upload) {
+                    renamedFilesGestor[file.upload.uuid] = newname;
                 }
-            });
+                return newname;
+            },
+
+            init: function () {
+                this.on("removedfile", function (file) {
+                    const renamedName = file.upload ? file.upload.filename : null;
+                    if (!renamedName) return;
+
+                    $.ajax({
+                        url: "/deskapp/tramites/delete_pago_gestor",
+                        type: "POST",
+                        data: { tramite_id: tramite_id, file: renamedName },
+                        success: function (response) {
+                            if (response.success) {
+                                console.log(response.message);
+                                $(`#gestor-container img[data-file="${renamedName}"]`).remove();
+                            }
+                        },
+                        error: function () {
+                            console.error("Error al eliminar archivo.");
+                        },
+                    });
+
+                    if (file.upload) delete renamedFilesGestor[file.upload.uuid];
+                });
+
+                this.on("success", function (file, response) {
+                    if (response.success && response.filePath) {
+                        const imgElement = `
+                            <img src="${response.filePath}" alt="${response.originalName}" data-file="${response.fileName}" class="uploaded-img">
+                        `;
+                        $("#gestor-container").append(imgElement);
+                    }
+                });
+            },
         });
 
-      });
+
+        $("#btnSubirGestor").on("click", function () {
+            if (dropzoneGestor.files.length > 0) {
+                dropzoneGestor.processQueue();
+            } else {
+                console.log("No hay archivos para subir en pago a gestor.");
+            }
+        });
+
+        // Dropzone para Cobro a Cliente
+        const dropzoneCliente = new Dropzone(".dropzone-cliente", {
+            url: "/deskapp/tramites/upload_cobro_cliente/" + tramite_id,
+            autoProcessQueue: false,
+            maxFilesize: 10,
+            acceptedFiles: "image/jpeg,image/png,application/pdf/doc/docx",
+            addRemoveLinks: true,
+            dictRemoveFile: "Quitar",
+
+            renameFile: function (file) {
+                const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
+                    .map(byte => byte.toString(16).padStart(2, '0'))
+                    .join('');
+                const originalName = file.name.split('.').slice(0, -1).join('.');
+                const extension = file.name.split('.').pop();
+                const newname = originalName + randomHex + '.' + extension;
+
+                if (file.upload) {
+                    renamedFilesCliente[file.upload.uuid] = newname;
+                }
+                return newname;
+            },
+
+            init: function () {
+                this.on("removedfile", function (file) {
+                    const renamedName = file.upload ? file.upload.filename : null;
+                    if (!renamedName) return;
+
+                    $.ajax({
+                        url: "/deskapp/tramites/delete_cobro_cliente",
+                        type: "POST",
+                        data: { tramite_id: tramite_id, file: renamedName },
+                        success: function (response) {
+                            if (response.success) {
+                                console.log(response.message);
+                                $(`#cliente-container img[data-file="${renamedName}"]`).remove();
+                            }
+                        },
+                        error: function () {
+                            console.error("Error al eliminar archivo.");
+                        },
+                    });
+
+                    if (file.upload) delete renamedFilesCliente[file.upload.uuid];
+                });
+
+                this.on("success", function (file, response) {
+                    if (response.success && response.filePath) {
+                        const imgElement = `
+                            <img src="${response.filePath}" alt="${response.originalName}" data-file="${response.fileName}" class="uploaded-img">
+                        `;
+                        $("#cliente-container").append(imgElement);
+                    }
+                });
+            },
+        });
+
+        $("#btnSubirCliente").on("click", function () {
+            if (dropzoneCliente.files.length > 0) {
+                dropzoneCliente.processQueue();
+            } else {
+                console.log("No hay archivos para subir en cobro a cliente.");
+            }
+        });
+
+
+    });
 
 
 
@@ -1098,6 +1092,48 @@ $(document).ready(function() {
     });
   });
 
+  $('#pagoGestorForm').on('submit', function(e) {
+    e.preventDefault(); // Evitar que el formulario haga un submit normal
+
+    // Crear un objeto FormData para recoger todos los datos, incluyendo archivos
+    var formData = new FormData(this);
+
+    $.ajax({
+        url: '/deskapp/tramites/update_pago_gestor/' + tramite_id, // URL a donde va la solicitud
+        type: 'POST',
+        data: formData, // Datos del formulario incluyendo archivos
+        processData: false, // Evitar que jQuery procese los datos
+        contentType: false, // Evitar que jQuery establezca el tipo de contenido, será automático con FormData
+        success: function(response) {
+            if(response.success === true){
+                $('#pago_gestor_mensaje').html(response.message); 
+                $('#pago_gestor_respuesta').show();
+
+                setTimeout(function() {
+                    $('#pago_gestor_respuesta').fadeOut('slow'); 
+                }, 3000); 
+            } else {
+                $('#pago_gestor_mensaje_error').html("Favor de revisar los campos requeridos");
+                $('#pago_gestor_respuesta_error').show();
+                setTimeout(function() {
+                    $('#pago_gestor_respuesta_error').fadeOut('slow'); 
+                }, 5000);
+            }
+        },
+        error: function(xhr, status, error) {
+            // Manejamos el error si ocurre
+            console.log(xhr.responseText);
+            $('#pago_gestor_mensaje_error').html(xhr.responseText);
+            $('#pago_gestor_respuesta_error').show(); // Mostramos el alert
+            
+            // Ocultar el mensaje automáticamente después de 5 segundos
+            setTimeout(function() {
+                $('#pago_gestor_respuesta_error').fadeOut('slow'); // Desaparece suavemente
+            }, 5000); // 5000 milisegundos = 5 segundos
+        }
+    });
+  });
+
   $('#finalForm').on('submit', function(e) {
       e.preventDefault(); // Evitar que el formulario haga un submit normal
 
@@ -1262,4 +1298,25 @@ $(document).ready(function() {
         $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
     }
   });
+
+  $('#gestoria_comision').on('input', function () {
+    // Permitir solo números y hasta dos decimales
+    let value = $(this).val();
+    
+    // Usar expresión regular para permitir solo dos decimales
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
+        $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
+    }
+  });
+
+  $('#gestor_total_pago').on('input', function () {
+    // Permitir solo números y hasta dos decimales
+    let value = $(this).val();
+    console.log("solo para permitir decimales");
+    // Usar expresión regular para permitir solo dos decimales
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
+        $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
+    }
+  });
+
 });

@@ -59,7 +59,7 @@ if (isset($tra_status_id)) {
         }
 
         /* Botón de subida */
-        #btnSubir {
+        .btnSubir {
             display: block;
             margin: 20px auto;
             padding: 10px 20px;
@@ -72,7 +72,7 @@ if (isset($tra_status_id)) {
             transition: background-color 0.3s ease;
         }
 
-        #btnSubir:hover {
+        .btnSubir:hover {
             background-color: #0056b3;
         }
 
@@ -180,56 +180,46 @@ if (isset($tra_status_id)) {
 				<li class="nav-item">
 					<a class="nav-link text-blue" data-toggle="tab" href="#documentos_pago" role="tab" aria-selected="false">Pagos de Derecho</a>
 				</li>
-				
-				<?php if(isset($tra_status_id) && $tra_status_id == 23) : ?>
+
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
+					<li class="nav-item">
+						<a class="nav-link text-blue" data-toggle="tab" href="#pago_gestor" role="tab" aria-selected="false">Pago al Gestor</a>
+					</li>
+				<?php endif; ?>
+
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
+					<li class="nav-item">
+						<a class="nav-link text-blue" data-toggle="tab" href="#cobro_cliente" role="tab" aria-selected="false">Cobros al Cliente</a>
+					</li>
+				<?php endif; ?>
+
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
 					<li class="nav-item">
 						<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
 					</li>
 				<?php endif; ?>
  
 			</ul>
-			<div class="tab-content">
+			<di0v class="tab-content">
 				<div class="tab-pane fade show active" id="home" role="tabpanel">
 					<div class="pd-20">
 						<div id="wizard">
-							<!-- Step 1: Formulario de paso 1 -->
+							<!-- Step 1: Datos principales -->
 							<?php if (has_permission('section_inicial_datos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
 
 								<h3>Información</h3>
 								<section>
 									<div class="min-height-200px">
-										
-									<?php 
-									// Definir las variables
-									$form_action = "/deskapp/tramites/update_save/$id";
-									$form_id = 'tramiteForm';
-									$cancel_url = '/tramites/tramite';
-									$submit_permission = 'editar_tramite';
-
-									// Mostrar el formulario con las variables
-									echo form_open($form_action, ['class' => 'form-horizontal', 'id' => $form_id]); 
-									?>
-									<div id="tramite_respuesta" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-										<span id="tramite_mensaje"></span>
-									</div>
-									<div id="tramite_respuesta_error" class="alert alert-warning alert-dismissible fade show" role="alert" style="display: none;">
-										<span id="tramite_mensaje_error"></span>
-									</div>
-									<div class="row">
-										<div class="col-md-6">
-											<?= render_form_fields($fields, 0, ceil(count($fields) / 2)); ?>
-										</div>
-										<div class="col-md-6">
-											<?= render_form_fields($fields, ceil(count($fields) / 2), count($fields)); ?>
-										</div>
-									</div>
-									<div class="text-center mt-4" id="boton_autorizar">
-										<a href="<?= $cancel_url ?>" class="btn btn-secondary ml-2">Cancelar</a>
-										<?php if (has_permission($submit_permission, esc($session->get('user_permissions')), esc($session->get('user_roles')))) { ?>
-											<button type="submit" class="btn btn-primary">Guardar</button>
-										<?php } ?>
-									</div>
-									<?php echo form_close(); ?>
+										<?php 
+											/* Paso 1: Formulario principal */
+											$prefix_form = "tramite";
+											$form_action = "/deskapp/tramites/update_save/$id";
+											$form_id = 'tramiteForm';
+											$cancel_url = '/tramites/tramite';
+											$submit_permission = 'editar_tramite';
+											$field_values = $fields;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+										?>
 										<script>
 											var cliDirectoId = "<?php echo isset($fields['cli_directo']['value']) ? $fields['cli_directo']['value'] : ''; ?>";
 											var ejecutivoId = "<?php echo isset($fields['cli_directo_ejecutivo_id']['value']) ? $fields['cli_directo_ejecutivo_id']['value'] : ''; ?>";
@@ -237,124 +227,24 @@ if (isset($tra_status_id)) {
 									</div>
 								</section>
 							<?php endif; ?>					
-							<!-- Step 2: Formulario de paso 2 -->
+							<!-- Step 2: Asignacion de Gestor -->
 							
 							<?php if (has_permission('section_asigna_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
 								<h3>Gestor</h3>
 								<section>
-									<?php echo form_open(isset($id) ? "/deskapp/tramites/update_gestor_save/$id" : '/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'gestorForm']); ?>
-										<div id="gestor_respuesta" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-											<span id="gestor_mensaje"></span>
-										</div>
-										<div id="gestor_respuesta_error" class="alert alert-warning alert-dismissible fade show" role="alert" style="display: none;">
-											<span id="gestor_mensaje_error"></span>
-										</div>
-										<div class="row">
-											<div class="col-md-6">
-												<?php 
-												$half_gestor_campos = array_slice($gestor_campos, 0, ceil(count($gestor_campos) / 2), true);
-												foreach ($half_gestor_campos as $gestor_campo_name => $gestor_campo_info): 
-													$value = isset($gestor_campo_info['value']) ? $gestor_campo_info['value'] : set_value($gestor_campo_name);
-													$required = isset($gestor_campo_info['required']) ? $gestor_campo_info['required'] : "";
-													$readonly = isset($gestor_campo_info['readonly']) ? $gestor_campo_info['readonly'] : "";
-													$disabled = isset($gestor_campo_info['disabled']) ? $gestor_campo_info['disabled'] : "";
-												?>
-													<?php if ($gestor_campo_info['type'] == 'hidden'): ?>
-														<input type="hidden" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" value="<?php echo $value; ?>">
-													<?php else: ?>
-														<div class="mb-3 row">
-															<label for="<?php echo $gestor_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $gestor_campo_info['label']; ?></label>
-															<div class="col-sm-8">
-																<?php if ($gestor_campo_info['type'] == 'text'): ?>
-																	<input type="text" class="form-control" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($gestor_campo_info['type'] == 'number') echo 'step="any"';?>>
-																<?php elseif ($gestor_campo_info['type'] == 'select'): ?>
-																	<select class="form-control select2" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<option value="">Seleccione</option>
-																		<?php foreach ($gestor_campo_info['options'] as $option_value => $option_label): ?>
-																			<option value="<?php echo $option_value; ?>" <?php echo set_select($gestor_campo_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
-																		<?php endforeach; ?>
-																	</select>
-																<?php elseif ($gestor_campo_info['type'] == 'textarea'): ?>
-																	<textarea class="form-control" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
-																<?php elseif ($gestor_campo_info['type'] == 'checkbox'): ?>
-																	<input type="checkbox" class="form-check-input" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" value="1" <?php echo set_checkbox($gestor_campo_name, '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php elseif ($gestor_campo_info['type'] == 'radio' && $gestor_campo_name == 'status'): ?>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_active">Activo</label>
-																	</div>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_inactive">Inactivo</label>
-																	</div>
-																<?php elseif ($gestor_campo_info['type'] == 'datetime'): ?>
-																	<input type="text" class="form-control datetime-picker" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $disabled; ?>>
-																<?php endif; ?>
-																<div class="invalid-feedback">
-																	<?php echo \Config\Services::validation()->showError($gestor_campo_name); ?>
-																</div>
-															</div>
-														</div>
-													<?php endif; ?>
-												<?php endforeach; ?>
-											</div>
-											<div class="col-md-6">
-												<?php 
-												$half_gestor_campos = array_slice($gestor_campos, ceil(count($gestor_campos) / 2), count($gestor_campos), true);
-												foreach ($half_gestor_campos as $gestor_campo_name => $gestor_campo_info): 
-													$value = isset($gestor_campo_info['value']) ? $gestor_campo_info['value'] : set_value($gestor_campo_name);
-													$required = isset($gestor_campo_info['required']) ? $gestor_campo_info['required'] : "";
-													$readonly = isset($gestor_campo_info['readonly']) ? $gestor_campo_info['readonly'] : "";
-													$disabled = isset($gestor_campo_info['disabled']) ? $gestor_campo_info['disabled'] : "";
-												?>
-													<?php if ($gestor_campo_info['type'] == 'hidden'): ?>
-														<input type="hidden" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" value="<?php echo $value; ?>">
-													<?php else: ?>
-														<div class="mb-3 row">
-															<label for="<?php echo $gestor_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $gestor_campo_info['label']; ?></label>
-															<div class="col-sm-8">
-																<?php if ($gestor_campo_info['type'] == 'text'): ?>
-																	<input type="text" class="form-control" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php elseif ($gestor_campo_info['type'] == 'select'): ?>
-																	<select class="form-control select2" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<option value="">Seleccione</option>
-																		<?php foreach ($gestor_campo_info['options'] as $option_value => $option_label): ?>
-																			<option value="<?php echo $option_value; ?>" <?php echo set_select($gestor_campo_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
-																		<?php endforeach; ?>
-																	</select>
-																<?php elseif ($gestor_campo_info['type'] == 'textarea'): ?>
-																	<textarea class="form-control" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
-																<?php elseif ($gestor_campo_info['type'] == 'checkbox'): ?>
-																	<input type="checkbox" class="form-check-input" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" value="1" <?php echo set_checkbox($gestor_campo_name, '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php elseif ($gestor_campo_info['type'] == 'radio' && $gestor_campo_name == 'status'): ?>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_active">Activo</label>
-																	</div>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_inactive">Inactivo</label>
-																	</div>
-																<?php elseif ($gestor_campo_info['type'] == 'datetime'): ?>
-																	<input type="text" class="form-control datetime-picker" id="<?php echo $gestor_campo_name; ?>" name="<?php echo $gestor_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php endif; ?>
-																<div class="invalid-feedback">
-																	<?php echo \Config\Services::validation()->showError($gestor_campo_name); ?>
-																</div>
-															</div>
-														</div>
-													<?php endif; ?>
-												<?php endforeach; ?>
-											</div>
-										</div>
-										<div class="text-center mt-4" id="boton_autorizar">
-											<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-											<?php if (has_permission('editar_gestores', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
-												<button type="submit" class="btn btn-primary">Guardar</button>
-											<?php } ?>
-										</div>
-
-									<?php echo form_close(); ?>
+									<div class="min-height-200px">
+										<?php 
+											/* Paso 2: Asignar Gestor */
+											$prefix_form = "gestor";
+											$form_action = "/deskapp/tramites/update_gestor_save/$id";
+											$form_id = 'gestorForm';
+											$cancel_url = '/tramites/tramite';
+											$submit_permission = 'editar_gestores';
+											$field_values = $gestor_campos;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+										?>
+									</div>
+									
 									<script>
 										var empresaGestoraId = "<?php echo isset($gestor_campos['empresa_gestora']['value']) ? $gestor_campos['empresa_gestora']['value'] : ''; ?>";
 										var gestorId = "<?php echo isset($gestor_campos['gestor_id']['value']) ? $gestor_campos['gestor_id']['value'] : ''; ?>";
@@ -362,243 +252,43 @@ if (isset($tra_status_id)) {
 								</section>
 							<?php endif; ?>
 							<?php if (has_permission('section_pago_derechos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
-								<!-- Step 3: Formulario de paso 3 -->
+								<!-- Step 3: La forma en que se pagan los derechos -->
 								<h3>Pago de Derechos</h3>
 								<section>
-									<?php echo form_open(isset($id) ? "/deskapp/tramites/update_derechos_save/$id" : '/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'derechosForm']); ?>
-										<div id="derechos_respuesta" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-											<span id="derechos_mensaje"></span> 
-										</div>
-										<div id="derechos_respuesta_error" class="alert alert-warning alert-dismissible fade show" role="alert" style="display: none;">
-											<span id="derechos_mensaje_error"></span>
-										</div>
-										<div class="row">
-											<div class="col-md-6">
-												<?php 
-												$half_derechos_campos = array_slice($derechos_campos, 0, ceil(count($derechos_campos) / 2), true);
-												foreach ($half_derechos_campos as $derechos_campo_name => $derechos_campo_info): 
-													$value = isset($derechos_campo_info['value']) ? $derechos_campo_info['value'] : set_value($derechos_campo_name);
-													$required = isset($derechos_campo_info['required']) ? $derechos_campo_info['required'] : "";
-													$readonly = isset($derechos_campo_info['readonly']) ? $derechos_campo_info['readonly'] : "";
-													$disabled = isset($derechos_campo_info['disabled']) ? $derechos_campo_info['disabled'] : "";
-												?>
-													<?php if ($derechos_campo_info['type'] == 'hidden'): ?>
-														<input type="hidden" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="<?php echo $value; ?>">
-													<?php else: ?>
-														<div class="mb-3 row">
-															<label for="<?php echo $derechos_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $derechos_campo_info['label']; ?></label>
-															<div class="col-sm-8">
-																<?php if ($derechos_campo_info['type'] == 'text' || $derechos_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $derechos_campo_info['type'] ?>" class="form-control" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($derechos_campo_info['type'] == 'number') echo 'step="any"';?>>
-																<?php elseif ($derechos_campo_info['type'] == 'select'): ?>
-																	<select class="form-control select2" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<option value="">Seleccione</option>
-																		<?php foreach ($derechos_campo_info['options'] as $option_value => $option_label): ?>
-																			<option value="<?php echo $option_value; ?>" <?php echo set_select($derechos_campo_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
-																		<?php endforeach; ?>
-																	</select>
-																<?php elseif ($derechos_campo_info['type'] == 'textarea'): ?>
-																	<textarea class="form-control" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
-																<?php elseif ($derechos_campo_info['type'] == 'checkbox'): ?>
-																	<input type="checkbox" class="form-check-input" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="1" <?php echo set_checkbox($derechos_campo_name, '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php elseif ($derechos_campo_info['type'] == 'radio' && $derechos_campo_name == 'status'): ?>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_active">Activo</label>
-																	</div>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_inactive">Inactivo</label>
-																	</div>
-																<?php elseif ($derechos_campo_info['type'] == 'datetime'): ?>
-																	<input type="text" class="form-control datetime-picker" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $disabled; ?>>
-																<?php endif; ?>
-																<div class="invalid-feedback">
-																	<?php echo \Config\Services::validation()->showError($derechos_campo_name); ?>
-																</div>
-															</div>
-														</div>
-													<?php endif; ?>
-												<?php endforeach; ?>
-											</div>
-											<div class="col-md-6">
-												<?php 
-												$half_derechos_campos = array_slice($derechos_campos, ceil(count($derechos_campos) / 2), count($derechos_campos), true);
-												foreach ($half_derechos_campos as $derechos_campo_name => $derechos_campo_info): 
-													$value = isset($derechos_campo_info['value']) ? $derechos_campo_info['value'] : set_value($derechos_campo_name);
-													$required = isset($derechos_campo_info['required']) ? $derechos_campo_info['required'] : "";
-													$readonly = isset($derechos_campo_info['readonly']) ? $derechos_campo_info['readonly'] : "";
-													$disabled = isset($derechos_campo_info['disabled']) ? $derechos_campo_info['disabled'] : "";
-												?>
-													<?php if ($derechos_campo_info['type'] == 'hidden'): ?>
-														<input type="hidden" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="<?php echo $value; ?>">
-													<?php else: ?>
-														<div class="mb-3 row">
-															<label for="<?php echo $derechos_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $derechos_campo_info['label']; ?></label>
-															<div class="col-sm-8">
-																<?php if ($derechos_campo_info['type'] == 'text' || $derechos_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $derechos_campo_info['type'] ?>" class="form-control" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($derechos_campo_info['type'] == 'number') echo 'step="any"';?>>
-																<?php elseif ($derechos_campo_info['type'] == 'select'): ?>
-																	<select class="form-control select2" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<option value="">Seleccione</option>
-																		<?php foreach ($derechos_campo_info['options'] as $option_value => $option_label): ?>
-																			<option value="<?php echo $option_value; ?>" <?php echo set_select($derechos_campo_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
-																		<?php endforeach; ?>
-																	</select>
-																<?php elseif ($derechos_campo_info['type'] == 'textarea'): ?>
-																	<textarea class="form-control" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
-																<?php elseif ($derechos_campo_info['type'] == 'checkbox'): ?>
-																	<input type="checkbox" class="form-check-input" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="1" <?php echo set_checkbox($derechos_campo_name, '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php elseif ($derechos_campo_info['type'] == 'radio' && $derechos_campo_name == 'status'): ?>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_active">Activo</label>
-																	</div>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_inactive">Inactivo</label>
-																	</div>
-																<?php elseif ($derechos_campo_info['type'] == 'datetime'): ?>
-																	<input type="text" class="form-control datetime-picker" id="<?php echo $derechos_campo_name; ?>" name="<?php echo $derechos_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php endif; ?>
-																<div class="invalid-feedback">
-																	<?php echo \Config\Services::validation()->showError($derechos_campo_name); ?>
-																</div>
-															</div>
-														</div>
-													<?php endif; ?>
-												<?php endforeach; ?>
-											</div>
-										</div>
-										<div class="text-center mt-4" id="boton_autorizar">
-											<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-											<?php if (has_permission('editar_derechos', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
-												<button type="submit" class="btn btn-primary">Guardar</button>
-											<?php } ?>
-										</div>
-
-									<?php echo form_close(); ?>
+									<div class="min-height-200px">
+										<?php 
+											/* Paso 3: Pago de Derechos */
+											$prefix_form = "derechos";
+											$form_action = "/deskapp/tramites/update_derechos_save/$id";
+											$form_id = 'derechosForm';
+											$cancel_url = '/tramites/tramite';
+											$submit_permission = 'editar_derechos';
+											$field_values = $derechos_campos;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+										?>										
+									</div>
 								</section>
 							<?php endif; ?>
 							<?php if (has_permission('section_linea_captura', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
-								<!-- Step 4: Imagen -->
+								<!-- Step 4: Solo se agrega la linea de captura -->
 								<h3>Linea de Captura</h3>
 								<section>
-									<?php echo form_open(isset($id) ? "/deskapp/tramites/update_bancario_save/$id" : '/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'bancarioForm']); ?>
-										<div id="bancario_respuesta" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-											<span id="bancario_mensaje"></span>
-										</div>
-										<div id="bancario_respuesta_error" class="alert alert-warning alert-dismissible fade show" role="alert" style="display: none;">
-											<span id="bancario_mensaje_error"></span>
-										</div>
-										<div class="row">
-											<div class="col-md-6">
-												<?php 
-												$half_bancario_campos = array_slice($bancario_campos, 0, ceil(count($bancario_campos) / 2), true);
-												foreach ($half_bancario_campos as $bancario_campo_name => $bancario_campo_info): 
-													$value = isset($bancario_campo_info['value']) ? $bancario_campo_info['value'] : set_value($bancario_campo_name);
-													$required = isset($bancario_campo_info['required']) ? $bancario_campo_info['required'] : "";
-													$readonly = isset($bancario_campo_info['readonly']) ? $bancario_campo_info['readonly'] : "";
-													$disabled = isset($bancario_campo_info['disabled']) ? $bancario_campo_info['disabled'] : "";
-												?>
-													<?php if ($bancario_campo_info['type'] == 'hidden'): ?>
-														<input type="hidden" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="<?php echo $value; ?>">
-													<?php else: ?>
-														<div class="mb-3 row">
-															<label for="<?php echo $bancario_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $bancario_campo_info['label']; ?></label>
-															<div class="col-sm-8">
-																<?php if ($bancario_campo_info['type'] == 'text' || $bancario_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $bancario_campo_info['type'] ?>" class="form-control" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($bancario_campo_info['type'] == 'number') echo 'step="any"';?>>
-																<?php elseif ($bancario_campo_info['type'] == 'select'): ?>
-																	<select class="form-control select2" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<option value="">Seleccione</option>
-																		<?php foreach ($bancario_campo_info['options'] as $option_value => $option_label): ?>
-																			<option value="<?php echo $option_value; ?>" <?php echo set_select($bancario_campo_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
-																		<?php endforeach; ?>
-																	</select>
-																<?php elseif ($bancario_campo_info['type'] == 'textarea'): ?>
-																	<textarea class="form-control" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
-																<?php elseif ($bancario_campo_info['type'] == 'checkbox'): ?>
-																	<input type="checkbox" class="form-check-input" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="1" <?php echo set_checkbox($bancario_campo_name, '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php elseif ($bancario_campo_info['type'] == 'radio' && $bancario_campo_name == 'status'): ?>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_active">Activo</label>
-																	</div>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_inactive">Inactivo</label>
-																	</div>
-																<?php elseif ($bancario_campo_info['type'] == 'datetime'): ?>
-																	<input type="text" class="form-control datetime-picker" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $disabled; ?>>
-																<?php endif; ?>
-																<div class="invalid-feedback">
-																	<?php echo \Config\Services::validation()->showError($bancario_campo_name); ?>
-																</div>
-															</div>
-														</div>
-													<?php endif; ?>
-												<?php endforeach; ?>
-											</div>
-											<div class="col-md-6">
-												<?php 
-												$half_bancario_campos = array_slice($bancario_campos, ceil(count($bancario_campos) / 2), count($bancario_campos), true);
-												foreach ($half_bancario_campos as $bancario_campo_name => $bancario_campo_info): 
-													$value = isset($bancario_campo_info['value']) ? $bancario_campo_info['value'] : set_value($bancario_campo_name);
-													$required = isset($bancario_campo_info['required']) ? $bancario_campo_info['required'] : "";
-													$readonly = isset($bancario_campo_info['readonly']) ? $bancario_campo_info['readonly'] : "";
-													$disabled = isset($bancario_campo_info['disabled']) ? $bancario_campo_info['disabled'] : "";
-												?>
-													<?php if ($bancario_campo_info['type'] == 'hidden'): ?>
-														<input type="hidden" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="<?php echo $value; ?>">
-													<?php else: ?>
-														<div class="mb-3 row">
-															<label for="<?php echo $bancario_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $bancario_campo_info['label']; ?></label>
-															<div class="col-sm-8">
-																<?php if ($bancario_campo_info['type'] == 'text' || $bancario_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $bancario_campo_info['type'] ?>" class="form-control" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($bancario_campo_info['type'] == 'number') echo 'step="any"';?>>
-																<?php elseif ($bancario_campo_info['type'] == 'select'): ?>
-																	<select class="form-control select2" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<option value="">Seleccione</option>
-																		<?php foreach ($bancario_campo_info['options'] as $option_value => $option_label): ?>
-																			<option value="<?php echo $option_value; ?>" <?php echo set_select($bancario_campo_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
-																		<?php endforeach; ?>
-																	</select>
-																<?php elseif ($bancario_campo_info['type'] == 'textarea'): ?>
-																	<textarea class="form-control" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
-																<?php elseif ($bancario_campo_info['type'] == 'checkbox'): ?>
-																	<input type="checkbox" class="form-check-input" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="1" <?php echo set_checkbox($bancario_campo_name, '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php elseif ($bancario_campo_info['type'] == 'radio' && $bancario_campo_name == 'status'): ?>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_active">Activo</label>
-																	</div>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_inactive">Inactivo</label>
-																	</div>
-																<?php elseif ($bancario_campo_info['type'] == 'datetime'): ?>
-																	<input type="text" class="form-control datetime-picker" id="<?php echo $bancario_campo_name; ?>" name="<?php echo $bancario_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php endif; ?>
-																<div class="invalid-feedback">
-																	<?php echo \Config\Services::validation()->showError($bancario_campo_name); ?>
-																</div>
-															</div>
-														</div>
-													<?php endif; ?>
-												<?php endforeach; ?>
-											</div>
-										</div>
-										<div class="text-center mt-4" id="boton_autorizar">
-											<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-											<?php if (has_permission('editar_bancario', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
-												<button type="submit" class="btn btn-primary">Guardar</button>
-											<?php } ?>
-										</div>
-									<?php echo form_close(); ?>
+									<div class="min-height-200px">
+										<?php 
+											/* Paso 4: Datos Bancarios, Linea de captura */
+											$prefix_form = "bancario";
+											$form_action = "/deskapp/tramites/update_bancario_save/$id";
+											$form_id = 'bancarioForm';
+											$cancel_url = '/tramites/tramite';
+											$submit_permission = 'editar_bancario';
+											$field_values = $bancario_campos;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+										?>
+									</div>
 								</section>
 							<?php endif; ?>
 							<?php if (has_permission('section_documentos_pago', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
+								<!-- Step 5: Todos los documentos relacionados con el proceso en ventanilla -->
 								<h3>Documentos de Pago</h3>
 								<section>
 									<?php if (has_permission('important_pasar_a_pagos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
@@ -609,32 +299,26 @@ if (isset($tra_status_id)) {
 									
 									<hr>
 									<div>
-										<?php 
-											// if (!empty($output_derechos)) {
-											// 		echo $output_derechos;
-											// }
-											
-										?>
-											<div class="dropzone-container">
-												<form class="dropzone" id="miDropzone">
-													<div class="dz-default dz-message">
-														<button class="dz-button" type="button">
-															<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
-														</button>
-													</div>
-												</form>
-											</div>
+    	<!-- Contenedor Dropzone -->
+		<div class="dropzone-container">
+			<form class="dropzone dropzone-documentos" id="miDropzone">
+				<div class="dz-default dz-message">
+					<button class="dz-button" type="button">
+						<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+					</button>
+				</div>
+			</form>
+		</div>
 
-											<!-- Botón Subir -->
-											<button id="btnSubir">Subir</button>
+		<!-- Botón Subir -->
+		<button id="btnSubirDocumentos" class="btnSubir">Subir</button>
 
+    <hr>
+    <br><br>
 
-											</hr>
-											<br><br>
-										<!-- <div class="container mt-5">
-											<h1 class="mb-4">Archivos Subidos</h1> -->
-											<div class="row mb-3">
-        	<div class="col-12 text-center">
+    <!-- Mensaje de Eliminación -->
+    <div class="row mb-3">
+        <div class="col-12 text-center">
             <h6 style="color: #d9534f; font-weight: bold;">
                 Si deseas eliminar un archivo debes solicitarlo al administrador
             </h6>
@@ -642,10 +326,10 @@ if (isset($tra_status_id)) {
     </div>
 
     <!-- Galería de Imágenes -->
-    <div class="row">
+    <div class="row" id="documentos-container">
         <?php foreach ($images_derechos_comprobante as $file): 
-			if($file['name'] != '.DS_Store'):
-			?>
+            if($file['name'] != '.DS_Store'):
+        ?>
             <?php 
                 // Verificar si el archivo es una imagen
                 $isImage = in_array(pathinfo($file['name'], PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
@@ -656,17 +340,17 @@ if (isset($tra_status_id)) {
                         <!-- Mostrar Imagen en Miniatura -->
                         <a href="<?php echo $file['existing_path']; ?>" target="_blank">
                             <img src="<?php echo $file['existing_path']; ?>" 
-                                 alt="<?php echo $file['name']; ?>" 
-                                 class="img-thumbnail" 
-                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                alt="<?php echo $file['name']; ?>" 
+                                class="img-thumbnail" 
+                                style="width: 60px; height: 60px; object-fit: cover;">
                         </a>
                     <?php else: ?>
                         <!-- Mostrar Ícono según el tipo de archivo -->
                         <a href="<?php echo $file['existing_path']; ?>" target="_blank">
                             <img src="<?php echo $file['icon']; ?>" 
-                                 alt="File Icon" 
-                                 class="img-thumbnail" 
-                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                alt="File Icon" 
+                                class="img-thumbnail" 
+                                style="width: 60px; height: 60px; object-fit: cover;">
                         </a>
                     <?php endif; ?>
 
@@ -677,196 +361,189 @@ if (isset($tra_status_id)) {
                 </div>
             </div>
         <?php 
-		endif;
-	endforeach; ?>
+            endif;
+        endforeach; ?>
     </div>
+</div>
 
-
-										<!-- </div> -->
-
-
-
-											
-										
-									</div>
-									
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && $tra_status_id == 23): ?>
-								<h3>Costos</h3>
+							<?php if (has_permission('section_pago_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
+								<!-- Step 6: Se paga al gestor -->
+								<h3>Pago a Gestor</h3>
 								<section>
-									<?php echo form_open("/deskapp/tramites/update_final_save/$id", ['class' => 'form-horizontal', 'id' => 'finalForm']); ?>
-										<div id="final_respuesta" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-											<span id="final_mensaje"></span>
-										</div>
-										<div id="final_respuesta_error" class="alert alert-warning alert-dismissible fade show" role="alert" style="display: none;">
-											<span id=final_mensaje_error"></span>
-										</div>
-										<div class="row">
-											<div class="col-md-6">
-												<?php 
-												$half_final_campos = array_slice($final_campos, 0, ceil(count($final_campos) / 2), true);
-												foreach ($half_final_campos as $final_campo_name => $final_campo_info): 
-													$value = isset($final_campo_info['value']) ? $final_campo_info['value'] : set_value($final_campo_name);
-													$required = isset($final_campo_info['required']) ? $final_campo_info['required'] : "";
-													$readonly = isset($final_campo_info['readonly']) ? $final_campo_info['readonly'] : "";
-													$disabled = isset($final_campo_info['disabled']) ? $final_campo_info['disabled'] : "";
-												?>
-													<?php if ($final_campo_info['type'] == 'hidden'): ?>
-														<input type="hidden" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>">
-													<?php else: ?>
-														<div class="mb-3 row">
-															<label for="<?php echo $final_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $final_campo_info['label']; ?></label>
-															<div class="col-sm-8">
-																<?php if ($final_campo_info['type'] == 'text' || $final_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $final_campo_info['type'] ?>" class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($final_campo_info['type'] == 'number') echo 'step="any"';?>>
-																<?php elseif ($final_campo_info['type'] == 'select'): ?>
-																	<select class="form-control select2" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<option value="">Seleccione</option>
-																		<?php foreach ($final_campo_info['options'] as $option_value => $option_label): ?>
-																			<option value="<?php echo $option_value; ?>" <?php echo set_select($final_campo_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
-																		<?php endforeach; ?>
-																	</select>
-																<?php elseif ($final_campo_info['type'] == 'textarea'): ?>
-																	<textarea class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
-																<?php elseif ($final_campo_info['type'] == 'checkbox'): ?>
-																	<input type="checkbox" class="form-check-input" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="1" <?php echo set_checkbox($final_campo_name, '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php elseif ($final_campo_info['type'] == 'radio' && $final_campo_name == 'status'): ?>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_active">Activo</label>
-																	</div>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_inactive">Inactivo</label>
-																	</div>
-																<?php elseif ($final_campo_info['type'] == 'datetime'): ?>
-																	<input type="text" class="form-control datetime-picker" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $disabled; ?>>
-																
-																<?php elseif ($final_campo_info['type'] == 'file'): ?>
-																	<input type="file" class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																	<?php if (!empty($value)): ?>
-																		<div class="mt-2 text-center">
-																			<?php if (pathinfo($value, PATHINFO_EXTENSION) === 'pdf'): ?>
-																				<img src="<?php echo base_url() . '/public/assets/src/images/pdf-icon.png'; ?>"
-																					alt="<?php echo $final_campo_name; ?>" 
-																					id="current-image"
-																					style="max-width: 40px; border: 1px solid #ddd; border-radius: 8px; padding: 5px; display: block; margin: 0 auto;">
-																				<!-- Nombre del archivo centrado y descargable -->
-																				<a href="<?php echo $value; ?>" download="<?php echo basename($value); ?>" 
-																				style="display: block; margin-top: 10px; font-size: 14px; color: #333; text-decoration: none;">
-																					<?php echo basename($value); ?>
-																				</a>
-																			<?php else: ?>
-																				<img src="<?php echo base_url() . '/public/assets/src/images/xml-file.png'; ?>"
-																					alt="<?php echo $final_campo_name; ?>" 
-																					id="current-image"
-																					style="max-width: 40px; border: 1px solid #ddd; border-radius: 8px; padding: 5px; display: block; margin: 0 auto;">
-																				<!-- Nombre del archivo centrado y descargable -->
-																				<a href="<?php echo $value; ?>" download="<?php echo basename($value); ?>" 
-																				style="display: block; margin-top: 10px; font-size: 14px; color: #333; text-decoration: none;">
-																					<?php echo basename($value); ?>
-																				</a>
-																			<?php endif; ?>
-																		</div>
-																	<?php endif; ?>
-																<?php endif; ?>
-																<div class="invalid-feedback">
-																	<?php echo \Config\Services::validation()->showError($final_campo_name); ?>
-																</div>
-															</div>
-														</div>
-													<?php endif; ?>
-												<?php endforeach; ?>
-											</div>
-											<div class="col-md-6">
-												<?php 
-												$half_final_campos = array_slice($final_campos, ceil(count($final_campos) / 2), count($final_campos), true);
-												foreach ($half_final_campos as $final_campo_name => $final_campo_info): 
-													$value = isset($final_campo_info['value']) ? $final_campo_info['value'] : set_value($final_campo_name);
-													$required = isset($final_campo_info['required']) ? $final_campo_info['required'] : "";
-													$readonly = isset($final_campo_info['readonly']) ? $final_campo_info['readonly'] : "";
-													$disabled = isset($final_campo_info['disabled']) ? $final_campo_info['disabled'] : "";
-												?>
-													<?php if ($final_campo_info['type'] == 'hidden'): ?>
-														<input type="hidden" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>">
-													<?php else: ?>
-														<div class="mb-3 row">
-															<label for="<?php echo $final_campo_name; ?>" class="col-sm-4 col-form-label"><?php echo $final_campo_info['label']; ?></label>
-															<div class="col-sm-8">
-																<?php if ($final_campo_info['type'] == 'text' || $final_campo_info['type'] == 'number'): ?>
-																	<input type="<?php echo $final_campo_info['type'] ?>" class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?> <?php if ($final_campo_info['type'] == 'number') echo 'step="any"';?>>
-																<?php elseif ($final_campo_info['type'] == 'select'): ?>
-																	<select class="form-control select2" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<option value="">Seleccione</option>
-																		<?php foreach ($final_campo_info['options'] as $option_value => $option_label): ?>
-																			<option value="<?php echo $option_value; ?>" <?php echo set_select($final_campo_name, $option_value, $value == $option_value); ?>><?php echo $option_label; ?></option>
-																		<?php endforeach; ?>
-																	</select>
-																<?php elseif ($final_campo_info['type'] == 'textarea'): ?>
-																	<textarea class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>><?php echo $value; ?></textarea>
-																<?php elseif ($final_campo_info['type'] == 'checkbox'): ?>
-																	<input type="checkbox" class="form-check-input" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="1" <?php echo set_checkbox($final_campo_name, '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																<?php elseif ($final_campo_info['type'] == 'radio' && $final_campo_name == 'status'): ?>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_active" value="1" <?php echo set_radio('status', '1', $value == '1'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_active">Activo</label>
-																	</div>
-																	<div class="form-check form-check-inline">
-																		<input class="form-check-input" type="radio" name="status" id="status_inactive" value="0" <?php echo set_radio('status', '0', $value == '0'); ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																		<label class="form-check-label" for="status_inactive">Inactivo</label>
-																	</div>
-																<?php elseif ($final_campo_info['type'] == 'datetime'): ?>
-																	<input type="text" class="form-control datetime-picker" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" value="<?php echo $value; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																	<?php elseif ($final_campo_info['type'] == 'file'): ?>
-																	<input type="file" class="form-control" id="<?php echo $final_campo_name; ?>" name="<?php echo $final_campo_name; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
-																	<?php if (!empty($value)): ?>
-																		<div class="mt-2 text-center">
-																		<?php if (pathinfo($value, PATHINFO_EXTENSION) === 'pdf'): ?>
-																				<img src="<?php echo base_url() . '/public/assets/src/images/pdf-icon.png'; ?>"
-																					alt="<?php echo $final_campo_name; ?>" 
-																					id="current-image"
-																					style="max-width: 40px; border: 1px solid #ddd; border-radius: 8px; padding: 5px; display: block; margin: 0 auto;">
-																				<!-- Nombre del archivo centrado y descargable -->
-																				<a href="<?php echo $value; ?>" download="<?php echo basename($value); ?>" 
-																				style="display: block; margin-top: 10px; font-size: 14px; color: #333; text-decoration: none;">
-																					<?php echo basename($value); ?>
-																				</a>
-																			<?php else: ?>
-																				<img src="<?php echo base_url() . '/public/assets/src/images/xml-file.png'; ?>"
-																					alt="<?php echo $final_campo_name; ?>" 
-																					id="current-image"
-																					style="max-width: 40px; border: 1px solid #ddd; border-radius: 8px; padding: 5px; display: block; margin: 0 auto;">
-																				<!-- Nombre del archivo centrado y descargable -->
-																				<a href="<?php echo $value; ?>" download="<?php echo basename($value); ?>" 
-																				style="display: block; margin-top: 10px; font-size: 14px; color: #333; text-decoration: none;">
-																					<?php echo basename($value); ?>
-																				</a>
-																			<?php endif; ?>
-																		</div>
-																	<?php endif; ?>
-																<?php endif; ?>
-																<div class="invalid-feedback">
-																	<?php echo \Config\Services::validation()->showError($final_campo_name); ?>
-																</div>
-															</div>
-														</div>
-													<?php endif; ?>
-												<?php endforeach; ?>
-											</div>
-										</div>
-										<div class="text-center mt-4" id="boton_autorizar">            
-											<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-											<?php if (has_permission('editar_final', esc($session->get('user_permissions')),esc($session->get('user_roles')))){ ?>
-												<button type="submit" class="btn btn-primary">Guardar</button>
-											<?php } ?>
-											<?php if (has_permission('important_concluir_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
+									<div class="min-height-200px">
+										<?php 
+											/* Paso 3: Pago de Derechos */
+											$prefix_form = "pago_gestor";
+											$form_action = "/deskapp/tramites/update_pago_gestor/$id";
+											$form_id = 'pagoGestorForm';
+											$cancel_url = '/tramites/tramite';
+											$submit_permission = 'editar_pago_gestor';
+											$field_values = $pago_gestor;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+										?>										
+									</div>
+									<hr>
+									<div>
+    	<!-- Contenedor Dropzone -->
+		<div class="dropzone-container">
+			<form class="dropzone dropzone-gestor" id="miDropzoneGestor">
+				<div class="dz-default dz-message">
+					<button class="dz-button" type="button">
+						<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+					</button>
+				</div>
+			</form>
+		</div>
+
+		<!-- Botón Subir -->
+		<button id="btnSubirGestor" class="btnSubir">Subir</button>
+
+    <hr>
+    <br><br>
+
+    <!-- Mensaje de Eliminación -->
+    <div class="row mb-3">
+        <div class="col-12 text-center">
+            <h6 style="color: #d9534f; font-weight: bold;">
+                Si deseas eliminar un archivo debes solicitarlo al administrador
+            </h6>
+        </div>
+    </div>
+
+    <!-- Galería de Imágenes -->
+    <div class="row" id="gestor-container">
+        <?php foreach ($images_pago_gestor as $file): 
+            if($file['name'] != '.DS_Store'):
+        ?>
+            <?php 
+                // Verificar si el archivo es una imagen
+                $isImage = in_array(pathinfo($file['name'], PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+            ?>
+            <div class="col-md-1 mb-3 text-center">
+                <div class="file-preview" style="border: 1px solid #ddd; border-radius: 5px; padding: 5px; background-color: #f9f9f9;">
+                    <?php if ($isImage): ?>
+                        <!-- Mostrar Imagen en Miniatura -->
+                        <a href="<?php echo $file['existing_path']; ?>" target="_blank">
+                            <img src="<?php echo $file['existing_path']; ?>" 
+                                alt="<?php echo $file['name']; ?>" 
+                                class="img-thumbnail" 
+                                style="width: 60px; height: 60px; object-fit: cover;">
+                        </a>
+                    <?php else: ?>
+                        <!-- Mostrar Ícono según el tipo de archivo -->
+                        <a href="<?php echo $file['existing_path']; ?>" target="_blank">
+                            <img src="<?php echo $file['icon']; ?>" 
+                                alt="File Icon" 
+                                class="img-thumbnail" 
+                                style="width: 60px; height: 60px; object-fit: cover;">
+                        </a>
+                    <?php endif; ?>
+
+                    <!-- Nombre del Archivo -->
+                    <p style="font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <?php echo $file['name']; ?>
+                    </p>
+                </div>
+            </div>
+        <?php 
+            endif;
+        endforeach; ?>
+    </div>
+</div>
+								</section>
+							<?php endif; ?>
+							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && $tra_status_id == 28): ?>
+								<!-- Step 7: Se cobra al cliente -->
+								<h3>Cobro a Cliente</h3>
+								<section>
+									<div class="min-height-200px">
+										
+										<?php 
+											/* Paso 3: Pago de Derechos */
+											$prefix_form = "final";
+											$form_action = "/deskapp/tramites/update_final_save/$id";
+											$form_id = 'finalForm';
+											$cancel_url = '/tramites/tramite';
+											$submit_permission = 'editar_final';
+											$field_values = $final_campos;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+										?>	
+										<?php if (has_permission('important_concluir_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
 												if (!in_array($tra_status_id, array(20, 21))) : ?>
 													<button type="button" class="btn btn-danger" id="" onclick="changeStatusTramite(<?php echo $id;?>, 20)">Concluir Trámite</button>
 											<?php endif; 
-											endif; ?>
-										</div>
-									<?php echo form_close(); ?>
+										endif; ?>									
+									</div>
+									<hr>
+									<div>
+    	<!-- Contenedor Dropzone -->
+		<div class="dropzone-container">
+			<form class="dropzone dropzone-cliente" id="miDropzoneCliente">
+				<div class="dz-default dz-message">
+					<button class="dz-button" type="button">
+						<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+					</button>
+				</div>
+			</form>
+		</div>
+
+		<!-- Botón Subir -->
+		<button id="btnSubirCliente" class="btnSubir">Subir</button>
+
+    <hr>
+    <br><br>
+
+    <!-- Mensaje de Eliminación -->
+    <div class="row mb-3">
+        <div class="col-12 text-center">
+            <h6 style="color: #d9534f; font-weight: bold;">
+                Si deseas eliminar un archivo debes solicitarlo al administrador
+            </h6>
+        </div>
+    </div>
+
+    <!-- Galería de Imágenes -->
+    <div class="row" id="cliente-container">
+        <?php foreach ($images_cobro_cliente as $file): 
+            if($file['name'] != '.DS_Store'):
+        ?>
+            <?php 
+                // Verificar si el archivo es una imagen
+                $isImage = in_array(pathinfo($file['name'], PATHINFO_EXTENSION), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+            ?>
+            <div class="col-md-1 mb-3 text-center">
+                <div class="file-preview" style="border: 1px solid #ddd; border-radius: 5px; padding: 5px; background-color: #f9f9f9;">
+                    <?php if ($isImage): ?>
+                        <!-- Mostrar Imagen en Miniatura -->
+                        <a href="<?php echo $file['existing_path']; ?>" target="_blank">
+                            <img src="<?php echo $file['existing_path']; ?>" 
+                                alt="<?php echo $file['name']; ?>" 
+                                class="img-thumbnail" 
+                                style="width: 60px; height: 60px; object-fit: cover;">
+                        </a>
+                    <?php else: ?>
+                        <!-- Mostrar Ícono según el tipo de archivo -->
+                        <a href="<?php echo $file['existing_path']; ?>" target="_blank">
+                            <img src="<?php echo $file['icon']; ?>" 
+                                alt="File Icon" 
+                                class="img-thumbnail" 
+                                style="width: 60px; height: 60px; object-fit: cover;">
+                        </a>
+                    <?php endif; ?>
+
+                    <!-- Nombre del Archivo -->
+                    <p style="font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <?php echo $file['name']; ?>
+                    </p>
+                </div>
+            </div>
+        <?php 
+            endif;
+        endforeach; ?>
+    </div>
+</div>
 								</section>
 							<?php endif; ?>
 						</div>
@@ -906,8 +583,36 @@ if (isset($tra_status_id)) {
 					</div>
 				</div>
 
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
+					<div class="tab-pane fade" id="pago_gestor" role="tabpanel">
+						<div class="pd-20">
+							<div class="pd-ltr-20 xs-pd-20-10">
+								<?php
+									if (!empty($output_pago_gestor)) {
+											echo $output_pago_gestor;
+									}
+								?>
+							</div>			
+						</div>
+					</div>
+				<?php endif; ?>
+
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
+					<div class="tab-pane fade" id="cobro_cliente" role="tabpanel">
+						<div class="pd-20">
+							<div class="pd-ltr-20 xs-pd-20-10">
+								<?php
+									if (!empty($output_cobro_cliente)) {
+											echo $output_cobro_cliente;
+									}
+								?>
+							</div>			
+						</div>
+					</div>
+				<?php endif; ?>
+
 				
-				<?php if(isset($tra_status_id) && $tra_status_id == 23) : ?>
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
 					<div class="tab-pane fade" id="final_evi" role="tabpanel">
 						<div class="pd-20">
 							<div class="pd-ltr-20 xs-pd-20-10">
@@ -920,7 +625,7 @@ if (isset($tra_status_id)) {
 						</div>
 					</div>
 				<?php endif; ?>
-			</div>
+			</di0v>
 		</div>
 	</div>	
 

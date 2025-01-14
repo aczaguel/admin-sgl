@@ -37,6 +37,8 @@ helper(['permissions_heleper']);
 helper(['session_helper']);
 helper(['log_helper']);
 helper(['wizard_form_helper']);
+helper(['full_form']);
+
 /*
  *---------------------------------------------------------------
  * LAUNCH THE APPLICATION
