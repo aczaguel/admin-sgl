@@ -32,5 +32,22 @@ class GestorModel extends Model
 
         return $options;
     }
+
+    public function getGestorNameById($gestorId){
+        $sql = new Sql($this->adapter);
+        $select = $sql->select();
+        $select->from('ges_gestor');
+        $select->where(['id' => $gestorId]); // Condición para el ID del gestor
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $result = $statement->execute();
+
+        // Retornar el nombre si se encuentra, o false si no
+        foreach ($result as $row) {
+            return $row['nombre'];
+        }
+
+        return false; // Si no se encuentra el gestor
+    }
 }
 ?>

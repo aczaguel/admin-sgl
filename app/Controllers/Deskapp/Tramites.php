@@ -27,6 +27,7 @@ use App\Models\TraUserLogModel;
 use App\Models\ReembolsoStatusModel;
 use App\Models\CobroStatusModel;
 use App\Models\PagoDerechosModel;
+use App\Models\PagoGestorStatusModel;
 
 class Tramites extends BaseController
 {
@@ -665,6 +666,9 @@ class Tramites extends BaseController
         $pago_derechos = new PagoDerechosModel($db2);
         $pago_derechos_db = $pago_derechos->getImgDerechosByTramiteId($id);
 
+        $pago_gestor_st = new PagoGestorStatusModel($db2);
+        $pago_gestor_st_opciones = $pago_gestor_st->getPagoGestorStatusOptions();
+
         // $cobroStatuses = new CobroStatusesModel($db2);
         // $cobro_status_options = $cobroStatuses->getCobroStatusesOptions();
         $form = new \stdClass();
@@ -688,31 +692,7 @@ class Tramites extends BaseController
                 // "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id'], "disabled"=>"disabled"],
                 "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones'], "disabled"=>"disabled"]
             ];
-        // }else{
-        //     $form->fields = [
-        //         "folio" => ["label" => "Folio", "type" => "hidden", "value" => $tramite['folio'], "readonly"=>"readonly"],
-        //         "contrato" => ["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required"],
-        //         "unidad" => ["label" => "Unidad", "type" => "text", "value" => $tramite['unidad']],
-        //         "serie" => ["label" => "Serie", "type" => "text", "value" => $tramite['serie']],
-        //         "placas" => ["label" => "Placas", "type" => "text", "value" => $tramite['placas']],
-        //         "tra_tipos_id" => ["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "value" => $tramite['tra_tipos_id']],
-        //         "cli_directo_id" => ["label" => "Cliente", "type" => "select", "options" => $cli_directo_options, "value" => $tramite['cli_directo_id']],
-        //         "cli_directo_ejecutivo_id" => ["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "value" => $tramite['cli_directo_ejecutivo_id']],
-        //         // "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id']],
-        //         // "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id']],
-        //         "ent_municipio_id" => ["label" => "Municipio", "type" => "select", "options" => $ent_municipio_options, "value" => $tramite['ent_municipio_id']],
-        //         // "tra_status_id" => ["label" => "Estatus", "type" => "select", "options" => $tra_status_options, "value" => $tramite['tra_status_id']],
-        //         "observaciones" => ["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']]
-        //     ];
-        // }
-
-
-        // if (is_read_only(esc($session->get('user_roles')))){
-        //     $form->gestor_fields = [
-        //         "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id'], "disabled"=>"disabled"],
-        //         "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "disabled"=>"disabled"]
-        //     ];
-        // }else{
+        
         $form->gestor_campos = [
             "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id'], "required" => "required"],
             "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "required" => "required"]
@@ -731,18 +711,6 @@ class Tramites extends BaseController
         ];
 
 
-        // $db = \Config\Database::connect();
-        // $builder = $db->table('tra_pago_derechos');
-        // $builder->select('id, file, comentario, costo, created_at, updated_at');
-        // $builder->where('tramite_id', $tramiteId);
-        // $builder->where('status', 1);
-
-        // $query = $builder->get();
-        // $result = $query->getResultArray();
-
-        // $pagos_derechos = $this->response->setHeader('Content-Type', 'application/json')
-        //                     ->setJSON($result);
-
 
         $storeFolder = 'assets/uploads/pago_derechos/'.$id;
         if (!file_exists($storeFolder)) {
@@ -756,7 +724,6 @@ class Tramites extends BaseController
             // echo "La carpeta ya existe.";
         }
 
-        
         // $result  = array();
         $result = [];
         $ds = DIRECTORY_SEPARATOR;
@@ -787,21 +754,6 @@ class Tramites extends BaseController
             return $icons[$extension] ?? '/public/assets/src/images/file-icon.png'; // Ícono genérico por defecto
         };
 
-        // 1. Validar archivos registrados en la base de datos (carpeta global)
-        // foreach ($pago_derechos_db as $dbFile) {
-        //     $filePath = FCPATH . $storeFolderGeneral . $dbFile->file;
-        //     if (file_exists($filePath)) {
-        //         $extension = pathinfo($dbFile->file, PATHINFO_EXTENSION);
-        //         $obj['id'] = $dbFile->id; // Agregar el id de la base de datos
-        //         $obj['name'] = $dbFile->file;
-        //         $obj['size'] = filesize($filePath);
-        //         $obj['existing_path'] = base_url($storeFolderGeneral . $dbFile->file); // Ruta para la vista
-        //         $obj['icon'] = $assignIcon($extension); // Asignar ícono según extensión
-        //         $result[] = $obj;
-        //     }
-        // }
-
-        // 2. Validar archivos en la carpeta específica
         if (is_dir(FCPATH . $storeFolderSpecific)) {
             $filesSpecific = scandir(FCPATH . $storeFolderSpecific);
             if ($filesSpecific !== false) {
@@ -824,19 +776,153 @@ class Tramites extends BaseController
 
         $images_derechos = $result;
 
+        $storeFolder = 'assets/uploads/pago_gestor/' . $id;
+        if (!file_exists($storeFolder)) {
+            if (mkdir($storeFolder, 0777, true)) { // true permite crear directorios recursivamente
+                chmod($storeFolder, 0777); // Asegura que los permisos sean 777
+                // echo "Carpeta creada exitosamente con permisos 777.";
+            } else {
+                // echo "No se pudo crear la carpeta.";
+            }
+        } else {
+            // echo "La carpeta ya existe.";
+        }
+
+        // $result  = array();
+        $result = [];
+        $ds = DIRECTORY_SEPARATOR;
+
+        // Rutas de carpetas
+        $storeFolderGeneral = 'assets/uploads/pago_gestor/';
+        $storeFolderSpecific = 'assets/uploads/pago_gestor/' . $id . $ds;
+
+        // Consulta a la base de datos
+        $pago_gestor_db = $db->table('tra_pago_gestor')
+                            ->select('id, file') // Seleccionamos también el id
+                            ->where('tramite_id', $id)
+                            ->get()
+                            ->getResultObject();
+
+        // Función para asignar íconos personalizados según el tipo de archivo
+        $assignIcon = function ($extension) {
+            $icons = [
+                'pdf'  => '/public/assets/src/images/pdf-icon.png',
+                'doc'  => '/public/assets/src/images/doc-icon.png',
+                'docx' => '/public/assets/src/images/docx-icon.png',
+                'xls'  => '/public/assets/src/images/xls-icon.png',
+                'xlsx' => '/public/assets/src/images/xlsx-icon.png',
+                'txt'  => '/public/assets/src/images/txt-icon.png',
+                'zip'  => '/public/assets/src/images/zip-icon.png',
+                'rar'  => '/public/assets/src/images/rar-icon.png',
+            ];
+            return $icons[$extension] ?? '/public/assets/src/images/file-icon.png'; // Ícono genérico por defecto
+        };
+
+        if (is_dir(FCPATH . $storeFolderSpecific)) {
+            $filesSpecific = scandir(FCPATH . $storeFolderSpecific);
+            if ($filesSpecific !== false) {
+                foreach ($filesSpecific as $file) {
+                    if ($file !== '.' && $file !== '..') {
+                        $filePath = FCPATH . $storeFolderSpecific . $file;
+                        if (file_exists($filePath)) {
+                            $extension = pathinfo($file, PATHINFO_EXTENSION);
+                            $obj['id'] = null; // Archivos que no están en la base de datos
+                            $obj['name'] = $file;
+                            $obj['size'] = filesize($filePath);
+                            $obj['existing_path'] = base_url($storeFolderSpecific . $file); // Ruta para la vista
+                            $obj['icon'] = $assignIcon($extension);
+                            $result[] = $obj;
+                        }
+                    }
+                }
+            }
+        }
+
+        $images_gestor = $result;
+
+        $result = [];
+        $ds = DIRECTORY_SEPARATOR;
+
+        // Rutas de carpetas
+        $storeFolderGeneral = 'assets/uploads/cobro_cliente/';
+        $storeFolderSpecific = 'assets/uploads/cobro_cliente/' . $id . $ds;
+
+        // Consulta a la base de datos
+        $cobro_cliente_db = $db->table('tra_cobro_cliente')
+                                ->select('id, file') // Seleccionamos también el id
+                                ->where('tramite_id', $id)
+                                ->get()
+                                ->getResultObject();
+
+        // Función para asignar íconos personalizados según el tipo de archivo
+        $assignIcon = function ($extension) {
+            $icons = [
+                'pdf'  => '/public/assets/src/images/pdf-icon.png',
+                'doc'  => '/public/assets/src/images/doc-icon.png',
+                'docx' => '/public/assets/src/images/docx-icon.png',
+                'xls'  => '/public/assets/src/images/xls-icon.png',
+                'xlsx' => '/public/assets/src/images/xlsx-icon.png',
+                'txt'  => '/public/assets/src/images/txt-icon.png',
+                'zip'  => '/public/assets/src/images/zip-icon.png',
+                'rar'  => '/public/assets/src/images/rar-icon.png',
+            ];
+            return $icons[$extension] ?? '/public/assets/src/images/file-icon.png'; // Ícono genérico por defecto
+        };
+
+        if (is_dir(FCPATH . $storeFolderSpecific)) {
+            $filesSpecific = scandir(FCPATH . $storeFolderSpecific);
+            if ($filesSpecific !== false) {
+                foreach ($filesSpecific as $file) {
+                    if ($file !== '.' && $file !== '..') {
+                        $filePath = FCPATH . $storeFolderSpecific . $file;
+                        if (file_exists($filePath)) {
+                            $extension = pathinfo($file, PATHINFO_EXTENSION);
+                            $obj['id'] = null; // Archivos que no están en la base de datos
+                            $obj['name'] = $file;
+                            $obj['size'] = filesize($filePath);
+                            $obj['existing_path'] = base_url($storeFolderSpecific . $file); // Ruta para la vista
+                            $obj['icon'] = $assignIcon($extension);
+                            $result[] = $obj;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Aquí almacenamos los archivos en una variable
+        $images_cobro_cliente = $result;
+
+
+        $gestor_model = new GestorModel($db2);
+        $gestor_nombre = $gestor_model->getGestorNameById($tramite['gestor_id']);
+        // var_dump($reembolso_status_options);
+
+        // var_dump($pago_gestor_st_opciones);die();
+
+        $form->pago_gestor = [
+            // nombre del gestor
+            "gestor_id" => ["label" => "Gestor", "type" => "text", "value" => $gestor_nombre, "disabled"=>"disabled"],
+            "reembolso_status_id" => ["label" => "Estatus del Reembolso", "type" => "select", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']],
+            "pago_gestor_st_id" => ["label" => "Estatus del Pago", "type" => "select", "options" => $pago_gestor_st_opciones, "value" => $tramite['pago_gestor_st_id']],
+            "costo_gestoria" => ["label" => "Costo de Gestoría", "type" => "number", "value" => $tramite['costo_gestoria'], "required" => "required"],
+            "impuesto_gestoria" => ["label" => "Impuesto de Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria'], "required" => "required"],
+            "gestoria_comision" => ["label" => "Comisión de Gestoría", "type" => "number", "value" => $tramite['gestoria_comision'], "required" => "required"],
+            "gestor_total_pago" => ["label" => "Pago Total", "type" => "number", "value" => $tramite['gestor_total_pago'], "required" => "required"],
+            // imagenes
+        ];
+
         $form->final_campos = [
             "id_give_cliente" => ["label" => "ID del cliente", "type" => "text", "value" => $tramite['id_give_cliente'], "required" => "required"],
             "numero_factura" => ["label" => "Número de Factura", "type" => "text", "value" => $tramite['numero_factura'], "required" => "required"],
             "numero_refactura" => ["label" => "Número de Refactura", "type" => "text", "value" => $tramite['numero_refactura']],
             "reembolso_status_id" => ["label" => "Estatus del Reembolso", "type" => "select", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']],
             "cobro_status_id" => ["label" => "Estatus del Cobro", "type" => "select", "options" => $cobro_status_options, "value" => $tramite['cobro_status_id']],
-            "costo_gestoria" => ["label" => "Costo de Gestoría", "type" => "number", "value" => $tramite['costo_gestoria'], "required" => "required"],
-            "impuesto_gestoria" => ["label" => "Impuesto de Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria'], "required" => "required"],
+            "costo_pago_cliente"=> ["label" => "Costo de Trámite", "type" => "number", "value" => $tramite['costo_pago_cliente'], "required" => "required"],
             "comision_derechos" => ["label" => "Comisión de Derechos", "type" => "number", "value" => $tramite['comision_derechos'], "required" => "required"],
-            "costo_total" => ["label" => "Costo Total", "type" => "number", "value" => $tramite['costo_total'], "required" => "required", "disabled"=>"disabled"],
-            "costos_factura_pdf" => ["label" => "PDF", "type" => "file", "value" => $tramite['costos_factura_pdf']],
-            "costos_factura_xml" => ["label" => "XML", "type" => "file", "value" => $tramite['costos_factura_xml']],
-
+            "costo_total" => ["label" => "Costo Total", "type" => "number", "value" => $tramite['costo_total'], "disabled"=>"disabled"],
+            
+            // "costos_factura_pdf" => ["label" => "PDF", "type" => "file", "value" => $tramite['costos_factura_pdf']],
+            // "costos_factura_xml" => ["label" => "XML", "type" => "file", "value" => $tramite['costos_factura_xml']],
         ];
         
         $data['id'] = $id;
@@ -850,6 +936,8 @@ class Tramites extends BaseController
         $data['started_at'] = $tramite['started_at'];
         $data['derechos_comprobante'] = $tramite['derechos_comprobante'];
         $data['images_derechos_comprobante'] = $images_derechos;
+        $data['images_pago_gestor'] = $images_gestor;
+        $data['images_cobro_cliente'] = $images_cobro_cliente;
         $form->id = $id;
 
         $crud = $this->_getGroceryCrudEnterprise();
@@ -875,7 +963,15 @@ class Tramites extends BaseController
             $crud_derechos = $this->_getGroceryCrudEnterprise();
             $crud_derechos->setApiUrlPath('/deskapp/tramites/single_pago_derechos/' . $id);
             $output_derechos = $crud_derechos->render();
-            
+
+            $crud_pago_gestor = $this->_getGroceryCrudEnterprise();
+            $crud_pago_gestor->setApiUrlPath('/deskapp/tramites/single_pago_gestor/' . $id);
+            $output_pago_gestor = $crud_pago_gestor->render();
+
+            $crud_cobro_cliente = $this->_getGroceryCrudEnterprise();
+            $crud_cobro_cliente->setApiUrlPath('/deskapp/tramites/single_cobro_cliente/' . $id);
+            $output_cobro_cliente = $crud_cobro_cliente->render();
+
             // $output_docs->output .= "<hr>".$outputevidencias->output;
             // $form->output_docs = $output->output;
             
@@ -883,7 +979,9 @@ class Tramites extends BaseController
             $form->output_bitacora = $outputevidencias->output;
             $form->outputevidencias_finales = $outputevidencias_finales->output;
             $form->output_derechos = $output_derechos->output;
-
+            $form->output_pago_gestor = $output_pago_gestor->output;
+            $form->output_cobro_cliente = $output_cobro_cliente->output;
+            
             // $form->output = $output_docs->output;
         // }
 
@@ -1200,37 +1298,6 @@ class Tramites extends BaseController
         return $this->_example_output_2($form, 'add');
     }
 
-    // public function upload_comprobante()
-    // {
-
-    //     $request = \Config\Services::request();
-
-    //     $uri = $request->getUri();
-    //     $tramiteId = (int) $uri->getSegment(4);
-
-    //     if ($tramiteId === null) {
-    //         return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
-    //     }
-
-    //     // $tramiteId = $this->request->getPost('tramiteId');
-    //     $file = $this->request->getFile('file');
-
-    //     if ($file->isValid() && !$file->hasMoved()) {
-    //         $fileName = $file->getRandomName();
-    //         $filePath = WRITEPATH . "assets/uploads/tramites/{$tramiteId}/";
-            
-    //         if (!is_dir($filePath)) {
-    //             mkdir($filePath, 0777, true); // Crear carpeta si no existe
-    //         }
-
-    //         $file->move($filePath, $fileName);
-
-    //         return $this->response->setJSON(['success' => true, 'fileName' => $fileName]);
-    //     }
-
-    //     return $this->response->setJSON(['success' => false, 'message' => 'Error al subir archivo']);
-    // }
-
     public function delete_comprobante()
     {
         $request = \Config\Services::request();
@@ -1276,9 +1343,6 @@ class Tramites extends BaseController
 
         return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente']);
     }
-
-
-
 
     public function upload_comprobante()
     {
@@ -1335,80 +1399,202 @@ class Tramites extends BaseController
         return $this->response->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
     }
 
+    public function delete_pago_gestor()
+    {
+        $request = \Config\Services::request();
 
+        // Obtener el ID del trámite desde la URI
+        $uri = $request->getUri();
+        $tramiteId = $request->getPost('tramite_id');
 
+        // Validar que se haya proporcionado el ID del trámite
+        if ($tramiteId === null) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        }
 
-    // public function upload_comprobante(){   
-    //     $db2 = $this->_getDbData();
-    //     if ($this->request->isAJAX()) {
-    //         $validation = \Config\Services::validation();
+        // Obtener el nombre del archivo desde la solicitud POST
+        $fileName = $request->getPost('file');
+        if (empty($fileName)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado']);
+        }
 
-    //         // Definir reglas de validación para el archivo
-    //         $validation->setRules([
-    //             'image' => [
-    //                 'rules' => 'uploaded[image]|max_size[image,10240]|ext_in[image,jpg,jpeg,png,pdf]',
-    //                 'errors' => [
-    //                     'uploaded' => 'No se seleccionó ningún archivo.',
-    //                     'max_size' => 'El tamaño máximo del archivo es de 10MB.',
-    //                     'ext_in' => 'Solo se permiten archivos con extensiones jpg, jpeg, png, pdf.',
-    //                 ]
-    //             ]
-    //         ]);
+        // Ruta base del directorio de los archivos
+        $ds = DIRECTORY_SEPARATOR;
+        $storeFolder = 'assets/uploads/pago_gestor/' . $tramiteId;
+        $filePath = FCPATH . $storeFolder . $ds . $fileName;
 
-    //         if (!$validation->withRequest($this->request)->run()) {
-    //             // Retornar los errores de validación
-    //             return $this->response->setJSON(['success' => false, 'errors' => $validation->getErrors()]);
-    //         }
+        // Eliminar archivo de la carpeta si existe
+        if (file_exists($filePath)) {
+            if (!unlink($filePath)) {
+                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor']);
+            }
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'El archivo no existe en el servidor']);
+        }
 
-    //         // Obtener el archivo subido
-    //         $file = $this->request->getFile('image');
-    //         $tramiteId = $this->request->getPost('tramite_id');
+        // Conectar a la base de datos y eliminar el registro
+        $db = \Config\Database::connect();
+        $builder = $db->table('tra_pago_gestor'); // Cambiado a la tabla 'tra_pago_gestor'
+        $builder->where('tramite_id', $tramiteId);
+        $builder->where('file', $fileName);
 
-    //         // Mover el archivo a la carpeta deseada
-    //         if ($file->isValid() && !$file->hasMoved()) {
-    //             $fileName = $file->getRandomName();
-    //             $file->move('assets/uploads/tramites/', $fileName);
+        if (!$builder->delete()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el registro en la base de datos']);
+        }
 
-    //             // Obtener el archivo anterior usando el Query Builder
-    //             $db = \Config\Database::connect();
-    //             $builder = $db->table('tramite');
-    //             $builder->select('derechos_comprobante');
-    //             $builder->where('id', $tramiteId);
-    //             $existingData = $builder->get()->getRowArray();
+        return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente']);
+    }
 
-    //             // Verificar si existe un archivo anterior y eliminarlo
-    //             if (!empty($existingData['derechos_comprobante'])) {
-    //                 $previousFilePath = FCPATH . 'assets/uploads/tramites/' . $existingData['derechos_comprobante'];
-                    
-    //                 if (file_exists($previousFilePath)) {
-    //                     if (unlink($previousFilePath)) {
-    //                         // Archivo eliminado correctamente
-    //                     } else {
-    //                         // Error al eliminar el archivo
-    //                         return $this->response->setJSON(['success' => false, 'message' => 'Error al eliminar el archivo anterior']);
-    //                     }
-    //                 }
-    //             }
+    public function upload_pago_gestor()
+    {
+        $request = \Config\Services::request();
 
-    //             // Actualizar la base de datos con el nombre del archivo nuevo
-    //             $data = [
-    //                 'derechos_comprobante' => $fileName,
-    //             ];
+        $uri = $request->getUri();
+        $tramiteId = (int) $uri->getSegment(4);
 
-    //             $builder->where('id', $tramiteId);
-    //             $builder->update($data);
+        if ($tramiteId === null) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        }
 
-    //             // Retornar respuesta JSON de éxito
-    //             return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido correctamente']);
-    //         } else {
-    //             // Error al mover el archivo
-    //             return $this->response->setJSON(['success' => false, 'message' => 'Error al subir el archivo']);
-    //         }
-    //     }
-    //     return $this->response->setJSON(['success' => false, 'message' => 'Solicitud no válida']);
-    // }
+        $ds = DIRECTORY_SEPARATOR;
+        $storeFolder = 'assets/uploads/pago_gestor/' . $tramiteId; // Carpeta destino para los archivos
+        $targetPath = FCPATH . $storeFolder . $ds;
 
+        if (!is_dir($targetPath)) {
+            mkdir($targetPath, 0777, true); // Crear carpeta si no existe
+        }
 
+        if (!empty($_FILES['file'])) {
+            // Subir archivo
+            $tempFile = $_FILES['file']['tmp_name'];         
+            $originalFileName = pathinfo($_FILES['file']['name'], PATHINFO_FILENAME); // Nombre del archivo sin extensión
+            $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION); // Extensión del archivo
+
+            // Concatenar la cadena aleatoria al nombre del archivo
+            $fileName = $originalFileName . '.' . $extension;         
+            $targetFile = $targetPath . $fileName;
+
+            if (move_uploaded_file($tempFile, $targetFile)) {
+                // Guardar el registro en la tabla tra_pago_gestor
+                $db = \Config\Database::connect();
+                $builder = $db->table('tra_pago_gestor'); // Cambiado a la tabla 'tra_pago_gestor'
+                $data = [
+                    'tramite_id' => $tramiteId,
+                    'file' => $fileName,
+                    'user_id' => session()->get('user_id'), // Asume que el ID del usuario está en la sesión
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'status' => 1
+                ];
+                $builder->insert($data);
+
+                return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente']);
+            } else {
+                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
+            }
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
+    }
+
+    public function delete_cobro_cliente(): ResponseInterface
+    {
+        $request = \Config\Services::request();
+
+        // Obtener el ID del trámite desde la URI
+        $uri = $request->getUri();
+        $tramiteId = $request->getPost('tramite_id');
+
+        // Validar que se haya proporcionado el ID del trámite
+        if ($tramiteId === null) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        }
+
+        // Obtener el nombre del archivo desde la solicitud POST
+        $fileName = $request->getPost('file');
+        if (empty($fileName)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado']);
+        }
+
+        // Ruta base del directorio de los archivos
+        $ds = DIRECTORY_SEPARATOR;
+        $storeFolder = 'assets/uploads/cobro_cliente/' . $tramiteId;
+        $filePath = FCPATH . $storeFolder . $ds . $fileName;
+
+        // Eliminar archivo de la carpeta si existe
+        if (file_exists($filePath)) {
+            if (!unlink($filePath)) {
+                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor']);
+            }
+        } else {
+            return $this->response->setJSON(['success' => false, 'message' => 'El archivo no existe en el servidor']);
+        }
+
+        // Conectar a la base de datos y eliminar el registro
+        $db = \Config\Database::connect();
+        $builder = $db->table('tra_cobro_cliente'); // Cambiado a la tabla 'tra_cobro_cliente'
+        $builder->where('tramite_id', $tramiteId);
+        $builder->where('file', $fileName);
+
+        if (!$builder->delete()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el registro en la base de datos']);
+        }
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente']);
+    }
+
+    public function upload_cobro_cliente()
+    {
+        $request = \Config\Services::request();
+    
+        $uri = $request->getUri();
+        $tramiteId = (int) $uri->getSegment(4);
+    
+        if ($tramiteId === null) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        }
+    
+        $ds = DIRECTORY_SEPARATOR;
+        $storeFolder = 'assets/uploads/cobro_cliente/' . $tramiteId; // Carpeta destino para los archivos
+        $targetPath = FCPATH . $storeFolder . $ds;
+    
+        if (!is_dir($targetPath)) {
+            mkdir($targetPath, 0777, true); // Crear carpeta si no existe
+        }
+    
+        if (!empty($_FILES['file'])) {
+            // Subir archivo
+            $tempFile = $_FILES['file']['tmp_name'];         
+            $originalFileName = pathinfo($_FILES['file']['name'], PATHINFO_FILENAME); // Nombre del archivo sin extensión
+            $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION); // Extensión del archivo
+    
+            // Concatenar la cadena aleatoria al nombre del archivo
+            $fileName = $originalFileName . '.' . $extension;         
+            $targetFile = $targetPath . $fileName;
+    
+            if (move_uploaded_file($tempFile, $targetFile)) {
+                // Guardar el registro en la tabla tra_cobro_cliente
+                $db = \Config\Database::connect();
+                $builder = $db->table('tra_cobro_cliente'); // Cambiado a la tabla 'tra_cobro_cliente'
+                $data = [
+                    'tramite_id' => $tramiteId,
+                    'file' => $fileName,
+                    'user_id' => session()->get('user_id'), // Asume que el ID del usuario está en la sesión
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'status' => 1
+                ];
+                $builder->insert($data);
+    
+                return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente']);
+            } else {
+                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
+            }
+        }
+    
+        return $this->response->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
+    }
+    
 
     public function getDependentData($type, $parentId) {
         $db = \Config\Database::connect();
@@ -1519,11 +1705,13 @@ class Tramites extends BaseController
             $builder = $db->table('tramite');
             $builder->where('id', $id);
 
-            $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
-            $arr_status = [22, 25, 26, 27, 23, 20, 21];
-            if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(25, $arr_status)){
-                $data["tra_status_id"] = 25;
-            }
+            // $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
+            // $arr_status = [22, 25, 26, 27, 23, 20, 21];
+            // if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(25, $arr_status)){
+            //     $data["tra_status_id"] = 25;
+            // }
+            $this->updateTramiteStatus($id, 25);
+
             if (empty($tramite_base['started_at'])) {
                 $data["started_at"] = date('Y-m-d H:i:s');
             }
@@ -1587,11 +1775,13 @@ class Tramites extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
             $builder->where('id', $id);
-            $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
-            $arr_status = [22, 25, 26, 27, 23, 20, 21];
-            if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(26, $arr_status)){
-                $data["tra_status_id"] = 26;
-            }
+            // $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
+            // $arr_status = [22, 25, 26, 27, 23, 20, 21];
+            // if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(26, $arr_status)){
+            //     $data["tra_status_id"] = 26;
+            // }
+            $this->updateTramiteStatus($id, 26);
+
             $builder->where('id', $id);
             $builder->update($data);
             #adding bitacora
@@ -1650,11 +1840,14 @@ class Tramites extends BaseController
             $builder = $db->table('tramite');
             $builder->where('id', $id);
 
-            $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
-            $arr_status = [22, 25, 26, 27, 23, 20, 21];
-            if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(27, $arr_status)){
-                $data["tra_status_id"] = 27;
-            }
+            // $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
+            // $arr_status = [22, 25, 26, 27, 23, 20, 21];
+            // if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(27, $arr_status)){
+            //     $data["tra_status_id"] = 27;
+            // }
+
+            $this->updateTramiteStatus($id, 27);
+
             $builder->where('id', $id);
             $builder->update($data);
             #adding bitacora
@@ -1688,58 +1881,113 @@ class Tramites extends BaseController
         }
     }
 
-    public function update_final_save() {
+    public function update_pago_gestor() {
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
         $id = $this->request->uri->getSegment(4);
         $validation = \Config\Services::validation();   
-        $db2 = $this->_getDbData();    
+        $db2 = $this->_getDbData();
     
-        // Obtener registros actuales de los archivos PDF y XML de la base de datos
         $db = \Config\Database::connect();
         $builder = $db->table('tramite');
         $builder->where('id', $id);
-        $existingData = $builder->select('costos_factura_pdf, costos_factura_xml')->where('id', $id)->get()->getRowArray();
-        
-        // Reglas de validación para los campos numéricos
+        $existingData = $builder->get()->getRowArray();
+    
+        // Reglas de validación
         $validation->setRules([
-            "numero_factura" => "required",
-            "costo_gestoria" => "required|decimal"
+            "costo_gestoria" => "required|decimal",
+            "impuesto_gestoria" => "required|decimal",
+            "gestoria_comision" => "required|decimal",
+            "gestor_total_pago" => "required|decimal",
+            "pago_gestor_st_id" => "required|integer",
+            "reembolso_status_id" => "required|integer",
+        ], [
+            "costo_gestoria" => ["required" => "El costo de gestoría es obligatorio.", "decimal" => "Debe ser un número decimal válido."],
+            "impuesto_gestoria" => ["required" => "El impuesto de gestoría es obligatorio.", "decimal" => "Debe ser un número decimal válido."],
+            "gestoria_comision" => ["required" => "La comisión de gestoría es obligatoria.", "decimal" => "Debe ser un número decimal válido."],
+            "gestor_total_pago" => ["required" => "El pago total es obligatorio.", "decimal" => "Debe ser un número decimal válido."],
+            "pago_gestor_st_id" => ["required" => "El estatus del pago es obligatorio.", "integer" => "Debe ser un número entero válido."],
+            "reembolso_status_id" => ["required" => "El estatus del reembolso es obligatorio.", "integer" => "Debe ser un número entero válido."]
         ]);
-        
-        // Reglas de validación condicionales para los archivos PDF y XML
-        $fileRules = [];
     
-        if (empty($existingData['costos_factura_pdf'])) {
-            $fileRules['costos_factura_pdf'] = [
-                'label' => 'Factura PDF',
-                'rules' => 'uploaded[costos_factura_pdf]|mime_in[costos_factura_pdf,application/pdf]|max_size[costos_factura_pdf,10240]',
-                'errors' => [
-                    'uploaded' => 'El archivo PDF es obligatorio.',
-                    'mime_in' => 'Solo se permiten archivos PDF.',
-                    'max_size' => 'El archivo PDF no debe exceder 10MB.'
-                ]
-            ];
+        if ($validation->withRequest($this->request)->run() === FALSE) {
+            // Validación fallida
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $validation->getErrors()
+            ]);
+        } else {
+            // Obtener datos del formulario
+            $data = $this->request->getPost();
+            $data["user_id"] = $myid;
+    
+            // Cálculo de campos adicionales
+            $data["gestor_total_pago"] = $data["costo_gestoria"] + $data["gestoria_comision"]+ $data["impuesto_gestoria"];
+
+            // $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
+            // $arr_status = [22, 25, 26, 27, 28, 23, 20, 21];
+            // if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(28, $arr_status)){
+            //     $data["tra_status_id"] = 28;
+            // }
+
+            $this->updateTramiteStatus($id, 28);
+            // Actualizar en la base de datos
+            $builder->where('id', $id);
+            $builder->update($data);
+    
+            // Bitácora
+            $bitacoraModel = new BitacoraModel($db2);
+            $diferencias = $this->encontrarDiferencias($data, $existingData);
+            $bitacoraModel->insert([
+                "id" => null,
+                "tipo" => "update",
+                "origen" => "tramite",
+                "tramite_id" => (int)$id,
+                "cambios" => json_encode($diferencias),
+                "user_id" => (int)$myid
+            ], 'bitacora');
+    
+            // Registrar log
+            $tra_user_log = new TraUserLogModel($db2);
+            $tra_user_log->insert([
+                "tramite_id"    => (int)$id,
+                "user_id"       => (int)$myid,
+                "tra_status_id" => 22
+            ], 'tra_user_log');
+    
+            // Respuesta de éxito
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'El trámite se guardó correctamente.',
+                'redirect' => '/deskapp/tramites/update/' . $id
+            ]);
         }
-    
-        if (empty($existingData['costos_factura_xml'])) {
-            $fileRules['costos_factura_xml'] = [
-                'label' => 'Factura XML',
-                'rules' => 'uploaded[costos_factura_xml]|mime_in[costos_factura_xml,text/xml,application/xml]|max_size[costos_factura_xml,10240]',
-                'errors' => [
-                    'uploaded' => 'El archivo XML es obligatorio.',
-                    'mime_in' => 'Solo se permiten archivos XML.',
-                    'max_size' => 'El archivo XML no debe exceder 10MB.'
-                ]
-            ];
-        }
-    
-        if (!empty($fileRules)) {
-            $validation->setRules($fileRules);
-        }
-    
+    }    
+
+    public function update_final_save()
+    {
+        $session = session();
+        $data['session'] = \Config\Services::session();
+        $data['username'] = $session->get('user_name');
+        $myid = $session->get('id');
+        $id = $this->request->uri->getSegment(4);
+        $validation = \Config\Services::validation();
+        $db2 = $this->_getDbData();
+
+        // Reglas de validación para los campos definidos en el fragmento
+        $validation->setRules([
+            "id_give_cliente" => "required",
+            "numero_factura" => "required",
+            "numero_refactura" => "permit_empty",
+            "reembolso_status_id" => "required|integer",
+            "cobro_status_id" => "required|integer",
+            "costo_pago_cliente" => "required|decimal",
+            "comision_derechos" => "required|decimal",
+            "costo_total" => "permit_empty|decimal"
+        ]);
+
         if ($validation->withRequest($this->request)->run() === FALSE) {
             // Validación fallida, retornar errores como JSON
             return $this->response->setJSON([
@@ -1747,54 +1995,27 @@ class Tramites extends BaseController
                 'errors' => $validation->getErrors()
             ]);
         } else {
-            // Obtener los datos del formulario
-            $data = $this->request->getPost();
+            // Obtener los datos permitidos del formulario
+            $data = $this->request->getPost([
+                "id_give_cliente",
+                "numero_factura",
+                "numero_refactura",
+                "reembolso_status_id",
+                "cobro_status_id",
+                "costo_pago_cliente",
+                "comision_derechos",
+            ]);
             $data["user_id"] = $myid;
-    
-            // Subida y manejo de archivos
-            $costosFacturaPdf = $this->request->getFile('costos_factura_pdf');
-            $costosFacturaXml = $this->request->getFile('costos_factura_xml');
-    
-            // Verificar si se subió un archivo PDF nuevo
-            if ($costosFacturaPdf && $costosFacturaPdf->isValid() && !$costosFacturaPdf->hasMoved()) {
-                $pdfFilePath = 'assets/uploads/tramites/facturas/' . $costosFacturaPdf->getName();
-    
-                // Verificar si existe un archivo con el mismo nombre
-                if (file_exists(FCPATH . $pdfFilePath)) {
-                    return $this->response->setJSON([
-                        'success' => false,
-                        'message' => 'Ya existe un archivo PDF con el mismo nombre.'
-                    ]);
-                }
-    
-                // Mover el archivo al destino con el mismo nombre
-                $costosFacturaPdf->move('assets/uploads/tramites/facturas/');
-                $data['costos_factura_pdf'] = '/assets/uploads/tramites/facturas/' . $costosFacturaPdf->getName();
-            }
-    
-            // Verificar si se subió un archivo XML nuevo
-            if ($costosFacturaXml && $costosFacturaXml->isValid() && !$costosFacturaXml->hasMoved()) {
-                $xmlFilePath = 'assets/uploads/tramites/facturas/' . $costosFacturaXml->getName();
-    
-                // Verificar si existe un archivo con el mismo nombre
-                if (file_exists(FCPATH . $xmlFilePath)) {
-                    return $this->response->setJSON([
-                        'success' => false,
-                        'message' => 'Ya existe un archivo XML con el mismo nombre.'
-                    ]);
-                }
-    
-                // Mover el archivo al destino con el mismo nombre
-                $costosFacturaXml->move('assets/uploads/tramites/facturas/');
-                $data['costos_factura_xml'] = '/assets/uploads/tramites/facturas/' . $costosFacturaXml->getName();
-            }
-    
-            $data["costo_total"] = $data["costo_gestoria"] + $data["impuesto_gestoria"] + $data["comision_derechos"];
-    
+
+            // Calcular el costo total
+            $data["costo_total"] = $data["costo_pago_cliente"] + $data["comision_derechos"];
+
             // Actualizar los datos en la tabla 'tramite'
+            $db = \Config\Database::connect();
+            $builder = $db->table('tramite');
             $builder->where('id', $id);
             $builder->update($data);
-    
+
             // Agregar registro en bitácora
             $bitacoraModel = new BitacoraModel($db2);
             $data_bitacora = $data;
@@ -1826,11 +2047,185 @@ class Tramites extends BaseController
             ]);
         }
     }
+
+    // public function update_final_save() {
+    //     $session = session();
+    //     $data['session'] = \Config\Services::session();
+    //     $data['username'] = $session->get('user_name');
+    //     $myid = $session->get('id');
+    //     $id = $this->request->uri->getSegment(4);
+    //     $validation = \Config\Services::validation();   
+    //     $db2 = $this->_getDbData();    
+    
+    //     // Obtener registros actuales de los archivos PDF y XML de la base de datos
+    //     $db = \Config\Database::connect();
+    //     $builder = $db->table('tramite');
+    //     $builder->where('id', $id);
+    //     $existingData = $builder->select('costos_factura_pdf, costos_factura_xml')->where('id', $id)->get()->getRowArray();
+        
+    //     // Reglas de validación para los campos numéricos
+    //     $validation->setRules([
+    //         "numero_factura" => "required",
+    //         "costo_gestoria" => "required|decimal"
+    //     ]);
+        
+    //     // Reglas de validación condicionales para los archivos PDF y XML
+    //     $fileRules = [];
+    
+    //     if (empty($existingData['costos_factura_pdf'])) {
+    //         $fileRules['costos_factura_pdf'] = [
+    //             'label' => 'Factura PDF',
+    //             'rules' => 'uploaded[costos_factura_pdf]|mime_in[costos_factura_pdf,application/pdf]|max_size[costos_factura_pdf,10240]',
+    //             'errors' => [
+    //                 'uploaded' => 'El archivo PDF es obligatorio.',
+    //                 'mime_in' => 'Solo se permiten archivos PDF.',
+    //                 'max_size' => 'El archivo PDF no debe exceder 10MB.'
+    //             ]
+    //         ];
+    //     }
+    
+    //     if (empty($existingData['costos_factura_xml'])) {
+    //         $fileRules['costos_factura_xml'] = [
+    //             'label' => 'Factura XML',
+    //             'rules' => 'uploaded[costos_factura_xml]|mime_in[costos_factura_xml,text/xml,application/xml]|max_size[costos_factura_xml,10240]',
+    //             'errors' => [
+    //                 'uploaded' => 'El archivo XML es obligatorio.',
+    //                 'mime_in' => 'Solo se permiten archivos XML.',
+    //                 'max_size' => 'El archivo XML no debe exceder 10MB.'
+    //             ]
+    //         ];
+    //     }
+    
+    //     if (!empty($fileRules)) {
+    //         $validation->setRules($fileRules);
+    //     }
+    
+    //     if ($validation->withRequest($this->request)->run() === FALSE) {
+    //         // Validación fallida, retornar errores como JSON
+    //         return $this->response->setJSON([
+    //             'success' => false,
+    //             'errors' => $validation->getErrors()
+    //         ]);
+    //     } else {
+    //         // Obtener los datos del formulario
+    //         $data = $this->request->getPost();
+    //         $data["user_id"] = $myid;
+    
+    //         // Subida y manejo de archivos
+    //         $costosFacturaPdf = $this->request->getFile('costos_factura_pdf');
+    //         $costosFacturaXml = $this->request->getFile('costos_factura_xml');
+    
+    //         // Verificar si se subió un archivo PDF nuevo
+    //         if ($costosFacturaPdf && $costosFacturaPdf->isValid() && !$costosFacturaPdf->hasMoved()) {
+    //             $pdfFilePath = 'assets/uploads/tramites/facturas/' . $costosFacturaPdf->getName();
+    
+    //             // Verificar si existe un archivo con el mismo nombre
+    //             if (file_exists(FCPATH . $pdfFilePath)) {
+    //                 return $this->response->setJSON([
+    //                     'success' => false,
+    //                     'message' => 'Ya existe un archivo PDF con el mismo nombre.'
+    //                 ]);
+    //             }
+    
+    //             // Mover el archivo al destino con el mismo nombre
+    //             $costosFacturaPdf->move('assets/uploads/tramites/facturas/');
+    //             $data['costos_factura_pdf'] = '/assets/uploads/tramites/facturas/' . $costosFacturaPdf->getName();
+    //         }
+    
+    //         // Verificar si se subió un archivo XML nuevo
+    //         if ($costosFacturaXml && $costosFacturaXml->isValid() && !$costosFacturaXml->hasMoved()) {
+    //             $xmlFilePath = 'assets/uploads/tramites/facturas/' . $costosFacturaXml->getName();
+    
+    //             // Verificar si existe un archivo con el mismo nombre
+    //             if (file_exists(FCPATH . $xmlFilePath)) {
+    //                 return $this->response->setJSON([
+    //                     'success' => false,
+    //                     'message' => 'Ya existe un archivo XML con el mismo nombre.'
+    //                 ]);
+    //             }
+    
+    //             // Mover el archivo al destino con el mismo nombre
+    //             $costosFacturaXml->move('assets/uploads/tramites/facturas/');
+    //             $data['costos_factura_xml'] = '/assets/uploads/tramites/facturas/' . $costosFacturaXml->getName();
+    //         }
+    
+    //         $data["costo_total"] = $data["costo_gestoria"] + $data["impuesto_gestoria"] + $data["comision_derechos"];
+    
+    //         // Actualizar los datos en la tabla 'tramite'
+    //         $builder->where('id', $id);
+    //         $builder->update($data);
+    
+    //         // Agregar registro en bitácora
+    //         $bitacoraModel = new BitacoraModel($db2);
+    //         $data_bitacora = $data;
+    //         $diferencias = $this->encontrarDiferencias($data_bitacora, []);
+    //         $insert_bitacora = [
+    //             "id" => null,
+    //             "tipo" => "update",
+    //             "origen" => "tramite",
+    //             "tramite_id" => (int)$id,
+    //             "cambios" => json_encode($diferencias),
+    //             "user_id" => (int)$myid
+    //         ];
+    //         $bitacoraModel->insert($insert_bitacora, 'bitacora');
+    
+    //         // Registrar en la tabla tra_user_log
+    //         $tra_user_log = new TraUserLogModel($db2);
+    //         $log = [
+    //             "tramite_id"    => (int)$id,
+    //             "user_id"       => (int)$myid,
+    //             "tra_status_id" => 22
+    //         ];
+    //         $tra_user_log->insert($log, 'tra_user_log');
+    
+    //         // Retornar mensaje de éxito como JSON
+    //         return $this->response->setJSON([
+    //             'success' => true,
+    //             'message' => 'El trámite se guardó correctamente.',
+    //             'redirect' => '/deskapp/tramites/update/' . $id
+    //         ]);
+    //     }
+    // }
     
 
     private function _example_output_2($output = null, $page = 'index') {
         return view('/deskapp/extra-pages/tramite_' . $page . '_view', (array)$output);
     }
+
+    public function updateTramiteStatus($id, $newStatus){
+        $db = \Config\Database::connect();
+        $builder = $db->table('tramite');
+        // $builder = $this->db->table('tramite'); // Cambia 'tramite' por el nombre real de tu tabla
+        $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
+
+        if (!$tramite_base) {
+            return ['success' => false, 'message' => 'Trámite no encontrado'];
+        }
+
+        // Define el flujo de estados válidos
+        $arr_status = [22, 25, 26, 27, 23, 28, 20, 21];
+
+        // Obtener la posición del estado actual y el nuevo estado en el flujo
+        $currentStatusIndex = array_search($tramite_base['tra_status_id'], $arr_status);
+        $newStatusIndex = array_search($newStatus, $arr_status);
+
+        // Si el nuevo estado es igual o posterior al actual, proceder con el guardado
+        // imprime las variables con un print_r
+        // print_r($newStatusIndex); echo "<br>";
+        // print_r($currentStatusIndex); 
+
+        if ($newStatusIndex !== false && $newStatusIndex >= $currentStatusIndex) {
+            $data = ['tra_status_id' => $newStatus];
+            $builder->where('id', $id);
+            $builder->update($data);
+
+            return ['success' => true, 'message' => 'Estado actualizado correctamente'];
+        }
+
+        // Si el nuevo estado es anterior, no hacer nada
+        return null; // Opcionalmente puedes omitir esta línea si no necesitas retorno
+    }
+
 
     public function demo_multigrid() {
         $crud = $this->_getGroceryCrudEnterprise();
@@ -3176,15 +3571,7 @@ class Tramites extends BaseController
         $builder->where('tramite_id', $tramite_id);
         $query = $builder->get();
         $files = $query->getResultArray();
-        // var_dump($files);
-        // if (!$files) {
-        //     return json_encode([
-        //         'status' => 'error',
-        //         'message' => 'No se encontraron archivos asociados al trámite.'
-        //     ]);
-        // }
 
-        // Paso 3: Recorrer las imágenes vinculadas
         foreach ($files as $file) {
             $fileName = $file['file'];
             $sourceFilePath = $sourceDir . $fileName;
@@ -3203,21 +3590,8 @@ class Tramites extends BaseController
                 }
             } 
 
-            // else {
-            //     return json_encode([
-            //         'status' => 'error',
-            //         'message' => "El archivo $fileName no existe en el directorio fuente. $sourceFilePath"
-            //     ]);
-            // }
         }
 
-        // Continuar con el proceso normal
-        // return json_encode([
-        //     'status' => 'success',
-        //     'message' => 'Archivos copiados correctamente y directorio listo.'
-        // ]);
-
-        
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setSkin('bootstrap');
         $crud->setCsrfTokenName(csrf_token());
@@ -3448,6 +3822,288 @@ class Tramites extends BaseController
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
     }
+
+    public function single_pago_gestor(){
+        $session = session();
+        $data['session'] = \Config\Services::session();
+        $data['username'] = $session->get('user_name');
+        $db2 = $this->_getDbData();
+        $self = $this;
+        $request = \Config\Services::request();
+    
+        $uri = $request->getUri();
+        $tramite_id = (int) $uri->getSegment(4);
+    
+        // Paso 1: Definir directorios
+        $sourceDir = FCPATH . 'assets/uploads/pago_gestor/';
+        $targetDir = FCPATH . 'assets/uploads/pago_gestor/' . $tramite_id . '/';
+    
+        // Verificar si el directorio de destino existe
+        if (!is_dir($targetDir)) {
+            if (!mkdir($targetDir, 0777, true)) {
+                return json_encode([
+                    'status' => 'error',
+                    'message' => 'No se pudo crear el directorio de destino. Verifica permisos.'
+                ]);
+            }
+            chmod($targetDir, 0777); // Asegurar permisos
+        }
+    
+        // Paso 2: Consultar las imágenes vinculadas en la tabla tra_pago_gestor
+        $db = \Config\Database::connect();
+        $builder = $db->table('tra_pago_gestor');
+        $builder->select('file');
+        $builder->where('tramite_id', $tramite_id);
+        $query = $builder->get();
+        $files = $query->getResultArray();
+    
+        foreach ($files as $file) {
+            $fileName = $file['file'];
+            $sourceFilePath = $sourceDir . $fileName;
+            $targetFilePath = $targetDir . $fileName;
+    
+            // Verificar si el archivo existe en el directorio fuente
+            if (file_exists($sourceFilePath)) {
+                // Copiar archivo solo si no existe en el directorio destino
+                if (!file_exists($targetFilePath)) {
+                    if (!copy($sourceFilePath, $targetFilePath)) {
+                        return json_encode([
+                            'status' => 'error',
+                            'message' => "Error al copiar el archivo $fileName a $targetDir."
+                        ]);
+                    }
+                }
+            }
+        }
+    
+        $crud = $this->_getGroceryCrudEnterprise();
+        $crud->setSkin('bootstrap');
+        $crud->setCsrfTokenName(csrf_token());
+        $crud->setCsrfTokenValue(csrf_hash());
+        $crud->unsetRead();
+    
+        $crud->unsetDeleteMultiple();
+        $crud->unsetAdd();
+        $crud->unsetExport();
+        $crud->unsetPrint();
+        $crud->unsetClone();
+        $crud->setTable('tra_pago_gestor');
+        $crud->setSubject('Pago', 'Pagos de Gestor');
+        $crud->defaultOrdering('tra_pago_gestor.created_at', 'desc');
+    
+        $crud->fields([
+            "file", "costo", "comentario", "tramite_id", "user_id"
+        ]);
+    
+        $crud->columns([
+            "id", "created_at", "file", "costo", "comentario", "user_id"
+        ]);
+    
+        $crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+    
+        $crud->where([
+            'tramite_id' => $tramite_id
+        ]);
+    
+        $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
+            if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
+                $session = session();
+                $parameters = $stateParameters;
+                $data = $parameters->data;
+                $request = \Config\Services::request();
+                $uri = $request->getUri();
+                $tramite_id = (int) $uri->getSegment(4);
+    
+                $myid = $session->get('id');
+    
+                $bitacoraModel = new BitacoraModel($self->_getDbData());
+                $data_bitacora = $data;
+                $diferencias = $self->encontrarDiferencias($data_bitacora, []);
+                $insert_bitacora = [
+                    "id"=>null,
+                    "tipo"=>"insert",
+                    "origen"=>"gestor",
+                    "tramite_id" => (int)$tramite_id,
+                    "cambios" => json_encode($diferencias),
+                    "user_id" => (int)$myid
+                ];
+                $bitacoraModel->insert($insert_bitacora, 'bitacora');
+            }
+            return $stateParameters;
+        });
+    
+        $crud->callbackAddForm(function ($data) {
+            $session = session();
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+            $myid = $session->get('id');
+            $data['user_id'] = $myid;
+            $data['tramite_id'] = $tramite_id;
+            return $data;
+        });
+    
+        $uploadValidations = [
+            'maxUploadSize' => '20M', 
+            'minUploadSize' => '1K', 
+            'allowedFileTypes' => [
+                'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf', 'xml'
+            ]
+        ];
+    
+        $crud->setFieldUploadMultiple(
+            'file', 
+            'assets/uploads/pago_gestor/'.$tramite_id.'/', 
+            '/assets/uploads/pago_gestor/'.$tramite_id.'/', 
+            $uploadValidations
+        );
+    
+        $salida = $crud->render();
+        $salida2 = array_merge((array)$salida, $data);
+        return $this->_example_output($salida2);
+    }
+
+    public function single_cobro_cliente()
+    {
+        $session = session();
+        $data['session'] = \Config\Services::session();
+        $data['username'] = $session->get('user_name');
+        $db2 = $this->_getDbData();
+        $self = $this;
+        $request = \Config\Services::request();
+
+        $uri = $request->getUri();
+        $tramite_id = (int) $uri->getSegment(4);
+
+        // Paso 1: Definir directorios
+        $sourceDir = FCPATH . 'assets/uploads/cobro_cliente/';
+        $targetDir = FCPATH . 'assets/uploads/cobro_cliente/' . $tramite_id . '/';
+
+        // Verificar si el directorio de destino existe
+        if (!is_dir($targetDir)) {
+            if (!mkdir($targetDir, 0777, true)) {
+                return json_encode([
+                    'status' => 'error',
+                    'message' => 'No se pudo crear el directorio de destino. Verifica permisos.'
+                ]);
+            }
+            chmod($targetDir, 0777); // Asegurar permisos
+        }
+
+        // Paso 2: Consultar las imágenes vinculadas en la tabla tra_cobro_cliente
+        $db = \Config\Database::connect();
+        $builder = $db->table('tra_cobro_cliente');
+        $builder->select('file');
+        $builder->where('tramite_id', $tramite_id);
+        $query = $builder->get();
+        $files = $query->getResultArray();
+
+        foreach ($files as $file) {
+            $fileName = $file['file'];
+            $sourceFilePath = $sourceDir . $fileName;
+            $targetFilePath = $targetDir . $fileName;
+
+            // Verificar si el archivo existe en el directorio fuente
+            if (file_exists($sourceFilePath)) {
+                // Copiar archivo solo si no existe en el directorio destino
+                if (!file_exists($targetFilePath)) {
+                    if (!copy($sourceFilePath, $targetFilePath)) {
+                        return json_encode([
+                            'status' => 'error',
+                            'message' => "Error al copiar el archivo $fileName a $targetDir."
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $crud = $this->_getGroceryCrudEnterprise();
+        $crud->setSkin('bootstrap');
+        $crud->setCsrfTokenName(csrf_token());
+        $crud->setCsrfTokenValue(csrf_hash());
+        $crud->unsetRead();
+
+        $crud->unsetDeleteMultiple();
+        $crud->unsetAdd();
+        $crud->unsetExport();
+        $crud->unsetPrint();
+        $crud->unsetClone();
+        $crud->setTable('tra_cobro_cliente');
+        $crud->setSubject('Cobro', 'Cobros a Cliente');
+        $crud->defaultOrdering('tra_cobro_cliente.created_at', 'desc');
+
+        $crud->fields([
+            "file", "costo", "comentario", "tramite_id", "user_id"
+        ]);
+
+        $crud->columns([
+            "id", "created_at", "file", "costo", "comentario", "user_id"
+        ]);
+
+        $crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+
+        $crud->where([
+            'tramite_id' => $tramite_id
+        ]);
+
+        $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
+            if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
+                $session = session();
+                $parameters = $stateParameters;
+                $data = $parameters->data;
+                $request = \Config\Services::request();
+                $uri = $request->getUri();
+                $tramite_id = (int) $uri->getSegment(4);
+
+                $myid = $session->get('id');
+
+                $bitacoraModel = new BitacoraModel($self->_getDbData());
+                $data_bitacora = $data;
+                $diferencias = $self->encontrarDiferencias($data_bitacora, []);
+                $insert_bitacora = [
+                    "id"=>null,
+                    "tipo"=>"insert",
+                    "origen"=>"cliente",
+                    "tramite_id" => (int)$tramite_id,
+                    "cambios" => json_encode($diferencias),
+                    "user_id" => (int)$myid
+                ];
+                $bitacoraModel->insert($insert_bitacora, 'bitacora');
+            }
+            return $stateParameters;
+        });
+
+        $crud->callbackAddForm(function ($data) {
+            $session = session();
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+            $myid = $session->get('id');
+            $data['user_id'] = $myid;
+            $data['tramite_id'] = $tramite_id;
+            return $data;
+        });
+
+        $uploadValidations = [
+            'maxUploadSize' => '20M', 
+            'minUploadSize' => '1K', 
+            'allowedFileTypes' => [
+                'gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf', 'xml'
+            ]
+        ];
+
+        $crud->setFieldUploadMultiple(
+            'file', 
+            'assets/uploads/cobro_cliente/'.$tramite_id.'/', 
+            '/assets/uploads/cobro_cliente/'.$tramite_id.'/', 
+            $uploadValidations
+        );
+
+        $salida = $crud->render();
+        $salida2 = array_merge((array)$salida, $data);
+        return $this->_example_output($salida2);
+    }
+
 
     private function logDeletedImage($primaryKey, $row)
     {
