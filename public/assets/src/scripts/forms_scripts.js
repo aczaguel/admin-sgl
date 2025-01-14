@@ -648,7 +648,7 @@ $(document).ready(function() {
             url: "/deskapp/tramites/upload_comprobante/" + tramite_id,
             autoProcessQueue: false,
             maxFilesize: 10,
-            acceptedFiles: "image/jpeg,image/png,application/pdf/doc/docx",
+            acceptedFiles: "image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml",
             addRemoveLinks: true,
             dictRemoveFile: "Quitar",
 
@@ -713,7 +713,7 @@ $(document).ready(function() {
             url: "/deskapp/tramites/upload_pago_gestor/" + tramite_id,
             autoProcessQueue: false,
             maxFilesize: 10,
-            acceptedFiles: "image/jpeg,image/png,application/pdf/doc/docx",
+            acceptedFiles: "image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml",
             addRemoveLinks: true,
             dictRemoveFile: "Quitar",
 
@@ -779,7 +779,8 @@ $(document).ready(function() {
             url: "/deskapp/tramites/upload_cobro_cliente/" + tramite_id,
             autoProcessQueue: false,
             maxFilesize: 10,
-            acceptedFiles: "image/jpeg,image/png,application/pdf/doc/docx",
+            acceptedFiles: "image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml",
+
             addRemoveLinks: true,
             dictRemoveFile: "Quitar",
 
