@@ -598,6 +598,7 @@ $(document).ready(function() {
         // Mueve los botones a la parte superior
         // var $buttonContainer = $(".aiia-wizard-buttons");
         // $("#wizard").prepend($buttonContainer);
+        reinitializeScripts();
     },
   
     // onStepChanged: function (event, currentIndex) {
@@ -610,7 +611,7 @@ $(document).ready(function() {
     },
     onStepChanged: function (event, currentIndex, priorIndex) {
         // Reejecutar inicializaciones cuando se cambia de paso
-        reinitializeScripts();
+        // reinitializeScripts();
     }
 
     
@@ -642,7 +643,7 @@ $(document).ready(function() {
         const renamedFilesDocumentos = {};
         const renamedFilesGestor = {};
         const renamedFilesCliente = {};
-
+        Dropzone.autoDiscover = false;
         // Dropzone para Documentos
         const dropzoneDocumentos = new Dropzone(".dropzone-documentos", {
             url: "/deskapp/tramites/upload_comprobante/" + tramite_id,

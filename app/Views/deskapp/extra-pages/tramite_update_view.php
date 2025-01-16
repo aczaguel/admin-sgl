@@ -454,7 +454,7 @@ if (isset($tra_status_id)) {
 </div>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && $tra_status_id == 28): ?>
+							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
 								<!-- Step 7: Se cobra al cliente -->
 								<h3>Cobro a Cliente</h3>
 								<section>
