@@ -1,6 +1,7 @@
 
 "use strict";
 function loadDependentData(type, parentId, targetId, selectedId = null) {
+    console.log("loadDependentData");
   $.ajax({
       url: `/deskapp/tramites/getDependentData/${type}/${parentId}`,
       method: 'GET',
@@ -87,6 +88,7 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
     });
 
     $('#cli_directo_id').on('change', function() {
+        console.log("cargando ejecutivos");
         loadDependentData('ejecutivo', $(this).val(), 'cli_directo_ejecutivo_id');
     });
 
@@ -691,13 +693,49 @@ $(document).ready(function() {
                 });
 
                 this.on("success", function (file, response) {
+                    console.log("success upload");
+                    console.log(response);
+                    console.log(file);
+                
                     if (response.success && response.filePath) {
-                        const imgElement = `
-                            <img src="${response.filePath}" alt="${response.originalName}" data-file="${response.fileName}" class="uploaded-img">
+                        // Obtener la extensión del archivo
+                        const filePath = response.filePath || file.name; // Prioriza el filePath si está disponible
+                        const fileExtension = filePath.split('.').pop().toLowerCase();
+                
+                        // Verificar si el archivo es una imagen
+                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
+                
+                        // Crear el HTML dinámico
+                        const filePreview = `
+                            <div class="col-md-1 mb-3 text-center">
+                                <div class="file-preview" style="border: 1px solid #ddd; border-radius: 5px; padding: 5px; background-color: #f9f9f9;">
+                                    ${isImage ? `
+                                        <a href="${response.filePath}" target="_blank">
+                                            <img src="${response.filePath}" 
+                                                 alt="${response.filePath || file.name}" 
+                                                 class="img-thumbnail" 
+                                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                        </a>
+                                    ` : `
+                                        <a href="${response.filePath}" target="_blank">
+                                            <img src="${response.icon || '/path/to/default-icon.png'}" 
+                                                 alt="File Icon" 
+                                                 class="img-thumbnail" 
+                                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                        </a>
+                                    `}
+                                    <p style="font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        ${file.upload.filename}
+                                    </p>
+                                </div>
+                            </div>
                         `;
-                        $("#documentos-container").append(imgElement);
+                
+                        // Agregar el HTML al contenedor
+                        $("#documentos-container").append(filePreview);
                     }
                 });
+                
             },
         });
 
@@ -1322,3 +1360,156 @@ $(document).ready(function() {
   });
 
 });
+
+
+let previousResponseCobroCliente = null; // Variable global para almacenar el estado anterior
+function fetchCobroClienteFiles() {
+    $.ajax({
+        url: `/deskapp/tramites/getCobroClienteFiles/${tramite_id}`, // Ruta del endpoint
+        method: 'GET',
+        success: function (response) {
+
+            // Convertimos la respuesta y el estado anterior a una cadena JSON para comparación
+            const currentResponse = JSON.stringify(response);
+
+            // Si el estado actual es igual al anterior, no hacer nada
+            if (currentResponse === previousResponseCobroCliente) {
+                // console.log("No hay cambios, no se actualiza el contenido.");
+                return;
+            }
+
+            // Actualizamos la variable global con el estado actual
+            previousResponseCobroCliente = currentResponse;
+
+            // Limpia el contenedor actual
+            $("#cliente-container").empty();
+
+            // Itera sobre los resultados y genera el HTML
+            response.forEach(file => {
+                const filePreview = `
+                    <div class="col-md-1 mb-3 text-center">
+                        <div class="file-preview" style="border: 1px solid #ddd; border-radius: 5px; padding: 5px; background-color: #f9f9f9;">
+                            <a href="${file.existing_path}" target="_blank">
+                                <img src="${file.icon}" 
+                                     alt="${file.name}" 
+                                     class="img-thumbnail" 
+                                     style="width: 60px; height: 60px; object-fit: cover;">
+                            </a>
+                            <p style="font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${file.name}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                $("#cliente-container").append(filePreview);
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error("Error fetching files:", error);
+        }
+    });
+}
+
+let previousResponsePagoGestor = null; // Variable global para almacenar el estado anterior
+function fetchPagoGestorFiles() {
+    $.ajax({
+        url: `/deskapp/tramites/getPagoGestorFiles/${tramite_id}`, // Ruta del endpoint
+        method: 'GET',
+        success: function (response) {
+
+            // Convertimos la respuesta y el estado anterior a una cadena JSON para comparación
+            const currentResponse = JSON.stringify(response);
+
+            // Si el estado actual es igual al anterior, no hacer nada
+            if (currentResponse === previousResponsePagoGestor) {
+                // console.log("No hay cambios, no se actualiza el contenido.");
+                return;
+            }
+
+            // Actualizamos la variable global con el estado actual
+            previousResponsePagoGestor = currentResponse;
+
+            // Limpia el contenedor actual
+            $("#gestor-container").empty();
+
+            // Itera sobre los resultados y genera el HTML
+            response.forEach(file => {
+                const filePreview = `
+                    <div class="col-md-1 mb-3 text-center">
+                        <div class="file-preview" style="border: 1px solid #ddd; border-radius: 5px; padding: 5px; background-color: #f9f9f9;">
+                            <a href="${file.existing_path}" target="_blank">
+                                <img src="${file.icon}" 
+                                     alt="${file.name}" 
+                                     class="img-thumbnail" 
+                                     style="width: 60px; height: 60px; object-fit: cover;">
+                            </a>
+                            <p style="font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${file.name}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                $("#gestor-container").append(filePreview);
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error("Error fetching files:", error);
+        }
+    });
+}
+
+let previousResponseDerechos = null; // Variable global para almacenar el estado anterior
+function fetchPagoDerechosFiles() {
+    $.ajax({
+        url: `/deskapp/tramites/getPagoDerechosFiles/${tramite_id}`, // Ruta del endpoint
+        method: 'GET',
+        success: function (response) {
+
+            // Convertimos la respuesta y el estado anterior a una cadena JSON para comparación
+            const currentResponse = JSON.stringify(response);
+
+            // Si el estado actual es igual al anterior, no hacer nada
+            if (currentResponse === previousResponseDerechos) {
+                // console.log("No hay cambios, no se actualiza el contenido.");
+                return;
+            }
+
+            // Actualizamos la variable global con el estado actual
+            previousResponseDerechos = currentResponse;
+
+            // Limpia el contenedor actual
+            $("#documentos-container").empty();
+
+            // Itera sobre los resultados y genera el HTML
+            response.forEach(file => {
+                const filePreview = `
+                    <div class="col-md-1 mb-3 text-center">
+                        <div class="file-preview" style="border: 1px solid #ddd; border-radius: 5px; padding: 5px; background-color: #f9f9f9;">
+                            <a href="${file.existing_path}" target="_blank">
+                                <img src="${file.icon}" 
+                                     alt="${file.name}" 
+                                     class="img-thumbnail" 
+                                     style="width: 60px; height: 60px; object-fit: cover;">
+                            </a>
+                            <p style="font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${file.name}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                $("#documentos-container").append(filePreview);
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error("Error fetching files:", error);
+        }
+    });
+}
+
+// Ejecutar la función cada 3 segundos
+fetchPagoDerechosFiles();
+fetchPagoGestorFiles();
+fetchCobroClienteFiles();
+setInterval(fetchPagoDerechosFiles, 3000);
+setInterval(fetchPagoGestorFiles, 3000);
+setInterval(fetchCobroClienteFiles, 3000);
