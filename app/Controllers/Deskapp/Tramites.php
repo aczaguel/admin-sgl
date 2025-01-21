@@ -827,6 +827,7 @@ class Tramites extends BaseController
 
             // Si no es una imagen, usar un ícono específico por extensión
             $icons = [
+                'xml'  => '/public/assets/src/images/xml-icon.png',
                 'pdf'  => '/public/assets/src/images/pdf-icon.png',
                 'doc'  => '/public/assets/src/images/doc-icon.png',
                 'docx' => '/public/assets/src/images/docx-icon.png',
@@ -887,6 +888,7 @@ class Tramites extends BaseController
 
             // Si no es una imagen, usar un ícono específico por extensión
             $icons = [
+                'xml'  => '/public/assets/src/images/xml-icon.png',
                 'pdf'  => '/public/assets/src/images/pdf-icon.png',
                 'doc'  => '/public/assets/src/images/doc-icon.png',
                 'docx' => '/public/assets/src/images/docx-icon.png',
@@ -948,6 +950,7 @@ class Tramites extends BaseController
 
             // Si no es una imagen, usar un ícono específico por extensión
             $icons = [
+                'xml'  => '/public/assets/src/images/xml-icon.png',
                 'pdf'  => '/public/assets/src/images/pdf-icon.png',
                 'doc'  => '/public/assets/src/images/doc-icon.png',
                 'docx' => '/public/assets/src/images/docx-icon.png',
