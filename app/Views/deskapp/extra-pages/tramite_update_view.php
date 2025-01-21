@@ -160,7 +160,7 @@ if (isset($tra_status_id)) {
 				<div class="header_wizard-bottom">
 					<div>
 						<button type="button" class="btn btn-lg btn-danger" data-toggle="modal" data-target="#Medium-modal"">
-							Cancelar Servicio
+							Cancelar Trámite
 						</button>
 					</div>
 				</div>
