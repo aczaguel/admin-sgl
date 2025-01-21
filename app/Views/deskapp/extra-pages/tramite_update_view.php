@@ -521,7 +521,7 @@ if (isset($tra_status_id)) {
 			<div class="modal-dialog modal-dialog-centered">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h4 class="modal-title" id="myLargeModalLabel">Cancelar Servicio</h4>
+						<h4 class="modal-title" id="myLargeModalLabel">Cancelar Trámite</h4>
 						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 					</div>
 					<div class="modal-body">
