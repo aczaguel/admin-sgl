@@ -516,14 +516,12 @@ if (isset($tra_status_id)) {
 
 
 <!-- Medium modal -->
-<div class="col-md-4 col-sm-12 mb-30" id="my_modal" style="display: none;">
-	<div class="pd-20 card-box height-100-p">
-		<h5 class="h4">Medium modal</h5>
+
 		<div class="modal fade" id="Medium-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h4 class="modal-title" id="myLargeModalLabel">Cancelar Servicio</h4>
+						<h4 class="modal-title" id="myLargeModalLabel">Cancelar Trámite</h4>
 						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 					</div>
 					<div class="modal-body">
@@ -544,8 +542,6 @@ if (isset($tra_status_id)) {
 				</div>
 			</div>
 		</div>
-	</div>
-</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('additional_js') ?>
