@@ -45,7 +45,10 @@
 					if($user_client["is_client"]){
 						$session->set('user_client', $user_client);
 					}
-					
+
+					$clients_by_user = $model->obtenerClientesPorUsuario($data['id']);
+					$session->set('clients_by_user', $clients_by_user);
+					// print_r($clients_by_user);die();
 					// var_dump($session->get('user_roles'));die();
 	                return redirect()->to('./deskapp/dashboard');
 

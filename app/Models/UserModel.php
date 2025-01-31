@@ -132,5 +132,27 @@ class UserModel extends Model{
         return $result;
     }
 
+    public function obtenerClientesPorUsuario($user_id)
+    {
+        // Construir la consulta para obtener los IDs de los clientes relacionados al usuario
+        $builder = $this->db->table('cliente_user as cu');
+        $builder->select('cu.cliente_id'); // Selecciona únicamente el cliente_id
+        $builder->where('cu.user_id', $user_id);
+
+        // Ejecutar la consulta
+        $query = $builder->get();
+        $result = $query->getResultArray();
+
+        if ($result) {
+            // Si existen clientes relacionados, extraer los IDs en un arreglo
+            $clienteIds = array_column($result, 'cliente_id');
+            return $clienteIds;
+        } else {
+            // Si no hay clientes relacionados, devolver un arreglo vacío
+            return [];
+        }
+    }
+
+
 
 }           

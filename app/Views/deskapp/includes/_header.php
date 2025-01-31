@@ -119,6 +119,9 @@
 					<a href="/deskapp/tramites/tramite" class="btn btn-info btn-custom">
 						<i class="fas fa-list"></i> Consolidado
 					</a>
+					<a href="/deskapp/tramites/tenencias/" class="btn btn-warning btn-custom">
+						<i class="fas fa-list"></i> Tenencias
+					</a>
 					<a href="/deskapp/tramites/add" class="btn btn-danger btn-lg ml-3 btn-custom">
 						<i class="fas fa-plus"></i> Nuevo
 					</a>
