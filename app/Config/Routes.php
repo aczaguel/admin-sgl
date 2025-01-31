@@ -174,6 +174,11 @@ $routes->post('/tramites/update_final/(:id)', 'Deskapp/Tramites::update_final/$1
 $routes->get('/tramites/cancelado/(:id)', 'Deskapp/Tramites::cancelado/$1',['filter' => 'auth']);
 $routes->post('/tramites/cancelado/(:id)', 'Deskapp/Tramites::cancelado/$1');
 
+$routes->get('/tramites/finalizados/(:id)', 'Deskapp/Tramites::finalizados/$1',['filter' => 'auth']);
+$routes->post('/tramites/finalizados/(:id)', 'Deskapp/Tramites::finalizados/$1');
+
+$routes->get('/tramites/tenencias/', 'Deskapp/Tramites::tenencias/',['filter' => 'auth']);
+$routes->post('/tramites/tenencias/', 'Deskapp/Tramites::tenencias/');
 
 $routes->get('/proceso/final_documentostatus/(:id)', 'Deskapp/Proceso::final_documentostatus/$1',['filter' => 'auth']);
 $routes->post('/proceso/final_documentostatus/(:id)', 'Deskapp/Proceso::final_documentostatus/$1');
@@ -188,8 +193,8 @@ $routes->get('/proceso/final_pago_derechos/(:id)', 'Deskapp/Proceso::final_pago_
 $routes->post('/proceso/final_pago_derechos/(:id)', 'Deskapp/Proceso::final_pago_derechos/$1');
 
 
-$routes->get('/proceso/concluido', 'Deskapp/Proceso::cancelado',['filter' => 'auth']);
-$routes->post('/proceso/concluido', 'Deskapp/Proceso::cancelado');
+$routes->get('/proceso/concluido', 'Deskapp/Proceso::concluido',['filter' => 'auth']);
+$routes->post('/proceso/concluido', 'Deskapp/Proceso::concluido');
 
 $routes->get('/proceso/concluido_documentostatus/(:id)', 'Deskapp/Proceso::concluido_documentostatus/$1',['filter' => 'auth']);
 $routes->post('/proceso/concluido_documentostatus/(:id)', 'Deskapp/Proceso::concluido_documentostatus/$1');
