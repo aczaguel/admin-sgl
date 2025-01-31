@@ -62,11 +62,11 @@
 						</li> -->
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
-							<span class="micon dw dw-house-1"></span><span class="mtext">Proceso Final</span>
+							<span class="micon dw dw-house-1"></span><span class="mtext">Cierre</span>
 						</a>
 						<ul class="submenu">
 						<?php if (has_permission('listar_final_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-								<li><a href="<?php echo base_url('deskapp/proceso/final'); //listar_final_tramite?>">Finalizando</a></li>
+								<li><a href="<?php echo base_url('deskapp/proceso/final'); //listar_final_tramite?>">Finalizado</a></li>
 							<?php endif; ?>	
 						</ul>
 					</li>
