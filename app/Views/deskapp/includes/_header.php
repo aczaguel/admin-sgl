@@ -113,15 +113,16 @@
 			<!-- Botones con iconos -->
 			<?php if (has_permission('header_buttons', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 				<div class="btn-group ml-2" role="group">
+					<a href="/deskapp/tramites/tenencias/" class="btn btn-warning btn-custom">
+						<i class="fas fa-list"></i> Tenencias
+					</a>
 					<a href="/deskapp/tramites/tramite_2024" class="btn btn-success btn-custom">
 						<i class="fas fa-list"></i> 2024
 					</a	>
 					<a href="/deskapp/tramites/tramite" class="btn btn-info btn-custom">
 						<i class="fas fa-list"></i> Consolidado
 					</a>
-					<a href="/deskapp/tramites/tenencias/" class="btn btn-warning btn-custom">
-						<i class="fas fa-list"></i> Tenencias
-					</a>
+					
 					<a href="/deskapp/tramites/add" class="btn btn-danger btn-lg ml-3 btn-custom">
 						<i class="fas fa-plus"></i> Nuevo
 					</a>
@@ -139,6 +140,9 @@
 					</a>
 					<a href="/deskapp/tramites/mios" class="btn btn-info btn-custom">
 						<i class="fas fa-user"></i> Mios
+					</a>
+					<a href="/deskapp/concluido/final" class="btn btn-info btn-custom">
+						<i class="fas fa-user"></i> Concluidos
 					</a>
 				</div>
 			<?php endif; ?>

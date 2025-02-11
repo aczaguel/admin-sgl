@@ -224,6 +224,13 @@ $routes->post('/cancelado/cancelado_evidencias_finales/(:id)', 'Deskapp/Cancelad
 $routes->get('/cancelado/cancelado_pago_derechos/(:id)', 'Deskapp/Cancelado::cancelado_pago_derechos/$1',['filter' => 'auth']);
 $routes->post('/cancelado/cancelado_pago_derechos/(:id)', 'Deskapp/Cancelado::cancelado_pago_derechos/$1');
 
+$routes->get('/concluido/final', 'Deskapp/Concluido::final',['filter' => 'auth']);
+$routes->post('/concluido/final', 'Deskapp/Concluido::final');
+
+$routes->get('/concluido/ver/(:id)', 'Deskapp/Concluido::ver/$1',['filter' => 'auth']);
+$routes->post('/concluido/ver/(:id)', 'Deskapp/Concluido::ver/$1');
+
+
 
 
 $routes->get('/customers/list', 'Deskapp/Customers::list',['filter' => 'auth']);

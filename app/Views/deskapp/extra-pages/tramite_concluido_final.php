@@ -6,11 +6,12 @@
 if (isset($tra_status_id)) {
     // Obtener la URL actual
     $currentUrl = $_SERVER['REQUEST_URI'];
+
     // Definir la URL de destino según el valor de $tra_status_id
     if ($tra_status_id == 21) {
         $targetUrl = "/deskapp/cancelado/cancelado/$id";
     } elseif ($tra_status_id == 20) {
-        $targetUrl = "/deskapp/concluido/ver/$id";
+        $targetUrl = "/deskapp/proceso/concluido/$id";
     } else {
         $targetUrl = "/deskapp/tramites/update/$id";
     }
@@ -394,7 +395,7 @@ if (isset($tra_status_id)) {
 										?>	
 										<?php if (has_permission('important_concluir_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
 												if (!in_array($tra_status_id, array(20, 21))) : ?>
-													<button type="button" class="btn btn-danger" id="" onclick="concluirTramite(<?php echo $id;?>, 20)">Concluir Trámite</button>
+													<button type="button" class="btn btn-danger" id="" onclick="changeStatusTramite(<?php echo $id;?>, 20)">Concluir Trámite</button>
 											<?php endif; 
 										endif; ?>									
 									</div>

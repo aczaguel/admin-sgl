@@ -38,6 +38,9 @@
 								<?php if (has_permission('listar_mis_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 									<li><a href="<?php echo base_url('deskapp/tramites/mios'); //listar_mios?>">Mis Trámites</a></li>
 								<?php endif; ?>	
+								<?php if (has_permission('listar_tramites_concluidos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+									<li><a href="<?php echo base_url('deskapp/concluido/final'); //listar_mios?>">Concluidos</a></li>
+								<?php endif; ?>	
 							</ul>
 						</li>
 					<?php endif; ?>
