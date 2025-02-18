@@ -220,7 +220,8 @@ if (isset($tra_status_id)) {
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_tramite';
 											$field_values = $fields;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+											$show_buttons = false;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons); 
 										?>
 										<script>
 											var cliDirectoId = "<?php echo isset($fields['cli_directo']['value']) ? $fields['cli_directo']['value'] : ''; ?>";
@@ -243,7 +244,8 @@ if (isset($tra_status_id)) {
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_gestores';
 											$field_values = $gestor_campos;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+											$show_buttons = false;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons); 
 										?>
 									</div>
 									
@@ -266,7 +268,8 @@ if (isset($tra_status_id)) {
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_derechos';
 											$field_values = $derechos_campos;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+											$show_buttons = false;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons); 
 										?>										
 									</div>
 								</section>
@@ -284,7 +287,8 @@ if (isset($tra_status_id)) {
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_bancario';
 											$field_values = $bancario_campos;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+											$show_buttons = false;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
 										?>
 									</div>
 								</section>
@@ -342,7 +346,8 @@ if (isset($tra_status_id)) {
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_pago_gestor';
 											$field_values = $pago_gestor;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+											$show_buttons = false;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons); 
 										?>										
 									</div>
 									<hr>
@@ -391,7 +396,8 @@ if (isset($tra_status_id)) {
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_final';
 											$field_values = $final_campos;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+											$show_buttons = false;
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons); 
 										?>	
 										<?php if (has_permission('important_concluir_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
 												if (!in_array($tra_status_id, array(20, 21))) : ?>

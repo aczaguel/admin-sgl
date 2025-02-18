@@ -13,7 +13,7 @@ if (!function_exists('render_full_form')) {
      *
      * @return string El HTML completo del formulario.
      */
-    function render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session)
+    function render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons = true)
     {
         $html = '';
 
@@ -43,14 +43,19 @@ if (!function_exists('render_full_form')) {
                   </div>';
 
         // Botones de acción
-        $html .= '<div class="text-center mt-4" id="boton_autorizar">
-                    <a href="' . esc($cancel_url) . '" class="btn btn-secondary ml-2">Cancelar</a>';
-
-        if (has_permission($submit_permission, esc($session->get('user_permissions')), esc($session->get('user_roles')))) {
-            $html .= ' <button type="submit" class="btn btn-primary">Guardar</button>';
+        //$arr_allowed_status = [11, 22, 23, 24, 25, 26, 27, 28];
+        // valida que tra_status_id sea diferente este dentro del array de estados permitidos
+        //if(in_array($tra_status_id, $arr_allowed_status)){
+        if ($show_buttons) {
+            if (has_permission($submit_permission, esc($session->get('user_permissions')), esc($session->get('user_roles')))) {
+                $html .= '<div class="text-center mt-4" id="boton_autorizar">
+                            <a href="' . esc($cancel_url) . '" class="btn btn-secondary ml-2">Cancelar</a> 
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                         </div>';
+            }
         }
 
-        $html .= '</div>';
+        
 
         // Cerrar formulario
         $html .= form_close();

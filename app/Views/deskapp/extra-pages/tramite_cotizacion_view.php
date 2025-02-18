@@ -8,6 +8,8 @@ if (isset($tra_status_id)) {
         $targetUrl = "/deskapp/cancelado/cancelado/$id";
     } elseif ($tra_status_id == 20) {
         $targetUrl = "/deskapp/concluido/ver/$id";
+    }elseif ($tra_status_id == 29) {
+        $targetUrl = "/deskapp/tramites/update_cotizacion/$id";
     } else {
         $targetUrl = "/deskapp/tramites/update/$id";
     }
@@ -150,6 +152,11 @@ if (isset($tra_status_id)) {
 			<div class="header_wizard-bottom">
 				<strong>FOLIO: <?php echo (isset($folio)?$folio:"");?> </strong>
 			</div>
+				<div class="header_wizard-bottom">
+					<div>
+						<button type="button" class="btn btn-lg btn-success" id="" onclick="changeStatusTramite(<?php echo $id;?>, 11)">Reactivar Como trámite</button>
+					</div>
+				</div>
 			
 		</div>
 		<br>
@@ -165,22 +172,6 @@ if (isset($tra_status_id)) {
 				<li class="nav-item">
 					<a class="nav-link text-blue" data-toggle="tab" href="#contact" role="tab" aria-selected="false">Bitácora</a>
 				</li>
-				<li class="nav-item">
-					<a class="nav-link text-blue" data-toggle="tab" href="#documentos_pago" role="tab" aria-selected="false">Pagos de Derecho</a>
-				</li>
-
-				<li class="nav-item">
-					<a class="nav-link text-blue" data-toggle="tab" href="#pago_gestor" role="tab" aria-selected="false">Pago al Gestor</a>
-				</li>
-				
-				<li class="nav-item">
-					<a class="nav-link text-blue" data-toggle="tab" href="#cobro_cliente" role="tab" aria-selected="false">Cobros al Cliente</a>
-				</li>
-
-				<li class="nav-item">
-					<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
-				</li>
-				
 			</ul>
 			<div class="tab-content">
 				<div class="tab-pane fade show active" id="home" role="tabpanel">
@@ -209,133 +200,6 @@ if (isset($tra_status_id)) {
 										</script>
 									</div>
 								</section>
-							<?php endif; ?>					
-							<!-- Step 2: Asignacion de Gestor -->
-							
-							<?php if (has_permission('section_asigna_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
-								<h3>Gestor</h3>
-								<section>
-									<div class="min-height-200px">
-										<?php 
-											/* Paso 2: Asignar Gestor */
-											$prefix_form = "gestor";
-											$form_action = "/deskapp/tramites/update_gestor_save/$id";
-											$form_id = 'gestorForm';
-											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_gestores';
-											$field_values = $gestor_campos;
-											$show_buttons = false;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons); 
-										?>
-									</div>
-									
-									<script>
-										var empresaGestoraId = "<?php echo isset($gestor_campos['empresa_gestora']['value']) ? $gestor_campos['empresa_gestora']['value'] : ''; ?>";
-										var gestorId = "<?php echo isset($gestor_campos['gestor_id']['value']) ? $gestor_campos['gestor_id']['value'] : ''; ?>";
-									</script>
-								</section>
-							<?php endif; ?>
-							<?php if (has_permission('section_pago_derechos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
-								<!-- Step 3: La forma en que se pagan los derechos -->
-								<h3>Pago de Derechos</h3>
-								<section>
-									<div class="min-height-200px">
-										<?php 
-											/* Paso 3: Pago de Derechos */
-											$prefix_form = "derechos";
-											$form_action = "/deskapp/tramites/update_derechos_save/$id";
-											$form_id = 'derechosForm';
-											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_derechos';
-											$field_values = $derechos_campos;
-											$show_buttons = false;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
-										?>										
-									</div>
-								</section>
-							<?php endif; ?>
-							<?php if (has_permission('section_linea_captura', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
-								<!-- Step 4: Solo se agrega la linea de captura -->
-								<h3>Linea de Captura</h3>
-								<section>
-									<div class="min-height-200px">
-										<?php 
-											/* Paso 4: Datos Bancarios, Linea de captura */
-											$prefix_form = "bancario";
-											$form_action = "/deskapp/tramites/update_bancario_save/$id";
-											$form_id = 'bancarioForm';
-											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_bancario';
-											$field_values = $bancario_campos;
-											$show_buttons = false;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
-										?>
-									</div>
-								</section>
-							<?php endif; ?>
-							<?php if (has_permission('section_documentos_pago', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
-								<!-- Step 5: Todos los documentos relacionados con el proceso en ventanilla -->
-								<h3>Documentos de Pago</h3>
-								<section>
-									<div>
-										<div class="row" id="documentos-container"></div>
-									</div>
-
-								</section>
-							<?php endif; ?>
-							<?php if (has_permission('section_pago_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
-								<!-- Step 6: Se paga al gestor -->
-								<h3>Pago a Gestor</h3>
-								<section>
-									<div class="min-height-200px">
-										<?php 
-											/* Paso 3: Pago de Derechos */
-											$prefix_form = "pago_gestor";
-											$form_action = "/deskapp/concluido/update_gestor_costos/$id";
-											$form_id = 'pagoGestorForm';
-											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_pago_gestor';
-											$field_values = $pago_gestor;
-											$show_buttons = $reembolso_pendiente;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
-										?>										
-									</div>
-									<hr>
-									<div>
-									<!-- Galería de Imágenes -->
-									<div class="row" id="gestor-container"></div>
-								</div>
-								</section>
-							<?php endif; ?>
-							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
-								<!-- Step 7: Se cobra al cliente -->
-								<h3>Cobro a Cliente</h3>
-								<section>
-									<div class="min-height-200px">
-										
-										<?php 
-											/* Paso 3: Pago de Derechos */
-											$prefix_form = "final";
-											$form_action = "/deskapp/tramites/update_final_save/$id";
-											$form_id = 'finalForm';
-											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_final';
-											$field_values = $final_campos;
-											$show_buttons = false;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
-										?>	
-										<?php if (has_permission('important_concluir_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
-												if (!in_array($tra_status_id, array(20, 21))) : ?>
-													<button type="button" class="btn btn-danger" id="" onclick="changeStatusTramite(<?php echo $id;?>, 20)">Concluir Trámite</button>
-											<?php endif; 
-										endif; ?>									
-									</div>
-									<hr>
-									<div>
-										<!-- Galería de Imágenes -->
-										<div class="row" id="cliente-container"></div>
-									</div>
-								</section>
 							<?php endif; ?>
 						</div>
 					</div>
@@ -362,57 +226,11 @@ if (isset($tra_status_id)) {
 						</div>			
 					</div>
 				</div>
-				<div class="tab-pane fade" id="documentos_pago" role="tabpanel">
-					<div class="pd-20">
-						<div class="pd-ltr-20 xs-pd-20-10">
-									<?php 
-										if (!empty($output_derechos)) {
-												echo $output_derechos;
-										}
-									?>
-						</div>			
-					</div>
-				</div>
-
-					<div class="tab-pane fade" id="pago_gestor" role="tabpanel">
-						<div class="pd-20">
-							<div class="pd-ltr-20 xs-pd-20-10">
-								<?php
-									if (!empty($output_pago_gestor)) {
-											echo $output_pago_gestor;
-									}
-								?>
-							</div>			
-						</div>
-					</div>
-
-					<div class="tab-pane fade" id="cobro_cliente" role="tabpanel">
-						<div class="pd-20">
-							<div class="pd-ltr-20 xs-pd-20-10">
-								<?php
-									if (!empty($output_cobro_cliente)) {
-											echo $output_cobro_cliente;
-									}
-								?>
-							</div>			
-						</div>
-					</div>
-
 				
-					<div class="tab-pane fade" id="final_evi" role="tabpanel">
-						<div class="pd-20">
-							<div class="pd-ltr-20 xs-pd-20-10">
-								<?php
-									if (!empty($outputevidencias_finales)) {
-											echo $outputevidencias_finales;
-									}
-								?>
-							</div>			
-						</div>
-					</div>
 			</div>
 		</div>
 	</div>	
+
 
 
 

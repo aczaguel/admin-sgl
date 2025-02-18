@@ -167,7 +167,8 @@
 							<h3>Información</h3>
 							<section>
 								<div class="min-height-200px">
-									<?php echo form_open('/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'tramiteForm']); ?>
+
+									<?php echo form_open('/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'tramiteForm', 'method' => 'post']); ?>
 										<div class="row">
 											<div class="col-md-6">
 												<?php 
@@ -268,8 +269,9 @@
 										</div>
 
 										<div class="text-center mt-4" id="boton_autorizar">
+											<button type="submit" name="accion" value="quotation" class="btn btn-warning"><?php echo 'Guardar Como Cotización'; ?></button>
 											<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-											<button type="submit" class="btn btn-primary"><?php echo 'Guardar'; ?></button>
+											<button type="submit" name="accion" value="tramite" class="btn btn-primary"><?php echo 'Guarda Trámite'; ?></button>
 										</div>
 
 									<?php echo form_close(); ?>
