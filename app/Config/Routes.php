@@ -180,6 +180,9 @@ $routes->post('/tramites/finalizados/(:id)', 'Deskapp/Tramites::finalizados/$1')
 $routes->get('/tramites/tenencias/', 'Deskapp/Tramites::tenencias/',['filter' => 'auth']);
 $routes->post('/tramites/tenencias/', 'Deskapp/Tramites::tenencias/');
 
+$routes->get('/tramites/cotizaciones/', 'Deskapp/Tramites::cotizaciones/',['filter' => 'auth']);
+$routes->post('/tramites/cotizaciones/', 'Deskapp/Tramites::cotizaciones/');
+
 $routes->get('/proceso/final_documentostatus/(:id)', 'Deskapp/Proceso::final_documentostatus/$1',['filter' => 'auth']);
 $routes->post('/proceso/final_documentostatus/(:id)', 'Deskapp/Proceso::final_documentostatus/$1');
 

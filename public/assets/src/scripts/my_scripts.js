@@ -35,45 +35,6 @@ $(document).ready(function() {
     $('#costo_total').prop('readonly', true);
   });
 
-  
-  // $('#costo_gestoria').on("keyup", function() {
-  //     console.log('Se hizo clic en costo_gestoria');
-  //     var suma = parseFloat($("#costo_gestoria").val()) + parseFloat($("#impuesto_gestoria").val()) + parseFloat($("#comision_derechos").val()) 
-  //     $("#costo_total").val(suma)
-  // });
-  // $('#impuesto_gestoria').on("keyup", function() {
-  //   console.log('Se hizo clic en impuesto_gestoria');
-  //   var suma = parseFloat($("#costo_gestoria").val()) + parseFloat($("#impuesto_gestoria").val()) + parseFloat($("#comision_derechos").val()); 
-  //   $("#costo_total").val(suma)
-  // });
-  // $('#derechos_tramite').on("keyup", function() {
-  //   console.log('Se hizo clic en derechos_tramite');
-  //   var suma = parseFloat($("#costo_gestoria").val()) + parseFloat($("#impuesto_gestoria").val()) + parseFloat($("#comision_derechos").val());
-  //   $("#costo_total").val(suma);
-  // });
-   
-
-
-  // $('#gestor_total_pago').on("click", function() {
-  //   console.log('Se hizo clic en gestor_total_pago');
-  //   $('#gestor_total_pago').prop('readonly', true);
-  // });
-  // $('#costo_gestoria').on("keyup", function() {
-  //   console.log('Se hizo clic en costo_gestoria');
-  //   var suma = parseFloat($("#costo_gestoria").val()) + parseFloat($("#impuesto_gestoria").val()) + parseFloat($("#gestoria_comision").val()); 
-  //   $("#gestor_total_pago").val(suma)
-  // });
-  // $('#impuesto_gestoria').on("keyup", function() {
-  //   console.log('Se hizo clic en impuesto_gestoria');
-  //   var suma = parseFloat($("#costo_gestoria").val()) + parseFloat($("#impuesto_gestoria").val()) + parseFloat($("#gestoria_comision").val()); 
-  //   $("#gestor_total_pago").val(suma)
-  // });
-  // $('#gestoria_comision').on("keyup", function() {
-  //   console.log('Se hizo clic en gestoria_comision');
-  //   var suma = parseFloat($("#costo_gestoria").val()) + parseFloat($("#impuesto_gestoria").val()) + parseFloat($("#gestoria_comision").val()); 
-  //   $("#gestor_total_pago").val(suma)
-  // });
-
 // Detectar cambios en los campos costo_tramite y deposito_gestor
 $('#costo_tramite, #deposito_gestor').on('input', function () {
   // Obtener los valores de los campos

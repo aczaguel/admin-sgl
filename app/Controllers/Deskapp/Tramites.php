@@ -795,6 +795,127 @@ class Tramites extends BaseController
         }
     }
 
+    public function cotizaciones()
+    {
+        try {
+            # Manejo de session de action
+            $self = $this;
+            $session = session();
+            $data['session'] = \Config\Services::session();
+            $data['username'] = $session->get('user_name');
+            $myid = $session->get('id');
+            # fin del manejo de session
+
+            $tramite_crud = $this->_getGroceryCrudEnterprise();
+            
+            $tramite_crud->unsetAdd();
+            $tramite_crud->unsetEdit();
+            $tramite_crud->unsetRead();
+            // $tramite_crud->setTheme('bootstrap-v5');
+            $tramite_crud->unsetDeleteMultiple();
+            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+                    return '/deskapp/tramites/update_cotizacion/' . $row->id;
+                }, false);
+            }
+
+            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetDelete();
+            }
+
+            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetExport();
+            }
+
+            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetPrint();
+            }
+
+            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetClone();
+            }
+
+            $tramite_crud->setCsrfTokenName(csrf_token());
+            $tramite_crud->setCsrfTokenValue(csrf_hash());
+
+            //lista todos los unset de grocery crud
+            
+            $tramite_crud->setTable('tramite');
+            $tramite_crud->setSubject('tramite', 'Tramites');
+            $tramite_crud->defaultOrdering('tramite.id', 'desc');
+
+            $tramite_crud->where([
+                 'tramite.tra_status_id IN (29)'
+            ]);
+            
+            $tramite_crud->columns([
+                'id', 'created_at', 'tra_status_id', 'folio', 'contrato', 'unidad', 'serie', 
+                'placas', 'tra_tipos_id', 'entidad_id', 'ent_municipio_id', 'cli_directo_id',
+                'cli_directo_ejecutivo_id', 'empresa_gestora_id', 'gestor_id',
+                'cobro_status_id', 'user_id',
+                'observaciones'
+            ]);
+
+            $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+            $tramite_crud->displayAs("user_id", "Ejecutivo");
+
+            $tramite_crud->fields([
+                'folio','contrato','unidad','serie', 
+                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
+                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
+                'tra_status_id','cobro_status_id',
+                'observaciones', 'user_id'
+            ]); 
+
+            $tramite_crud->displayAs("created_at", "Creación");
+            /* SELECT Se configura el tipo de tramite */
+            $tramite_crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
+            $tramite_crud->displayAs('tra_tipos_id','Tipo de Tramite');
+
+            /* SELECT Se configura el estatus del tramite */
+            $tramite_crud->setRelation('tra_status_id', 'tra_status', 'tra_status');
+            $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
+
+            /* SELECT Se configura el cliente final o cliente directo */
+            $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
+            
+            /* SELECT Se configura el ejecutivo del cliente */
+            $tramite_crud->setRelation('cli_directo_ejecutivo_id', 'cli_directo_ejecutivo', 'nombre');
+            $tramite_crud->displayAs('cli_directo_ejecutivo_id','Ejecutivo del Cliente');
+
+            $tramite_crud->setDependentRelation('cli_directo_ejecutivo_id','cli_directo_id','cli_directo_id');
+
+            /* SELECT Se configura el la entidad */
+            $tramite_crud->setRelation('entidad_id', 'entidad', 'entidad');
+            $tramite_crud->displayAs('entidad_id','Entidad');
+
+            /* SELECT Se configura el municipio */
+            $tramite_crud->setRelation('ent_municipio_id', 'rel_ent_municipio', 'ent_municipality');
+            $tramite_crud->displayAs('ent_municipio_id','Municipio');
+
+            /* SELECT Se configura la empresa gestora */
+            $tramite_crud->setRelation('empresa_gestora_id', 'ges_empresa_gestora', 'razon_social');
+            $tramite_crud->displayAs('empresa_gestora_id','Empresa Gestora');
+
+            /* SELECT Se configura el gestor*/
+            $tramite_crud->setRelation('gestor_id', 'ges_gestor', 'nombre');
+            $tramite_crud->displayAs('gestor_id','Gestor');
+
+            $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
+
+            $tramite_salida = $tramite_crud->render();
+            
+            $salida_total = array_merge((array)$tramite_salida, $data);
+            $salida_total['insert_button_url'] = '/public/deskapp/tramites/add';
+
+            echo $this->_example_output($salida_total);
+
+        } catch (\Exception $e) {
+            exit($e->getMessage());
+        }
+    }
+
     private function _example_output($salida = null) {
         $salida = (object)esc($salida, 'raw');
         if ($salida->isJSONResponse) {
@@ -907,11 +1028,20 @@ class Tramites extends BaseController
                 $data = $this->request->getPost();
                 $db = \Config\Database::connect();
                 $builder = $db->table('tramite');
-
+                $button_action = $this->request->getPost('accion');
+                
                 $clienteModel = new ClienteModel($this->_getDbData());
                 $newFolio = $clienteModel->getPrefijoConUltimosSeisDigitos($data["cli_directo_id"]);
                 $data["folio"] = $newFolio;
+                
+                if($button_action == 'quotation'){
+                    $data["tra_status_id"] = 29;
+                    $data["quoted_at"] = date('Y-m-d H:i:s');
+                } else { // tramite
+                    $data["tra_status_id"] = 11;
+                }
 
+                unset($data["accion"]);
                 $builder->insert($data);
                 // Get the last insert ID
                 $lastInsertID = $db->insertID();
@@ -1167,6 +1297,180 @@ class Tramites extends BaseController
 
         $form = array_merge((array)$form, $data);
         return $this->_example_output_2($form, 'update');
+    }
+
+    public function update_cotizacion($id) {
+        $session = session();
+        $data['session'] = \Config\Services::session();
+        $data['username'] = $session->get('user_name');
+        $myid = $session->get('id');
+        $db = \Config\Database::connect();
+        $builder = $db->table('tramite');
+        $db2 = $this->_getDbData();
+        // Retrieve the record
+        $tramite = $builder->getWhere(['id' => $id])->getRowArray();
+
+        $TraTiposModel = new TraTiposModel($db2);
+        $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
+
+        // $entMunicipios = new EntMunicipioModel($db2);
+        // $ent_municipio_options = $entMunicipios->getEntMunicipios();
+
+        $entidades = new EntidadesModel($db2);
+        $entidad_options = $entidades->getEntidades();
+        $clienteDirecto = new ClienteDirectoModel($db2);
+        $cli_directo_options = $clienteDirecto->getClientesDirectosOptions();
+        $empGestora = new EmpresaGestoraModel($db2);
+        $empresa_gestora_options = $empGestora->getEmpresasGestorasOptions();
+
+        $traStatus = new TraStatusModel($db2);
+        $tra_status_obj = $traStatus->getTraStatusOptions();
+        $tra_status_options = $tra_status_obj["tra_status"];
+        $tra_status_steps = $tra_status_obj["steps"];
+
+        $reembolso_status = new ReembolsoStatusModel($db2);
+        $reembolso_status_options = $reembolso_status->getReembolsoStatusOptions();
+
+        $cobro_status = new CobroStatusModel($db2);
+        $cobro_status_options = $cobro_status->getCobroStatusOptions();
+
+        $pago_derechos = new PagoDerechosModel($db2);
+        $pago_derechos_db = $pago_derechos->getImgDerechosByTramiteId($id);
+
+        $pago_gestor_st = new PagoGestorStatusModel($db2);
+        $pago_gestor_st_opciones = $pago_gestor_st->getPagoGestorStatusOptions();
+
+        // $cobroStatuses = new CobroStatusesModel($db2);
+        // $cobro_status_options = $cobroStatuses->getCobroStatusesOptions();
+        $form = new \stdClass();
+        
+        // Fields to be displayed in the add form
+
+        $puede_modificar = ["disabled"=>"disabled"];
+        if(is_admin($session->get('user_roles'))){
+            $puede_modificar = [];
+        }
+        $form->fields = [
+            "folio" => array_merge(["label" => "Folio", "type" => "hidden", "value" => $tramite['folio']], $puede_modificar),
+            "contrato" => array_merge(["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required"], $puede_modificar),
+            "unidad" => array_merge(["label" => "Unidad", "type" => "text", "value" => $tramite['unidad']], $puede_modificar),
+            "serie" => array_merge(["label" => "Serie", "type" => "text", "value" => $tramite['serie']], $puede_modificar),
+            "placas" => array_merge(["label" => "Placas", "type" => "text", "value" => $tramite['placas']], $puede_modificar),
+            "tra_tipos_id" => array_merge(["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "value" => $tramite['tra_tipos_id']], $puede_modificar),
+            "cli_directo_id" => array_merge(["label" => "Cliente", "type" => "select", "options" => $cli_directo_options, "value" => $tramite['cli_directo_id']], $puede_modificar),
+            "cli_directo_ejecutivo_id" => array_merge(["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "value" => $tramite['cli_directo_ejecutivo_id']], $puede_modificar),
+            "entidad_id" => array_merge(["label" => "Entidad", "type" => "select", "options" => $entidad_options, "value" => $tramite['entidad_id'], "required"=>"required"], $puede_modificar),
+            "observaciones" => array_merge(["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']], $puede_modificar)
+        ];
+        
+
+        $form->gestor_campos = [
+            "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id'], "required" => "required"],
+            "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "required" => "required"]
+        ];
+        // }
+        
+        $form->derechos_campos = [
+            "derechos_tramite" => ["label" => "Monto pago de derechos", "type" => "number", "value" => $tramite['derechos_tramite'], "required" => "required"],
+            "derechos_pago_sitio" => ["label" => "Pago", "type" => "select", "options" => ["online"=>"En Linea", "ventanilla"=>"En Ventanilla"], "value" => $tramite['derechos_pago_sitio']],
+            "derechos_vigencia" => ["label" => "Fecha Vigencia", "type" => "datetime", "value" => $tramite['derechos_vigencia']]
+        ];
+        
+        $form->bancario_campos = [
+            "derechos_revol_cliente" => ["label" => "Forma de Pago", "type" => "select", "options" => ["revolvente"=>"Fondo Revolvente", "cliente"=>"Pago Cliente"], "value" => $tramite['derechos_revol_cliente'], "required" => "required"],
+            "derechos_refer_banc" => ["label" => "Referencia Bancaria", "type" => "text", "value" => $tramite['derechos_refer_banc'], "required" => "required"],
+        ];
+
+        $gestor_model = new GestorModel($db2);
+        $gestor_nombre = $gestor_model->getGestorNameById($tramite['gestor_id']);
+
+        $form->pago_gestor = [
+            // nombre del gestor
+            "gestor_id" => ["label" => "Gestor", "type" => "text", "value" => $gestor_nombre, "disabled"=>"disabled"],
+            "costo_tramite" => ["label" => "Costo del Trámite", "type" => "number", "value" => $tramite['costo_tramite'], "required" => "required"],
+            "deposito_gestor" => ["label" => "Deposito a Gestor", "type" => "number", "value" => $tramite['deposito_gestor'], "required" => "required"],
+            "col_a_favor" => ["label" => "Saldo Pendiente", "type" => "number", "value" => $tramite['col_a_favor'], "required" => "required"], 
+            "num_factura_gestor" => ["label" => "Número de Factura", "type" => "text", "value" => $tramite['num_factura_gestor']],    
+            "pago_gestor_st_id" => ["label" => "Estatus del Pago", "type" => "select", "options" => $pago_gestor_st_opciones, "value" => $tramite['pago_gestor_st_id']],
+            "impuesto_gestoria" => ["label" => "Honorarios de Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria'], "required" => "required"],
+            "gestoria_comision" => ["label" => "Gratificación", "type" => "number", "value" => $tramite['gestoria_comision'], "required" => "required"],
+            "gestor_total_pago" => ["label" => "Pago Total", "type" => "number", "value" => $tramite['gestor_total_pago'], "required" => "required"],
+            "reembolso_status_id" => ["label" => "Estatus del Reembolso", "type" => "select", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']]
+        ];
+
+        $form->final_campos = [
+            "id_give_cliente" => ["label" => "ID del cliente", "type" => "text", "value" => $tramite['id_give_cliente'], "required" => "required"],
+            "numero_factura" => ["label" => "Número de Factura", "type" => "text", "value" => $tramite['numero_factura'], "required" => "required"],
+            "numero_refactura" => ["label" => "Número de Refactura", "type" => "text", "value" => $tramite['numero_refactura']],
+            "cobro_status_id" => ["label" => "Estatus del Cobro", "type" => "select", "options" => $cobro_status_options, "value" => $tramite['cobro_status_id']],
+            "costo_gestoria" => ["label" => "Costo de Gestoría", "type" => "number", "value" => $tramite['costo_gestoria'], "required" => "required"],
+            "costo_pago_cliente"=> ["label" => "Honorarios del Trámite", "type" => "number", "value" => $tramite['costo_pago_cliente'], "required" => "required"],
+            "comision_derechos" => ["label" => "Comisión de Derechos", "type" => "number", "value" => $tramite['comision_derechos'], "required" => "required"],
+            "costo_total" => ["label" => "Costo Total", "type" => "number", "value" => $tramite['costo_total'], "disabled"=>"disabled"],
+        ];
+        
+        $data['id'] = $id;
+        $data['folio'] = $tramite[      'folio'];
+        $data['tra_tipo'] = $tra_tipos_options[$tramite['tra_tipos_id']];
+        $data['tra_status'] = $tra_status_options[$tramite['tra_status_id']];
+        $data['tra_status_id'] = $tramite['tra_status_id'];
+        $data['created_at'] = $tramite['created_at'];
+
+        $data['step'] = $tra_status_steps[$tramite['tra_status_id']];
+        $data['started_at'] = $tramite['started_at'];
+        $data['derechos_comprobante'] = $tramite['derechos_comprobante'];
+        // $data['images_derechos_comprobante'] = $images_derechos;
+        // $data['images_pago_gestor'] = $images_gestor;
+        // $data['images_cobro_cliente'] = $images_cobro_cliente;
+        $form->id = $id;
+
+        $crud = $this->_getGroceryCrudEnterprise();
+        $crudOutput = $crud->render();
+        
+        $form->css_files = $crudOutput->css_files;
+        $form->js_files = $crudOutput->js_files;
+        
+        // Load the view with the fields and current data
+        // if (!is_read_only(esc($session->get('user_roles')))){
+            $cruddocstatus = $this->_getGroceryCrudEnterprise();
+            $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/'.$id);
+            $output_docs = $cruddocstatus->render();            
+            
+            $crudevidencias = $this->_getGroceryCrudEnterprise();
+            $crudevidencias->setApiUrlPath('/deskapp/tramites/single_evidencias/'.$id);
+            $outputevidencias = $crudevidencias->render();
+
+            $crudevidencias_finales = $this->_getGroceryCrudEnterprise();
+            $crudevidencias_finales->setApiUrlPath('/deskapp/tramites/single_evidencias_finales/' . $id);
+            $outputevidencias_finales = $crudevidencias_finales->render();
+
+            $crud_derechos = $this->_getGroceryCrudEnterprise();
+            $crud_derechos->setApiUrlPath('/deskapp/tramites/single_pago_derechos/' . $id);
+            $output_derechos = $crud_derechos->render();
+
+            $crud_pago_gestor = $this->_getGroceryCrudEnterprise();
+            $crud_pago_gestor->setApiUrlPath('/deskapp/tramites/single_pago_gestor/' . $id);
+            $output_pago_gestor = $crud_pago_gestor->render();
+
+            $crud_cobro_cliente = $this->_getGroceryCrudEnterprise();
+            $crud_cobro_cliente->setApiUrlPath('/deskapp/tramites/single_cobro_cliente/' . $id);
+            $output_cobro_cliente = $crud_cobro_cliente->render();
+
+            // $output_docs->output .= "<hr>".$outputevidencias->output;
+            // $form->output_docs = $output->output;
+            
+            $form->output_docs = $output_docs->output;
+            $form->output_bitacora = $outputevidencias->output;
+            $form->outputevidencias_finales = $outputevidencias_finales->output;
+            $form->output_derechos = $output_derechos->output;
+            $form->output_pago_gestor = $output_pago_gestor->output;
+            $form->output_cobro_cliente = $output_cobro_cliente->output;
+            
+            // $form->output = $output_docs->output;
+        // }
+
+        $form = array_merge((array)$form, $data);
+        return $this->_example_output_2($form, 'cotizacion');
     }
 
     public function getPagoGestorFiles($id)

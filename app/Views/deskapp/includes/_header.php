@@ -67,6 +67,12 @@
     .btn-group a {
         margin-right: 5px; /* Separar los botones ligeramente */
     }
+
+	.btn-xs {
+		font-size: 9px !important;
+    	padding: 2px 6px !important;
+	}
+
 </style>
 <div class="header">
 	<div class="header-left">
@@ -112,39 +118,49 @@
 	<div class="header-right">
 			<!-- Botones con iconos -->
 			<?php if (has_permission('header_buttons', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-				<div class="btn-group ml-2" role="group">
-					<a href="/deskapp/tramites/tenencias/" class="btn btn-warning btn-custom">
-						<i class="fas fa-list"></i> Tenencias
-					</a>
-					<a href="/deskapp/tramites/tramite_2024" class="btn btn-success btn-custom">
-						<i class="fas fa-list"></i> 2024
-					</a	>
-					<a href="/deskapp/tramites/tramite" class="btn btn-info btn-custom">
-						<i class="fas fa-list"></i> Consolidado
-					</a>
-					
-					<a href="/deskapp/tramites/add" class="btn btn-danger btn-lg ml-3 btn-custom">
-						<i class="fas fa-plus"></i> Nuevo
-					</a>
-					<a href="/deskapp/tramites/solicitudes" class="btn btn-info btn-custom">
-						<i class="fas fa-file-alt"></i> Solicitudes
-					</a>
-					<a href="/deskapp/tramites/recoleccion" class="btn btn-info btn-custom">
-						<i class="fas fa-truck"></i> Asignaciones
-					</a>
-					<a href="/deskapp/tramites/en_tramite" class="btn btn-info btn-custom">
-						<i class="fas fa-check"></i> En Trámite
-					</a>
-					<a href="/deskapp/proceso/final" class="btn btn-info btn-custom">
-						<i class="fas fa-user"></i> Entregados
-					</a>
-					<a href="/deskapp/tramites/mios" class="btn btn-info btn-custom">
-						<i class="fas fa-user"></i> Mios
-					</a>
-					<a href="/deskapp/concluido/final" class="btn btn-info btn-custom">
-						<i class="fas fa-user"></i> Concluidos
-					</a>
+				<div class="container">
+					<div class="row">
+						<div class="col-12">
+							<div class="d-flex flex-wrap justify-content-start">
+								<a href="/deskapp/tramites/tenencias/" class="btn btn-warning btn-sm btn-xs m-1">
+									<i class="fas fa-list"></i> Tenencias
+								</a>
+								<a href="/deskapp/tramites/tramite_2024" class="btn btn-success btn-sm btn-xs m-1">
+									<i class="fas fa-list"></i> 2024
+								</a>
+								<a href="/deskapp/tramites/tramite" class="btn btn-info btn-sm btn-xs m-1">
+									<i class="fas fa-list"></i> Consolidado
+								</a>
+								<a href="/deskapp/tramites/add" class="btn btn-danger btn-sm btn-xs m-1">
+									<i class="fas fa-plus"></i> Nuevo
+								</a>
+								<a href="/deskapp/tramites/solicitudes" class="btn btn-info btn-sm btn-xs m-1">
+									<i class="fas fa-file-alt"></i> Solicitudes
+								</a>
+								<a href="/deskapp/tramites/recoleccion" class="btn btn-info btn-sm btn-xs m-1">
+									<i class="fas fa-truck"></i> Asignaciones
+								</a>
+								<a href="/deskapp/tramites/en_tramite" class="btn btn-info btn-sm btn-xs m-1">
+									<i class="fas fa-check"></i> En Trámite
+								</a>
+								<a href="/deskapp/proceso/final" class="btn btn-info btn-sm btn-xs m-1">
+									<i class="fas fa-user"></i> Entregados
+								</a>
+								<a href="/deskapp/tramites/mios" class="btn btn-info btn-sm btn-xs m-1">
+									<i class="fas fa-user"></i> Mios
+								</a>
+								<a href="/deskapp/concluido/final" class="btn btn-info btn-sm btn-xs m-1">
+									<i class="fas fa-user"></i> Concluidos
+								</a>
+								<a href="/deskapp/tramites/cotizaciones" class="btn btn-info btn-sm btn-xs m-1">
+									<i class="fas fa-user"></i> Cotizaciones
+								</a>
+							</div>
+						</div>
+					</div>
 				</div>
+
+
 			<?php endif; ?>
 		<div class="dashboard-setting user-notification">
 			<!-- Botones con iconos -->

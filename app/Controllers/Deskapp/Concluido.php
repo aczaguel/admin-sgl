@@ -269,7 +269,9 @@ class Concluido extends BaseController
         $gestor_nombre = $gestor_model->getGestorNameById($tramite['gestor_id']);
 
         $puede_modificar_pendiente = ["disabled"=>"disabled"];
+        $reembolso_pendiente = false;
         if(in_array($tramite['reembolso_status_id'], [21, 22])){
+            $reembolso_pendiente = true;
             $puede_modificar_pendiente = [];
         }
         
@@ -303,6 +305,7 @@ class Concluido extends BaseController
         $data['tra_status'] = $tra_status_options[$tramite['tra_status_id']];
         $data['tra_status_id'] = $tramite['tra_status_id'];
         $data['created_at'] = $tramite['created_at'];
+        $data['reembolso_pendiente'] = $reembolso_pendiente;
 
         $data['step'] = $tra_status_steps[$tramite['tra_status_id']];
         $data['started_at'] = $tramite['started_at'];
