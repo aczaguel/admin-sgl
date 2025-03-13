@@ -183,6 +183,15 @@ $routes->post('/tramites/tenencias/', 'Deskapp/Tramites::tenencias/');
 $routes->get('/tramites/cotizaciones/', 'Deskapp/Tramites::cotizaciones/',['filter' => 'auth']);
 $routes->post('/tramites/cotizaciones/', 'Deskapp/Tramites::cotizaciones/');
 
+$routes->get('/tramites/get_service_types/', 'Deskapp/Tramites::get_service_types/',['filter' => 'auth']);
+$routes->post('/tramites/get_service_types/', 'Deskapp/Tramites::get_service_types/');
+
+$routes->get('/tramites/get_services_by_tramite/(:id)', 'Deskapp/Tramites::get_services_by_tramite/$1',['filter' => 'auth']);
+$routes->post('/tramites/get_services_by_tramite/(:id)', 'Deskapp/Tramites::get_services_by_tramite/$1');
+
+$routes->get('/tramites/get_service_costs_by_tramite/(:id)', 'Deskapp/Tramites::get_service_costs_by_tramite/$1',['filter' => 'auth']);
+$routes->post('/tramites/get_service_costs_by_tramite/(:id)', 'Deskapp/Tramites::get_service_costs_by_tramite/$1');
+
 $routes->get('/proceso/final_documentostatus/(:id)', 'Deskapp/Proceso::final_documentostatus/$1',['filter' => 'auth']);
 $routes->post('/proceso/final_documentostatus/(:id)', 'Deskapp/Proceso::final_documentostatus/$1');
 

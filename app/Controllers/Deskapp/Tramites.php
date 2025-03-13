@@ -3,6 +3,7 @@
 namespace App\Controllers\Deskapp;
 use App\Controllers\BaseController;
 
+
 use Config\Database as ConfigDatabase;
 use Config\GroceryCrud as ConfigGroceryCrud;
 use GroceryCrud\Core\GroceryCrud;
@@ -28,6 +29,7 @@ use App\Models\ReembolsoStatusModel;
 use App\Models\CobroStatusModel;
 use App\Models\PagoDerechosModel;
 use App\Models\PagoGestorStatusModel;
+use App\Models\TraTramiteAsociadoModel;
 
 class Tramites extends BaseController
 {
@@ -1046,6 +1048,17 @@ class Tramites extends BaseController
                 // Get the last insert ID
                 $lastInsertID = $db->insertID();
 
+                # Insertar relación en tra_tramite_asociado
+                $traTramiteAsociadoModel = new TraTramiteAsociadoModel();
+                $tra_tipos_id = $data["tra_tipos_id"];
+                $insert_tramite_asociado = [
+                "tramite_id" => (int)$lastInsertID,
+                "tra_tipos_id" => (int)$tra_tipos_id,
+                "created_at" => date('Y-m-d H:i:s'),
+                "updated_at" => date('Y-m-d H:i:s')
+                ];
+                $traTramiteAsociadoModel->insert($insert_tramite_asociado, 'tra_tramite_asociado');
+
                 #Espacio para guardar la relación DosStatus 
 
                 // $db = Database::connect();
@@ -1136,12 +1149,6 @@ class Tramites extends BaseController
         // Retrieve the record
         $tramite = $builder->getWhere(['id' => $id])->getRowArray();
 
-        $TraTiposModel = new TraTiposModel($db2);
-        $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
-
-        // $entMunicipios = new EntMunicipioModel($db2);
-        // $ent_municipio_options = $entMunicipios->getEntMunicipios();
-
         $entidades = new EntidadesModel($db2);
         $entidad_options = $entidades->getEntidades();
         $clienteDirecto = new ClienteDirectoModel($db2);
@@ -1166,8 +1173,6 @@ class Tramites extends BaseController
         $pago_gestor_st = new PagoGestorStatusModel($db2);
         $pago_gestor_st_opciones = $pago_gestor_st->getPagoGestorStatusOptions();
 
-        // $cobroStatuses = new CobroStatusesModel($db2);
-        // $cobro_status_options = $cobroStatuses->getCobroStatusesOptions();
         $form = new \stdClass();
         
         // Fields to be displayed in the add form
@@ -1182,7 +1187,7 @@ class Tramites extends BaseController
             "unidad" => array_merge(["label" => "Unidad", "type" => "text", "value" => $tramite['unidad']], $puede_modificar),
             "serie" => array_merge(["label" => "Serie", "type" => "text", "value" => $tramite['serie']], $puede_modificar),
             "placas" => array_merge(["label" => "Placas", "type" => "text", "value" => $tramite['placas']], $puede_modificar),
-            "tra_tipos_id" => array_merge(["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "value" => $tramite['tra_tipos_id']], $puede_modificar),
+            // "tra_tipos_id" => array_merge(["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "value" => $tramite['tra_tipos_id']], $puede_modificar),
             "cli_directo_id" => array_merge(["label" => "Cliente", "type" => "select", "options" => $cli_directo_options, "value" => $tramite['cli_directo_id']], $puede_modificar),
             "cli_directo_ejecutivo_id" => array_merge(["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "value" => $tramite['cli_directo_ejecutivo_id']], $puede_modificar),
             "entidad_id" => array_merge(["label" => "Entidad", "type" => "select", "options" => $entidad_options, "value" => $tramite['entidad_id'], "required"=>"required"], $puede_modificar),
@@ -1199,12 +1204,17 @@ class Tramites extends BaseController
         $form->derechos_campos = [
             "derechos_tramite" => ["label" => "Monto pago de derechos", "type" => "number", "value" => $tramite['derechos_tramite'], "required" => "required"],
             "derechos_pago_sitio" => ["label" => "Pago", "type" => "select", "options" => ["online"=>"En Linea", "ventanilla"=>"En Ventanilla"], "value" => $tramite['derechos_pago_sitio']],
-            "derechos_vigencia" => ["label" => "Fecha Vigencia", "type" => "datetime", "value" => $tramite['derechos_vigencia']]
+            "derechos_vigencia" => ["label" => "Fecha Vigencia", "type" => "datetime", "value" => $tramite['derechos_vigencia']],
+            "separador_1" => ["type" => "hr"],
+            "separador_2" => ["type" => "hr"],
+            "titulo_seccion" => ["type" => "divider", "id" => "seccion_datos_generales"],
+            "derechos_revol_cliente" => ["label" => "Forma de Pago", "type" => "select", "options" => ["revolvente"=>"Fondo Revolvente", "cliente"=>"Pago Cliente"], "value" => $tramite['derechos_revol_cliente'], "required" => "required"],
+            "derechos_refer_banc" => ["label" => "Referencia Bancaria", "type" => "text", "value" => $tramite['derechos_refer_banc'], "required" => "required"],
         ];
         
         $form->bancario_campos = [
-            "derechos_revol_cliente" => ["label" => "Forma de Pago", "type" => "select", "options" => ["revolvente"=>"Fondo Revolvente", "cliente"=>"Pago Cliente"], "value" => $tramite['derechos_revol_cliente'], "required" => "required"],
-            "derechos_refer_banc" => ["label" => "Referencia Bancaria", "type" => "text", "value" => $tramite['derechos_refer_banc'], "required" => "required"],
+            // "derechos_revol_cliente" => ["label" => "Forma de Pago", "type" => "select", "options" => ["revolvente"=>"Fondo Revolvente", "cliente"=>"Pago Cliente"], "value" => $tramite['derechos_revol_cliente'], "required" => "required"],
+            // "derechos_refer_banc" => ["label" => "Referencia Bancaria", "type" => "text", "value" => $tramite['derechos_refer_banc'], "required" => "required"],
         ];
 
         $gestor_model = new GestorModel($db2);
@@ -1213,31 +1223,40 @@ class Tramites extends BaseController
         $form->pago_gestor = [
             // nombre del gestor
             "gestor_id" => ["label" => "Gestor", "type" => "text", "value" => $gestor_nombre, "disabled"=>"disabled"],
-            "costo_tramite" => ["label" => "Costo del Trámite", "type" => "number", "value" => $tramite['costo_tramite'], "required" => "required"],
+            "separador_gestor" => ["type" => "hr"],
+            "costo_tramite" => ["label" => "Costos de los Trámites", "type" => "number", "value" => $tramite['costo_tramite'], "disabled"=>"disabled"],
             "deposito_gestor" => ["label" => "Deposito a Gestor", "type" => "number", "value" => $tramite['deposito_gestor'], "required" => "required"],
-            "col_a_favor" => ["label" => "Saldo Pendiente", "type" => "number", "value" => $tramite['col_a_favor'], "required" => "required"], 
+            "col_a_favor" => ["label" => "Saldo a Favor SGL", "type" => "number", "value" => $tramite['col_a_favor'], "required" => "required"], 
+            "col_a_favor_gestor" => ["label" => "Saldo a Favor del Gestor", "type" => "number", "value" => $tramite['col_a_favor_gestor'], "required" => "required"],
+            "separador_gestor2" => ["type" => "hr"],
             "num_factura_gestor" => ["label" => "Número de Factura", "type" => "text", "value" => $tramite['num_factura_gestor']],    
-            "pago_gestor_st_id" => ["label" => "Estatus del Pago", "type" => "select", "options" => $pago_gestor_st_opciones, "value" => $tramite['pago_gestor_st_id']],
             "impuesto_gestoria" => ["label" => "Honorarios de Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria'], "required" => "required"],
-            "gestoria_comision" => ["label" => "Gratificación", "type" => "number", "value" => $tramite['gestoria_comision'], "required" => "required"],
-            "gestor_total_pago" => ["label" => "Pago Total", "type" => "number", "value" => $tramite['gestor_total_pago'], "required" => "required"],
-            "reembolso_status_id" => ["label" => "Estatus del Reembolso", "type" => "select", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']]
+            "gestoria_comision" => ["label" => "Gratificación", "type" => "number", "value" => $tramite['gestoria_comision']],
+            "costo_paqueteria" => ["label" => "Costo de Paquetería", "type" => "number", "value" => $tramite['costo_paqueteria']],
+            "gestor_total_pago" => ["label" => "Gasto Total", "type" => "number", "value" => $tramite['gestor_total_pago'], "disabled"=>"disabled"],
+            "gestor_total_pago_hidden" => ["label" => "Pago Total", "type" => "hidden", "value" => $tramite['gestor_total_pago']],
+            "reembolso_status_id" => ["label" => "Estatus del Reembolso", "type" => "select", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']],
+            "reembolso_status_id_hidden" => ["label" => "Estatus del Reembolso", "type" => "hidden", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']]
         ];
 
         $form->final_campos = [
-            "id_give_cliente" => ["label" => "ID del cliente", "type" => "text", "value" => $tramite['id_give_cliente'], "required" => "required"],
+            "id_give_cliente" => ["label" => "ID que da el cliente", "type" => "text", "value" => $tramite['id_give_cliente'], "required" => "required"],
+            "separador_costos" => ["type" => "hr"],
             "numero_factura" => ["label" => "Número de Factura", "type" => "text", "value" => $tramite['numero_factura'], "required" => "required"],
             "numero_refactura" => ["label" => "Número de Refactura", "type" => "text", "value" => $tramite['numero_refactura']],
             "cobro_status_id" => ["label" => "Estatus del Cobro", "type" => "select", "options" => $cobro_status_options, "value" => $tramite['cobro_status_id']],
-            "costo_gestoria" => ["label" => "Costo de Gestoría", "type" => "number", "value" => $tramite['costo_gestoria'], "required" => "required"],
+            "separador_costos2" => ["type" => "hr"],
+            "costo_gestoria" => ["label" => "Sumatoria de Derechos", "type" => "number", "value" => $tramite['costo_gestoria'], "disabled"=>"disabled"],
+            "costo_gestoria_hidden" => ["label" => "Sumatoria de Derechos", "type" => "hidden", "value" => $tramite['costo_gestoria']],
             "costo_pago_cliente"=> ["label" => "Honorarios del Trámite", "type" => "number", "value" => $tramite['costo_pago_cliente'], "required" => "required"],
             "comision_derechos" => ["label" => "Comisión de Derechos", "type" => "number", "value" => $tramite['comision_derechos'], "required" => "required"],
+            "iva" => ["label" => "IVA ($)", "type" => "number", "value" => $tramite['iva']],
             "costo_total" => ["label" => "Costo Total", "type" => "number", "value" => $tramite['costo_total'], "disabled"=>"disabled"],
         ];
         
         $data['id'] = $id;
-        $data['folio'] = $tramite[      'folio'];
-        $data['tra_tipo'] = $tra_tipos_options[$tramite['tra_tipos_id']];
+        $data['folio'] = $tramite[ 'folio'];
+        // $data['tra_tipo'] = $tra_tipos_options[$tramite['tra_tipos_id']];
         $data['tra_status'] = $tra_status_options[$tramite['tra_status_id']];
         $data['tra_status_id'] = $tramite['tra_status_id'];
         $data['created_at'] = $tramite['created_at'];
@@ -2515,11 +2534,7 @@ class Tramites extends BaseController
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
             $builder->where('id', $id);
-            // $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
-            // $arr_status = [22, 25, 26, 27, 23, 20, 21];
-            // if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(26, $arr_status)){
-            //     $data["tra_status_id"] = 26;
-            // }
+
             $this->updateTramiteStatus($id, 26);
 
             $builder->where('id', $id);
@@ -2580,12 +2595,6 @@ class Tramites extends BaseController
             $builder = $db->table('tramite');
             $builder->where('id', $id);
 
-            // $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
-            // $arr_status = [22, 25, 26, 27, 23, 20, 21];
-            // if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(27, $arr_status)){
-            //     $data["tra_status_id"] = 27;
-            // }
-
             $this->updateTramiteStatus($id, 27);
 
             $builder->where('id', $id);
@@ -2640,15 +2649,13 @@ class Tramites extends BaseController
             // "costo_gestoria" => "required|decimal",
             "impuesto_gestoria" => "required|decimal",
             "gestoria_comision" => "required|decimal",
-            "gestor_total_pago" => "required|decimal",
-            "pago_gestor_st_id" => "required|integer",
+            // "pago_gestor_st_id" => "required|integer",
             // "reembolso_status_id" => "required|integer",
         ], [
             // "costo_gestoria" => ["required" => "El costo de gestoría es obligatorio.", "decimal" => "Debe ser un número decimal válido."],
             "impuesto_gestoria" => ["required" => "El impuesto de gestoría es obligatorio.", "decimal" => "Debe ser un número decimal válido."],
             "gestoria_comision" => ["required" => "La Gratificación es obligatoria.", "decimal" => "Debe ser un número decimal válido."],
-            "gestor_total_pago" => ["required" => "El pago total es obligatorio.", "decimal" => "Debe ser un número decimal válido."],
-            "pago_gestor_st_id" => ["required" => "El estatus del pago es obligatorio.", "integer" => "Debe ser un número entero válido."],
+            // "pago_gestor_st_id" => ["required" => "El estatus del pago es obligatorio.", "integer" => "Debe ser un número entero válido."],
             // "reembolso_status_id" => ["required" => "El estatus del reembolso es obligatorio.", "integer" => "Debe ser un número entero válido."]
         ]);
     
@@ -2664,14 +2671,11 @@ class Tramites extends BaseController
             $data["user_id"] = $myid;
     
             // Cálculo de campos adicionales
-            $data["gestor_total_pago"] = $data["gestoria_comision"]+ $data["impuesto_gestoria"];
-
-            // $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
-            // $arr_status = [22, 25, 26, 27, 28, 23, 20, 21];
-            // if(array_search($tramite_base['tra_status_id'], $arr_status) < array_search(28, $arr_status)){
-            //     $data["tra_status_id"] = 28;
-            // }
-
+            $data["gestor_total_pago"] = $data["gestor_total_pago_hidden"];
+            unset($data["gestor_total_pago_hidden"]);
+            $data["reembolso_status_id"] = $data["reembolso_status_id_hidden"];
+            unset($data["reembolso_status_id_hidden"]);
+            
             $this->updateTramiteStatus($id, 28);
             // Actualizar en la base de datos
             $builder->where('id', $id);
@@ -2718,7 +2722,6 @@ class Tramites extends BaseController
 
         // Reglas de validación para los campos definidos en el fragmento
         $validation->setRules([
-            "costo_gestoria" => "required|decimal",
             "id_give_cliente" => "required",
             "numero_factura" => "required",
             "numero_refactura" => "permit_empty",
@@ -2743,14 +2746,18 @@ class Tramites extends BaseController
                 "cobro_status_id",
                 "costo_pago_cliente",
                 "comision_derechos",
-                "costo_gestoria"
+                "costo_gestoria",
+                "costo_gestoria_hidden",
+                "iva"
             ]);
             $data["user_id"] = $myid;
-
+            $data["costo_gestoria"] = $data["costo_gestoria_hidden"];
+            unset($data["costo_gestoria_hidden"]);
             // Calcular el costo total
-            $data["costo_total"] = $data["costo_gestoria"] + $data["costo_pago_cliente"] + $data["comision_derechos"];
+            $data["costo_total"] = $data["costo_gestoria"] + $data["costo_pago_cliente"] + $data["comision_derechos"] + $data["iva"] ;
             #costo_gestoria, #costo_pago_cliente, #comision_derechos
             // Actualizar los datos en la tabla 'tramite'
+
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
             $builder->where('id', $id);
@@ -2808,11 +2815,6 @@ class Tramites extends BaseController
         // Obtener la posición del estado actual y el nuevo estado en el flujo
         $currentStatusIndex = array_search($tramite_base['tra_status_id'], $arr_status);
         $newStatusIndex = array_search($newStatus, $arr_status);
-
-        // Si el nuevo estado es igual o posterior al actual, proceder con el guardado
-        // imprime las variables con un print_r
-        // print_r($newStatusIndex); echo "<br>";
-        // print_r($currentStatusIndex); 
 
         if ($newStatusIndex !== false && $newStatusIndex >= $currentStatusIndex) {
             $data = ['tra_status_id' => $newStatus];
@@ -5106,4 +5108,83 @@ class Tramites extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => $e->getMessage()]);
         }
     }
+    public function get_service_types()
+    {
+        $db2 = $this->_getDbData();
+        $TraTiposModel = new TraTiposModel($db2);
+        $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
+        return $this->response->setJSON($tra_tipos_options);
+    }
+
+    public function get_services_by_tramite($tramiteId)
+    {
+        $model = new TraTramiteAsociadoModel();
+        return $this->response->setJSON($model->getServicesByTramiteId($tramiteId));
+    }
+    public function save_services()
+    {
+        $tramiteId = $this->request->getPost('tramite_id');
+        $services = $this->request->getPost('services');
+
+        if (empty($tramiteId) || empty($services)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Datos insuficientes']);
+        }
+
+        $model = new TraTramiteAsociadoModel();
+        foreach ($services as $serviceId) {
+            $model->saveService($tramiteId, $serviceId);
+        }
+
+        return $this->response->setJSON(['status' => 'success', 'message' => 'Servicios guardados exitosamente']);
+    }
+
+    // Eliminar un servicio asociado al trámite
+    public function delete_service()
+    {
+        $serviceId = $this->request->getPost('asociado_id');
+        if (empty($serviceId)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Datos insuficientes']);
+        }
+
+        $model = new TraTramiteAsociadoModel();
+        $model->deleteService( $serviceId);
+
+        return $this->response->setJSON(['status' => 'deleted', 'message' => 'Servicio eliminado correctamente']);
+    }
+
+    public function get_service_costs_by_tramite($tramiteId)
+    {
+        $db = \Config\Database::connect();
+        $query = $db->table('tra_tramite_asociado')
+                    ->select('tra_tramite_asociado.id, tra_tramite_asociado.costo_tramite, tra_tipos.tipo_tramite')
+                    ->join('tra_tipos', 'tra_tipos.id = tra_tramite_asociado.tra_tipos_id')
+                    ->where('tra_tramite_asociado.tramite_id', $tramiteId)
+                    ->get();
+
+        return $this->response->setJSON($query->getResultArray());
+    }
+
+    public function update_service_cost(){
+        $id = $this->request->getPost('id');
+        $costo_tramite = $this->request->getPost('costo_tramite');
+
+        if (empty($id) || !is_numeric($costo_tramite)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Datos inválidos para la actualización.'
+            ]);
+        }
+
+        $db = \Config\Database::connect();
+        $builder = $db->table('tra_tramite_asociado');
+        $builder->where('id', $id);
+        $builder->update(['costo_tramite' => $costo_tramite, 'updated_at' => date('Y-m-d H:i:s')]);
+
+        return $this->response->setJSON([
+            'status' => 'success',
+            'message' => 'Costo actualizado correctamente.'
+        ]);
+    }
+
+
 }

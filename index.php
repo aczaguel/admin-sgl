@@ -38,6 +38,8 @@ helper(['session_helper']);
 helper(['log_helper']);
 helper(['wizard_form_helper']);
 helper(['full_form']);
+helper(['full_form_one_column']);
+helper(['wizard_one_column']);	
 
 /*
  *---------------------------------------------------------------

@@ -102,3 +102,161 @@ a.nav-link.active.text-blue {
     color: #000 !important;
     font-weight: 400;
 }
+.file-preview {
+    border: 1px solid #ddd;
+    padding: 3px;
+    border-radius: 5px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+.file-preview img {
+    max-width: 100px;
+    height: auto;
+    max-height: 100px;
+    margin-bottom: 10px;
+}
+.file-preview a {
+    display: block;
+    word-wrap: break-word;
+}
+
+
+/* Contenedor principal */
+.dropzone-container {
+    text-align: center;
+    margin: 30px auto;
+    width: 50%;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    padding: 20px;
+}
+
+/* Botón de subida */
+.btnSubir {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btnSubir:hover {
+    background-color: #0056b3;
+}
+
+/* Dropzone personalizado */
+.dz-default.dz-message .dz-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.dz-default.dz-message img {
+    width: 90px;
+}
+
+.wizard {
+    display: flex;
+    flex-direction: column; /* Asegura que sea un diseño vertical */
+}
+
+.wizard .steps {
+    order: 1; /* Pasos en primer lugar */
+}
+
+.wizard .actions {
+    order: 2; /* Botones en segundo lugar */
+}
+
+.wizard .content {
+    order: 3; /* Contenido al final */
+}
+
+.service-item {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.service-item select {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.remove-service {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.remove-service:hover {
+    background: #c82333;
+}
+
+
+.service-item {
+    display: flex;
+    align-items: center;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    gap: 10px;
+}
+
+.service-item select {
+    flex: 1;
+}
+
+.remove-service {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.remove-service:hover {
+    background: #c82333;
+}
+
+.cost-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #ddd;
+    padding: 8px;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+}
+
+.service-name {
+    font-weight: bold;
+    white-space: nowrap;
+    flex: 2;
+}
+
+.cost-input {
+    width: 120px; /* Mantiene el mismo tamaño */
+    text-align: right; /* Alinea los valores numéricos a la derecha */
+    flex: 1;
+}
+
+.save-cost {
+    padding: 5px 10px;
+}
