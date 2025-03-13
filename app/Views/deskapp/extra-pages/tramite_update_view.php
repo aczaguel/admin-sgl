@@ -29,86 +29,9 @@ if (isset($tra_status_id)) {
 <?= $this->section('additional_css') ?>
 
 <script>
-			var tramite_id = <?php echo $id; ?>
-		</script>
-<!-- CSS adicionales -->
-<style>
-        .file-preview {
-            border: 1px solid #ddd;
-            padding: 3px;
-            border-radius: 5px;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .file-preview img {
-            max-width: 100px;
-            height: auto;
-            max-height: 100px;
-            margin-bottom: 10px;
-        }
-        .file-preview a {
-            display: block;
-            word-wrap: break-word;
-        }
+	var tramite_id = <?php echo $id; ?>
+</script>
 
-
-		/* Contenedor principal */
-        .dropzone-container {
-            text-align: center;
-            margin: 30px auto;
-            width: 50%;
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            padding: 20px;
-        }
-
-        /* Botón de subida */
-        .btnSubir {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            font-size: 16px;
-            color: #fff;
-            background-color: #007bff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .btnSubir:hover {
-            background-color: #0056b3;
-        }
-
-        /* Dropzone personalizado */
-        .dz-default.dz-message .dz-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-        }
-
-        .dz-default.dz-message img {
-            width: 90px;
-        }
-
-		.wizard {
-			display: flex;
-			flex-direction: column; /* Asegura que sea un diseño vertical */
-		}
-
-		.wizard .steps {
-			order: 1; /* Pasos en primer lugar */
-		}
-
-		.wizard .actions {
-			order: 2; /* Botones en segundo lugar */
-		}
-
-		.wizard .content {
-			order: 3; /* Contenido al final */
-		}
-    </style>
 <?php $assets = base_url('/public/assets'); ?>
 	<?php foreach($css_files as $file): ?>
         <link type="text/css" rel="stylesheet" href="<?php echo $file; ?>" />
@@ -142,9 +65,9 @@ if (isset($tra_status_id)) {
 				<div>
 					<strong>FECHA INICIO: </strong> <?php echo (isset($created_at)?$created_at:"-- / -- / ----	--:--:--"); ?>
 				</div>
-				<div>
-					<strong>Tipo:</strong> <?php echo (isset($tra_tipo)?$tra_tipo:""); ?>
-				</div>
+				<!-- <div>
+					<strong>Tipo:</strong> <?php // echo (isset($tra_tipo)?$tra_tipo:""); ?>
+				</div> -->
 			</div>
 			<div class="header_wizard-row">
 				<div>
@@ -232,6 +155,22 @@ if (isset($tra_status_id)) {
 											var ejecutivoId = "<?php echo isset($fields['cli_directo_ejecutivo_id']['value']) ? $fields['cli_directo_ejecutivo_id']['value'] : ''; ?>";
 										</script>
 									</div>
+									<div class="min-height-200px">
+										<h5>Tipos de Servicio</h5>
+										<div id="service-list">
+											<!-- Aquí se pintarán dinámicamente los tipos de servicio -->
+										</div>
+
+										<button type="button" id="add-service" class="btn btn-primary mt-3">
+											<i class="fas fa-plus"></i> Agregar Servicio
+										</button>
+
+										<button type="button" id="save-services" class="btn btn-success mt-3">
+											<i class="fas fa-save"></i> Guardar
+										</button>
+									</div>
+
+
 								</section>
 							<?php endif; ?>					
 							<!-- Step 2: Asignacion de Gestor -->
@@ -276,31 +215,6 @@ if (isset($tra_status_id)) {
 											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
 										?>										
 									</div>
-								</section>
-							<?php endif; ?>
-							<?php if (has_permission('section_linea_captura', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
-								<!-- Step 4: Solo se agrega la linea de captura -->
-								<h3>Linea de Captura</h3>
-								<section>
-									<div class="min-height-200px">
-										<?php 
-											/* Paso 4: Datos Bancarios, Linea de captura */
-											$prefix_form = "bancario";
-											$form_action = "/deskapp/tramites/update_bancario_save/$id";
-											$form_id = 'bancarioForm';
-											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_bancario';
-											$field_values = $bancario_campos;
-											$show_buttons = true;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons); 
-										?>
-									</div>
-								</section>
-							<?php endif; ?>
-							<?php if (has_permission('section_documentos_pago', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
-								<!-- Step 5: Todos los documentos relacionados con el proceso en ventanilla -->
-								<h3>Documentos de Pago</h3>
-								<section>
 									<?php if (has_permission('important_pasar_a_pagos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
 										if (!in_array($tra_status_id, array(20, 23, 21))) : ?>
 											<button type="button" class="btn btn-danger" id="" onclick="changeStatusTramite(<?php echo $id;?>, 23)">Aprobar Trámite</button>
@@ -334,9 +248,9 @@ if (isset($tra_status_id)) {
 										<!-- Galería de Imágenes -->
 										<div class="row" id="documentos-container"></div>
 									</div>
-
 								</section>
 							<?php endif; ?>
+							
 							<?php if (has_permission('section_pago_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
 								<!-- Step 6: Se paga al gestor -->
 								<h3>Pago a Gestor</h3>
@@ -355,35 +269,45 @@ if (isset($tra_status_id)) {
 										?>										
 									</div>
 									<hr>
-									<div>
-										<!-- Contenedor Dropzone -->
-										<div class="dropzone-container">
-											<form class="dropzone dropzone-gestor" id="miDropzoneGestor">
-												<div class="dz-default dz-message">
-													<button class="dz-button" type="button">
-														<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
-													</button>
+										<div class="row">
+											<div class="col-md-6">
+												<div class="gestor_costos_tipo_servicio" id="gestor_costos_tipo_servicio"><h5>Costos de Tipos de Servicio</h5></div>
+											
+												<label for="costo_tramite_total" class="form-label"><b>Total de Costos:</b></label>
+												<input type="text" id="costo_tramite_total" class="form-control text-end" readonly>
+											</div>
+											<div class="col-md-6">
+												<div>
+													<!-- Contenedor Dropzone -->
+														<div class="dropzone-container">
+															<form class="dropzone dropzone-gestor" id="miDropzoneGestor">
+																<div class="dz-default dz-message">
+																	<button class="dz-button" type="button">
+																		<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+																	</button>
+																</div>
+															</form>
+														</div>
+
+														<!-- Botón Subir -->
+														<button id="btnSubirGestor" class="btnSubir">Subir</button>
+
+														<hr>
+
+														<!-- Mensaje de Eliminación -->
+														<div class="row mb-3">
+															<div class="col-12 text-center">
+																<h6 style="color: #d9534f; font-weight: bold;">
+																	Si deseas eliminar un archivo debes solicitarlo al administrador
+																</h6>
+															</div>
+														</div>
+														<hr>
+													<!-- Galería de Imágenes -->
+													<div class="row" id="gestor-container"></div>
 												</div>
-											</form>
-										</div>
-
-										<!-- Botón Subir -->
-										<button id="btnSubirGestor" class="btnSubir">Subir</button>
-
-										<hr>
-
-										<!-- Mensaje de Eliminación -->
-										<div class="row mb-3">
-											<div class="col-12 text-center">
-												<h6 style="color: #d9534f; font-weight: bold;">
-													Si deseas eliminar un archivo debes solicitarlo al administrador
-												</h6>
 											</div>
 										</div>
-										<hr>
-									<!-- Galería de Imágenes -->
-									<div class="row" id="gestor-container"></div>
-								</div>
 								</section>
 							<?php endif; ?>
 							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>

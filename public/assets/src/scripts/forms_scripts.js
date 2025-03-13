@@ -543,32 +543,6 @@ function changeStatusTramite(tramiteId, status_id) {
   }
 }
 
-// function concluirTramite(tramiteId, status_id) {
-
-//     if (confirm('¿Estás seguro de que deseas cambiar el estatus de este trámite?')) {
-//         $.ajax({
-//             url: '/deskapp/tramites/change_status', // Ruta hacia la función en el controlador
-//             type: 'POST',
-//             data: {
-//                 tramite_id: tramiteId,
-//                 status_id: status_id,
-//                 csrf_token: $('meta[name="csrf_token"]').attr('content') // Asegúrate de incluir el token CSRF
-//             },
-//             success: function(response) {
-//                 if (response.success) {
-//                     alert('Estatus del trámite actualizado correctamente.');
-//                     location.reload(); // Recargar la página para actualizar la lista
-//                 } else {
-//                     alert('Ocurrió un error al cambiar el estatus del trámite.');
-//                 }
-//             },
-//             error: function() {
-//                 alert('Ocurrió un error en la solicitud.');
-//             }
-//         });
-//     }
-//   }
-
 function concluirTramite(tramiteId, status_id) {
     // Realizar el AJAX previo para verificar el reembolso_status_id
     $.ajax({
@@ -1100,6 +1074,7 @@ $(document).ready(function() {
   $('#gestorForm').on('submit', function(e) {
     e.preventDefault();
     var formData = $(this).serialize();
+    console.log("gestorForm");
     $.ajax({
         url: '/deskapp/tramites/update_gestor_save/' + tramite_id, 
         type: 'POST',
@@ -1257,6 +1232,8 @@ $(document).ready(function() {
   $('#finalForm').on('submit', function(e) {
       e.preventDefault(); // Evitar que el formulario haga un submit normal
 
+      $("#costo_gestoria_hidden").val($("#costo_gestoria").val());
+
       // Crear un objeto FormData para recoger todos los datos, incluyendo archivos
       var formData = new FormData(this);
 
@@ -1409,6 +1386,26 @@ $(document).ready(function() {
     }
   });
 
+  $('#iva').on('input', function () {
+    // Permitir solo números y hasta dos decimales
+    let value = $(this).val();
+    
+    // Usar expresión regular para permitir solo dos decimales
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
+        $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
+    }
+  });
+
+  $('#costo_pago_cliente').on('input', function () {
+    // Permitir solo números y hasta dos decimales
+    let value = $(this).val();
+    
+    // Usar expresión regular para permitir solo dos decimales
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
+        $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
+    }
+  });
+
   $('#derechos_tramite').on('input', function () {
     // Permitir solo números y hasta dos decimales
     let value = $(this).val();
@@ -1429,10 +1426,24 @@ $(document).ready(function() {
     }
   });
 
+  $('#costo_paqueteria').on('input', function () {
+    // Permitir solo números y hasta dos decimales
+    let value = $(this).val();
+    
+    // Usar expresión regular para permitir solo dos decimales
+    if (!/^\d*\.?\d{0,2}$/.test(value)) {
+        $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
+    }
+  });
+
+  $("#reembolso_status_id").on("change", function () {
+    var selectedValue = $(this).val();
+    $("#reembolso_status_id_hidden").val(selectedValue);
+});
+
   $('#gestor_total_pago').on('input', function () {
     // Permitir solo números y hasta dos decimales
     let value = $(this).val();
-    console.log("solo para permitir decimales");
     // Usar expresión regular para permitir solo dos decimales
     if (!/^\d*\.?\d{0,2}$/.test(value)) {
         $(this).val(value.slice(0, -1)); // Quita el último carácter ingresado si no cumple el patrón
@@ -1593,3 +1604,263 @@ fetchCobroClienteFiles();
 setInterval(fetchPagoDerechosFiles, 3000);
 setInterval(fetchPagoGestorFiles, 3000);
 setInterval(fetchCobroClienteFiles, 3000);
+
+$(document).ready(function () {
+    var tramiteId = tramite_id; // ID del trámite cargado en la URL
+    var serviceList = $("#service-list");
+
+    // 🔹 Cargar los tipos de servicio desde el backend y devolver una promesa
+    function loadServiceTypes() {
+        return $.ajax({
+            url: "/deskapp/tramites/get_service_types",
+            type: "GET",
+            dataType: "json"
+        }).done(function (data) {
+            window.availableServices = data; // Guardamos los datos en una variable global
+        }).fail(function () {
+            alert("Error al cargar los tipos de servicio.");
+        });
+    }
+
+    // 🔹 Cargar los servicios asociados a este trámite y devolver una promesa
+    function loadServicesByTramite() {
+        return $.ajax({
+            url: "/deskapp/tramites/get_services_by_tramite/" + tramiteId,
+            type: "GET",
+            dataType: "json"
+        }).done(function (data) {
+            data.forEach(service => {
+                addServiceRow(service.id, service.tra_tipos_id);
+                addCostRow(service.id, service.costo_tramite || 0);
+            });
+        }).fail(function () {
+            alert("Error al cargar los servicios del trámite.");
+        });
+    }
+
+
+
+    // 🔹 Asegurar que primero cargue `loadServiceTypes()` antes de llamar a `loadServicesByTramite()`
+    loadServiceTypes().then(() => {
+        return loadServicesByTramite();
+    });
+
+    // 🔹 Agregar un nuevo servicio dinámicamente
+    $("#add-service").click(function () {
+        addServiceRow("");
+    });
+
+    // 🔹 Función para agregar un servicio al DOM con Select2
+    function addServiceRow(asociadoId, selectedId) {
+        if (!window.availableServices) {
+            console.error("Los servicios aún no están cargados.");
+            return;
+        }
+
+        var options = '<option value="">Seleccione un servicio</option>';
+        for (const [key, value] of Object.entries(window.availableServices)) {
+            options += `<option value="${key}" ${selectedId == key ? "selected" : ""}>${value}</option>`;
+        }
+
+        var row = `
+        <div class="row" id="tipo_tramite_asociado_${asociadoId}">
+            <div class="col-md-6">
+                <div class="service-item">
+                    <select class="form-control service-select">
+                        ${options}
+                    </select>
+                    <button type="button" class="remove-service btn btn-danger btn-sm" data-asociado-id="${asociadoId}">X</button>
+                </div>
+            </div>
+        </div>
+        `;
+        serviceList.append(row);
+
+        // Inicializar Select2 en el nuevo select
+        serviceList.find(".service-select").last().select2({
+            width: '100%',
+            placeholder: "Seleccione un servicio",
+            allowClear: true
+        });
+
+        // También agregar su campo de costo
+        addCostRow(asociadoId, 0);
+    }
+    // 🔹 Función para agregar un campo de costo
+    function addCostRow(asociadoId, costoInicial) {
+        if ($("#costo_tra_asoc_" + asociadoId).length > 0) return; // Evita duplicados
+
+        var costosContainer = $("#gestor_costos_tipo_servicio");
+
+        costosContainer.append(`
+            <div class="cost-item d-flex align-items-center mb-2" id="costo_tra_asoc_${asociadoId}">
+                <span class="service-name flex-grow-1">Servicio ${asociadoId}</span>
+                <input type="number" class="form-control cost-input text-end mx-2" 
+                    step="0.01" value="${costoInicial}" 
+                    data-id="${asociadoId}" onkeyup="sumarCostos()">
+                <button type="button" class="btn btn-success btn-sm save-cost" data-id="${asociadoId}">Guardar</button>
+            </div>
+        `);
+        sumarCostos(); // Actualizar sumatoria cuando se agrega un nuevo costo
+    }
+
+    // 🔹 Eliminar un servicio con confirmación
+    $(document).on("click", ".remove-service", function () {
+        var serviceItem = $(this).closest(".service-item");
+        var asociadoId = $(this).data("asociado-id");
+
+        // Mensaje de confirmación
+        var confirmDelete = confirm("⚠️ Al eliminar este tipo de servicio, también se borrarán los costos asociados. ¿Estás seguro?");
+
+        if (!confirmDelete) {
+            return; // Si el usuario cancela, no hacemos nada
+        }
+        console.log("asociadoId", asociadoId);
+
+        // Si el usuario confirma, ejecutar la eliminación
+        if (asociadoId) {
+            $.ajax({
+                url: "/deskapp/tramites/delete_service",
+                type: "POST",
+                data: { asociado_id: asociadoId },
+                success: function () {
+                    console.log("Eliminando tipo_tramite_asociado_", asociadoId);
+                    $(`#tipo_tramite_asociado_${asociadoId}`).remove(); // Eliminar servicio
+                    $(`#costo_tra_asoc_${asociadoId}`).remove(); // Eliminar costo
+                    sumarCostos(); // Recalcular la sumatoria
+                    alert(`✅ Tipo de servicio eliminado correctamente. ${asociadoId}`);
+                },
+                error: function () {
+                    alert("❌ Error al eliminar el servicio.");
+                }
+            });
+        } else {
+            $(`#tipo_tramite_asociado_${asociadoId}`).remove();
+            $(`#costo_tra_asoc_${asociadoId}`).remove();
+        }
+    });
+
+
+    // 🔹 Guardar los servicios seleccionados
+    $("#save-services").click(function () {
+        var selectedServices = [];
+        $(".service-select").each(function () {
+            var serviceId = $(this).val();
+            if (serviceId) {
+                selectedServices.push(serviceId);
+            }
+        });
+
+        if (selectedServices.length === 0) {
+            alert("Seleccione al menos un servicio.");
+            return;
+        }
+
+        $.ajax({
+            url: "/deskapp/tramites/save_services",
+            type: "POST",
+            data: { tramite_id: tramiteId, services: selectedServices },
+            success: function () {
+                alert("Servicios guardados exitosamente.");
+                window.location.reload();
+            },
+            error: function () {
+                alert("Error al guardar los servicios.");
+            }
+        });
+    });
+});
+
+
+$(document).ready(function () {
+    var tramiteId = tramite_id; // ID del trámite cargado en la URL
+    var costosContainer = $("#gestor_costos_tipo_servicio");
+    var totalCostoInput = $("#costo_tramite");
+    var totalCostoInput2 = $("#costo_tramite_total");
+
+    // 🔹 Cargar los costos de los tipos de servicio asociados al trámite
+    function loadServiceCosts() {
+        $.ajax({
+            url: "/deskapp/tramites/get_service_costs_by_tramite/" + tramiteId,
+            type: "GET",
+            dataType: "json",
+            success: function (data) {
+                costosContainer.empty(); // Limpiar antes de agregar
+
+                if (data.length === 0) {
+                    costosContainer.append("<p style='color:red;'>Necesita ligar un tipo de servicio en el Paso 1.</p>");
+                    return;
+                }
+                console.log("data" , data);
+                data.forEach(service => {
+                    costosContainer.append(`
+                        <div class="cost-item d-flex align-items-center mb-2" id="costo_tra_asoc_${service.id}">
+                            <span class="service-name flex-grow-1">${service.tipo_tramite}</span>
+                            <input type="number" class="form-control cost-input text-end mx-2" 
+                                step="0.01" value="${service.costo_tramite || 0}" 
+                                data-id="${service.id}" onkeypress="sumarCostos()">
+                            <button type="button" class="btn btn-success btn-sm save-cost" data-id="${service.id}">Guardar</button>
+                        </div>
+                    `);
+                });
+
+                // Ejecutamos la suma inicial
+                sumarCostos();
+            },
+            error: function () {
+                costosContainer.append("<p class='text-danger'>Error al cargar los costos.</p>");
+            }
+        });
+    }
+
+    // 🔹 Función para sumar los costos en tiempo real
+    window.sumarCostos = function () {
+        var total = 0;
+        $(".cost-input").each(function () {
+            var value = parseFloat($(this).val()) || 0;
+            total += value;
+        });
+
+        $("#costo_tramite").val(total.toFixed(2)); // Mostrar sumatoria con 2 decimales
+        $("#costo_tramite_total").val(total.toFixed(2)); // Mostrar sumatoria con 2 decimales
+
+        // Se suman también los otros datos
+        calcularTotalPagoGestorLoad(total);
+    };
+
+    function calcularTotalPagoGestorLoad(total) {
+        // Obtener valores de los otros campos
+        let impuestoGestoria = parseFloat($("#impuesto_gestoria").val()) || 0;
+        let gestoriaComision = parseFloat($("#gestoria_comision").val()) || 0;
+        let costoPaqueteria = parseFloat($("#costo_paqueteria").val()) || 0;
+        
+        // Calcular la suma total
+        let sumaTotal = impuestoGestoria + gestoriaComision + costoPaqueteria + total;
+        
+        // Asignar el valor calculado al campo gestor_total_pago
+        $("#gestor_total_pago").val(sumaTotal);
+        $("#costo_gestoria").val($("#costo_tramite").val());
+    }
+
+    // 🔹 Guardar cambios en los costos
+    $(document).on("click", ".save-cost", function () {
+        var costId = $(this).data("id");
+        var newCost = $(this).siblings(".cost-input").val();
+
+        $.ajax({
+            url: "/deskapp/tramites/update_service_cost",
+            type: "POST",
+            data: { id: costId, costo_tramite: newCost },
+            success: function () {
+                alert("✅ Costo actualizado correctamente.");
+                sumarCostos(); // Actualizar la sumatoria después de guardar
+            },
+            error: function () {
+                alert("❌ Error al actualizar el costo.");
+            }
+        });
+    });
+
+    // 🔹 Cargar datos iniciales
+    loadServiceCosts();
+});
