@@ -5185,6 +5185,14 @@ class Tramites extends BaseController
             'message' => 'Costo actualizado correctamente.'
         ]);
     }
+    public function sincronizarTramites()
+    {
+        $db = \Config\Database::connect();
+        $traTramiteAsociadoModel = new TraTramiteAsociadoModel($db);
+        $resultado = $traTramiteAsociadoModel->syncTramitesWithoutAsociados();
+
+        return $this->response->setJSON(['message' => $resultado]);
+    }
 
 
 }
