@@ -1146,6 +1146,22 @@ class Tramites extends BaseController
         $db = \Config\Database::connect();
         $builder = $db->table('tramite');
         $db2 = $this->_getDbData();
+
+
+        // 🔹 1️⃣ Verificar si el trámite tiene relación en `tra_tramite_asociado`
+        $tramiteAsociadoModel = new TraTramiteAsociadoModel($db2);
+        $asociadoExists = $tramiteAsociadoModel->where('tramite_id', $id)->countAllResults();
+
+        if ($asociadoExists == 0) {
+            // 🔹 2️⃣ Obtener `tra_tipos_id` del trámite
+            $tramite = $builder->getWhere(['id' => $id])->getRowArray();
+
+            if (!empty($tramite['tra_tipos_id'])) {
+                // 🔹 3️⃣ Crear la relación en `tra_tramite_asociado`
+                $tramiteAsociadoModel->saveService($id, $tramite['tra_tipos_id']);
+            }
+        }
+
         // Retrieve the record
         $tramite = $builder->getWhere(['id' => $id])->getRowArray();
 
