@@ -82,6 +82,16 @@
     height: 30px;
 }
 
+.background-roja {
+    background-color: #ff9900;  /* Naranja cálido */
+    color: #4A4A4A;
+    padding: 10px 25px;
+    min-height: 25px;
+    display: inline-block;
+    width: 90px;
+    height: 30px;
+}
+
 
 /* Ajustar la altura de las filas en las tablas de Grocery CRUD */
 .grocery-crud table tbody tr {
