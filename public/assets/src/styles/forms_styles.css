@@ -82,8 +82,18 @@
     height: 30px;
 }
 
-.background-roja {
+.background-naranja-fuerte {
     background-color: #ff9900;  /* Naranja cálido */
+    color: #4A4A4A;
+    padding: 10px 25px;
+    min-height: 25px;
+    display: inline-block;
+    width: 90px;
+    height: 30px;
+}
+
+background-rojo {
+    background-color: #ff6600;  /* Naranja cálido */
     color: #4A4A4A;
     padding: 10px 25px;
     min-height: 25px;
