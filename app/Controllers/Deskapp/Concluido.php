@@ -106,17 +106,39 @@ class Concluido extends BaseController
                 // Definir clases CSS
                 $claseVerde = 'background-verde';          // Clase para terminado completamente
                 $claseNaranjaCalido = 'background-naranja-calido';  // Clase para pendientes (21 o 22)
-            
+                $claseRoja = 'background-roja';            // Clase para pendiente (Cliente)
+
                 // Verificar el valor de reembolso_status_id
+                // if (in_array($row->reembolso_status_id, [21, 22])) {
+                //     // Pendiente, falta proceso
+                //     $clase = $claseNaranjaCalido;
+                //     $mensaje = 'Pendiente (Gestor)';
+                // } else {
+                //     // Completamente terminado
+                //     $clase = $claseVerde;
+                //     $mensaje = 'Finalizado';
+                // }
+
+                
+
+                // Si el cobro no está pendiente, evaluar reembolso_status_id
                 if (in_array($row->reembolso_status_id, [21, 22])) {
-                    // Pendiente, falta proceso
+                    // Pendiente, falta proceso por parte del gestor
                     $clase = $claseNaranjaCalido;
-                    $mensaje = 'Pendiente';
+                    $mensaje = 'Pago Pendiente (Gestor)';
                 } else {
-                    // Completamente terminado
-                    $clase = $claseVerde;
-                    $mensaje = 'Finalizado';
+                    if ($row->cobro_status_id == 22) {
+                        // Si el cobro del cliente está pendiente, mostrar "Pendiente (Cliente)"
+                        $clase = $claseRoja;
+                        $mensaje = 'Cobro Pendiente (Cliente)';
+                    } else {
+                        // Completamente terminado
+                        $clase = $claseVerde;  // Corregido: $clase en lugar de $clase
+                        $mensaje = 'Finalizado';
+                    }
                 }
+
+
             
                 // Devolver el HTML con la clase y el mensaje
                 return '<span class="' . $clase . '">' . $mensaje . '</span>';
