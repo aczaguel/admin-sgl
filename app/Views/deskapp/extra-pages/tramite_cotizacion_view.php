@@ -191,8 +191,7 @@ if (isset($tra_status_id)) {
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_tramite';
 											$field_values = $fields;
-											$show_buttons = false;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, 11, 22, 21, 1);  
 										?>
 										<script>
 											var cliDirectoId = "<?php echo isset($fields['cli_directo']['value']) ? $fields['cli_directo']['value'] : ''; ?>";

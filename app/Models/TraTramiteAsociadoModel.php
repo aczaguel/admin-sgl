@@ -33,7 +33,8 @@ class TraTramiteAsociadoModel extends Model
     // Obtener los servicios asociados a un trámite
     public function getServicesByTramiteId($tramiteId)
     {
-        return $this->where('tramite_id', $tramiteId)->findAll();
+        return $this->where('tramite_id', $tramiteId)
+        ->orderBy('id', 'ASC')->findAll();
     }
 
     // Guardar un nuevo servicio asociado evitando duplicados

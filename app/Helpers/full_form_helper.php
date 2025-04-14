@@ -13,7 +13,7 @@ if (!function_exists('render_full_form')) {
      *
      * @return string El HTML completo del formulario.
      */
-    function render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons = true)
+    function render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, $step)
     {
         $html = '';
 
@@ -35,27 +35,23 @@ if (!function_exists('render_full_form')) {
 
         $html .= '<div class="row">
                     <div class="col-md-6">
-                        ' . render_form_fields($field_values, 0, $half_fields) . '
+                        ' . render_form_fields($field_values, 0, $half_fields, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, $step) . '
                     </div>
                     <div class="col-md-6">
-                        ' . render_form_fields($field_values, $half_fields, $total_fields) . '
+                        ' . render_form_fields($field_values, $half_fields, $total_fields, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, $step) . '
                     </div>
-                  </div>';
+                </div>';
 
         // Botones de acción
-        //$arr_allowed_status = [11, 22, 23, 24, 25, 26, 27, 28];
-        // valida que tra_status_id sea diferente este dentro del array de estados permitidos
-        //if(in_array($tra_status_id, $arr_allowed_status)){
-        if ($show_buttons) {
+        
+        if (puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'botones', $reembolso_status_id, $cobro_status_id, $step)) { // este que sea un render_buttons para validarlo con la funcion puede_editar_modulo
             if (has_permission($submit_permission, esc($session->get('user_permissions')), esc($session->get('user_roles')))) {
                 $html .= '<div class="text-center mt-4" id="boton_autorizar">
                             <a href="' . esc($cancel_url) . '" class="btn btn-secondary ml-2">Cancelar</a> 
                             <button type="submit" class="btn btn-primary">Guardar</button>
-                         </div>';
+                        </div>';
             }
         }
-
-        
 
         // Cerrar formulario
         $html .= form_close();

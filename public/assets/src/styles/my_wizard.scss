@@ -88,6 +88,20 @@ html {
     width: 12.5% !important;
 }
 
+.header_wizard-actions {
+    margin-top: 15px;
+}
+
+.action-buttons {
+    display: inline-block;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.action-buttons button {
+    margin-right: 5px;
+}
+
 
 a.nav-link.active.text-blue {
     font-size: 14px !important;
@@ -108,6 +122,7 @@ a.nav-link.active.text-blue {
     border-radius: 5px;
     text-align: center;
     margin-bottom: 15px;
+    width: 75px;
 }
 .file-preview img {
     max-width: 100px;
@@ -183,43 +198,15 @@ a.nav-link.active.text-blue {
     align-items: center;
     background: #f8f9fa;
     border: 1px solid #ddd;
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 5px;
+    margin-bottom: 5px;
     border-radius: 5px;
+    gap: 5px;
 }
 
 .service-item select {
     flex: 1;
     margin-right: 10px;
-}
-
-.remove-service {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-.remove-service:hover {
-    background: #c82333;
-}
-
-
-.service-item {
-    display: flex;
-    align-items: center;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    gap: 10px;
-}
-
-.service-item select {
-    flex: 1;
 }
 
 .remove-service {

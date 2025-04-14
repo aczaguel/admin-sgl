@@ -75,7 +75,7 @@ class Concluido extends BaseController
 
             if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
-                    return '/deskapp/concluido/ver/' . $row->id;
+                    return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 

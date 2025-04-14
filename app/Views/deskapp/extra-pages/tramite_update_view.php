@@ -9,9 +9,11 @@ if (isset($tra_status_id)) {
     // Definir la URL de destino según el valor de $tra_status_id
     if ($tra_status_id == 21) {
         $targetUrl = "/deskapp/cancelado/cancelado/$id";
-    } elseif ($tra_status_id == 20) {
-        $targetUrl = "/deskapp/concluido/ver/$id";
-    } elseif ($tra_status_id == 29) {
+    } 
+	// elseif ($tra_status_id == 20) {
+    //     $targetUrl = "/deskapp/concluido/ver/$id";
+    // } 
+	elseif ($tra_status_id == 29) {
         $targetUrl = "/deskapp/tramites/update_cotizacion/$id";
     }else {
         $targetUrl = "/deskapp/tramites/update/$id";
@@ -44,6 +46,7 @@ if (isset($tra_status_id)) {
 	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 	<script>
 		var wiz_step = "<?php echo isset($step) ? (int)($step - 1) : 0; ?>";
+		var tra_status_id = "<?php echo (int)$tra_status_id; ?>";
 	</script>
 
 
@@ -57,41 +60,54 @@ if (isset($tra_status_id)) {
 		</li>
 	<?php endif; ?>
 	<div class="main-container">
-		
 		<div class="header_wizard">
-				<!-- Botón para abrir el modal -->
-			
+			<!-- Información del trámite -->
 			<div class="header_wizard-row">
 				<div>
-					<strong>FECHA INICIO: </strong> <?php echo (isset($created_at)?$created_at:"-- / -- / ----	--:--:--"); ?>
+					<strong>FECHA INICIO: </strong> <?php echo (isset($created_at)?$created_at:"-- / -- / ---- --:--:--"); ?>
 				</div>
-				<!-- <div>
-					<strong>Tipo:</strong> <?php // echo (isset($tra_tipo)?$tra_tipo:""); ?>
-				</div> -->
 			</div>
 			<div class="header_wizard-row">
 				<div>
 					<strong>ESTATUS:</strong> <?php echo (isset($tra_status)?$tra_status:"");?>
 				</div>
 				<div>
-					<strong>FECHA ASIGNACIÓN: </strong> <?php echo (isset($started_at)?$started_at:"-- / -- / ----	--:--:--"); ?>
+					<strong>FECHA ASIGNACIÓN: </strong> <?php echo (isset($started_at)?$started_at:"-- / -- / ---- --:--:--"); ?>
 				</div>
 			</div>
 			<div class="header_wizard-bottom">
 				<strong>FOLIO: <?php echo (isset($folio)?$folio:"");?> </strong>
 			</div>
-			<?php if (has_permission('important_cancelar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
-				<div class="header_wizard-bottom">
-					<div>
+
+			<!-- Botones de acciones -->
+			<div class="header_wizard-actions">
+				<?php if (has_permission('important_cancelar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<div class="action-buttons">
 						<?php if ($tra_status_id == 11) { ?>
-							<button type="button" class="btn btn-lg btn-warning" id="" onclick="changeStatusTramite(<?php echo $id;?>, 29)">Es solo Cotización</button>&nbsp;
+							<button type="button" class="btn btn-lg btn-warning" onclick="changeStatusTramite(<?php echo $id;?>, 29)">
+								Es solo Cotización
+							</button>
 						<?php } ?>
-						<button type="button" class="btn btn-lg btn-danger" data-toggle="modal" data-target="#Medium-modal"">
-							Cancelar Trámite
-						</button>
+						<?php if (!in_array($tra_status_id, [20, 21])) { ?>
+							<button type="button" class="btn btn-lg btn-danger" data-toggle="modal" data-target="#Medium-modal">
+								Cancelar Trámite
+							</button>
+						<?php } ?>
+
+
 					</div>
-				</div>
-			<?php endif; ?>		
+				<?php endif; ?>
+
+				<?php if (has_permission('important_concluir_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): 
+					if (in_array($tra_status_id, array(28))) : ?>
+						<div class="action-buttons">
+							<button type="button" class="btn btn-lg btn-success" onclick="concluirTramite(<?php echo $id;?>, 20)">
+								Concluir Trámite
+							</button>
+						</div>
+					<?php endif; 
+				endif; ?>
+			</div>
 		</div>
 		<br>
 		
@@ -110,46 +126,43 @@ if (isset($tra_status_id)) {
 					<a class="nav-link text-blue" data-toggle="tab" href="#documentos_pago" role="tab" aria-selected="false">Pagos de Derecho</a>
 				</li>
 
-				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
 					<li class="nav-item">
 						<a class="nav-link text-blue" data-toggle="tab" href="#pago_gestor" role="tab" aria-selected="false">Pago al Gestor</a>
 					</li>
 				<?php endif; ?>
 
-				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
 					<li class="nav-item">
 						<a class="nav-link text-blue" data-toggle="tab" href="#cobro_cliente" role="tab" aria-selected="false">Cobros al Cliente</a>
 					</li>
 				<?php endif; ?>
 
-				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
 					<li class="nav-item">
 						<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
 					</li>
 				<?php endif; ?>
  
 			</ul>
-			<di0v class="tab-content">
+			<div class="tab-content">
 				<div class="tab-pane fade show active" id="home" role="tabpanel">
 					<div class="pd-20">
 						<div id="wizard">
 							<!-- Step 1: Datos principales -->
-							<?php if (has_permission('section_inicial_datos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
-
+							<?php if (has_permission('section_inicial_datos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 								<h3>Información</h3>
 								<section>
 									<div class="min-height-200px">
 										<?php 
-											/* Paso 1: Formulario principal */
 											$prefix_form = "tramite";
 											$form_action = "/deskapp/tramites/update_save/$id";
 											$form_id = 'tramiteForm';
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_tramite';
 											$field_values = $fields;
-											$show_buttons = true;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons); 
-										?>
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 1); 											
+											?>
 										<script>
 											var cliDirectoId = "<?php echo isset($fields['cli_directo']['value']) ? $fields['cli_directo']['value'] : ''; ?>";
 											var ejecutivoId = "<?php echo isset($fields['cli_directo_ejecutivo_id']['value']) ? $fields['cli_directo_ejecutivo_id']['value'] : ''; ?>";
@@ -160,19 +173,20 @@ if (isset($tra_status_id)) {
 										<div id="service-list">
 											<!-- Aquí se pintarán dinámicamente los tipos de servicio -->
 										</div>
+										<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'botones_agregar_servicio', $reembolso_status_id, $cobro_status_id, 1)): ?>
+											<button type="button" id="add-service" class="btn btn-primary mt-3">
+												<i class="fas fa-plus"></i> Agregar Servicio
+											</button>
 
-										<button type="button" id="add-service" class="btn btn-primary mt-3">
-											<i class="fas fa-plus"></i> Agregar Servicio
-										</button>
-
-										<button type="button" id="save-services" class="btn btn-success mt-3">
-											<i class="fas fa-save"></i> Guardar
-										</button>
+											<button type="button" id="save-services" class="btn btn-success mt-3">
+												<i class="fas fa-save"></i> Guardar
+											</button>
+										<?php endif; ?>		
 									</div>
 
-
+									
 								</section>
-							<?php endif; ?>					
+							<?php endif; ?>			
 							<!-- Step 2: Asignacion de Gestor -->
 							
 							<?php if (has_permission('section_asigna_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
@@ -187,8 +201,7 @@ if (isset($tra_status_id)) {
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_gestores';
 											$field_values = $gestor_campos;
-											$show_buttons = true;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 2); 
 										?>
 									</div>
 									
@@ -211,18 +224,19 @@ if (isset($tra_status_id)) {
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_derechos';
 											$field_values = $derechos_campos;
-											$show_buttons = true;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 3); 
 										?>										
 									</div>
 									<?php if (has_permission('important_pasar_a_pagos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
-										if (!in_array($tra_status_id, array(20, 23, 21))) : ?>
+										if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'boton_aprobar_tramite', $reembolso_status_id, $cobro_status_id, 3)): ?>
 											<button type="button" class="btn btn-danger" id="" onclick="changeStatusTramite(<?php echo $id;?>, 23)">Aprobar Trámite</button>
 									<?php endif; 
 									endif; ?>
 									
 									<hr>
 									<div>
+										<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'step3_upload', $reembolso_status_id, $cobro_status_id, 3)): ?>
+
 										<!-- Contenedor Dropzone -->
 										<div class="dropzone-container">
 											<form class="dropzone dropzone-documentos" id="miDropzone">
@@ -244,121 +258,120 @@ if (isset($tra_status_id)) {
 												</h6>
 											</div>
 										</div>
+
 										<hr>
+										<?php endif; ?>
 										<!-- Galería de Imágenes -->
 										<div class="row" id="documentos-container"></div>
 									</div>
 								</section>
 							<?php endif; ?>
 							
-							<?php if (has_permission('section_pago_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
-								<!-- Step 6: Se paga al gestor -->
+							<?php if (has_permission('section_pago_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles'))) ): ?>
+								<!-- Step 4: Se paga al gestor -->
 								<h3>Pago a Gestor</h3>
 								<section>
 									<div class="min-height-200px">
 										<?php 
-											/* Paso 3: Pago de Derechos */
 											$prefix_form = "pago_gestor";
 											$form_action = "/deskapp/tramites/update_pago_gestor/$id";
 											$form_id = 'pagoGestorForm';
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_pago_gestor';
 											$field_values = $pago_gestor;
-											$show_buttons = true;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 4);  
 										?>										
 									</div>
 									<hr>
 										<div class="row">
-											<div class="col-md-6">
+											<div class="col-md-12">
 												<div class="gestor_costos_tipo_servicio" id="gestor_costos_tipo_servicio"><h5>Costos de Tipos de Servicio</h5></div>
 											
 												<label for="costo_tramite_total" class="form-label"><b>Total de Costos:</b></label>
 												<input type="text" id="costo_tramite_total" class="form-control text-end" readonly>
 											</div>
-											<div class="col-md-6">
+											<div class="col-md-12">
 												<div>
+												<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'upload_pago_gestor', $reembolso_status_id, $cobro_status_id, 4)): ?>
 													<!-- Contenedor Dropzone -->
-														<div class="dropzone-container">
-															<form class="dropzone dropzone-gestor" id="miDropzoneGestor">
-																<div class="dz-default dz-message">
-																	<button class="dz-button" type="button">
-																		<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
-																	</button>
-																</div>
-															</form>
-														</div>
-
-														<!-- Botón Subir -->
-														<button id="btnSubirGestor" class="btnSubir">Subir</button>
-
-														<hr>
-
-														<!-- Mensaje de Eliminación -->
-														<div class="row mb-3">
-															<div class="col-12 text-center">
-																<h6 style="color: #d9534f; font-weight: bold;">
-																	Si deseas eliminar un archivo debes solicitarlo al administrador
-																</h6>
+													<div class="dropzone-container">
+														<form class="dropzone dropzone-gestor" id="miDropzoneGestor">
+															<div class="dz-default dz-message">
+																<button class="dz-button" type="button">
+																	<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+																</button>
 															</div>
+														</form>
+													</div>
+
+													<!-- Botón Subir -->
+													<button id="btnSubirGestor" class="btnSubir">Subir</button>
+
+													<hr>
+
+													<!-- Mensaje de Eliminación -->
+													<div class="row mb-3">
+														<div class="col-12 text-center">
+															<h6 style="color: #d9534f; font-weight: bold;">
+																Si deseas eliminar un archivo debes solicitarlo al administrador
+															</h6>
 														</div>
-														<hr>
+													</div>
+												<?php endif; ?>
+													<hr>
 													<!-- Galería de Imágenes -->
 													<div class="row" id="gestor-container"></div>
+
 												</div>
 											</div>
 										</div>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
-								<!-- Step 7: Se cobra al cliente -->
+							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) ): ?>
+								<!-- Step 5: Se cobra al cliente -->
 								<h3>Cobro a Cliente</h3>
 								<section>
 									<div class="min-height-200px">
 										
 										<?php 
-											/* Paso 3: Pago de Derechos */
 											$prefix_form = "final";
 											$form_action = "/deskapp/tramites/update_final_save/$id";
 											$form_id = 'finalForm';
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_final';
 											$field_values = $final_campos;
-											$show_buttons = true;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons); 
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 5); 
 										?>	
-										<?php if (has_permission('important_concluir_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
-												if (!in_array($tra_status_id, array(20, 21))) : ?>
-													<button type="button" class="btn btn-danger" id="" onclick="concluirTramite(<?php echo $id;?>, 20)">Concluir Trámite</button>
-											<?php endif; 
-										endif; ?>									
+																	
 									</div>
 									<hr>
 									<div>
-										<!-- Contenedor Dropzone -->
-										<div class="dropzone-container">
-											<form class="dropzone dropzone-cliente" id="miDropzoneCliente">
-												<div class="dz-default dz-message">
-													<button class="dz-button" type="button">
-														<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
-													</button>
-												</div>
-											</form>
-										</div>
-
-										<!-- Botón Subir -->
-										<button id="btnSubirCliente" class="btnSubir">Subir</button>
-
-										<hr>
-
-										<!-- Mensaje de Eliminación -->
-										<div class="row mb-3">
-											<div class="col-12 text-center">
-												<h6 style="color: #d9534f; font-weight: bold;">
-													Si deseas eliminar un archivo debes solicitarlo al administrador
-												</h6>
+										<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'upload_cobro_cliente', $reembolso_status_id, $cobro_status_id, 5)): ?>
+											<!-- Contenedor Dropzone -->
+											<div class="dropzone-container">
+												<form class="dropzone dropzone-cliente" id="miDropzoneCliente">
+													<div class="dz-default dz-message">
+														<button class="dz-button" type="button">
+															<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+														</button>
+													</div>
+												</form>
 											</div>
-										</div>
+
+											<!-- Botón Subir -->
+											<button id="btnSubirCliente" class="btnSubir">Subir</button>
+										
+											<hr>
+
+											<!-- Mensaje de Eliminación -->
+											<div class="row mb-3">
+												<div class="col-12 text-center">
+													<h6 style="color: #d9534f; font-weight: bold;">
+														Si deseas eliminar un archivo debes solicitarlo al administrador
+													</h6>
+												</div>
+											</div>
+										<?php endif; ?>
 										<hr>
 										<!-- Galería de Imágenes -->
 										<div class="row" id="cliente-container"></div>
@@ -402,7 +415,7 @@ if (isset($tra_status_id)) {
 					</div>
 				</div>
 
-				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
 					<div class="tab-pane fade" id="pago_gestor" role="tabpanel">
 						<div class="pd-20">
 							<div class="pd-ltr-20 xs-pd-20-10">
@@ -416,7 +429,7 @@ if (isset($tra_status_id)) {
 					</div>
 				<?php endif; ?>
 
-				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
 					<div class="tab-pane fade" id="cobro_cliente" role="tabpanel">
 						<div class="pd-20">
 							<div class="pd-ltr-20 xs-pd-20-10">
@@ -431,7 +444,7 @@ if (isset($tra_status_id)) {
 				<?php endif; ?>
 
 				
-				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28])) : ?>
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
 					<div class="tab-pane fade" id="final_evi" role="tabpanel">
 						<div class="pd-20">
 							<div class="pd-ltr-20 xs-pd-20-10">
@@ -444,7 +457,7 @@ if (isset($tra_status_id)) {
 						</div>
 					</div>
 				<?php endif; ?>
-			</di0v>
+			</div>
 		</div>
 	</div>	
 
