@@ -11,7 +11,7 @@ if (!function_exists('render_form_fields')) {
      * @param int $length Número de campos a renderizar.
      * @return string HTML de los campos generados.
      */
-    function render_form_fields(array $fields, int $start, int $length): string
+    function render_form_fields(array $fields, int $start, int $length, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, $step): string
     {
         $formHtml = '';
         $sliceFields = array_slice($fields, $start, $length, true);
@@ -31,6 +31,16 @@ if (!function_exists('render_form_fields')) {
             $required = $field_info['required'] ?? false ? 'required' : '';
             $readonly = $field_info['readonly'] ?? false ? 'readonly' : '';
             $disabled = $field_info['disabled'] ?? false ? 'disabled' : '';
+            
+            if(isset($field_info['just_read'])) {
+                $can_edit = !$field_info['just_read'];
+            }else{
+                $can_edit = puede_editar_modulo($session->get('user_roles'), $tra_status_id, $field_name, $reembolso_status_id, $cobro_status_id, $step);
+            }
+
+            if (!$can_edit) {
+                $disabled = 'disabled';
+            }
 
             if ($field_info['type'] === 'hidden') {
                 // Campo oculto

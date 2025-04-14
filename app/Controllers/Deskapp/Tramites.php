@@ -1193,21 +1193,16 @@ class Tramites extends BaseController
         
         // Fields to be displayed in the add form
 
-        $puede_modificar = ["disabled"=>"disabled"];
-        if(is_admin($session->get('user_roles'))){
-            $puede_modificar = [];
-        }
         $form->fields = [
-            "folio" => array_merge(["label" => "Folio", "type" => "hidden", "value" => $tramite['folio']], $puede_modificar),
-            "contrato" => array_merge(["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required"], $puede_modificar),
-            "unidad" => array_merge(["label" => "Unidad", "type" => "text", "value" => $tramite['unidad']], $puede_modificar),
-            "serie" => array_merge(["label" => "Serie", "type" => "text", "value" => $tramite['serie']], $puede_modificar),
-            "placas" => array_merge(["label" => "Placas", "type" => "text", "value" => $tramite['placas']], $puede_modificar),
-            // "tra_tipos_id" => array_merge(["label" => "Tipo de Trámite", "type" => "select", "options" => $tra_tipos_options, "value" => $tramite['tra_tipos_id']], $puede_modificar),
-            "cli_directo_id" => array_merge(["label" => "Cliente", "type" => "select", "options" => $cli_directo_options, "value" => $tramite['cli_directo_id']], $puede_modificar),
-            "cli_directo_ejecutivo_id" => array_merge(["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "value" => $tramite['cli_directo_ejecutivo_id']], $puede_modificar),
-            "entidad_id" => array_merge(["label" => "Entidad", "type" => "select", "options" => $entidad_options, "value" => $tramite['entidad_id'], "required"=>"required"], $puede_modificar),
-            "observaciones" => array_merge(["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']], $puede_modificar)
+            "folio" => array_merge(["label" => "Folio", "type" => "hidden", "value" => $tramite['folio']]),
+            "contrato" => array_merge(["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required"]),
+            "unidad" => array_merge(["label" => "Unidad", "type" => "text", "value" => $tramite['unidad']]),
+            "serie" => array_merge(["label" => "Serie", "type" => "text", "value" => $tramite['serie']]),
+            "placas" => array_merge(["label" => "Placas", "type" => "text", "value" => $tramite['placas']]),
+            "cli_directo_id" => array_merge(["label" => "Cliente", "type" => "select", "options" => $cli_directo_options, "value" => $tramite['cli_directo_id']]),
+            "cli_directo_ejecutivo_id" => array_merge(["label" => "Ejecutivo de Cliente", "type" => "select", "options" => [], "value" => $tramite['cli_directo_ejecutivo_id']]),
+            "entidad_id" => array_merge(["label" => "Entidad", "type" => "select", "options" => $entidad_options, "value" => $tramite['entidad_id'], "required"=>"required"]),
+            "observaciones" => array_merge(["label" => "Observaciones", "type" => "textarea", "value" => $tramite['observaciones']])
         ];
         
 
@@ -1215,7 +1210,7 @@ class Tramites extends BaseController
             "empresa_gestora_id" => ["label" => "Empresa Gestora", "type" => "select", "options" => $empresa_gestora_options, "value" => $tramite['empresa_gestora_id'], "required" => "required"],
             "gestor_id" => ["label" => "Gestor", "type" => "select", "options" => [], "value" => $tramite['gestor_id'], "required" => "required"]
         ];
-        // }
+
         
         $form->derechos_campos = [
             "derechos_tramite" => ["label" => "Monto pago de derechos", "type" => "number", "value" => $tramite['derechos_tramite'], "required" => "required"],
@@ -1240,14 +1235,16 @@ class Tramites extends BaseController
             // nombre del gestor
             "gestor_id" => ["label" => "Gestor", "type" => "text", "value" => $gestor_nombre, "disabled"=>"disabled"],
             "separador_gestor" => ["type" => "hr"],
-            "costo_tramite" => ["label" => "Costos de los Trámites", "type" => "number", "value" => $tramite['costo_tramite'], "disabled"=>"disabled"],
+            "costo_tramite" => ["label" => "Costos de los Trámites", "type" => "number", "value" => $tramite['costo_tramite']],
             "deposito_gestor" => ["label" => "Deposito a Gestor", "type" => "number", "value" => $tramite['deposito_gestor'], "required" => "required"],
             "col_a_favor" => ["label" => "Saldo a Favor SGL", "type" => "number", "value" => $tramite['col_a_favor'], "required" => "required"], 
             "col_a_favor_gestor" => ["label" => "Saldo a Favor del Gestor", "type" => "number", "value" => $tramite['col_a_favor_gestor'], "required" => "required"],
             "separador_gestor2" => ["type" => "hr"],
             "num_factura_gestor" => ["label" => "Número de Factura", "type" => "text", "value" => $tramite['num_factura_gestor']],    
             "impuesto_gestoria" => ["label" => "Honorarios de Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria'], "required" => "required"],
+            "impuesto_gestoria_hidden" => ["label" => "", "type" => "hidden", "value" => $tramite['impuesto_gestoria']],
             "gestoria_comision" => ["label" => "Gratificación", "type" => "number", "value" => $tramite['gestoria_comision']],
+            "gestoria_comision_hidden" => ["label" => "", "type" => "hidden", "value" => $tramite['gestoria_comision']],
             "costo_paqueteria" => ["label" => "Costo de Paquetería", "type" => "number", "value" => $tramite['costo_paqueteria']],
             "gestor_total_pago" => ["label" => "Gasto Total", "type" => "number", "value" => $tramite['gestor_total_pago'], "disabled"=>"disabled"],
             "gestor_total_pago_hidden" => ["label" => "Pago Total", "type" => "hidden", "value" => $tramite['gestor_total_pago']],
@@ -1272,7 +1269,6 @@ class Tramites extends BaseController
         
         $data['id'] = $id;
         $data['folio'] = $tramite[ 'folio'];
-        // $data['tra_tipo'] = $tra_tipos_options[$tramite['tra_tipos_id']];
         $data['tra_status'] = $tra_status_options[$tramite['tra_status_id']];
         $data['tra_status_id'] = $tramite['tra_status_id'];
         $data['created_at'] = $tramite['created_at'];
@@ -1280,9 +1276,9 @@ class Tramites extends BaseController
         $data['step'] = $tra_status_steps[$tramite['tra_status_id']];
         $data['started_at'] = $tramite['started_at'];
         $data['derechos_comprobante'] = $tramite['derechos_comprobante'];
-        // $data['images_derechos_comprobante'] = $images_derechos;
-        // $data['images_pago_gestor'] = $images_gestor;
-        // $data['images_cobro_cliente'] = $images_cobro_cliente;
+        $data['reembolso_status_id'] = $tramite['reembolso_status_id'];
+        $data['cobro_status_id'] = $tramite['cobro_status_id'];
+
         $form->id = $id;
 
         $crud = $this->_getGroceryCrudEnterprise();
@@ -1301,24 +1297,34 @@ class Tramites extends BaseController
             $crudevidencias->setApiUrlPath('/deskapp/tramites/single_evidencias/'.$id);
             $outputevidencias = $crudevidencias->render();
 
-            $crudevidencias_finales = $this->_getGroceryCrudEnterprise();
-            $crudevidencias_finales->setApiUrlPath('/deskapp/tramites/single_evidencias_finales/' . $id);
-            $outputevidencias_finales = $crudevidencias_finales->render();
-
             $crud_derechos = $this->_getGroceryCrudEnterprise();
             $crud_derechos->setApiUrlPath('/deskapp/tramites/single_pago_derechos/' . $id);
             $output_derechos = $crud_derechos->render();
 
             $crud_pago_gestor = $this->_getGroceryCrudEnterprise();
-            $crud_pago_gestor->setApiUrlPath('/deskapp/tramites/single_pago_gestor/' . $id);
+            if(puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_gestor', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])){
+                $crud_pago_gestor->setApiUrlPath('/deskapp/tramites/single_pago_gestor/' . $id);
+            } else {
+                $crud_pago_gestor->setApiUrlPath('/deskapp/concluido/single_pago_gestor/' . $id);
+            
+            }
             $output_pago_gestor = $crud_pago_gestor->render();
 
             $crud_cobro_cliente = $this->_getGroceryCrudEnterprise();
-            $crud_cobro_cliente->setApiUrlPath('/deskapp/tramites/single_cobro_cliente/' . $id);
+            if(puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_cliente', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])){
+                $crud_cobro_cliente->setApiUrlPath('/deskapp/tramites/single_cobro_cliente/' . $id);
+            } else {
+                $crud_cobro_cliente->setApiUrlPath('/deskapp/concluido/single_cobro_cliente/' . $id);
+            }
             $output_cobro_cliente = $crud_cobro_cliente->render();
 
-            // $output_docs->output .= "<hr>".$outputevidencias->output;
-            // $form->output_docs = $output->output;
+            $crudevidencias_finales = $this->_getGroceryCrudEnterprise();
+            if(puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_cliente', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])){
+                $crudevidencias_finales->setApiUrlPath('/deskapp/tramites/single_evidencias_finales/' . $id);
+            } else {
+                $crudevidencias_finales->setApiUrlPath('/deskapp/concluido/single_evidencias_finales/' . $id);
+            }
+            $outputevidencias_finales = $crudevidencias_finales->render();
             
             $form->output_docs = $output_docs->output;
             $form->output_bitacora = $outputevidencias->output;
@@ -2663,16 +2669,16 @@ class Tramites extends BaseController
         // Reglas de validación
         $validation->setRules([
             // "costo_gestoria" => "required|decimal",
-            "impuesto_gestoria" => "required|decimal",
-            "gestoria_comision" => "required|decimal",
+            // "impuesto_gestoria" => "required|decimal",
+            // "gestoria_comision" => "required|decimal",
             // "pago_gestor_st_id" => "required|integer",
-            // "reembolso_status_id" => "required|integer",
+            "reembolso_status_id" => "required|integer",
         ], [
             // "costo_gestoria" => ["required" => "El costo de gestoría es obligatorio.", "decimal" => "Debe ser un número decimal válido."],
-            "impuesto_gestoria" => ["required" => "El impuesto de gestoría es obligatorio.", "decimal" => "Debe ser un número decimal válido."],
-            "gestoria_comision" => ["required" => "La Gratificación es obligatoria.", "decimal" => "Debe ser un número decimal válido."],
+            // "impuesto_gestoria" => ["required" => "El impuesto de gestoría es obligatorio.", "decimal" => "Debe ser un número decimal válido."],
+            // "gestoria_comision" => ["required" => "La Gratificación es obligatoria.", "decimal" => "Debe ser un número decimal válido."],
             // "pago_gestor_st_id" => ["required" => "El estatus del pago es obligatorio.", "integer" => "Debe ser un número entero válido."],
-            // "reembolso_status_id" => ["required" => "El estatus del reembolso es obligatorio.", "integer" => "Debe ser un número entero válido."]
+            "reembolso_status_id" => ["required" => "El estatus del reembolso es obligatorio.", "integer" => "Debe ser un número entero válido."]
         ]);
     
         if ($validation->withRequest($this->request)->run() === FALSE) {
@@ -2691,6 +2697,11 @@ class Tramites extends BaseController
             unset($data["gestor_total_pago_hidden"]);
             $data["reembolso_status_id"] = $data["reembolso_status_id_hidden"];
             unset($data["reembolso_status_id_hidden"]);
+            $data["impuesto_gestoria"] = $data["impuesto_gestoria_hidden"];
+            unset($data["impuesto_gestoria_hidden"]);
+            $data["gestoria_comision"] = $data["gestoria_comision_hidden"];
+            unset($data["gestoria_comision_hidden"]);
+            
             
             $this->updateTramiteStatus($id, 28);
             // Actualizar en la base de datos
@@ -2775,9 +2786,12 @@ class Tramites extends BaseController
             // Actualizar los datos en la tabla 'tramite'
 
             $db = \Config\Database::connect();
+            
             $builder = $db->table('tramite');
             $builder->where('id', $id);
             $builder->update($data);
+
+            $this->updateTramiteStatus($id, 28);
 
             // Agregar registro en bitácora
             $bitacoraModel = new BitacoraModel($db2);
@@ -5210,5 +5224,6 @@ class Tramites extends BaseController
         return $this->response->setJSON(['message' => $resultado]);
     }
 
+    
 
 }

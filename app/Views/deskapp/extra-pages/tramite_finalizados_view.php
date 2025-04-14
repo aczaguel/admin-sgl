@@ -224,8 +224,7 @@ if (isset($tra_status_id)) {
 											$cancel_url = '/tramites/tramite';
 											$submit_permission = 'editar_gestores';
 											$field_values = $gestor_campos;
-											$show_buttons = false;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons); 
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
 										?>
 									</div>
 									
