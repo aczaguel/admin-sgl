@@ -389,252 +389,254 @@ $(document).ready(function() {
         groceryCrud();
       }   
 
-      $(document).ready(function () {
-        // Renombrados por categoría
-        const renamedFilesDocumentos = {};
-        const renamedFilesGestor = {};
-        const renamedFilesCliente = {};
-        Dropzone.autoDiscover = false;
-        // Dropzone para Documentos
-        const dropzoneDocumentos = new Dropzone(".dropzone-documentos", {
-            url: "/deskapp/tramites/upload_comprobante/" + tramite_id,
-            autoProcessQueue: false,
-            maxFilesize: 10,
-            // acceptedFiles: "image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml",
-            acceptedFiles: ".xml,.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx", // Agrega .xml aquí
-            addRemoveLinks: true,
-            dictRemoveFile: "Quitar",
+        $(document).ready(function () {
+            // Renombrados por categoría
+            const renamedFilesDocumentos = {};
+            const renamedFilesGestor = {};
+            const renamedFilesCliente = {};
+            Dropzone.autoDiscover = false;
+            // Dropzone para Documentos
+            if ($('.dropzone-documentos').length) {
+                const dropzoneDocumentos = new Dropzone(".dropzone-documentos", {
+                    url: "/deskapp/tramites/upload_comprobante/" + tramite_id,
+                    autoProcessQueue: false,
+                    maxFilesize: 10,
+                    // acceptedFiles: "image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml",
+                    acceptedFiles: ".xml,.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx", // Agrega .xml aquí
+                    addRemoveLinks: true,
+                    dictRemoveFile: "Quitar",
 
-            renameFile: function (file) {
-                const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
-                    .map(byte => byte.toString(16).padStart(2, '0'))
-                    .join('');
-                const originalName = file.name.split('.').slice(0, -1).join('.');
-                const extension = file.name.split('.').pop();
-                const newname = originalName + randomHex + '.' + extension;
+                    renameFile: function (file) {
+                        const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
+                            .map(byte => byte.toString(16).padStart(2, '0'))
+                            .join('');
+                        const originalName = file.name.split('.').slice(0, -1).join('.');
+                        const extension = file.name.split('.').pop();
+                        const newname = originalName + randomHex + '.' + extension;
 
-                if (file.upload) {
-                    renamedFilesDocumentos[file.upload.uuid] = newname;
-                }
-                return newname;
-            },
+                        if (file.upload) {
+                            renamedFilesDocumentos[file.upload.uuid] = newname;
+                        }
+                        return newname;
+                    },
 
-            init: function () {
-                this.on("removedfile", function (file) {
-                    const renamedName = file.upload ? file.upload.filename : null;
-                    if (!renamedName) return;
+                    init: function () {
+                        this.on("removedfile", function (file) {
+                            const renamedName = file.upload ? file.upload.filename : null;
+                            if (!renamedName) return;
 
-                    $.ajax({
-                        url: "/deskapp/tramites/delete_comprobante",
-                        type: "POST",
-                        data: { tramite_id: tramite_id, file: renamedName },
-                        success: function (response) {
-                            if (response.success) {
-                                console.log(response.message);
-                                $(`#documentos-container img[data-file="${renamedName}"]`).remove();
+                            $.ajax({
+                                url: "/deskapp/tramites/delete_comprobante",
+                                type: "POST",
+                                data: { tramite_id: tramite_id, file: renamedName },
+                                success: function (response) {
+                                    if (response.success) {
+                                        console.log(response.message);
+                                        $(`#documentos-container img[data-file="${renamedName}"]`).remove();
+                                    }
+                                },
+                                error: function () {
+                                    console.error("Error al eliminar archivo.");
+                                },
+                            });
+
+                            if (file.upload) delete renamedFilesDocumentos[file.upload.uuid];
+                        });
+
+                        this.on("success", function (file, response) {
+                            console.log("success upload");
+                            console.log(response);
+                            console.log(file);
+                        
+                            if (response.success && response.filePath) {
+                                // Obtener la extensión del archivo
+                                const filePath = response.filePath || file.name; // Prioriza el filePath si está disponible
+                                const fileExtension = filePath.split('.').pop().toLowerCase();
+                        
+                                // Verificar si el archivo es una imagen
+                                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
+                        
+                                // Crear el HTML dinámico
+                                const filePreview = `
+                                    <div class="col-md-1 mb-3 text-center">
+                                        <div class="file-preview" style="border: 1px solid #ddd; border-radius: 5px; padding: 5px; background-color: #f9f9f9;">
+                                            ${isImage ? `
+                                                <a href="${response.filePath}" target="_blank">
+                                                    <img src="${response.filePath}" 
+                                                        alt="${response.filePath || file.name}" 
+                                                        class="img-thumbnail" 
+                                                        style="width: 60px; height: 60px; object-fit: cover;">
+                                                </a>
+                                            ` : `
+                                                <a href="${response.filePath}" target="_blank">
+                                                    <img src="${response.icon || '/path/to/default-icon.png'}" 
+                                                        alt="File Icon" 
+                                                        class="img-thumbnail" 
+                                                        style="width: 60px; height: 60px; object-fit: cover;">
+                                                </a>
+                                            `}
+                                            <p style="font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                ${file.upload.filename}
+                                            </p>
+                                        </div>
+                                    </div>
+                                `;
+                        
+                                // Agregar el HTML al contenedor
+                                $("#documentos-container").append(filePreview);
                             }
-                        },
-                        error: function () {
-                            console.error("Error al eliminar archivo.");
-                        },
-                    });
-
-                    if (file.upload) delete renamedFilesDocumentos[file.upload.uuid];
+                        });
+                        
+                    },
                 });
 
-                this.on("success", function (file, response) {
-                    console.log("success upload");
-                    console.log(response);
-                    console.log(file);
-                
-                    if (response.success && response.filePath) {
-                        // Obtener la extensión del archivo
-                        const filePath = response.filePath || file.name; // Prioriza el filePath si está disponible
-                        const fileExtension = filePath.split('.').pop().toLowerCase();
-                
-                        // Verificar si el archivo es una imagen
-                        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension);
-                
-                        // Crear el HTML dinámico
-                        const filePreview = `
-                            <div class="col-md-1 mb-3 text-center">
-                                <div class="file-preview" style="border: 1px solid #ddd; border-radius: 5px; padding: 5px; background-color: #f9f9f9;">
-                                    ${isImage ? `
-                                        <a href="${response.filePath}" target="_blank">
-                                            <img src="${response.filePath}" 
-                                                 alt="${response.filePath || file.name}" 
-                                                 class="img-thumbnail" 
-                                                 style="width: 60px; height: 60px; object-fit: cover;">
-                                        </a>
-                                    ` : `
-                                        <a href="${response.filePath}" target="_blank">
-                                            <img src="${response.icon || '/path/to/default-icon.png'}" 
-                                                 alt="File Icon" 
-                                                 class="img-thumbnail" 
-                                                 style="width: 60px; height: 60px; object-fit: cover;">
-                                        </a>
-                                    `}
-                                    <p style="font-size: 10px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                        ${file.upload.filename}
-                                    </p>
-                                </div>
-                            </div>
-                        `;
-                
-                        // Agregar el HTML al contenedor
-                        $("#documentos-container").append(filePreview);
+                $("#btnSubirDocumentos").on("click", function () {
+                    if (dropzoneDocumentos.files.length > 0) {
+                        dropzoneDocumentos.processQueue();
+                    } else {
+                        console.log("No hay archivos para subir en documentos.");
                     }
                 });
-                
-            },
-        });
-
-        $("#btnSubirDocumentos").on("click", function () {
-            if (dropzoneDocumentos.files.length > 0) {
-                dropzoneDocumentos.processQueue();
-            } else {
-                console.log("No hay archivos para subir en documentos.");
             }
-        });
 
-        // Dropzone para Pago a Gestor
-        const dropzoneGestor = new Dropzone(".dropzone-gestor", {
-            url: "/deskapp/tramites/upload_pago_gestor/" + tramite_id,
-            autoProcessQueue: false,
-            maxFilesize: 10,
-            // acceptedFiles: "image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml",
-            acceptedFiles: ".xml,.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx", // Agrega .xml aquí
-            addRemoveLinks: true,
-            dictRemoveFile: "Quitar",
+            // Dropzone para Pago a Gestor
+            if ($('.dropzone-gestor').length) {
+                const dropzoneGestor = new Dropzone(".dropzone-gestor", {
+                    url: "/deskapp/tramites/upload_pago_gestor/" + tramite_id,
+                    autoProcessQueue: false,
+                    maxFilesize: 10,
+                    // acceptedFiles: "image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml",
+                    acceptedFiles: ".xml,.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx", // Agrega .xml aquí
+                    addRemoveLinks: true,
+                    dictRemoveFile: "Quitar",
 
-            renameFile: function (file) {
-                const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
-                    .map(byte => byte.toString(16).padStart(2, '0'))
-                    .join('');
-                const originalName = file.name.split('.').slice(0, -1).join('.');
-                const extension = file.name.split('.').pop();
-                const newname = originalName + randomHex + '.' + extension;
+                    renameFile: function (file) {
+                        const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
+                            .map(byte => byte.toString(16).padStart(2, '0'))
+                            .join('');
+                        const originalName = file.name.split('.').slice(0, -1).join('.');
+                        const extension = file.name.split('.').pop();
+                        const newname = originalName + randomHex + '.' + extension;
 
-                if (file.upload) {
-                    renamedFilesGestor[file.upload.uuid] = newname;
-                }
-                return newname;
-            },
+                        if (file.upload) {
+                            renamedFilesGestor[file.upload.uuid] = newname;
+                        }
+                        return newname;
+                    },
 
-            init: function () {
-                this.on("removedfile", function (file) {
-                    const renamedName = file.upload ? file.upload.filename : null;
-                    if (!renamedName) return;
+                    init: function () {
+                        this.on("removedfile", function (file) {
+                            const renamedName = file.upload ? file.upload.filename : null;
+                            if (!renamedName) return;
 
-                    $.ajax({
-                        url: "/deskapp/tramites/delete_pago_gestor",
-                        type: "POST",
-                        data: { tramite_id: tramite_id, file: renamedName },
-                        success: function (response) {
-                            if (response.success) {
-                                console.log(response.message);
-                                $(`#gestor-container img[data-file="${renamedName}"]`).remove();
+                            $.ajax({
+                                url: "/deskapp/tramites/delete_pago_gestor",
+                                type: "POST",
+                                data: { tramite_id: tramite_id, file: renamedName },
+                                success: function (response) {
+                                    if (response.success) {
+                                        console.log(response.message);
+                                        $(`#gestor-container img[data-file="${renamedName}"]`).remove();
+                                    }
+                                },
+                                error: function () {
+                                    console.error("Error al eliminar archivo.");
+                                },
+                            });
+
+                            if (file.upload) delete renamedFilesGestor[file.upload.uuid];
+                        });
+
+                        this.on("success", function (file, response) {
+                            if (response.success && response.filePath) {
+                                const imgElement = `
+                                    <img src="${response.filePath}" alt="${response.originalName}" data-file="${response.fileName}" class="uploaded-img">
+                                `;
+                                $("#gestor-container").append(imgElement);
                             }
-                        },
-                        error: function () {
-                            console.error("Error al eliminar archivo.");
-                        },
-                    });
-
-                    if (file.upload) delete renamedFilesGestor[file.upload.uuid];
+                        });
+                    },
                 });
 
-                this.on("success", function (file, response) {
-                    if (response.success && response.filePath) {
-                        const imgElement = `
-                            <img src="${response.filePath}" alt="${response.originalName}" data-file="${response.fileName}" class="uploaded-img">
-                        `;
-                        $("#gestor-container").append(imgElement);
+
+                $("#btnSubirGestor").on("click", function () {
+                    if (dropzoneGestor.files.length > 0) {
+                        dropzoneGestor.processQueue();
+                    } else {
+                        console.log("No hay archivos para subir en pago a gestor.");
                     }
                 });
-            },
-        });
-
-
-        $("#btnSubirGestor").on("click", function () {
-            if (dropzoneGestor.files.length > 0) {
-                dropzoneGestor.processQueue();
-            } else {
-                console.log("No hay archivos para subir en pago a gestor.");
             }
-        });
 
-        // Dropzone para Cobro a Cliente
-        const dropzoneCliente = new Dropzone(".dropzone-cliente", {
-            url: "/deskapp/tramites/upload_cobro_cliente/" + tramite_id,
-            autoProcessQueue: false,
-            maxFilesize: 10,
-            // acceptedFiles: "image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml,",
-            acceptedFiles: ".xml,.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx", // Agrega .xml aquí
+            if ($('.dropzone-cliente').length) {
+                // Dropzone para Cobro a Cliente
+                const dropzoneCliente = new Dropzone(".dropzone-cliente", {
+                    url: "/deskapp/tramites/upload_cobro_cliente/" + tramite_id,
+                    autoProcessQueue: false,
+                    maxFilesize: 10,
+                    // acceptedFiles: "image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/xml,",
+                    acceptedFiles: ".xml,.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx", // Agrega .xml aquí
 
-            addRemoveLinks: true,
-            dictRemoveFile: "Quitar",
+                    addRemoveLinks: true,
+                    dictRemoveFile: "Quitar",
 
-            renameFile: function (file) {
-                const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
-                    .map(byte => byte.toString(16).padStart(2, '0'))
-                    .join('');
-                const originalName = file.name.split('.').slice(0, -1).join('.');
-                const extension = file.name.split('.').pop();
-                const newname = originalName + randomHex + '.' + extension;
+                    renameFile: function (file) {
+                        const randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
+                            .map(byte => byte.toString(16).padStart(2, '0'))
+                            .join('');
+                        const originalName = file.name.split('.').slice(0, -1).join('.');
+                        const extension = file.name.split('.').pop();
+                        const newname = originalName + randomHex + '.' + extension;
 
-                if (file.upload) {
-                    renamedFilesCliente[file.upload.uuid] = newname;
-                }
-                return newname;
-            },
+                        if (file.upload) {
+                            renamedFilesCliente[file.upload.uuid] = newname;
+                        }
+                        return newname;
+                    },
 
-            init: function () {
-                this.on("removedfile", function (file) {
-                    const renamedName = file.upload ? file.upload.filename : null;
-                    if (!renamedName) return;
+                    init: function () {
+                        this.on("removedfile", function (file) {
+                            const renamedName = file.upload ? file.upload.filename : null;
+                            if (!renamedName) return;
 
-                    $.ajax({
-                        url: "/deskapp/tramites/delete_cobro_cliente",
-                        type: "POST",
-                        data: { tramite_id: tramite_id, file: renamedName },
-                        success: function (response) {
-                            if (response.success) {
-                                console.log(response.message);
-                                $(`#cliente-container img[data-file="${renamedName}"]`).remove();
+                            $.ajax({
+                                url: "/deskapp/tramites/delete_cobro_cliente",
+                                type: "POST",
+                                data: { tramite_id: tramite_id, file: renamedName },
+                                success: function (response) {
+                                    if (response.success) {
+                                        console.log(response.message);
+                                        $(`#cliente-container img[data-file="${renamedName}"]`).remove();
+                                    }
+                                },
+                                error: function () {
+                                    console.error("Error al eliminar archivo.");
+                                },
+                            });
+
+                            if (file.upload) delete renamedFilesCliente[file.upload.uuid];
+                        });
+
+                        this.on("success", function (file, response) {
+                            if (response.success && response.filePath) {
+                                const imgElement = `
+                                    <img src="${response.filePath}" alt="${response.originalName}" data-file="${response.fileName}" class="uploaded-img">
+                                `;
+                                $("#cliente-container").append(imgElement);
                             }
-                        },
-                        error: function () {
-                            console.error("Error al eliminar archivo.");
-                        },
-                    });
-
-                    if (file.upload) delete renamedFilesCliente[file.upload.uuid];
+                        });
+                    },
                 });
 
-                this.on("success", function (file, response) {
-                    if (response.success && response.filePath) {
-                        const imgElement = `
-                            <img src="${response.filePath}" alt="${response.originalName}" data-file="${response.fileName}" class="uploaded-img">
-                        `;
-                        $("#cliente-container").append(imgElement);
+                $("#btnSubirCliente").on("click", function () {
+                    if (dropzoneCliente.files.length > 0) {
+                        dropzoneCliente.processQueue();
+                    } else {
+                        console.log("No hay archivos para subir en cobro a cliente.");
                     }
                 });
-            },
-        });
-
-        $("#btnSubirCliente").on("click", function () {
-            if (dropzoneCliente.files.length > 0) {
-                dropzoneCliente.processQueue();
-            } else {
-                console.log("No hay archivos para subir en cobro a cliente.");
             }
         });
-
-
-    });
-
-
 
       // Por ejemplo, inicializar un plugin de jQuery o un evento
       $('.datepicker').datepicker();
