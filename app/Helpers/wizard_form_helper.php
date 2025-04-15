@@ -39,7 +39,7 @@ if (!function_exists('render_form_fields')) {
             }
 
             if (!$can_edit) {
-                $disabled = 'disabled';
+                $disabled = 'readonly';
             }
 
             if ($field_info['type'] === 'hidden') {
