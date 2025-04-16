@@ -155,10 +155,23 @@ if (!function_exists('get_editable_fields_by_step')) {
 
         // --- Lógica para trámites NO concluidos/cancelados ---
         // Paso actual del trámite (según $estado)
-        
+        // echo "<br>Estado: $estado, Step: $step";
         $current_step = $arr_status[$estado] ?? 0;
         // Campos base editables (dependiendo del paso actual)
-        if ($step >= 4 && in_array($reembolso_status_id, [21, 22])) {  // Si estamos en paso 4 o superior
+        // if ($step >= 4 && in_array($reembolso_status_id, [21, 22])) {  // Si estamos en paso 4 o superior
+        //     echo "<br>Estado 1: $estado, Step: $step";
+        //     $editable_fields[] = 'reembolso_status_id';
+        //     $editable_fields[] = 'deposito_gestor';
+        //     $editable_fields[] = 'evidencias_finales_gestor';
+        //     $editable_fields[] = 'upload_pago_gestor';
+        //     $editable_fields[] = 'botones';
+        // }else
+        if($step == 4 && $current_step == 5) {  // Si estamos en paso 4
+            $editable_fields[] = 'costo_tramite';
+            $editable_fields[] = 'num_factura_gestor';
+            $editable_fields[] = 'impuesto_gestoria';
+            $editable_fields[] = 'gestoria_comision';
+            $editable_fields[] = 'costo_paqueteria';
             $editable_fields[] = 'reembolso_status_id';
             $editable_fields[] = 'deposito_gestor';
             $editable_fields[] = 'evidencias_finales_gestor';
