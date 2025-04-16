@@ -1497,7 +1497,7 @@ $(document).ready(function () {
                     return;
                 }
 
-                const isEditable = ![28, 20, 21].includes(parseInt(tra_status_id));
+                const isEditable = ![20, 21].includes(parseInt(tra_status_id));
                 console.log("isEditable : ", isEditable);
                 data.forEach(service => {
                      // Si el estatus NO es 28, 20 o 21, muestra el botón. Si sí es, no lo muestra.
