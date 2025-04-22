@@ -109,9 +109,9 @@ if (!function_exists('puede_modificar')) {
 if (!function_exists('get_editable_fields_by_step')) {
     function get_editable_fields_by_step($estado, $reembolso_status_id, $cobro_status_id, $step) {
         $editable_fields = [];
-        if($step < 4){
-            return $editable_fields;
-        }    
+        // if($step < 4){
+        //     return $editable_fields;
+        // }    
         
         // Mapeo de estados del trámite => steps (para usar estatus_editable)
         $arr_status = [

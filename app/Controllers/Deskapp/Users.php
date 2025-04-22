@@ -243,5 +243,12 @@ class Users extends BaseController
         // echo "<br> bbbbbbb";
         return view('/deskapp/extra-pages/grocery_page', (array)$salida);
     }
+    public function profile()
+    {
+        $session = session();
+        $data['session'] = \Config\Services::session();
+         $data['username'] = $session->get('user_name');
+        return view('deskapp/users/profile',$data);
+    }
 
 }

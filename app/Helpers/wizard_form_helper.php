@@ -59,6 +59,9 @@ if (!function_exists('render_form_fields')) {
                         $formHtml .= render_input($field_name, $field_info['type'], $value, $required, $readonly, $disabled);
                         break;
                     case 'select':
+                        if (!$can_edit) {
+                            $disabled = 'disabled';
+                        }
                         $formHtml .= render_select($field_name, $field_info['options'] ?? [], $value, $readonly, $disabled);
                         break;
                     case 'textarea':
