@@ -1232,24 +1232,25 @@ class Tramites extends BaseController
         $gestor_nombre = $gestor_model->getGestorNameById($tramite['gestor_id']);
 
         $form->pago_gestor = [
-            // nombre del gestor
+            "gestor_total_pago_hidden" => ["label" => "Pago Total", "type" => "hidden", "value" => $tramite['gestor_total_pago']],
+            "gestoria_comision_hidden" => ["label" => "", "type" => "hidden", "value" => $tramite['gestoria_comision']],
+           
             "gestor_id" => ["label" => "Gestor", "type" => "text", "value" => $gestor_nombre, "disabled"=>"disabled"],
-            "separador_gestor" => ["type" => "hr"],
             "costo_tramite" => ["label" => "Costos de los Trámites", "type" => "number", "value" => $tramite['costo_tramite']],
             "deposito_gestor" => ["label" => "Deposito a Gestor", "type" => "number", "value" => $tramite['deposito_gestor'], "required" => "required"],
             "col_a_favor" => ["label" => "Saldo a Favor SGL", "type" => "number", "value" => $tramite['col_a_favor'], "required" => "required"], 
             "col_a_favor_gestor" => ["label" => "Saldo a Favor del Gestor", "type" => "number", "value" => $tramite['col_a_favor_gestor'], "required" => "required"],
-            "separador_gestor2" => ["type" => "hr"],
+            
             "num_factura_gestor" => ["label" => "Número de Factura", "type" => "text", "value" => $tramite['num_factura_gestor']],    
-            "impuesto_gestoria" => ["label" => "Honorarios de Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria'], "required" => "required"],
             "impuesto_gestoria_hidden" => ["label" => "", "type" => "hidden", "value" => $tramite['impuesto_gestoria']],
+            "reembolso_status_id_hidden" => ["label" => "Estatus del Reembolso", "type" => "hidden", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']],
+            "separador_gestor" => ["type" => "hr"],
+
+            "impuesto_gestoria" => ["label" => "Honorarios de Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria'], "required" => "required"],
             "gestoria_comision" => ["label" => "Gratificación", "type" => "number", "value" => $tramite['gestoria_comision']],
-            "gestoria_comision_hidden" => ["label" => "", "type" => "hidden", "value" => $tramite['gestoria_comision']],
             "costo_paqueteria" => ["label" => "Costo de Paquetería", "type" => "number", "value" => $tramite['costo_paqueteria']],
             "gestor_total_pago" => ["label" => "Gasto Total", "type" => "number", "value" => $tramite['gestor_total_pago'], "disabled"=>"disabled"],
-            "gestor_total_pago_hidden" => ["label" => "Pago Total", "type" => "hidden", "value" => $tramite['gestor_total_pago']],
             "reembolso_status_id" => ["label" => "Estatus del Reembolso", "type" => "select", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']],
-            "reembolso_status_id_hidden" => ["label" => "Estatus del Reembolso", "type" => "hidden", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']]
         ];
 
         $form->final_campos = [

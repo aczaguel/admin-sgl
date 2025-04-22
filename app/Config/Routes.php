@@ -55,6 +55,9 @@ $routes->post('/users/user_roles', 'Deskapp/Users::user_roles');
 $routes->get('/users/manage', 'Deskapp/Users::manage',['filter' => 'auth']);
 $routes->post('/users/manage', 'Deskapp/Users::manage');
 
+$routes->get('/users/profile', 'Deskapp/Users::profile',['filter' => 'auth']);
+$routes->post('/users/profile', 'Deskapp/Users::profile');
+
 $routes->get('/tramites/demo_multigrid', 'Deskapp/Tramites::demo_multigrid',['filter' => 'auth']);
 $routes->post('/tramites/demo_multigrid', 'Deskapp/Tramites::demo_multigrid');
 
