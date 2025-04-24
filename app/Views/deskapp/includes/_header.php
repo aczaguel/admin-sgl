@@ -234,17 +234,18 @@
 			<div class="dropdown">
 				<a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown">
 					<span class="user-icon">
-						<img src="<?php echo base_url(); ?>/public/assets/vendors/images/img.jpg" alt="">
+					<img src="/public/<?= esc($session->get('avatar')) ?>" alt="">
+					<!-- <img src="<?php echo base_url(); ?>/public/assets/vendors/images/img.jpg" alt=""> -->
 					</span>
 					<!-- <span class="user-name"><?= esc($session->get('firstname').' '.$session->get('midname').' '.$session->get('lastname')); ?></span> -->
 				</a>
 				<div class="dropdown-menu dropdown-menu-right dropdown-menu-icon-list">
 					<?php if (has_permission('listar_settings', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-user1"></i> Profile</a>
-						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-settings2"></i> Setting</a>
-						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/faq'); ?>"><i class="dw dw-help"></i> Help</a>
+						<a class="dropdown-item" href="<?php echo base_url('deskapp/users/profile'); ?>"><i class="dw dw-user1"></i> Perfil</a>
+						<!-- <a class="dropdown-item" href="<?php echo base_url('deskapp/users/profile'); ?>"><i class="dw dw-settings2"></i> Setting</a> -->
+						<!-- <a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/faq'); ?>"><i class="dw dw-help"></i> Help</a> -->
 					<?php endif; ?>		
-					<a class="dropdown-item" href="<?php echo base_url('deskapp/logout'); ?>"><i class="dw dw-logout"></i> Log Out</a>
+					<a class="dropdown-item" href="<?php echo base_url('deskapp/logout'); ?>"><i class="dw dw-logout"></i> Cerrar Sesión</a>
 				</div>
 			</div>
 		</div>

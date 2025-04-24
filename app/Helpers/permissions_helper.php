@@ -190,9 +190,6 @@ if (!function_exists('get_editable_fields_by_step')) {
     }
 }
 
-
-
-
 if (!function_exists('estatus_editable')) {
     function estatus_editable($step, $estado) {
         // Mapeo de estados (clave) => steps (valor)
@@ -254,13 +251,12 @@ if (!function_exists('puede_editar_modulo')) {
         // Obtener el step del estado actual
         $step_estado_db = $arr_status[$estado];
 
-        // Si el módulo actual es menor que el step del estado, bloquear edición
-        if ($current_step < $step_estado_db) {
+        // Si el módulo actual es menor que el step del estado, bloquear edición, solo cuando sea la primera etapa
+        if ($current_step < $step_estado_db && $step_estado_db > 3) {
             // Verificar si el campo es editable según las reglas de get_editable_fields
             $editable_fields = get_editable_fields_by_step($estado, $reembolso_status_id, $cobro_status_id, $current_step);
             return in_array($campo, $editable_fields);
         }
-
         // Si el módulo actual es igual o mayor al step del estado, permitir edición
         return true;
     }

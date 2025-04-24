@@ -6,7 +6,7 @@ use App\Controllers\BaseController;
 use Config\Database as ConfigDatabase;
 use Config\GroceryCrud as ConfigGroceryCrud;
 use GroceryCrud\Core\GroceryCrud;
-
+use \App\Models\UserModel;
 class Users extends BaseController
 {
     public function __construct() {
@@ -245,10 +245,106 @@ class Users extends BaseController
     }
     public function profile()
     {
+        $db = \Config\Database::connect();
         $session = session();
-        $data['session'] = \Config\Services::session();
-         $data['username'] = $session->get('user_name');
-        return view('deskapp/users/profile',$data);
+        $userModel = new UserModel($db);
+        
+        // Obtener datos del usuario actual
+
+        $user = $userModel->find($session->get('id'));
+        $data = [
+            'session' => $session,
+            'username' => $session->get('user_name'),
+            'user' => $user
+        ];
+        
+        return view('deskapp/users/profile', $data);
     }
 
+    public function update_profile()
+    {
+        $db = \Config\Database::connect();
+        $session = session();
+        $userModel = new UserModel($db);
+        
+        $rules = [
+            'firstname' => 'required|min_length[2]|max_length[40]',
+            'midname' => 'required|max_length[40]',
+            'lastname' => 'required|min_length[2]|max_length[40]',
+            'email' => 'required|valid_email|max_length[40]',
+            'phone' => 'max_length[12]'
+        ];
+        
+        if ($this->validate($rules)) {
+            $data = [
+                'firstname' => $this->request->getPost('firstname'),
+                'midname' => $this->request->getPost('midname'),
+                'lastname' => $this->request->getPost('lastname'),
+                'email' => $this->request->getPost('email'),
+                'phone' => $this->request->getPost('phone')
+            ];
+            
+            // Manejar la subida de avatar si se proporciona
+            $avatar = $this->request->getFile('avatar');
+            if ($avatar && $avatar->isValid() && !$avatar->hasMoved()) {
+                $newName = $avatar->getRandomName();
+                $avatar->move(ROOTPATH . 'public/uploads/avatars', $newName);
+                $data['avatar'] = 'uploads/avatars/' . $newName;
+            }
+
+            // Mostrar los datos que se enviarán
+            // echo "<pre>";
+            // print_r($data);
+            // echo "</pre>";
+
+            // Mostrar la consulta SQL que se ejecutará
+            $builder = $db->table('users'); // Reemplaza 'users' con el nombre de tu tabla
+            $builder->where('id', $session->get('id'));
+            $builder->update($data);
+            
+            // echo "<br><strong>Consulta SQL:</strong><br>";
+            // echo $db->getLastQuery(); // Muestra la consulta SQL generada
+            
+            // die(); // Detiene la ejecución para ver el resultado
+            return redirect()->to('/users/profile')->with('success', 'Datos del perfil actualizados correctamente.');
+        } else {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+    }
+
+    public function update_password(){
+        $db = \Config\Database::connect();
+        $session = session();
+        $userModel = new UserModel($db);
+        
+        // Reglas de validación
+        $rules = [
+            'current_password' => 'required',
+            'new_password' => 'required|min_length[8]',
+            'confirm_password' => 'required|matches[new_password]'
+        ];
+        
+        if ($this->validate($rules)) {
+            // Obtener datos del usuario
+            $user = $userModel->find($session->get('id'));
+            
+            // Verificar contraseña actual
+            if (!password_verify($this->request->getPost('current_password'), $user['password'])) {
+                return redirect()->back()->withInput()->with('error', 'La contraseña actual es incorrecta');
+            }
+            
+            // Actualizar contraseña
+            $data = [
+                'password' => password_hash($this->request->getPost('new_password'), PASSWORD_DEFAULT)
+            ];
+            
+            $userModel->update($session->get('id'), $data);
+            echo "<br><strong>Consulta SQL:</strong><br>";
+            echo $db->getLastQuery(); // Muestra la consulta SQL generada
+            // die(); // Detiene la ejecución para ver el resultado
+            return redirect()->to('/users/profile')->with('success', 'Contraseña actualizada correctamente');
+        } else {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+    }
 }

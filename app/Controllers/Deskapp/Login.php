@@ -33,6 +33,7 @@
 	                    'firstname' => $data['firstname'],
 						'midname' => $data['midname'],
 	                    'lastname' => $data['lastname'],
+						'avatar' => $data['avatar'],
 	                    'logged_in'     => TRUE
 	                ];
 	                $session->set($ses_data);
