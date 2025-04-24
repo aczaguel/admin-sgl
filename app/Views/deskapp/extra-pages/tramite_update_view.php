@@ -266,117 +266,118 @@ if (isset($tra_status_id)) {
 									</div>
 								</section>
 							<?php endif; ?>
-							
-							<?php if (has_permission('section_pago_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles'))) ): ?>
-								<!-- Step 4: Se paga al gestor -->
-								<h3>Pago a Gestor</h3>
-								<section>
-									<div class="min-height-200px">
-										<?php 
-											$prefix_form = "pago_gestor";
-											$form_action = "/deskapp/tramites/update_pago_gestor/$id";
-											$form_id = 'pagoGestorForm';
-											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_pago_gestor';
-											$field_values = $pago_gestor;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 4);  
-										?>										
-									</div>
-									<hr>
-										<div class="row">
-											<div class="col-md-12">
-												<div class="gestor_costos_tipo_servicio" id="gestor_costos_tipo_servicio"><h5>Costos de Tipos de Servicio</h5></div>
-											
-												<label for="costo_tramite_total" class="form-label"><b>Total de Costos:</b></label>
-												<input type="text" id="costo_tramite_total" class="form-control text-end" readonly>
-											</div>
-											<div class="col-md-12">
-												<div>
-												<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'upload_pago_gestor', $reembolso_status_id, $cobro_status_id, 4)): ?>
-													<!-- Contenedor Dropzone -->
-													<div class="dropzone-container">
-														<form class="dropzone dropzone-gestor" id="miDropzoneGestor">
-															<div class="dz-default dz-message">
-																<button class="dz-button" type="button">
-																	<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
-																</button>
-															</div>
-														</form>
-													</div>
-
-													<!-- Botón Subir -->
-													<button id="btnSubirGestor" class="btnSubir">Subir</button>
-
-													<hr>
-
-													<!-- Mensaje de Eliminación -->
-													<div class="row mb-3">
-														<div class="col-12 text-center">
-															<h6 style="color: #d9534f; font-weight: bold;">
-																Si deseas eliminar un archivo debes solicitarlo al administrador
-															</h6>
-														</div>
-													</div>
-												<?php endif; ?>
-													<hr>
-													<!-- Galería de Imágenes -->
-													<div class="row" id="gestor-container"></div>
-
-												</div>
-											</div>
+							<?php if (in_array($tra_status_id, [23, 28, 20, 21])) : ?>
+								<?php if (has_permission('section_pago_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles'))) ): ?>
+									<!-- Step 4: Se paga al gestor -->
+									<h3>Pago a Gestor</h3>
+									<section>
+										<div class="min-height-200px">
+											<?php 
+												$prefix_form = "pago_gestor";
+												$form_action = "/deskapp/tramites/update_pago_gestor/$id";
+												$form_id = 'pagoGestorForm';
+												$cancel_url = '/tramites/tramite';
+												$submit_permission = 'editar_pago_gestor';
+												$field_values = $pago_gestor;
+												echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 4);  
+											?>										
 										</div>
-								</section>
-							<?php endif; ?>
-							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) ): ?>
-								<!-- Step 5: Se cobra al cliente -->
-								<h3>Cobro a Cliente</h3>
-								<section>
-									<div class="min-height-200px">
-										
-										<?php 
-											$prefix_form = "final";
-											$form_action = "/deskapp/tramites/update_final_save/$id";
-											$form_id = 'finalForm';
-											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_final';
-											$field_values = $final_campos;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 5); 
-										?>	
-																	
-									</div>
-									<hr>
-									<div>
-										<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'upload_cobro_cliente', $reembolso_status_id, $cobro_status_id, 5)): ?>
-											<!-- Contenedor Dropzone -->
-											<div class="dropzone-container">
-												<form class="dropzone dropzone-cliente" id="miDropzoneCliente">
-													<div class="dz-default dz-message">
-														<button class="dz-button" type="button">
-															<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
-														</button>
+										<hr>
+											<div class="row">
+												<div class="col-md-12">
+													<div class="gestor_costos_tipo_servicio" id="gestor_costos_tipo_servicio"><h5>Costos de Tipos de Servicio</h5></div>
+												
+													<label for="costo_tramite_total" class="form-label"><b>Total de Costos:</b></label>
+													<input type="text" id="costo_tramite_total" class="form-control text-end" readonly>
+												</div>
+												<div class="col-md-12">
+													<div>
+													<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'upload_pago_gestor', $reembolso_status_id, $cobro_status_id, 4)): ?>
+														<!-- Contenedor Dropzone -->
+														<div class="dropzone-container">
+															<form class="dropzone dropzone-gestor" id="miDropzoneGestor">
+																<div class="dz-default dz-message">
+																	<button class="dz-button" type="button">
+																		<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+																	</button>
+																</div>
+															</form>
+														</div>
+
+														<!-- Botón Subir -->
+														<button id="btnSubirGestor" class="btnSubir">Subir</button>
+
+														<hr>
+
+														<!-- Mensaje de Eliminación -->
+														<div class="row mb-3">
+															<div class="col-12 text-center">
+																<h6 style="color: #d9534f; font-weight: bold;">
+																	Si deseas eliminar un archivo debes solicitarlo al administrador
+																</h6>
+															</div>
+														</div>
+													<?php endif; ?>
+														<hr>
+														<!-- Galería de Imágenes -->
+														<div class="row" id="gestor-container"></div>
+
 													</div>
-												</form>
-											</div>
-
-											<!-- Botón Subir -->
-											<button id="btnSubirCliente" class="btnSubir">Subir</button>
-										
-											<hr>
-
-											<!-- Mensaje de Eliminación -->
-											<div class="row mb-3">
-												<div class="col-12 text-center">
-													<h6 style="color: #d9534f; font-weight: bold;">
-														Si deseas eliminar un archivo debes solicitarlo al administrador
-													</h6>
 												</div>
 											</div>
-										<?php endif; ?>
+									</section>
+								<?php endif; ?>
+								<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) ): ?>
+									<!-- Step 5: Se cobra al cliente -->
+									<h3>Cobro a Cliente</h3>
+									<section>
+										<div class="min-height-200px">
+											
+											<?php 
+												$prefix_form = "final";
+												$form_action = "/deskapp/tramites/update_final_save/$id";
+												$form_id = 'finalForm';
+												$cancel_url = '/tramites/tramite';
+												$submit_permission = 'editar_final';
+												$field_values = $final_campos;
+												echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 5); 
+											?>	
+																		
+										</div>
 										<hr>
-										<!-- Galería de Imágenes -->
-										<div class="row" id="cliente-container"></div>
-									</div>
-								</section>
+										<div>
+											<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'upload_cobro_cliente', $reembolso_status_id, $cobro_status_id, 5)): ?>
+												<!-- Contenedor Dropzone -->
+												<div class="dropzone-container">
+													<form class="dropzone dropzone-cliente" id="miDropzoneCliente">
+														<div class="dz-default dz-message">
+															<button class="dz-button" type="button">
+																<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+															</button>
+														</div>
+													</form>
+												</div>
+
+												<!-- Botón Subir -->
+												<button id="btnSubirCliente" class="btnSubir">Subir</button>
+											
+												<hr>
+
+												<!-- Mensaje de Eliminación -->
+												<div class="row mb-3">
+													<div class="col-12 text-center">
+														<h6 style="color: #d9534f; font-weight: bold;">
+															Si deseas eliminar un archivo debes solicitarlo al administrador
+														</h6>
+													</div>
+												</div>
+											<?php endif; ?>
+											<hr>
+											<!-- Galería de Imágenes -->
+											<div class="row" id="cliente-container"></div>
+										</div>
+									</section>
+								<?php endif; ?>
 							<?php endif; ?>
 						</div>
 					</div>

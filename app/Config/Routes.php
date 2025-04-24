@@ -58,6 +58,13 @@ $routes->post('/users/manage', 'Deskapp/Users::manage');
 $routes->get('/users/profile', 'Deskapp/Users::profile',['filter' => 'auth']);
 $routes->post('/users/profile', 'Deskapp/Users::profile');
 
+$routes->get('/users/update_profile', 'Deskapp/Users::update_profile',['filter' => 'auth']);
+$routes->post('/users/update_profile', 'Deskapp/Users::update_profile');
+
+$routes->get('/users/update_password', 'Deskapp/Users::update_password',['filter' => 'auth']);
+$routes->post('/users/update_password', 'Deskapp/Users::update_password');
+
+
 $routes->get('/tramites/demo_multigrid', 'Deskapp/Tramites::demo_multigrid',['filter' => 'auth']);
 $routes->post('/tramites/demo_multigrid', 'Deskapp/Tramites::demo_multigrid');
 
