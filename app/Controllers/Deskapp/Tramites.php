@@ -1234,8 +1234,8 @@ class Tramites extends BaseController
         $form->pago_gestor = [
             "gestor_total_pago_hidden" => ["label" => "Pago Total", "type" => "hidden", "value" => $tramite['gestor_total_pago']],
             "gestoria_comision_hidden" => ["label" => "", "type" => "hidden", "value" => $tramite['gestoria_comision']],
-           
-            "gestor_id" => ["label" => "Gestor", "type" => "text", "value" => $gestor_nombre, "disabled"=>"disabled"],
+            "gestor_id" => ["label" => "", "type" => "hidden", "value" => $tramite['gestor_id']],
+            "gestor_name" => ["label" => "Gestor", "type" => "text", "value" => $gestor_nombre, "disabled"=>"disabled"],
             "costo_tramite" => ["label" => "Costos de los Trámites", "type" => "number", "value" => $tramite['costo_tramite']],
             "deposito_gestor" => ["label" => "Deposito a Gestor", "type" => "number", "value" => $tramite['deposito_gestor'], "required" => "required"],
             "col_a_favor" => ["label" => "Saldo a Favor SGL", "type" => "number", "value" => $tramite['col_a_favor'], "required" => "required"], 
