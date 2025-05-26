@@ -2421,6 +2421,9 @@ class Tramites extends BaseController
             if (empty($tramite_base['started_at'])) {
                 $data["started_at"] = date('Y-m-d H:i:s');
             }
+            if(isset($data['gestor_name'])){
+                unset($data['gestor_name']);
+            }
 
             $builder->where('id', $id);
             $builder->update($data);
