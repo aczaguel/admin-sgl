@@ -137,7 +137,7 @@ class Tramites extends BaseController
                 $claseAzul = 'background-azul';  // Clase CSS para azul
             
                 // Verificar tra_status_id para colores especiales
-                if ($row->tra_status_id == 23) {
+                if ($row->tra_status_id == 23 || $row->tra_status_id == 28) {
                     $clase = $claseAzulClaro;
                 } elseif ($row->tra_status_id == 21) {
                     $clase = $claseGris;
@@ -171,6 +171,8 @@ class Tramites extends BaseController
                         }
                     }
                 }
+
+
                 $arrFilter = [20, 21, 23];
                 if (!in_array($row->tra_status_id, $arrFilter)) {
                     return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
@@ -322,7 +324,7 @@ class Tramites extends BaseController
                 $claseAzul = 'background-azul';  // Clase CSS para azul
             
                 // Verificar tra_status_id para colores especiales
-                if ($row->tra_status_id == 23) {
+                if ($row->tra_status_id == 23 || $row->tra_status_id == 28) {
                     $clase = $claseAzulClaro;
                 } elseif ($row->tra_status_id == 21) {
                     $clase = $claseGris;
@@ -510,7 +512,7 @@ class Tramites extends BaseController
                 $claseAzul = 'background-azul';  // Clase CSS para azul
             
                 // Verificar tra_status_id para colores especiales
-                if ($row->tra_status_id == 23) {
+                if ($row->tra_status_id == 23 || $row->tra_status_id == 28) {
                     $clase = $claseAzulClaro;
                 } elseif ($row->tra_status_id == 21) {
                     $clase = $claseGris;
@@ -698,7 +700,7 @@ class Tramites extends BaseController
                 $claseAzul = 'background-azul';  // Clase CSS para azul
             
                 // Verificar tra_status_id para colores especiales
-                if ($row->tra_status_id == 23) {
+                if ($row->tra_status_id == 23 || $row->tra_status_id == 28) {
                     $clase = $claseAzulClaro;
                 } elseif ($row->tra_status_id == 21) {
                     $clase = $claseGris;
