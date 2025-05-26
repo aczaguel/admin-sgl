@@ -2421,6 +2421,7 @@ class Tramites extends BaseController
             if (empty($tramite_base['started_at'])) {
                 $data["started_at"] = date('Y-m-d H:i:s');
             }
+
             if(isset($data['gestor_name'])){
                 unset($data['gestor_name']);
             }
@@ -2706,6 +2707,9 @@ class Tramites extends BaseController
             $data["gestoria_comision"] = $data["gestoria_comision_hidden"];
             unset($data["gestoria_comision_hidden"]);
             
+            if(isset($data['gestor_name'])){
+                unset($data['gestor_name']);
+            }
             
             $this->updateTramiteStatus($id, 28);
             // Actualizar en la base de datos
