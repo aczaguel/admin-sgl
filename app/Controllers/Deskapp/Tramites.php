@@ -173,7 +173,7 @@ class Tramites extends BaseController
                 }
 
 
-                $arrFilter = [20, 21, 23];
+                $arrFilter = [20, 21, 23, 28];
                 if (!in_array($row->tra_status_id, $arrFilter)) {
                     return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
                 }
@@ -358,7 +358,7 @@ class Tramites extends BaseController
                         }
                     }
                 }
-                $arrFilter = [20, 21, 23];
+                $arrFilter = [20, 21, 23, 28];
                 if (!in_array($row->tra_status_id, $arrFilter)) {
                     return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
                 }
@@ -546,7 +546,7 @@ class Tramites extends BaseController
                         }
                     }
                 }
-                $arrFilter = [20, 21, 23];
+                $arrFilter = [20, 21, 23, 28];
                 if (!in_array($row->tra_status_id, $arrFilter)) {
                     return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
                 }
@@ -734,7 +734,7 @@ class Tramites extends BaseController
                         }
                     }
                 }
-                $arrFilter = [20, 21, 23];
+                $arrFilter = [20, 21, 23, 28];
                 if (!in_array($row->tra_status_id, $arrFilter)) {
                     return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
                 }
