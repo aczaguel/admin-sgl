@@ -60,7 +60,7 @@ if (!function_exists('render_form_fields')) {
                         break;
                     case 'select':
                         if (!$can_edit) {
-                            $disabled = 'disabled';
+                            $disabled = 'readonly';
                         }
                         $formHtml .= render_select($field_name, $field_info['options'] ?? [], $value, $readonly, $disabled);
                         break;

@@ -226,6 +226,11 @@ if (!function_exists('puede_editar_modulo')) {
         if(is_client($roles)){
             return false;
         }
+        
+        if(is_admin($roles)){
+            return true;
+        }
+
         if($estado == 21){
             return false;
         }

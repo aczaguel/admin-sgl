@@ -1233,9 +1233,20 @@ class Tramites extends BaseController
         $gestor_model = new GestorModel($db2);
         $gestor_nombre = $gestor_model->getGestorNameById($tramite['gestor_id']);
 
+        // echo "<pre>";
+        // print_r($tramite);
+        // echo "</pre>";die();
+        // Preparar los campos de pago del gestor
+        if(isset($tramite['costo_tramite']) && $tramite['costo_tramite'] > 0){
+            $tramite['costo_tramite'] = number_format($tramite['costo_tramite'], 2, '.', '');
+        } else {
+            $tramite['costo_tramite'] = 0;
+        }
+
+
         $form->pago_gestor = [
-            "gestor_total_pago_hidden" => ["label" => "Pago Total", "type" => "hidden", "value" => $tramite['gestor_total_pago']],
-            "gestoria_comision_hidden" => ["label" => "", "type" => "hidden", "value" => $tramite['gestoria_comision']],
+            // "gestor_total_pago_hidden" => ["label" => "Pago Total", "type" => "hidden", "value" => $tramite['gestor_total_pago']],
+            // "gestoria_comision_hidden" => ["label" => "", "type" => "hidden", "value" => $tramite['gestoria_comision']],
             "gestor_id" => ["label" => "", "type" => "hidden", "value" => $tramite['gestor_id']],
             "gestor_name" => ["label" => "Gestor", "type" => "text", "value" => $gestor_nombre, "disabled"=>"disabled"],
             "costo_tramite" => ["label" => "Costos de los Trámites", "type" => "number", "value" => $tramite['costo_tramite']],
@@ -1244,11 +1255,13 @@ class Tramites extends BaseController
             "col_a_favor_gestor" => ["label" => "Saldo a Favor del Gestor", "type" => "number", "value" => $tramite['col_a_favor_gestor'], "required" => "required"],
             
             "num_factura_gestor" => ["label" => "Número de Factura", "type" => "text", "value" => $tramite['num_factura_gestor']],    
-            "impuesto_gestoria_hidden" => ["label" => "", "type" => "hidden", "value" => $tramite['impuesto_gestoria']],
-            "reembolso_status_id_hidden" => ["label" => "Estatus del Reembolso", "type" => "hidden", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']],
+            
+            // "reembolso_status_id_hidden" => ["label" => "Estatus del Reembolso", "type" => "hidden", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']],
             "separador_gestor" => ["type" => "hr"],
 
             "impuesto_gestoria" => ["label" => "Honorarios de Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria'], "required" => "required"],
+            // "impuesto_gestoria_hidden" => ["label" => "", "type" => "hidden", "value" => $tramite['impuesto_gestoria']],
+
             "gestoria_comision" => ["label" => "Gratificación", "type" => "number", "value" => $tramite['gestoria_comision']],
             "costo_paqueteria" => ["label" => "Costo de Paquetería", "type" => "number", "value" => $tramite['costo_paqueteria']],
             "gestor_total_pago" => ["label" => "Gasto Total", "type" => "number", "value" => $tramite['gestor_total_pago'], "disabled"=>"disabled"],
@@ -2697,27 +2710,37 @@ class Tramites extends BaseController
         } else {
             // Obtener datos del formulario
             $data = $this->request->getPost();
+            // echo "<pre>";
+            // print_r($data); 
+            // echo "</pre>";
             $data["user_id"] = $myid;
     
             // Cálculo de campos adicionales
-            $data["gestor_total_pago"] = $data["gestor_total_pago_hidden"];
+            // $data["gestor_total_pago"] = $data["gestor_total_pago_hidden"];
             unset($data["gestor_total_pago_hidden"]);
-            $data["reembolso_status_id"] = $data["reembolso_status_id_hidden"];
+            // $data["reembolso_status_id"] = $data["reembolso_status_id_hidden"];
             unset($data["reembolso_status_id_hidden"]);
-            $data["impuesto_gestoria"] = $data["impuesto_gestoria_hidden"];
+            // $data["impuesto_gestoria"] = $data["impuesto_gestoria_hidden"];
             unset($data["impuesto_gestoria_hidden"]);
-            $data["gestoria_comision"] = $data["gestoria_comision_hidden"];
+            // $data["gestoria_comision"] = $data["gestoria_comision_hidden"];
             unset($data["gestoria_comision_hidden"]);
             
             if(isset($data['gestor_name'])){
                 unset($data['gestor_name']);
             }
             
-            $this->updateTramiteStatus($id, 28);
+            
             // Actualizar en la base de datos
             $builder->where('id', $id);
             $builder->update($data);
-    
+
+            // $builder->where('id', $id);
+            // $builder->set($data);  // importante para que compile correctamente
+            // $sql = $builder->getCompiledUpdate();
+            // echo $sql;die();
+
+
+            $this->updateTramiteStatus($id, 28);
             // Bitácora
             $bitacoraModel = new BitacoraModel($db2);
             $diferencias = $this->encontrarDiferencias($data, $existingData);

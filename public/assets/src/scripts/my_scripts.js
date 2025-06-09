@@ -31,17 +31,17 @@ $(document).ready(function() {
     if (saldoPendiente < 0) {
         colorFondo = '#FF9999'; // Rojo claro si es negativo
         $('#reembolso_status_id').val('21').trigger('change'); // Establecer "Pendiente"
-        $('#reembolso_status_id').prop('disabled', true); // Bloquear el campo
+        $('#reembolso_status_id').prop('readonly', true); // Bloquear el campo
     } else if (saldoPendiente > 0) {
         colorFondo = '#87CEEB'; // Azul claro si es positivo
         $('#reembolso_status_id').val('21').trigger('change'); // Establecer "Pendiente"
         if ($('#reembolso_status_id').val() === '24') {
-            $('#reembolso_status_id').prop('disabled', true); // Bloquear el campo si es '24'
+            $('#reembolso_status_id').prop('readonly', true); // Bloquear el campo si es '24'
         }
     } else {
         colorFondo = 'lightgray'; // Gris claro si es cero
         $('#reembolso_status_id').val('').trigger('change'); // Volver a la opción "Seleccione"
-        $('#reembolso_status_id').prop('disabled', false); // Desbloquear el campo
+        $('#reembolso_status_id').prop('readonly', false); // Desbloquear el campo
     }
 
     // Aplicar los colores a los campos
@@ -73,7 +73,7 @@ $(document).ready(function() {
   // Permitir editar el campo reembolso_status_id si el usuario lo cambia manualmente
   $('#reembolso_status_id').on('change', function () {
     if ($(this).val() !== '21') {
-        $(this).prop('disabled', false);  // Desbloquear si seleccionan otra opción
+        $(this).prop('readonly', false);  // Desbloquear si seleccionan otra opción
         $(this).css('background-color', '');  // Quitar el color de fondo
         $(this).css('color', '');  // Quitar el color del texto
     }
