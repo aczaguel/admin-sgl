@@ -141,148 +141,131 @@
 					</div>
 					<div class="col-xl-8 col-lg-8 col-md-8 col-sm-12 mb-30">
 						<div class="card-box height-100-p overflow-hidden">
-							<div class="profile-tab height-100-p">
-								<div class="tab height-100-p">
-									<ul class="nav nav-tabs customtab" role="tablist">
-										<!-- <li class="nav-item">
-											<a class="nav-link active" data-toggle="tab" href="#timeline" role="tab">Timeline</a>
-										</li>
-										<li class="nav-item">
-											<a class="nav-link" data-toggle="tab" href="#tasks" role="tab">Tasks</a>
-										</li> -->
-										<li class="nav-item">
-											<a class="nav-link active" data-toggle="tab" href="#setting" role="tab">Configuración</a>
-										</li>
-									</ul>
-									<div class="tab-content">
-										<!-- Setting Tab start -->
-											<div class="tab-pane fade height-100-p show active" id="setting" role="tabpanel">
-											<?php if (session('error')): ?>
-												<div class="alert alert-danger alert-dismissible fade show" role="alert">
-													<?= session('error') ?>
-													<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-														<span aria-hidden="true">&times;</span>
-													</button>
-												</div>
-											<?php endif; ?>
-
-											<?php if (session('success')): ?>
-												<div class="alert alert-success alert-dismissible fade show" role="alert">
-													<?= session('success') ?>
-													<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-														<span aria-hidden="true">&times;</span>
-													</button>
-												</div>
-											<?php endif; ?>
-												<!-- Dentro de la sección <div class="profile-setting"> -->
-<div class="profile-setting">
-    <!-- Formulario de Información Personal -->
-    <form action="<?= base_url('users/update_profile') ?>" method="post" enctype="multipart/form-data">
-        <ul class="profile-edit-list row">
-            <li class="weight-500 col-md-12">
-                <h4 class="text-blue h5 mb-20">Información Personal</h4>
-                
-                <!-- Username -->
-                <div class="form-group">
-                    <label>Username</label>
-                    <input class="form-control form-control-lg" type="text" name="username" 
-                        value="<?= isset($user['username']) ? esc($user['username']) : '' ?>" required readonly>
-                </div>
-                
-                <!-- First Name -->
-                <div class="form-group">
-                    <label>First Name</label>
-                    <input class="form-control form-control-lg" type="text" name="firstname" 
-                        value="<?= isset($user['firstname']) ? esc($user['firstname']) : '' ?>" required>
-                </div>
-                
-                <!-- Middle Name -->
-                <div class="form-group">
-                    <label>Middle Name</label>
-                    <input class="form-control form-control-lg" type="text" name="midname" 
-                        value="<?= isset($user['midname']) ? esc($user['midname']) : '' ?>">
-                </div>
-                
-                <!-- Last Name -->
-                <div class="form-group">
-                    <label>Last Name</label>
-                    <input class="form-control form-control-lg" type="text" name="lastname" 
-                        value="<?= isset($user['lastname']) ? esc($user['lastname']) : '' ?>" required>
-                </div>
-                
-                <!-- Email -->
-                <div class="form-group">
-                    <label>Email</label>
-                    <input class="form-control form-control-lg" type="email" name="email" 
-                        value="<?= isset($user['email']) ? esc($user['email']) : '' ?>" required>
-                </div>
-                
-                <!-- Phone -->
-                <div class="form-group">
-                    <label>Phone Number</label>
-                    <input class="form-control form-control-lg" type="text" name="phone" 
-                        value="<?= isset($user['phone']) ? esc($user['phone']) : '' ?>"
-                        placeholder="Format: 1234567890">
-                </div>
-                
-                <!-- Avatar Upload -->
-                <div class="form-group">
-                    <label>Profile Picture</label>
-                    <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="avatar" name="avatar">
-                        <label class="custom-file-label" for="avatar">Seleccionar archivo</label>
-                    </div>
-                    <?php if(isset($user['avatar']) && !empty($user['avatar'])): ?>
-                        <small class="form-text text-muted">
-                            Current: <a href="/public/<?= $user['avatar'] ?>" target="_blank">Ver imagen</a>
-                        </small>
-                    <?php endif; ?>
-                </div>
-                
-                <div class="form-group mb-4">
-                    <button type="submit" class="btn btn-primary">Actualizar Información</button>
-                </div>
+						<div class="profile-tab height-100-p">
+    <div class="tab height-100-p">
+        <ul class="nav nav-tabs customtab" role="tablist">
+            <!-- Pestaña de Información Personal -->
+            <li class="nav-item">
+                <a class="nav-link active" data-toggle="tab" href="#info" role="tab">Información Personal</a>
+            </li>
+            <!-- Pestaña de Cambio de Contraseña -->
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#password" role="tab">Cambio de Contraseña</a>
             </li>
         </ul>
-    </form>
+        <div class="tab-content">
+            <!-- Tab de Información Personal -->
+            <div class="tab-pane fade show active" id="info" role="tabpanel">
+                <div class="profile-setting">
+                    <form action="<?= base_url('users/update_profile') ?>" method="post" enctype="multipart/form-data">
+                        <ul class="profile-edit-list row">
+                            <li class="weight-500 col-md-12">
+                                <h4 class="text-blue h5 mb-20">Información Personal</h4>
+                                
+                                <!-- Username -->
+                                <div class="form-group">
+                                    <label>Username</label>
+                                    <input class="form-control form-control-lg" type="text" name="username" 
+                                        value="<?= isset($user['username']) ? esc($user['username']) : '' ?>" required readonly>
+                                </div>
+                                
+                                <!-- First Name -->
+                                <div class="form-group">
+                                    <label>First Name</label>
+                                    <input class="form-control form-control-lg" type="text" name="firstname" 
+                                        value="<?= isset($user['firstname']) ? esc($user['firstname']) : '' ?>" required>
+                                </div>
+                                
+                                <!-- Middle Name -->
+                                <div class="form-group">
+                                    <label>Middle Name</label>
+                                    <input class="form-control form-control-lg" type="text" name="midname" 
+                                        value="<?= isset($user['midname']) ? esc($user['midname']) : '' ?>">
+                                </div>
+                                
+                                <!-- Last Name -->
+                                <div class="form-group">
+                                    <label>Last Name</label>
+                                    <input class="form-control form-control-lg" type="text" name="lastname" 
+                                        value="<?= isset($user['lastname']) ? esc($user['lastname']) : '' ?>" required>
+                                </div>
+                                
+                                <!-- Email -->
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input class="form-control form-control-lg" type="email" name="email" 
+                                        value="<?= isset($user['email']) ? esc($user['email']) : '' ?>" required>
+                                </div>
+                                
+                                <!-- Phone -->
+                                <div class="form-group">
+                                    <label>Phone Number</label>
+                                    <input class="form-control form-control-lg" type="text" name="phone" 
+                                        value="<?= isset($user['phone']) ? esc($user['phone']) : '' ?>"
+                                        placeholder="Format: 1234567890">
+                                </div>
+                                
+                                <!-- Avatar Upload -->
+                                <div class="form-group">
+                                    <label>Profile Picture</label>
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" id="avatar" name="avatar">
+                                        <label class="custom-file-label" for="avatar">Seleccionar archivo</label>
+                                    </div>
+                                    <?php if(isset($user['avatar']) && !empty($user['avatar'])): ?>
+                                        <small class="form-text text-muted">
+                                            Current: <a href="/public/<?= $user['avatar'] ?>" target="_blank">Ver imagen</a>
+                                        </small>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <div class="form-group mb-4">
+                                    <button type="submit" class="btn btn-primary">Actualizar Información</button>
+                                </div>
+                            </li>
+                        </ul>
+                    </form>
+                </div>
+            </div>
 
-    <!-- Formulario de Cambio de Contraseña -->
-    <form action="<?= base_url('users/update_password') ?>" method="post">
-        <ul class="profile-edit-list row">
-            <li class="weight-500 col-md-12">
-                <h4 class="text-blue h5 mb-20">Cambio de Contraseña</h4>
-                
-                <!-- Current Password -->
-                <div class="form-group">
-                    <label>Contraseña actual</label>
-                    <input class="form-control form-control-lg" type="password" name="current_password" required>
+            <!-- Tab de Cambio de Contraseña -->
+            <div class="tab-pane fade" id="password" role="tabpanel">
+                <div class="profile-setting">
+                    <form action="<?= base_url('users/update_password') ?>" method="post">
+                        <ul class="profile-edit-list row">
+                            <li class="weight-500 col-md-12">
+                                <h4 class="text-blue h5 mb-20">Cambio de Contraseña</h4>
+                                
+                                <!-- Current Password -->
+                                <div class="form-group">
+                                    <label>Contraseña actual</label>
+                                    <input class="form-control form-control-lg" type="password" name="current_password" required>
+                                </div>
+                                
+                                <!-- New Password -->
+                                <div class="form-group">
+                                    <label>Nueva contraseña</label>
+                                    <input class="form-control form-control-lg" type="password" name="new_password" 
+                                        placeholder="Mínimo 8 caracteres" minlength="8" required>
+                                </div>
+                                
+                                <!-- Confirm New Password -->
+                                <div class="form-group">
+                                    <label>Confirmar nueva contraseña</label>
+                                    <input class="form-control form-control-lg" type="password" name="confirm_password" required>
+                                </div>
+                                
+                                <div class="form-group mb-0">
+                                    <button type="submit" class="btn btn-primary">Actualizar Contraseña</button>
+                                </div>
+                            </li>
+                        </ul>
+                    </form>
                 </div>
-                
-                <!-- New Password -->
-                <div class="form-group">
-                    <label>Nueva contraseña</label>
-                    <input class="form-control form-control-lg" type="password" name="new_password" 
-                        placeholder="Mínimo 8 caracteres" minlength="8" required>
-                </div>
-                
-                <!-- Confirm New Password -->
-                <div class="form-group">
-                    <label>Confirmar nueva contraseña</label>
-                    <input class="form-control form-control-lg" type="password" name="confirm_password" required>
-                </div>
-                
-                <div class="form-group mb-0">
-                    <button type="submit" class="btn btn-primary">Actualizar Contraseña</button>
-                </div>
-            </li>
-        </ul>
-    </form>
+            </div>
+        </div>
+    </div>
 </div>
-											</div>
-											<!-- Setting Tab End -->
-									</div>
-								</div>
-							</div>
 						</div>
 					</div>
 				</div>

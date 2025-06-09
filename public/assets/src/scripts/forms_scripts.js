@@ -1138,8 +1138,8 @@ $(document).ready(function() {
 
   $("#reembolso_status_id").on("change", function () {
     var selectedValue = $(this).val();
-    $("#reembolso_status_id_hidden").val(selectedValue);
-});
+    $("#reembolso_status_id_hidden").val(selectedValue); 
+  });
 
   $('#gestor_total_pago').on('input', function () {
     // Permitir solo números y hasta dos decimales
