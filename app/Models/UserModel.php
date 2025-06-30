@@ -153,6 +153,27 @@ class UserModel extends Model{
         }
     }
 
+    //funcion para obtener los datos de un usuario por su id
+    public function getUserById($userId)
+    {
+        $builder = $this->db->table('users');
+        $builder->where('id', $userId);
+        $query = $builder->get();
+        return $query->getRowArray();
+    }   
 
-
-}           
+    // funcion para obetener el nombre completo de un usuario dado su id
+    public function getFullNameById($userId)
+    {
+        $builder = $this->db->table('users');
+        $builder->select('firstname, midname, lastname');
+        $builder->where('id', $userId);
+        $query = $builder->get();
+        $result = $query->getRowArray();                    
+        if ($result) {
+            return trim($result['firstname'] . ' ' . $result['midname'] . ' ' . $result['lastname']);
+        } else {
+            return null; // O manejar el caso donde no se encuentra el usuario
+        }
+    }  
+ }       

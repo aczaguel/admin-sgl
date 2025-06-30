@@ -169,6 +169,12 @@
 								<div class="min-height-200px">
 
 									<?php echo form_open('/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'tramiteForm', 'method' => 'post']); ?>
+										<div id="tramite_respuesta" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+											<span id="tramite_mensaje"></span>
+										</div>
+										<div id="tramite_respuesta_error" class="alert alert-warning alert-dismissible fade show" role="alert" style="display: none;">
+											<span id="tramite_mensaje_error"></span>
+										</div>
 										<div class="row">
 											<div class="col-md-6">
 												<?php 
