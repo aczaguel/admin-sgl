@@ -383,13 +383,35 @@ $(document).ready(function() {
             if (response.from == 'insert') {
                 window.location.href = response.redirect;
             } 
-            // Manejamos la respuesta del servidor
-            $('#tramite_mensaje').html(response.message); // Muestra la respuesta en un div
-            $('#tramite_respuesta').show(); // Mostramos el alert
-            // Ocultar el mensaje automáticamente después de 5 segundos
-            setTimeout(function() {
-                $('#tramite_respuesta').fadeOut('slow'); // Desaparece suavemente
-            }, 3000); // 3000 milisegundos = 3 segundos
+
+            if (response.success === true) {
+                // Manejamos la respuesta del servidor
+              $('#tramite_mensaje').html(response.message); // Muestra la respuesta en un div
+              $('#tramite_respuesta').show(); // Mostramos el alert
+              // Ocultar el mensaje automáticamente después de 5 segundos
+              setTimeout(function() {
+                  $('#tramite_respuesta').fadeOut('slow'); // Desaparece suavemente
+              }, 20000); // 20000 milisegundos = 20 segundos
+            } else {
+              var message = '';
+              if (typeof response.message === 'object') {
+                console.log("response.message", response.message);
+                message = 'El trámite con serie "' + response.message.serie_existente + '" ya existe para el tipo de trámite "' + response.message.tipo_tramite_existente + '" creado por ' + response.message.nombre_usuario_existente + ' en la fecha ' + response.message.created_at_existente ;
+                //agrega un link href para enviar a /tramites/update/ + response.message.id_existente
+                message += ' <a href="/deskapp/tramites/update/' + response.message.id_existente + '">Ir al trámite</a>';
+              }else {
+                message = response.message || 'Ocurrió un error desconocido.';
+              }
+
+              $('#tramite_mensaje_error').html(message);
+              $('#tramite_respuesta_error').show(); // Mostramos el alert
+              
+              // Ocultar el mensaje automáticamente después de 5 segundos
+              setTimeout(function() {
+                  $('#tramite_respuesta_error').fadeOut('slow'); // Desaparece suavemente
+              }, 20000); // 20000 milisegundos = 20 segundos
+            }
+            
         },
         error: function(xhr, status, error) {
             // Manejamos el error si ocurre

@@ -27,6 +27,7 @@ use App\Models\CobroStatusesModel;
 use App\Models\TraUserLogModel;
 use App\Models\ReembolsoStatusModel;
 use App\Models\CobroStatusModel;
+use App\Models\UserModel;
 use App\Models\PagoDerechosModel;
 use App\Models\PagoGestorStatusModel;
 use App\Models\TraTramiteAsociadoModel;
@@ -1031,8 +1032,79 @@ class Tramites extends BaseController
                 // Insertar los datos en la base de datos
                 $data = $this->request->getPost();
                 $db = \Config\Database::connect();
-                $builder = $db->table('tramite');
+                
                 $button_action = $this->request->getPost('accion');
+                $tra_tipos_id = $data["tra_tipos_id"];
+
+                // agrega una validación que valide si el campo tra_tipos_id y el campo serie ya existen en la base de datos en una fecha anterior a la actual de 1 semana a la fecha actual
+                $builder = $db->table('tramite');
+                $builder->where('tra_tipos_id', $tra_tipos_id);
+                $builder->where('serie', $data['serie']);
+                $builder->where('created_at >=', date('Y-m-d H:i:s', strtotime('-1 week')));
+                $query = $builder->get();   
+
+                // retorna el dql
+                //echo "<br>" . $db->getLastQuery();
+                $resultados = $query->getResultArray();
+                $existen = !empty($resultados);
+                $serieExistente = $existen ? $resultados[0]['serie'] : null;
+                if ($existen) {
+                    // Si existe, devuelve un error
+                    // print_r($resultados);
+                    $data_existete = $resultados[0];
+                    $id_existente = $data_existete['id'];
+                    $user_id_existente = $data_existete['user_id'];
+                    $tra_tipos_id_existente = $data_existete['tra_tipos_id'];
+                    $created_at_existente = $data_existete['created_at'];
+                    $serieExistente = $data_existete['serie'];
+
+                    // primero imprime lo ids para consultar con un enter enmedio
+                    // echo "<br>Id existente: ";
+                    // print_r($id_existente);
+                    // echo "<br>User ID existente: ";
+                    // print_r($user_id_existente); 
+                    // echo "<br>Tipo de trámite ID existente: ";
+                    // print_r($tra_tipos_id_existente);
+                    // echo "<br>Fecha de creación existente: ";
+                    // print_r($created_at_existente);
+                    // Obtiene la serie existente
+
+                    // Obtener el Nombre del usuario que creó el trámite existente
+                    $userModel = new UserModel();
+                    // Obtener el nombre completo del usuario por su ID
+                    $user_id_existente = (int)$user_id_existente;
+
+                    // Verifica si el ID del usuario es válido
+                    if ($user_id_existente <= 0) {
+                        $user_id_existente = 1; // Asigna un ID de usuario por defecto
+                    }
+                    // Obtiene el nombre completo del usuario
+                    // Si el ID del usuario es válido, busca el nombre completo
+
+                    $nombreUsuarioExistente = $userModel->getFullNameById($user_id_existente);      
+                    // Obtener el tipo de trámite existente
+                    $traTiposModel = new TraTiposModel($this->_getDbData());
+                    $tipoTramiteExistente = $traTiposModel->getTipoTramiteById($tra_tipos_id_existente);
+
+                    // Genera una cadena que diga, El trámite con serie "serieExistente" ya existe para el tipo de trámite "tipoTramiteExistente" creado por "nombreUsuarioExistente" en la fecha "created_at_existente"
+                    $mensajeError = [];
+                    $mensajeError['serie_existente'] = $serieExistente;
+                    $mensajeError['tipo_tramite_existente'] = $tipoTramiteExistente;
+                    $mensajeError['nombre_usuario_existente'] = $nombreUsuarioExistente;
+                    $mensajeError['created_at_existente'] = $created_at_existente;
+                    $mensajeError['id_existente'] = $id_existente;
+
+                    if ($this->request->isAJAX()) {
+                        return $this->response->setJSON([
+                            'success' => false,
+                            'message' => $mensajeError // Devuelve el mensaje de error como JSON
+                        ]);
+                    } else {
+                        return redirect()->back()->withInput()->with('error', $mensajeError);
+                    }
+                }
+                // Si no existe, continúa con la inserción
+                $builder = $db->table('tramite');
                 
                 $clienteModel = new ClienteModel($this->_getDbData());
                 $newFolio = $clienteModel->getPrefijoConUltimosSeisDigitos($data["cli_directo_id"]);
@@ -1045,6 +1117,8 @@ class Tramites extends BaseController
                     $data["tra_status_id"] = 11;
                 }
 
+
+                // Espacio para guardar la relación DosStatus
                 unset($data["accion"]);
                 $builder->insert($data);
                 // Get the last insert ID
@@ -1052,7 +1126,6 @@ class Tramites extends BaseController
 
                 # Insertar relación en tra_tramite_asociado
                 $traTramiteAsociadoModel = new TraTramiteAsociadoModel();
-                $tra_tipos_id = $data["tra_tipos_id"];
                 $insert_tramite_asociado = [
                 "tramite_id" => (int)$lastInsertID,
                 "tra_tipos_id" => (int)$tra_tipos_id,
@@ -1061,11 +1134,13 @@ class Tramites extends BaseController
                 ];
                 $traTramiteAsociadoModel->insert($insert_tramite_asociado, 'tra_tramite_asociado');
 
-                #Espacio para guardar la relación DosStatus 
+                $tra_tipos_id = $data["tra_tipos_id"];
+
+                
+                // Espacio para guardar la relación DosStatus 
 
                 // $db = Database::connect();
                 $db2 = $this->_getDbData();
-                $tra_tipos_id = $data["tra_tipos_id"];
                 $condition = ['tra_tipos_id' => $tra_tipos_id];
                 $query = $db->table('tra_tipo_documentos')->where($condition)->get();
                 $resultados = $query->getResultArray();

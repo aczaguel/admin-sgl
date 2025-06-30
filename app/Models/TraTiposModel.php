@@ -33,6 +33,22 @@ class TraTiposModel extends Model
         return $this->where('id', $id)->select('folio')->first();
     }
 
+    // obtener el tipo de tramite por id
+    public function getTipoTramiteById($id)
+    {
+        $sql = new Sql($this->adapter);
+        $select = $sql->select();
+        $select->from('tra_tipos');
+        $select->columns(['tipo_tramite']);
+        $select->where(['id' => $id]);
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $result = $statement->execute();
+        $row = $result->current();
+
+        return $row ? $row['tipo_tramite'] : null;
+    }
+     
 
 }
 
