@@ -7,7 +7,7 @@ use \PHPExcel_IOFactory as PHPExcel_IOFactory;
 
 class ExportState extends DatagridState {
 
-    const MAX_AMOUNT_OF_EXPORT = 1000;
+    const MAX_AMOUNT_OF_EXPORT = 10000;
 
     public function getPage($data = []) {
         // No matter of our data, if we have set the page we will get the value from our object
