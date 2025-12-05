@@ -31,6 +31,8 @@ use App\Models\UserModel;
 use App\Models\PagoDerechosModel;
 use App\Models\PagoGestorStatusModel;
 use App\Models\TraTramiteAsociadoModel;
+use App\Models\TraCobroClienteModel;
+use App\Models\TraEvidenciasFinalesModel;
 
 class Tramites extends BaseController
 {
@@ -61,7 +63,7 @@ class Tramites extends BaseController
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
-            //$tramite_crud->where('tra_status_id NOT IN (20, 21)');
+            $tramite_crud->where('tra_status_id NOT IN (20, 21)');
             
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -136,10 +138,30 @@ class Tramites extends BaseController
                 $claseGris = 'background-gris';  // Clase CSS para gris claro
                 $claseAzulClaro = 'background-azul-claro';  // Clase CSS para azul claro
                 $claseAzul = 'background-azul';  // Clase CSS para azul
+                $claseAzulCobroCliente = 'background-azul-cobro-cliente';  // Clase CSS para azul
             
                 // Verificar tra_status_id para colores especiales
                 if ($row->tra_status_id == 23 || $row->tra_status_id == 28) {
-                    $clase = $claseAzulClaro;
+                    if($row->tra_status_id == 23){
+                        $clase = $claseAzulClaro;
+                    }
+                    $txt_generar_factura = '';
+
+                    // agrega validacion para cobro cliente y para evidencias finales dado el tramite_id, si existe alguno entonces se debe usar otra clase
+                     $traCobroClienteModel = new TraCobroClienteModel();
+                     $registrosCobroCliente = $traCobroClienteModel->getByTramiteId($row->id);
+
+                     $traEvidenciasFinalesModel = new TraEvidenciasFinalesModel();
+                     $registrosEvidenciasFinales = $traEvidenciasFinalesModel->getByTramiteId($row->id);
+                     // si alguna de las dos tiene registros entonces txt_generar_factura debe decir "Generar Factura" de lo contrario queda vacio
+                    if (count($registrosCobroCliente) > 0 || count($registrosEvidenciasFinales) > 0) {
+                        $txt_generar_factura = 'Facturar';
+                    }
+
+                    if($row->tra_status_id == 28){
+                        $clase = $claseAzulCobroCliente;
+                        return '<span class="' . $clase . '">' . $txt_generar_factura . '</span>';
+                    }
                 } elseif ($row->tra_status_id == 21) {
                     $clase = $claseGris;
                 } elseif ($row->tra_status_id == 20) {
