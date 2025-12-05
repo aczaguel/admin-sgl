@@ -102,6 +102,8 @@ class Concluido extends BaseController
                 'observaciones'
             ]);
 
+            $tramite_crud->displayAs("reembolso_status_id", "Estatus de Reembolso");
+
             $tramite_crud->callbackColumn('reembolso_status_id', function ($value, $row) {
                 // Definir clases CSS
                 $claseVerde = 'background-verde';          // Clase para terminado completamente
