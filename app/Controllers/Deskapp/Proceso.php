@@ -23,6 +23,8 @@ use App\Models\CobroStatusModel;
 use App\Models\BitacoraModel;
 use App\Models\ReembolsoStatusModel;
 use App\Models\EntidadesModel;
+use App\Models\TraCobroClienteModel;
+use App\Models\TraEvidenciasFinalesModel;
 class Proceso extends BaseController
 {
     public function __construct() {
@@ -250,6 +252,214 @@ class Proceso extends BaseController
         }
         // return view('example.php', (array)$salida);
         return view('/deskapp/extra-pages/grocery_page.php', (array)$salida);
+    }
+
+    public function cobro_cliente()
+    {
+        try {
+            # Manejo de session de action
+            $self = $this;
+            $session = session();
+            $data['session'] = \Config\Services::session();
+            $data['username'] = $session->get('user_name');
+            $myid = $session->get('id');
+            # fin del manejo de session
+
+            $tramite_crud = $this->_getGroceryCrudEnterprise();
+            $tramite_crud->where('tra_status_id = 28');
+            $tramite_crud->where([
+                'tramite.created_at >= ?' => ['2025-01-01 00:00:00']
+            ]);
+
+            $tramite_crud->unsetAdd();
+            $tramite_crud->unsetEdit();
+            $tramite_crud->unsetRead();
+            // $tramite_crud->setTheme('bootstrap-v5');
+            $tramite_crud->unsetDeleteMultiple();
+            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+                    return '/deskapp/tramites/update/' . $row->id;
+                }, false);
+            }
+
+            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetDelete();
+            }
+
+            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetExport();
+            }
+
+            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetPrint();
+            }
+
+            if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
+                    return '/deskapp/tramites/update/' . $row->id;
+                }, false);
+            }
+
+            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+                $tramite_crud->unsetClone();
+            }
+
+            $tramite_crud->setCsrfTokenName(csrf_token());
+            $tramite_crud->setCsrfTokenValue(csrf_hash());
+
+            //lista todos los unset de grocery crud
+            
+            $tramite_crud->setTable('tramite');
+            $tramite_crud->setSubject('tramite', 'Tramites');
+            $tramite_crud->defaultOrdering('tramite.id', 'desc');
+            
+            $tramite_crud->columns([
+                'id', 'created_at', 'started_at', 'tra_status_id', 'folio', 'contrato', 'unidad', 'serie', 
+                'placas', 'tra_tipos_id', 'entidad_id', 'ent_municipio_id', 'cli_directo_id',
+                'cli_directo_ejecutivo_id', 'empresa_gestora_id', 'gestor_id',
+                'cobro_status_id', 'user_id',
+                'observaciones'
+            ]);
+
+            $tramite_crud->displayAs("started_at", "Desde Asignación");
+
+            $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+            $tramite_crud->displayAs("user_id", "Ejecutivo");
+
+            $tramite_crud->callbackColumn('started_at', function ($value, $row) {
+                $fechaAsignacion = new \DateTime($row->started_at); 
+                $fechaActual = new \DateTime();
+                $diasDiferencia = $fechaAsignacion->diff($fechaActual)->days;
+            
+                // Definir clases CSS según los días
+                $claseVerde = 'background-verde';
+                $claseAmarillo = 'background-amarillo';
+                $claseRojo = 'background-rojo';
+                $claseVioleta = 'background-violeta';
+                $claseGris = 'background-gris';  // Clase CSS para gris claro
+                $claseAzulClaro = 'background-azul-claro';  // Clase CSS para azul claro
+                $claseAzul = 'background-azul';  // Clase CSS para azul
+                $claseAzulCobroCliente = 'background-azul-cobro-cliente';  // Clase CSS para azul
+            
+                // Verificar tra_status_id para colores especiales
+                if ($row->tra_status_id == 23 || $row->tra_status_id == 28) {
+                    if($row->tra_status_id == 23){
+                        $clase = $claseAzulClaro;
+                    }
+                    $txt_generar_factura = '';
+
+                    // agrega validacion para cobro cliente y para evidencias finales dado el tramite_id, si existe alguno entonces se debe usar otra clase
+                     $traCobroClienteModel = new TraCobroClienteModel();
+                     $registrosCobroCliente = $traCobroClienteModel->getByTramiteId($row->id);
+
+                     $traEvidenciasFinalesModel = new TraEvidenciasFinalesModel();
+                     $registrosEvidenciasFinales = $traEvidenciasFinalesModel->getByTramiteId($row->id);
+                     // si alguna de las dos tiene registros entonces txt_generar_factura debe decir "Generar Factura" de lo contrario queda vacio
+                    if (count($registrosCobroCliente) > 0 || count($registrosEvidenciasFinales) > 0) {
+                        $txt_generar_factura = 'Facturar';
+                    }
+
+                    if($row->tra_status_id == 28){
+                        $clase = $claseAzulCobroCliente;
+                        return '<span class="' . $clase . '">' . $txt_generar_factura . '</span>';
+                    }
+                } elseif ($row->tra_status_id == 21) {
+                    $clase = $claseGris;
+                } elseif ($row->tra_status_id == 20) {
+                    $clase = $claseAzul;
+                } else {
+                    // Determinar si es Local o Foráneo
+                    $local = ($row->ent_municipio_id >= 266 && $row->ent_municipio_id <= 281) || 
+                             ($row->ent_municipio_id >= 657 && $row->ent_municipio_id <= 781);
+                    
+                    // Determinar la clase CSS basada en los días de diferencia y si es Local o Foráneo
+                    if ($local) {
+                        if ($diasDiferencia < 5) {
+                            $clase = $claseVerde;
+                        } elseif ($diasDiferencia < 8) {
+                            $clase = $claseAmarillo;
+                        } elseif ($diasDiferencia < 12) {
+                            $clase = $claseRojo;
+                        } else {
+                            $clase = $claseVioleta;
+                        }
+                    } else {
+                        if ($diasDiferencia < 10) {
+                            $clase = $claseVerde;
+                        } elseif ($diasDiferencia < 13) {
+                            $clase = $claseAmarillo;
+                        } elseif ($diasDiferencia < 16) {
+                            $clase = $claseRojo;
+                        } else {
+                            $clase = $claseVioleta;
+                        }
+                    }
+                }
+
+
+                $arrFilter = [20, 21, 23, 28];
+                if (!in_array($row->tra_status_id, $arrFilter)) {
+                    return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
+                }
+            
+                return '<span class="' . $clase . '"></span>';
+            });
+
+            $tramite_crud->fields([
+                'folio','contrato','unidad','serie', 
+                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
+                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
+                'tra_status_id','cobro_status_id',
+                'observaciones', 'user_id'
+            ]); 
+
+            $tramite_crud->displayAs("created_at", "Creación");
+            /* SELECT Se configura el tipo de tramite */
+            $tramite_crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
+            $tramite_crud->displayAs('tra_tipos_id','Tipo de Tramite');
+
+            /* SELECT Se configura el estatus del tramite */
+            $tramite_crud->setRelation('tra_status_id', 'tra_status', 'tra_status');
+            $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
+
+            /* SELECT Se configura el cliente final o cliente directo */
+            $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
+            
+            /* SELECT Se configura el ejecutivo del cliente */
+            $tramite_crud->setRelation('cli_directo_ejecutivo_id', 'cli_directo_ejecutivo', 'nombre');
+            $tramite_crud->displayAs('cli_directo_ejecutivo_id','Ejecutivo del Cliente');
+
+            $tramite_crud->setDependentRelation('cli_directo_ejecutivo_id','cli_directo_id','cli_directo_id');
+
+            /* SELECT Se configura el la entidad */
+            $tramite_crud->setRelation('entidad_id', 'entidad', 'entidad');
+            $tramite_crud->displayAs('entidad_id','Entidad');
+
+            /* SELECT Se configura el municipio */
+            $tramite_crud->setRelation('ent_municipio_id', 'rel_ent_municipio', 'ent_municipality');
+            $tramite_crud->displayAs('ent_municipio_id','Municipio');
+
+            /* SELECT Se configura la empresa gestora */
+            $tramite_crud->setRelation('empresa_gestora_id', 'ges_empresa_gestora', 'razon_social');
+            $tramite_crud->displayAs('empresa_gestora_id','Empresa Gestora');
+
+            /* SELECT Se configura el gestor*/
+            $tramite_crud->setRelation('gestor_id', 'ges_gestor', 'nombre');
+            $tramite_crud->displayAs('gestor_id','Gestor');
+
+            $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
+
+            $tramite_salida = $tramite_crud->render();
+            
+            $salida_total = array_merge((array)$tramite_salida, $data);
+            $salida_total['insert_button_url'] = '/public/deskapp/tramites/add';
+
+            echo $this->_example_output($salida_total);
+
+        } catch (\Exception $e) {
+            exit($e->getMessage());
+        }
     }
 
     public function final()

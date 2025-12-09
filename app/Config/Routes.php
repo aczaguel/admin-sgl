@@ -178,6 +178,9 @@ $routes->post('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora::index');
 $routes->get('/proceso/final', 'Deskapp/Proceso::final',['filter' => 'auth']);
 $routes->post('/proceso/final', 'Deskapp/Proceso::final');
 
+$routes->get('/proceso/cobro_cliente', 'Deskapp/Proceso::cobro_cliente',['filter' => 'auth']);
+$routes->post('/proceso/cobro_cliente', 'Deskapp/Proceso::cobro_cliente');
+
 $routes->get('/tramites/update_final/(:id)', 'Deskapp/Tramites::update_final/$1',['filter' => 'auth']);
 $routes->post('/tramites/update_final/(:id)', 'Deskapp/Tramites::update_final/$1');
 
