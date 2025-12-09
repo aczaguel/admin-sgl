@@ -20,9 +20,9 @@
 								<span class="micon dw dw-house-1"></span><span class="mtext">Trámites</span>
 							</a>
 							<ul class="submenu">
-								<?php if (has_permission('listar_tramite_cliente', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-									<li><a href="<?php echo base_url('deskapp/customers/list'); //listar_tramite?>">Trámites</a></li>
-								<?php endif; ?>
+								<?php //if (has_permission('listar_tramite_cliente', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+									<!-- <li><a href="<?php //echo base_url('deskapp/customers/list'); //listar_tramite?>">Trámites</a></li> -->
+								<?php //endif; ?>
 								<?php if (has_permission('listar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 									<li><a href="<?php echo base_url('deskapp/tramites/tramite'); //listar_tramite?>">Trámites</a></li>
 								<?php endif; ?>
@@ -70,6 +70,9 @@
 						<ul class="submenu">
 						<?php if (has_permission('listar_final_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 								<li><a href="<?php echo base_url('deskapp/proceso/final'); //listar_final_tramite?>">Finalizado</a></li>
+							<?php endif; ?>	
+							<?php if (has_permission('listar_concluidos_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/cancelados'); //listar_final_tramite?>">Cancelados</a></li>
 							<?php endif; ?>	
 						</ul>
 					</li>

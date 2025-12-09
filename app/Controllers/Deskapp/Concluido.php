@@ -106,7 +106,7 @@ class Concluido extends BaseController
 
             $tramite_crud->callbackColumn('reembolso_status_id', function ($value, $row) {
                 // Definir clases CSS
-                $claseVerde = 'background-verde';          // Clase para terminado completamente
+                $claseVerde = 'background-azul-cobro-cliente';          // Clase para terminado completamente
                 $claseNaranjaCalido = 'background-naranja-calido';  // Clase para pendientes (21 o 22)
                 $claseNaranjaFuerte = 'background-naranja-fuerte';            // Clase para pendiente (Cliente)
                 $claseRojo = 'background-rojo'; // Clase para ambos pendientes
