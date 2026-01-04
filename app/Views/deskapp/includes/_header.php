@@ -128,6 +128,9 @@
 								<a href="/deskapp/tramites/tramite_2024" class="btn btn-success btn-sm btn-xs m-1">
 									<i class="fas fa-list"></i> 2024
 								</a>
+								<a href="/deskapp/tramites/tramite_2025" class="btn btn-success btn-sm btn-xs m-1">
+									<i class="fas fa-list"></i> 2025
+								</a>
 								<a href="/deskapp/tramites/tramite" class="btn btn-info btn-sm btn-xs m-1">
 									<i class="fas fa-list"></i> Consolidado
 								</a>

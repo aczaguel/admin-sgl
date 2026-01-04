@@ -121,6 +121,9 @@ $routes->post('/tramites/tramite', 'Deskapp/Tramites::tramite');
 $routes->get('/tramites/tramite_2024', 'Deskapp/Tramites::tramite_2024',['filter' => 'auth']);
 $routes->post('/tramites/tramite_2024', 'Deskapp/Tramites::tramite_2024');
 
+$routes->get('/tramites/tramite_2025', 'Deskapp/Tramites::tramite_2025',['filter' => 'auth']);
+$routes->post('/tramites/tramite_2025', 'Deskapp/Tramites::tramite_2025');
+
 $routes->get('/tramites/mios', 'Deskapp/Tramites::mios',['filter' => 'auth']);
 $routes->post('/tramites/mios', 'Deskapp/Tramites::mios');
 
