@@ -44,6 +44,41 @@
 							</ul>
 						</li>
 					<?php endif; ?>
+					
+					<!-- Dashboard Administrativo (Solo para Admin) -->
+					<?php if (is_admin(esc($session->get('user_roles')))): ?>
+						<br>
+						<li class="dropdown">
+							<a href="javascript:;" class="dropdown-toggle">
+								<span class="micon dw dw-analytics-21"></span><span class="mtext">Dashboard Admin</span>
+							</a>
+							<ul class="submenu">
+								<li><a href="<?php echo base_url('deskapp/dashboardadmin'); ?>">
+									<i class="icon-copy fa fa-tachometer-alt"></i> Panel Principal 2026
+								</a></li>
+								<li><a href="<?php echo base_url('deskapp/dashboardadmin/alertas'); ?>">
+									<i class="icon-copy fa fa-exclamation-triangle"></i> Alertas Críticas
+								</a></li>
+								<li><a href="<?php echo base_url('deskapp/dashboardadmin/financiero'); ?>">
+									<i class="icon-copy fa fa-file-invoice-dollar"></i> Análisis Financiero
+								</a></li>
+								<li><a href="<?php echo base_url('deskapp/dashboardadmin/reportes'); ?>">
+									<i class="icon-copy fa fa-chart-bar"></i> Reportes y Estadísticas
+								</a></li>
+								<li class="dropdown-divider"></li>
+								<li><a href="<?php echo base_url('deskapp/dashboardadmin?anio=2025'); ?>">
+									<i class="icon-copy fa fa-calendar"></i> Año 2025
+								</a></li>
+								<li><a href="<?php echo base_url('deskapp/dashboardadmin?anio=2024'); ?>">
+									<i class="icon-copy fa fa-calendar"></i> Año 2024
+								</a></li>
+								<li><a href="<?php echo base_url('deskapp/dashboardadmin?anio=2023'); ?>">
+									<i class="icon-copy fa fa-calendar"></i> Año 2023
+								</a></li>
+							</ul>
+						</li>
+					<?php endif; ?>
+					
 					<!-- <li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
 							<span class="micon dw dw-library"></span><span class="mtext">Seguimiento</span>

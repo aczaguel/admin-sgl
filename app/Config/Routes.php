@@ -287,6 +287,47 @@ $routes->post('/customers/proceso_evidencias_finales/(:id)', 'Deskapp/Customers:
 $routes->get('/customers/proceso_pago_derechos/(:id)', 'Deskapp/Customers::proceso_pago_derechos/$1',['filter' => 'auth']);
 $routes->post('/customers/proceso_pago_derechos/(:id)', 'Deskapp/Customers::proceso_pago_derechos/$1');
 
+// ============================================================================
+// Dashboard Administrativo - Rutas
+// ============================================================================
+$routes->get('/deskapp/dashboardadmin', 'Deskapp/DashboardAdmin::index',['filter' => 'auth']);
+$routes->post('/deskapp/dashboardadmin', 'Deskapp/DashboardAdmin::index');
+
+$routes->get('/deskapp/dashboardadmin/alertas', 'Deskapp/DashboardAdmin::alertas',['filter' => 'auth']);
+$routes->post('/deskapp/dashboardadmin/alertas', 'Deskapp/DashboardAdmin::alertas');
+
+$routes->get('/deskapp/dashboardadmin/financiero', 'Deskapp/DashboardAdmin::financiero',['filter' => 'auth']);
+$routes->post('/deskapp/dashboardadmin/financiero', 'Deskapp/DashboardAdmin::financiero');
+
+$routes->get('/deskapp/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes',['filter' => 'auth']);
+$routes->post('/deskapp/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes');
+
+// APIs para datos en tiempo real (JSON)
+$routes->get('/deskapp/dashboardadmin/api_metricas', 'Deskapp/DashboardAdmin::api_metricas',['filter' => 'auth']);
+$routes->get('/deskapp/dashboardadmin/api_alertas', 'Deskapp/DashboardAdmin::api_alertas',['filter' => 'auth']);
+$routes->get('/deskapp/dashboardadmin/api_graficas', 'Deskapp/DashboardAdmin::api_graficas',['filter' => 'auth']);
+$routes->get('/deskapp/dashboardadmin/api_kpis', 'Deskapp/DashboardAdmin::api_kpis',['filter' => 'auth']);
+$routes->get('/deskapp/dashboardadmin/api_comparativas', 'Deskapp/DashboardAdmin::api_comparativas',['filter' => 'auth']);
+$routes->get('/deskapp/dashboardadmin/api_rankings', 'Deskapp/DashboardAdmin::api_rankings',['filter' => 'auth']);
+$routes->get('/deskapp/dashboardadmin/api_financiero', 'Deskapp/DashboardAdmin::api_financiero',['filter' => 'auth']);
+
+// Exportar reportes
+$routes->get('/deskapp/dashboardadmin/exportar_excel', 'Deskapp/DashboardAdmin::exportar_excel',['filter' => 'auth']);
+$routes->get('/deskapp/dashboardadmin/exportar_pdf', 'Deskapp/DashboardAdmin::exportar_pdf',['filter' => 'auth']);
+// ============================================================================
+
+// ============================================================================
+// Notificaciones - Rutas
+// ============================================================================
+$routes->get('/deskapp/notifications', 'Deskapp/Notifications::index',['filter' => 'auth']);
+$routes->get('/deskapp/notifications/api_unread', 'Deskapp/Notifications::api_unread',['filter' => 'auth']);
+$routes->get('/deskapp/notifications/api_count', 'Deskapp/Notifications::api_count',['filter' => 'auth']);
+$routes->post('/deskapp/notifications/api_mark_read/(:num)', 'Deskapp/Notifications::api_mark_read/$1',['filter' => 'auth']);
+$routes->post('/deskapp/notifications/api_mark_all_read', 'Deskapp/Notifications::api_mark_all_read',['filter' => 'auth']);
+$routes->delete('/deskapp/notifications/api_delete/(:num)', 'Deskapp/Notifications::api_delete/$1',['filter' => 'auth']);
+$routes->get('/deskapp/notifications/api_load_more', 'Deskapp/Notifications::api_load_more',['filter' => 'auth']);
+// ============================================================================
+
 
 /*
  * --------------------------------------------------------------------

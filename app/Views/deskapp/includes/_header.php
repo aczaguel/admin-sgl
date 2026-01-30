@@ -137,19 +137,19 @@
 								<a href="/deskapp/tramites/add" class="btn btn-danger btn-sm btn-xs m-1">
 									<i class="fas fa-plus"></i> Nuevo
 								</a>
-								<a href="/deskapp/tramites/solicitudes" class="btn btn-info btn-sm btn-xs m-1">
+								<!-- <a href="/deskapp/tramites/solicitudes" class="btn btn-info btn-sm btn-xs m-1">
 									<i class="fas fa-file-alt"></i> Solicitudes
 								</a>
 								<a href="/deskapp/tramites/recoleccion" class="btn btn-info btn-sm btn-xs m-1">
 									<i class="fas fa-truck"></i> Asignaciones
-								</a>
+								</a> -->
 								<a href="/deskapp/tramites/en_tramite" class="btn btn-info btn-sm btn-xs m-1">
 									<i class="fas fa-check"></i> En Trámite
 								</a>
-								<a href="/deskapp/proceso/final" class="btn btn-info btn-sm btn-xs m-1">
+								<!-- <a href="/deskapp/proceso/final" class="btn btn-info btn-sm btn-xs m-1">
 									<i class="fas fa-user"></i> Entregados
-								</a>
-								<a href="/deskapp/tramites/mios" class="btn btn-info btn-sm btn-xs m-1">
+								</a> -->
+								<!-- <a href="/deskapp/tramites/mios" class="btn btn-info btn-sm btn-xs m-1">
 									<i class="fas fa-user"></i> Mios
 								</a>
 								<a href="/deskapp/concluido/final" class="btn btn-info btn-sm btn-xs m-1">
@@ -157,7 +157,7 @@
 								</a>
 								<a href="/deskapp/tramites/cotizaciones" class="btn btn-info btn-sm btn-xs m-1">
 									<i class="fas fa-user"></i> Cotizaciones
-								</a>
+								</a> -->
 							</div>
 						</div>
 					</div>
@@ -165,73 +165,18 @@
 
 
 			<?php endif; ?>
+		
 		<div class="dashboard-setting user-notification">
-			<!-- Botones con iconos -->
+			<!-- Notificaciones -->
+			<?php // echo view('deskapp/includes/_notifications_dropdown'); ?>
 			
+			<!-- Configuración -->
 			<div class="dropdown">
 				<a class="dropdown-toggle no-arrow" href="javascript:;" data-toggle="right-sidebar">
 					<i class="dw dw-settings2"></i>
 				</a>
-				
 			</div>
-			
 		</div>
-		<!-- <div class="user-notification">
-			<div class="dropdown">
-				<a class="dropdown-toggle no-arrow" href="#" role="button" data-toggle="dropdown">
-					<i class="icon-copy dw dw-notification"></i>
-					<span class="badge notification-active"></span>
-				</a>
-				<div class="dropdown-menu dropdown-menu-right">
-					<div class="notification-list mx-h-350 customscroll">
-						<ul>
-							<li>
-								<a href="#">
-									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/img.jpg" alt="">
-									<h3>John Doe</h3>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
-								</a>
-							</li>
-							<li>
-								<a href="#">
-									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo1.jpg" alt="">
-									<h3>Lea R. Frith</h3>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
-								</a>
-							</li>
-							<li>
-								<a href="#">
-									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo2.jpg" alt="">
-									<h3>Erik L. Richards</h3>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
-								</a>
-							</li>
-							<li>
-								<a href="#">
-									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo3.jpg" alt="">
-									<h3>John Doe</h3>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
-								</a>
-							</li>
-							<li>
-								<a href="#">
-									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/photo4.jpg" alt="">
-									<h3>Renee I. Hansen</h3>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
-								</a>
-							</li>
-							<li>
-								<a href="#">
-									<img src="<?php echo base_url(); ?>/public/assets/vendors/images/img.jpg" alt="">
-									<h3>Vicki M. Coleman</h3>
-									<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed...</p>
-								</a>
-							</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div> -->
 		
 		<div class="user-info-dropdown">
 			<div class="dropdown">
