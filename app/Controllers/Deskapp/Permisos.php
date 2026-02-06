@@ -60,6 +60,8 @@ class Permisos extends BaseController
 
 
             $permissions_output = $permissions_crud->render();
+            $data['title'] = 'Gestión de Permisos';
+            $data['description'] = 'Administra los permisos del sistema y sus descripciones';
             $final_output = array_merge((array)$permissions_output, $data);
             echo $this->_example_output($final_output);
 

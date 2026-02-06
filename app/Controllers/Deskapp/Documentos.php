@@ -76,6 +76,8 @@ class Documentos extends BaseController
         });
 
         $salida = $crud->render();
+        $data['title'] = 'Gestión de Documentos';
+        $data['description'] = 'Administra los tipos de documentos requeridos en los trámites';
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
     }
@@ -120,6 +122,8 @@ class Documentos extends BaseController
         });
 
         $salida = $crud->render();
+        $data['title'] = 'Gestión de Estados de Documentos';
+        $data['description'] = 'Administra los diferentes estados que pueden tener los documentos';
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
     }

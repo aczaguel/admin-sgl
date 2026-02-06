@@ -1,4 +1,32 @@
 <?php
+
+/**
+ * ============================================================================
+ * CONTROLADOR DE VISTA DE CLIENTES - ARQUITECTURA MULTI-TENANCY
+ * ============================================================================
+ * 
+ * Este controlador proporciona vistas de trámites FILTRADAS por cliente.
+ * Es utilizado cuando los usuarios son clientes externos que solo deben
+ * ver SUS propios trámites.
+ * 
+ * PROPÓSITO:
+ * - Permitir que clientes externos accedan al sistema
+ * - Mostrar únicamente trámites relacionados a sus clientes asignados
+ * - Implementar filtrado automático basado en cliente_user
+ * 
+ * SEGURIDAD CRÍTICA:
+ * - TODOS los métodos aplican filtrado por cliente_user
+ * - Se valida acceso antes de mostrar cualquier dato
+ * - Se previene acceso a información de otros clientes
+ * 
+ * ARQUITECTURA:
+ * - Consulta tabla cliente_user para obtener clientes del usuario
+ * - Filtra trámites mediante relación cliente -> cli_directo -> tramite
+ * - Solo muestra datos de trámites asociados a clientes autorizados
+ * 
+ * ============================================================================
+ */
+
 // namespace App\Controllers;
 namespace App\Controllers\Deskapp;
 use App\Controllers\BaseController;
@@ -23,11 +51,12 @@ use App\Models\CobroStatusModel;
 use App\Models\BitacoraModel;
 use App\Models\ReembolsoStatusModel;
 use App\Models\EntidadesModel;
+
 class Customers extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url']);
+        helper(['form', 'url', 'cliente_filter']);
     }
 
     public function index()
@@ -51,6 +80,33 @@ class Customers extends BaseController
         return view('/deskapp/extra-pages/grocery_page_cliente.php', (array)$salida);
     }
 
+    /**
+     * Lista de trámites filtrados por clientes del usuario
+     * 
+     * FILTRADO DE SEGURIDAD MULTI-TENANCY:
+     * Esta función implementa el filtrado crítico que asegura que los usuarios
+     * solo vean trámites de sus clientes asignados.
+     * 
+     * FLUJO:
+     * 1. Obtiene el ID del usuario en sesión
+     * 2. Consulta cliente_user para obtener clientes asignados
+     * 3. Filtra trámites mediante la cadena: cliente -> cli_directo -> tramite
+     * 4. Solo muestra trámites que pertenecen a los clientes autorizados
+     * 
+     * CONSULTA SQL:
+     * WHERE tramite.id IN (
+     *     SELECT t.id 
+     *     FROM cliente_user cu
+     *     JOIN cliente c ON cu.cliente_id = c.id
+     *     JOIN cli_directo cd ON cd.cliente_id = c.id
+     *     JOIN tramite t ON cd.id = t.cli_directo_id
+     *     WHERE cu.user_id = $myid
+     * )
+     * 
+     * PERMISOS:
+     * - Solo lectura (unsetAdd, unsetEdit, unsetDelete)
+     * - Verifica permisos para export, print y read
+     */
     public function list()
     {
         try {
@@ -59,6 +115,7 @@ class Customers extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            
             $crud = $this->_getGroceryCrudEnterprise();
             // $crud->where([
             //     'tra_status_id' => 23                                                                                                                                                                                                                                                                                                                                  
@@ -73,8 +130,21 @@ class Customers extends BaseController
             $crud->setCsrfTokenValue(csrf_hash());
             $crud->setTable('tramite');
             $crud->setSubject('tramite', 'Tramites');
-           // Configurar una relación personalizada
-            // Filtrar los trámites relacionados con el cliente del usuario
+            
+            // ========================================================================
+            // FILTRADO CRÍTICO POR CLIENTE - ARQUITECTURA MULTI-TENANCY
+            // ========================================================================
+            // 
+            // Esta condición WHERE es FUNDAMENTAL para la seguridad del sistema.
+            // Asegura que el usuario solo pueda ver trámites de sus clientes asignados.
+            // 
+            // RELACIÓN:
+            // user -> cliente_user -> cliente -> cli_directo -> tramite
+            // 
+            // Si se elimina o modifica este filtro, se rompe la segregación de datos
+            // y los usuarios podrían ver información de otros clientes.
+            // ========================================================================
+            
             $crud->where("
                 tramite.id IN (
                     SELECT 
@@ -91,6 +161,7 @@ class Customers extends BaseController
                         cu.user_id = $myid
                 )
             ");
+            
             $crud->columns(['created_at', "started_at", "id", "folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id",'ent_municipio_id', "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", 
             "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite", "comision_derechos", "costo_total", "numero_factura", "numero_refactura",
             "reembolso_status_id", "tra_status_id", "cobro_status_id", "user_id", "observaciones"]); 

@@ -1,9 +1,40 @@
 <?php 
+
 namespace App\Models;
 use CodeIgniter\Model;
-class UserModel extends Model{
+
+/**
+ * ============================================================================
+ * USER MODEL - MODELO DE USUARIOS CON ARQUITECTURA MULTI-TENANCY
+ * ============================================================================
+ * 
+ * Este modelo gestiona los usuarios del sistema e implementa la lógica de
+ * segregación de datos mediante la tabla pivote cliente_user.
+ * 
+ * ARQUITECTURA DE SEGURIDAD:
+ * - Tabla principal: users
+ * - Tabla pivote: cliente_user (relación N:N con clientes)
+ * - Cada usuario puede estar asignado a uno o varios clientes
+ * - Los usuarios solo pueden ver trámites de sus clientes asignados
+ * 
+ * PROPÓSITO EMPRESARIAL:
+ * - Permitir que la dueña del negocio otorgue acceso a sus clientes
+ * - Cada cliente tiene ejecutivos dedicados operando exclusivamente sus trámites
+ * - Proteger la confidencialidad entre clientes competidores
+ * - Prevenir fugas de información sensible
+ * 
+ * MÉTODOS CRÍTICOS DE SEGURIDAD:
+ * - obtenerClientesPorUsuario(): Obtiene los clientes asignados a un usuario
+ * - isUserClient(): Verifica si un usuario es un cliente
+ * - getUserPermissions(): Obtiene permisos basados en roles
+ * 
+ * ============================================================================
+ */
+class UserModel extends Model
+{
     protected $table = 'users';
-    protected $allowedFields = ['username','firstname','lastname','email','phone','avatar','password'];
+    protected $allowedFields = ['username','firstname','midname','lastname','email','phone','avatar','password','status','created_at','updated_at'];
+    
     public function getuser()
     {
         return $this->findAll();
@@ -37,6 +68,19 @@ class UserModel extends Model{
         return $this->extractRoleNames($query->getResultArray());
     }
 
+    /**
+     * Verifica si un usuario es un cliente (tiene registros en cliente_user)
+     * 
+     * ARQUITECTURA MULTI-TENANCY:
+     * Esta función es crítica para determinar si un usuario pertenece a un cliente
+     * externo y debe tener acceso limitado solo a información de ese cliente.
+     * 
+     * @param int $user_id ID del usuario a verificar
+     * @return array [
+     *     'is_client' => bool,
+     *     'client_info' => array|null (información del primer cliente si existe)
+     * ]
+     */
     public function isUserClient($user_id)
     {
         // Construir la consulta para verificar si el usuario es un cliente
@@ -132,6 +176,27 @@ class UserModel extends Model{
         return $result;
     }
 
+    /**
+     * Obtiene los IDs de todos los clientes asignados a un usuario
+     * 
+     * FUNCIÓN CRÍTICA PARA FILTRADO DE DATOS:
+     * Esta función es la base de la arquitectura de segregación de datos.
+     * Los IDs retornados se utilizan para filtrar todas las consultas de trámites,
+     * asegurando que cada usuario solo vea información de sus clientes asignados.
+     * 
+     * RELACIÓN:
+     * - Tabla pivote: cliente_user (user_id, cliente_id)
+     * - Un usuario puede tener múltiples clientes
+     * - Un cliente puede tener múltiples usuarios (ejecutivos)
+     * 
+     * USO:
+     * - Filtrar listados de trámites
+     * - Validar acceso a recursos específicos
+     * - Implementar dashboards personalizados por cliente
+     * 
+     * @param int $user_id ID del usuario
+     * @return array Array de IDs de clientes [1, 5, 8, ...] o [] si no tiene clientes
+     */
     public function obtenerClientesPorUsuario($user_id)
     {
         // Construir la consulta para obtener los IDs de los clientes relacionados al usuario

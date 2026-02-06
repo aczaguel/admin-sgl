@@ -73,6 +73,19 @@
     	padding: 2px 6px !important;
 	}
 
+	/* Animación pulse para botón destacado */
+	@keyframes pulse {
+		0% {
+			box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5);
+		}
+		50% {
+			box-shadow: 0 4px 20px rgba(255, 107, 107, 0.7), 0 0 0 8px rgba(255, 107, 107, 0.1);
+		}
+		100% {
+			box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5);
+		}
+	}
+
 </style>
 <div class="header">
 	<div class="header-left">
@@ -116,66 +129,40 @@
 		</div>
 	</div>
 	<div class="header-right">
-			<!-- Botones con iconos -->
+			<!-- Botones con iconos modernos -->
 			<?php if (has_permission('header_buttons', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-				<div class="container">
-					<div class="row">
-						<div class="col-12">
-							<div class="d-flex flex-wrap justify-content-start">
-								<a href="/deskapp/tramites/tenencias/" class="btn btn-warning btn-sm btn-xs m-1">
-									<i class="fas fa-list"></i> Tenencias
-								</a>
-								<a href="/deskapp/tramites/tramite_2024" class="btn btn-success btn-sm btn-xs m-1">
-									<i class="fas fa-list"></i> 2024
-								</a>
-								<a href="/deskapp/tramites/tramite_2025" class="btn btn-success btn-sm btn-xs m-1">
-									<i class="fas fa-list"></i> 2025
-								</a>
-								<a href="/deskapp/tramites/tramite" class="btn btn-info btn-sm btn-xs m-1">
-									<i class="fas fa-list"></i> Consolidado
-								</a>
-								<a href="/deskapp/tramites/add" class="btn btn-danger btn-sm btn-xs m-1">
-									<i class="fas fa-plus"></i> Nuevo
-								</a>
-								<!-- <a href="/deskapp/tramites/solicitudes" class="btn btn-info btn-sm btn-xs m-1">
-									<i class="fas fa-file-alt"></i> Solicitudes
-								</a>
-								<a href="/deskapp/tramites/recoleccion" class="btn btn-info btn-sm btn-xs m-1">
-									<i class="fas fa-truck"></i> Asignaciones
-								</a> -->
-								<a href="/deskapp/tramites/en_tramite" class="btn btn-info btn-sm btn-xs m-1">
-									<i class="fas fa-check"></i> En Trámite
-								</a>
-								<!-- <a href="/deskapp/proceso/final" class="btn btn-info btn-sm btn-xs m-1">
-									<i class="fas fa-user"></i> Entregados
-								</a> -->
-								<!-- <a href="/deskapp/tramites/mios" class="btn btn-info btn-sm btn-xs m-1">
-									<i class="fas fa-user"></i> Mios
-								</a>
-								<a href="/deskapp/concluido/final" class="btn btn-info btn-sm btn-xs m-1">
-									<i class="fas fa-user"></i> Concluidos
-								</a>
-								<a href="/deskapp/tramites/cotizaciones" class="btn btn-info btn-sm btn-xs m-1">
-									<i class="fas fa-user"></i> Cotizaciones
-								</a> -->
-							</div>
-						</div>
-					</div>
+				<div class="d-flex align-items-center" style="gap: 8px; margin-right: 15px;">
+					<a href="/deskapp/tramites/tenencias/" class="btn btn-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(245, 87, 108, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(245, 87, 108, 0.3)';">
+						<i class="fas fa-car"></i> Tenencias
+					</a>
+					<a href="/deskapp/tramites/tramite_2024" class="btn btn-sm" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(67, 233, 123, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(67, 233, 123, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(67, 233, 123, 0.3)';">
+						<i class="fas fa-calendar"></i> 2024
+					</a>
+					<a href="/deskapp/tramites/tramite_2025" class="btn btn-sm" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(79, 172, 254, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(79, 172, 254, 0.3)';">
+						<i class="fas fa-calendar-alt"></i> 2025
+					</a>
+					<a href="/deskapp/tramites/tramite" class="btn btn-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(102, 126, 234, 0.3)';">
+						<i class="fas fa-list-alt"></i> Consolidado
+					</a>
+					<!-- Botón Nuevo DESTACADO -->
+					<a href="/deskapp/tramites/add" class="btn btn-sm" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5); white-space: nowrap; animation: pulse 2s infinite;" onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(255, 107, 107, 0.6)';" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(255, 107, 107, 0.5)';">
+						<i class="fas fa-plus-circle"></i> NUEVO TRÁMITE
+					</a>
 				</div>
-
-
 			<?php endif; ?>
+		
+		<!-- Botón Debug Toggle - Solo Super Admin -->
+		<?php if (is_array($session->get('user_roles')) && in_array('Super Admin', $session->get('user_roles'))): ?>
+			<div class="dropdown" style="margin-right: 15px;">
+				<button id="debugToggleBtn" class="btn btn-sm" style="background: #667eea; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 11px; transition: all 0.3s; white-space: nowrap;" title="Activar/Desactivar modo debug">
+					<i class="fas fa-bug"></i> <span id="debugToggleText">Debug OFF</span>
+				</button>
+			</div>
+		<?php endif; ?>
 		
 		<div class="dashboard-setting user-notification">
 			<!-- Notificaciones -->
-			<?php // echo view('deskapp/includes/_notifications_dropdown'); ?>
-			
-			<!-- Configuración -->
-			<div class="dropdown">
-				<a class="dropdown-toggle no-arrow" href="javascript:;" data-toggle="right-sidebar">
-					<i class="dw dw-settings2"></i>
-				</a>
-			</div>
+			<?php echo view('deskapp/includes/_notifications_dropdown'); ?>
 		</div>
 		
 		<div class="user-info-dropdown">
@@ -203,6 +190,52 @@
 		</div>
 	</div>
 </div>
+
+<!-- Script para Debug Toggle -->
+<script>
+(function() {
+	// Verificar estado del debug mode en localStorage
+	const debugMode = localStorage.getItem('debugMode') === 'true';
+	
+	// Función para actualizar UI del botón
+	function updateDebugButton() {
+		const btn = document.getElementById('debugToggleBtn');
+		const text = document.getElementById('debugToggleText');
+		const isDebugOn = localStorage.getItem('debugMode') === 'true';
+		
+		if (btn && text) {
+			if (isDebugOn) {
+				btn.style.background = '#28a745';
+				text.textContent = 'Debug ON';
+			} else {
+				btn.style.background = '#667eea';
+				text.textContent = 'Debug OFF';
+			}
+		}
+		
+		// Mostrar/ocultar divs de debug
+		const debugDivs = document.querySelectorAll('.debug-info-container');
+		debugDivs.forEach(div => {
+			div.style.display = isDebugOn ? 'block' : 'none';
+		});
+	}
+	
+	// Evento click en el botón
+	document.addEventListener('DOMContentLoaded', function() {
+		const btn = document.getElementById('debugToggleBtn');
+		if (btn) {
+			btn.addEventListener('click', function() {
+				const currentMode = localStorage.getItem('debugMode') === 'true';
+				localStorage.setItem('debugMode', !currentMode);
+				updateDebugButton();
+			});
+			
+			// Actualizar estado inicial
+			updateDebugButton();
+		}
+	});
+})();
+</script>
 
 <div class="right-sidebar">
 	<div class="sidebar-title">

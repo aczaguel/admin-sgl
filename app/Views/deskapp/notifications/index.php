@@ -36,7 +36,7 @@
                     <div class="card-box height-100-p widget-style3">
                         <div class="d-flex flex-wrap">
                             <div class="widget-data">
-                                <div class="weight-700 font-24 text-dark"><?= $unread_count ?></div>
+                                <div class="weight-700 font-24 text-dark" id="unreadCount"><?= $unread_count ?></div>
                                 <div class="font-14 text-secondary weight-500">Sin Leer</div>
                             </div>
                             <div class="widget-icon">
@@ -50,7 +50,7 @@
                     <div class="card-box height-100-p widget-style3">
                         <div class="d-flex flex-wrap">
                             <div class="widget-data">
-                                <div class="weight-700 font-24 text-dark"><?= count($notifications) ?></div>
+                                <div class="weight-700 font-24 text-dark" id="totalCount"><?= count($notifications) ?></div>
                                 <div class="font-14 text-secondary weight-500">Total de Notificaciones</div>
                             </div>
                             <div class="widget-icon">
@@ -64,7 +64,7 @@
                     <div class="card-box height-100-p widget-style3">
                         <div class="d-flex flex-wrap">
                             <div class="widget-data">
-                                <div class="weight-700 font-24 text-dark"><?= count($notifications) - $unread_count ?></div>
+                                <div class="weight-700 font-24 text-dark" id="readCount"><?= count($notifications) - $unread_count ?></div>
                                 <div class="font-14 text-secondary weight-500">Leídas</div>
                             </div>
                             <div class="widget-icon">
@@ -88,7 +88,7 @@
                             <p class="text-muted">Las notificaciones aparecerán aquí cuando haya actividad</p>
                         </div>
                     <?php else: ?>
-                        <div class="notification-timeline">
+                        <div class="notification-timeline" id="notificationTimeline">
                             <?php foreach ($notifications as $notification): ?>
                                 <div class="notification-card <?= $notification['is_read'] == 0 ? 'unread' : '' ?>" 
                                      data-id="<?= $notification['id'] ?>"
@@ -130,6 +130,11 @@
                                     </div>
                                 </div>
                             <?php endforeach; ?>
+                        </div>
+                        <div class="text-center py-5" id="emptyNotifications" style="display:none;">
+                            <i class="icon-copy fa fa-bell-slash" style="font-size: 64px; color: #ddd;"></i>
+                            <h5 class="mt-3 text-muted">No tienes notificaciones</h5>
+                            <p class="text-muted">Las notificaciones aparecerán aquí cuando haya actividad</p>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -224,12 +229,39 @@
 
 <script>
 $(document).ready(function() {
+    const $unreadCount = $('#unreadCount');
+    const $readCount = $('#readCount');
+    const $totalCount = $('#totalCount');
+    const $timeline = $('#notificationTimeline');
+    const $emptyState = $('#emptyNotifications');
+
+    const getCount = ($el) => parseInt($el.text(), 10) || 0;
+    const setCount = ($el, value) => $el.text(Math.max(0, value));
+
+    const updateCounts = ({ unreadDelta = 0, readDelta = 0, totalDelta = 0 }) => {
+        if ($unreadCount.length) setCount($unreadCount, getCount($unreadCount) + unreadDelta);
+        if ($readCount.length) setCount($readCount, getCount($readCount) + readDelta);
+        if ($totalCount.length) setCount($totalCount, getCount($totalCount) + totalDelta);
+    };
+
+    const showEmptyStateIfNeeded = () => {
+        if ($timeline.length && $timeline.find('.notification-card').length === 0) {
+            $emptyState.show();
+        }
+    };
+
     // Marcar todas como leídas
     $('#markAllReadBtn').click(function() {
         if (confirm('¿Marcar todas las notificaciones como leídas?')) {
-            $.post('<?= base_url('deskapp/notifications/api_mark_all_read') ?>', function(response) {
+            $.post('<?= site_url('deskapp/notifications/api_mark_all_read') ?>', function(response) {
                 if (response.success) {
-                    location.reload();
+                    const $unreadCards = $('.notification-card.unread');
+                    const unreadCount = $unreadCards.length;
+                    if (unreadCount > 0) {
+                        $unreadCards.removeClass('unread');
+                        $unreadCards.find('.mark-read-btn').remove();
+                        updateCounts({ unreadDelta: -unreadCount, readDelta: unreadCount });
+                    }
                 }
             });
         }
@@ -240,11 +272,13 @@ $(document).ready(function() {
         const id = $(this).data('id');
         const card = $(this).closest('.notification-card');
         
-        $.post(`<?= base_url('deskapp/notifications/api_mark_read') ?>/${id}`, function(response) {
+        $.post(`<?= site_url('deskapp/notifications/api_mark_read') ?>/${id}`, function(response) {
             if (response.success) {
-                card.removeClass('unread');
+                if (card.hasClass('unread')) {
+                    card.removeClass('unread');
+                    updateCounts({ unreadDelta: -1, readDelta: 1 });
+                }
                 $(this).remove();
-                location.reload();
             }
         }.bind(this));
     });
@@ -256,15 +290,19 @@ $(document).ready(function() {
             const card = $(this).closest('.notification-card');
             
             $.ajax({
-                url: `<?= base_url('deskapp/notifications/api_delete') ?>/${id}`,
+                url: `<?= site_url('deskapp/notifications/api_delete') ?>/${id}`,
                 method: 'DELETE',
                 success: function(response) {
                     if (response.success) {
+                        const wasUnread = card.hasClass('unread');
                         card.fadeOut(300, function() {
                             $(this).remove();
-                            if ($('.notification-card').length === 0) {
-                                location.reload();
-                            }
+                            updateCounts({
+                                totalDelta: -1,
+                                unreadDelta: wasUnread ? -1 : 0,
+                                readDelta: wasUnread ? 0 : -1
+                            });
+                            showEmptyStateIfNeeded();
                         });
                     }
                 }

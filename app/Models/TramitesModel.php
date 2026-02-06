@@ -177,21 +177,258 @@ class TramitesModel extends Model
             ]
         ];
     }
-    public function getTramitesGroupedByStatusPerMonth()
+
+    /**
+     * Obtiene conteos de trámites por clase con filtros de cliente y tipo
+     */
+    public function getTramiteCountsByClaseConFiltros($clientesAsignados = null, $clienteId = null, $tipoTramiteId = null)
     {
         $sql = new Sql($this->adapter);
         $select = $sql->select();
         $select->from('tramite');
         $select->columns([
-            'mes' => new Expression('MONTH(created_at)'),
-            'anio' => new Expression('YEAR(created_at)'),
-            'recoleccion' => new Expression("SUM(CASE WHEN tra_status_id IN (11, 22, 23) THEN 1 ELSE 0 END)"),
-            'concluidos' => new Expression("SUM(CASE WHEN tra_status_id = 20 THEN 1 ELSE 0 END)")
+            'local_verde' => new Expression("SUM(CASE WHEN ((ent_municipio_id BETWEEN 266 AND 281) OR (ent_municipio_id BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), created_at) < 5 AND tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END)"),
+            'local_amarillo' => new Expression("SUM(CASE WHEN ((ent_municipio_id BETWEEN 266 AND 281) OR (ent_municipio_id BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), created_at) BETWEEN 5 AND 7 AND tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END)"),
+            'local_rojo' => new Expression("SUM(CASE WHEN ((ent_municipio_id BETWEEN 266 AND 281) OR (ent_municipio_id BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), created_at) BETWEEN 8 AND 11 AND tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END)"),
+            'local_violeta' => new Expression("SUM(CASE WHEN ((ent_municipio_id BETWEEN 266 AND 281) OR (ent_municipio_id BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), created_at) >= 12 AND tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END)"),
+            'foraneo_verde' => new Expression("SUM(CASE WHEN ((ent_municipio_id NOT BETWEEN 266 AND 281) AND (ent_municipio_id NOT BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), created_at) < 10 AND tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END)"),
+            'foraneo_amarillo' => new Expression("SUM(CASE WHEN ((ent_municipio_id NOT BETWEEN 266 AND 281) AND (ent_municipio_id NOT BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), created_at) BETWEEN 10 AND 12 AND tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END)"),
+            'foraneo_rojo' => new Expression("SUM(CASE WHEN ((ent_municipio_id NOT BETWEEN 266 AND 281) AND (ent_municipio_id NOT BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), created_at) BETWEEN 13 AND 15 AND tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END)"),
+            'foraneo_violeta' => new Expression("SUM(CASE WHEN ((ent_municipio_id NOT BETWEEN 266 AND 281) AND (ent_municipio_id NOT BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), created_at) >= 16 AND tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END)")
         ]);
-        $select->where(new PredicateExpression('created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)'));
+
+        // Filtro por clientes asignados
+        if ($clientesAsignados !== null && !empty($clientesAsignados)) {
+            $select->where->in('cli_directo_id', $clientesAsignados);
+        }
+
+        // Filtro por cliente específico
+        if ($clienteId) {
+            $select->where(['cli_directo_id' => $clienteId]);
+        }
+
+        // Filtro por tipo de trámite
+        if ($tipoTramiteId) {
+            $select->where(['tra_tipos_id' => $tipoTramiteId]);
+        }
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $result = $statement->execute()->current();
+
+        return [
+            'local' => [
+                'verde' => $result['local_verde'] ?: 0,
+                'amarillo' => $result['local_amarillo'] ?: 0,
+                'rojo' => $result['local_rojo'] ?: 0,
+                'violeta' => $result['local_violeta'] ?: 0,
+            ],
+            'foraneo' => [
+                'verde' => $result['foraneo_verde'] ?: 0,
+                'amarillo' => $result['foraneo_amarillo'] ?: 0,
+                'rojo' => $result['foraneo_rojo'] ?: 0,
+                'violeta' => $result['foraneo_violeta'] ?: 0,
+            ]
+        ];
+    }
+
+    /**
+     * Obtiene resumen de trámites por cliente
+     */
+    public function getResumenPorCliente($clientesAsignados = null)
+    {
+        $sql = new Sql($this->adapter);
+        $select = $sql->select();
+        $select->from('tramite');
+        $select->join('cli_directo', 'tramite.cli_directo_id = cli_directo.id', ['cliente_nombre' => 'nombre'], 'left');
+        $select->columns([
+            'cli_directo_id',
+            'total' => new Expression('COUNT(*)'),
+            'en_proceso' => new Expression('SUM(CASE WHEN tramite.tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END)'),
+            'concluidos' => new Expression('SUM(CASE WHEN tramite.tra_status_id = 20 THEN 1 ELSE 0 END)'),
+            'cancelados' => new Expression('SUM(CASE WHEN tramite.tra_status_id = 21 THEN 1 ELSE 0 END)'),
+            'retrasados' => new Expression('SUM(CASE WHEN tramite.tra_status_id NOT IN (20, 21) AND (
+                (((tramite.ent_municipio_id BETWEEN 266 AND 281) OR (tramite.ent_municipio_id BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), tramite.created_at) >= 8)
+                OR
+                (((tramite.ent_municipio_id NOT BETWEEN 266 AND 281) AND (tramite.ent_municipio_id NOT BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), tramite.created_at) >= 13)
+            ) THEN 1 ELSE 0 END)')
+        ]);
+        $select->group('tramite.cli_directo_id');
+
+        if ($clientesAsignados !== null && !empty($clientesAsignados)) {
+            $select->where->in('tramite.cli_directo_id', $clientesAsignados);
+        }
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $results = $statement->execute();
+
+        $resumen = [];
+        foreach ($results as $row) {
+            $resumen[] = [
+                'cliente_id' => $row['cli_directo_id'],
+                'cliente_nombre' => $row['cliente_nombre'] ?: 'Sin Cliente',
+                'total' => $row['total'],
+                'en_proceso' => $row['en_proceso'],
+                'concluidos' => $row['concluidos'],
+                'cancelados' => $row['cancelados'],
+                'retrasados' => $row['retrasados']
+            ];
+        }
+
+        return $resumen;
+    }
+
+    /**
+     * Obtiene resumen de trámites por tipo de servicio
+     */
+    public function getResumenPorTipoServicio($clientesAsignados = null, $clienteId = null)
+    {
+        $sql = new Sql($this->adapter);
+        $select = $sql->select();
+        $select->from('tramite');
+        $select->join('tra_tipos', 'tramite.tra_tipos_id = tra_tipos.id', ['tipo_nombre' => 'tipo_tramite'], 'left');
+        $select->columns([
+            'tra_tipos_id',
+            'total' => new Expression('COUNT(*)'),
+            'en_proceso' => new Expression('SUM(CASE WHEN tramite.tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END)'),
+            'concluidos' => new Expression('SUM(CASE WHEN tramite.tra_status_id = 20 THEN 1 ELSE 0 END)'),
+            'retrasados' => new Expression('SUM(CASE WHEN tramite.tra_status_id NOT IN (20, 21) AND (
+                (((tramite.ent_municipio_id BETWEEN 266 AND 281) OR (tramite.ent_municipio_id BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), tramite.created_at) >= 8)
+                OR
+                (((tramite.ent_municipio_id NOT BETWEEN 266 AND 281) AND (tramite.ent_municipio_id NOT BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), tramite.created_at) >= 13)
+            ) THEN 1 ELSE 0 END)')
+        ]);
+        $select->group('tramite.tra_tipos_id');
+
+        if ($clientesAsignados !== null && !empty($clientesAsignados)) {
+            $select->where->in('tramite.cli_directo_id', $clientesAsignados);
+        }
+
+        if ($clienteId) {
+            $select->where(['tramite.cli_directo_id' => $clienteId]);
+        }
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $results = $statement->execute();
+
+        $resumen = [];
+        foreach ($results as $row) {
+            $resumen[] = [
+                'tipo_id' => $row['tra_tipos_id'],
+                'tipo_nombre' => $row['tipo_nombre'] ?: 'Sin Tipo',
+                'total' => $row['total'],
+                'en_proceso' => $row['en_proceso'],
+                'concluidos' => $row['concluidos'],
+                'retrasados' => $row['retrasados']
+            ];
+        }
+
+        return $resumen;
+    }
+
+    /**
+     * Obtiene trámites retrasados con detalles
+     */
+    public function getTramitesRetrasados($clientesAsignados = null, $clienteId = null, $tipoTramiteId = null)
+    {
+        $sql = new Sql($this->adapter);
+        $select = $sql->select();
+        $select->from('tramite');
+        $select->join('cli_directo', 'tramite.cli_directo_id = cli_directo.id', ['cliente_nombre' => 'nombre'], 'left');
+        $select->join('tra_tipos', 'tramite.tra_tipos_id = tra_tipos.id', ['tipo_nombre' => 'tipo_tramite'], 'left');
+        $select->join('tra_status', 'tramite.tra_status_id = tra_status.id', ['status_nombre' => 'tra_status'], 'left');
+        $select->columns([
+            'id',
+            'folio',
+            'created_at',
+            'tra_status_id',
+            'ent_municipio_id',
+            'dias_transcurridos' => new Expression('DATEDIFF(CURDATE(), tramite.created_at)'),
+            'es_local' => new Expression('CASE WHEN ((tramite.ent_municipio_id BETWEEN 266 AND 281) OR (tramite.ent_municipio_id BETWEEN 657 AND 781)) THEN 1 ELSE 0 END')
+        ]);
+
+        // Solo trámites en proceso (no concluidos ni cancelados)
+        $select->where->notIn('tramite.tra_status_id', [20, 21]);
+
+        // Filtro de retraso
+        $select->where(new PredicateExpression('(
+            (((tramite.ent_municipio_id BETWEEN 266 AND 281) OR (tramite.ent_municipio_id BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), tramite.created_at) >= 8)
+            OR
+            (((tramite.ent_municipio_id NOT BETWEEN 266 AND 281) AND (tramite.ent_municipio_id NOT BETWEEN 657 AND 781)) AND DATEDIFF(CURDATE(), tramite.created_at) >= 13)
+        )'));
+
+        if ($clientesAsignados !== null && !empty($clientesAsignados)) {
+            $select->where->in('tramite.cli_directo_id', $clientesAsignados);
+        }
+
+        if ($clienteId) {
+            $select->where(['tramite.cli_directo_id' => $clienteId]);
+        }
+
+        if ($tipoTramiteId) {
+            $select->where(['tramite.tra_tipos_id' => $tipoTramiteId]);
+        }
+
+        $select->order('dias_transcurridos DESC');
+        $select->limit(20);
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $results = $statement->execute();
+
+        $tramites = [];
+        foreach ($results as $row) {
+            $esLocal = $row['es_local'];
+            $dias = $row['dias_transcurridos'];
+            
+            // Determinar nivel de alerta
+            if ($esLocal) {
+                if ($dias >= 12) $nivel = 'critico';
+                elseif ($dias >= 8) $nivel = 'alto';
+                else $nivel = 'medio';
+            } else {
+                if ($dias >= 16) $nivel = 'critico';
+                elseif ($dias >= 13) $nivel = 'alto';
+                else $nivel = 'medio';
+            }
+
+            $tramites[] = [
+                'id' => $row['id'],
+                'folio' => $row['folio'],
+                'cliente' => $row['cliente_nombre'] ?: 'Sin Cliente',
+                'tipo' => $row['tipo_nombre'] ?: 'Sin Tipo',
+                'status' => $row['status_nombre'] ?: 'Sin Status',
+                'dias_transcurridos' => $dias,
+                'es_local' => $esLocal,
+                'nivel_alerta' => $nivel,
+                'created_at' => $row['created_at']
+            ];
+        }
+
+        return $tramites;
+    }
+    public function getTramitesGroupedByStatusPerMonth($clientesAsignados = null, $clienteId = null)
+    {
+        $sql = new Sql($this->adapter);
+        $select = $sql->select();
+        $select->from('tramite');
+        $select->columns([
+            'mes' => new Expression('MONTH(tramite.created_at)'),
+            'anio' => new Expression('YEAR(tramite.created_at)'),
+            'recoleccion' => new Expression("SUM(CASE WHEN tramite.tra_status_id IN (11, 22, 23) THEN 1 ELSE 0 END)"),
+            'concluidos' => new Expression("SUM(CASE WHEN tramite.tra_status_id = 20 THEN 1 ELSE 0 END)")
+        ]);
+        $select->where(new PredicateExpression('tramite.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)'));
+
+        if ($clientesAsignados !== null && !empty($clientesAsignados)) {
+            $select->where->in('tramite.cli_directo_id', $clientesAsignados);
+        }
+
+        if ($clienteId) {
+            $select->where(['tramite.cli_directo_id' => $clienteId]);
+        }
+
         $select->group([
-            new Expression('YEAR(created_at)'),
-            new Expression('MONTH(created_at)')
+            new Expression('YEAR(tramite.created_at)'),
+            new Expression('MONTH(tramite.created_at)')
         ]);
         $select->order(['anio', 'mes']);
     

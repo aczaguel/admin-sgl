@@ -27,6 +27,7 @@ assets/uploads/*
 application/logs/*
 !application/logs/index.html
 !application/logs/.htaccess
+/vendor/
 /vendor/squizlabs
 /vendor/phar-io
 composer.lock
@@ -38,11 +39,13 @@ writable/logs/*
 writable/session/*
 writable/tests/*
 writable/uploads/*
+public/uploads/*
+public/debug_session.php
 
 # Ignorar archivos de IDE/editor
 *.swp  # Archivos temporales de Vim
 *.swo
 .idea/  # Archivos de configuración de JetBrains IDEs
-*.vscode/  # Configuración de Visual Studio Code
+.vscode/  # Configuración de Visual Studio Code
 .DS_Store  # Archivos del sistema MacOS
 Thumbs.db  # Archivos del sistema Windows

@@ -1,0 +1,1811 @@
+/**
+ * ============================================================================
+ * WIZARD MODERNO - SISTEMA DE DISEÑO PROFESIONAL
+ * ============================================================================
+ * Variables CSS, componentes reutilizables, animaciones suaves
+ */
+
+:root {
+    /* Colores principales */
+    --primary: #2962ff;
+    --primary-dark: #0039cb;
+    --primary-light: #768fff;
+    --success: #00c853;
+    --warning: #ffc107;
+    --danger: #d32f2f;
+    --info: #00acc1;
+    
+    /* Colores de estado */
+    --status-en-proceso: #2196f3;
+    --status-concluido: #4caf50;
+    --status-cancelado: #f44336;
+    --status-urgente: #ff5722;
+    --status-cotizacion: #9c27b0;
+    
+    /* Grises */
+    --gray-50: #fafafa;
+    --gray-100: #f5f5f5;
+    --gray-200: #eeeeee;
+    --gray-300: #e0e0e0;
+    --gray-400: #bdbdbd;
+    --gray-500: #9e9e9e;
+    --gray-600: #757575;
+    --gray-700: #616161;
+    --gray-800: #424242;
+    --gray-900: #212121;
+    
+    /* Espaciado */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    
+    /* Bordes */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+    
+    /* Sombras */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.10);
+    --shadow-xl: 0 15px 30px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.15);
+    
+    /* Transiciones */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Tipografía */
+    --font-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+}
+
+/* ============================================================================
+   HEADER DEL TRÁMITE - CARD MODERNO
+   ============================================================================ */
+
+.tramite-header-modern {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: var(--shadow-lg);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.tramite-header-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    transform: translate(50%, -50%);
+}
+
+.header-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-lg);
+    position: relative;
+    z-index: 1;
+}
+
+.folio-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-full);
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.folio-badge i {
+    font-size: 1.2rem;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow-sm);
+}
+
+.status-badge.status-en-proceso {
+    background: var(--status-en-proceso);
+    color: white;
+}
+
+.status-badge.status-concluido {
+    background: var(--status-concluido);
+    color: white;
+}
+
+.status-badge.status-cancelado {
+    background: var(--status-cancelado);
+    color: white;
+}
+
+.status-badge.status-urgente {
+    background: var(--status-urgente);
+    color: white;
+    animation: pulse-urgente 2s infinite;
+}
+
+@keyframes pulse-urgente {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.timeline-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+    position: relative;
+    z-index: 1;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: background-color var(--transition-base);
+}
+
+.timeline-item:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.timeline-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    font-size: 1.3rem;
+}
+
+.timeline-content h6 {
+    margin: 0;
+    font-size: 0.75rem;
+    opacity: 0.85;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+.timeline-content p {
+    margin: var(--spacing-xs) 0 0 0;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: var(--font-mono);
+}
+
+/* Botones de acción */
+.header-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-lg);
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+}
+
+.btn-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-xl);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: box-shadow var(--transition-base), opacity var(--transition-base);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+}
+
+.btn-modern:hover {
+    box-shadow: var(--shadow-md);
+    opacity: 0.95;
+}
+
+.btn-modern:active {
+    opacity: 0.9;
+}
+
+.btn-modern.btn-danger {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    color: white;
+}
+
+/* Approval Action Container Styles */
+.approval-action-container {
+    animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.approval-ready,
+.approval-pending {
+    animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.approval-button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease !important;
+}
+
+.approval-button:hover {
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4) !important;
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%) !important;
+}
+
+.approval-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3) !important;
+}
+
+.approval-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.approval-button:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-modern.btn-warning {
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    color: white;
+}
+
+.btn-modern.btn-success {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    color: white;
+}
+
+/* ============================================================================
+   WIZARD STEPS - DISEÑO MODERNO
+   ============================================================================ */
+
+.wizard-modern {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.wizard-modern .steps {
+    background: var(--gray-50);
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.wizard-modern .steps ul {
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+/* Línea de progreso */
+.wizard-modern .steps ul::before {
+    content: '';
+    position: absolute;
+    top: 24px;
+    left: 48px;
+    right: 48px;
+    height: 3px;
+    background: var(--gray-300);
+    z-index: 1;
+}
+
+.wizard-modern .steps ul::after {
+    content: '';
+    position: absolute;
+    top: 24px;
+    left: 48px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+    z-index: 2;
+    transition: width var(--transition-slow);
+}
+
+/* Calcular progreso dinámicamente */
+.wizard-modern .steps ul[data-progress="1"]::after { width: 0%; }
+.wizard-modern .steps ul[data-progress="2"]::after { width: 25%; }
+.wizard-modern .steps ul[data-progress="3"]::after { width: 50%; }
+.wizard-modern .steps ul[data-progress="4"]::after { width: 75%; }
+.wizard-modern .steps ul[data-progress="5"]::after { width: 100%; }
+
+.wizard-modern .steps ul li {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    z-index: 3;
+}
+
+.wizard-modern .steps ul li a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    text-decoration: none;
+    color: var(--gray-600);
+    transition: all var(--transition-base);
+}
+
+.step-number {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 3px solid var(--gray-300);
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.step-number i {
+    font-size: 1.3rem;
+}
+
+.wizard-modern .steps ul li.current .step-number {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-color: var(--primary);
+    color: white;
+    box-shadow: 0 0 0 4px rgba(41, 98, 255, 0.15);
+}
+
+/* Removida la animación pulse-step */
+
+.wizard-modern .steps ul li.done .step-number {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+}
+
+.wizard-modern .steps ul li.done .step-number::after {
+    content: '\f00c';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+}
+
+.step-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-top: var(--spacing-xs);
+}
+
+.wizard-modern .steps ul li.current .step-title {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.wizard-modern .steps ul li.done .step-title {
+    color: var(--success);
+}
+
+/* ============================================================================
+   CONTENIDO DEL WIZARD
+   ============================================================================ */
+
+.wizard-modern .content {
+    padding: var(--spacing-2xl);
+    min-height: 400px;
+}
+
+.wizard-modern .content h3 {
+    color: var(--gray-800);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.wizard-modern .content h3::before {
+    content: '';
+    width: 4px;
+    height: 28px;
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-radius: var(--radius-full);
+}
+
+/* ============================================================================
+   FORMULARIOS MODERNOS
+   ============================================================================ */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.form-group-modern {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.form-group-modern label {
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.form-group-modern label.required::after {
+    content: '*';
+    color: var(--danger);
+    font-weight: 700;
+}
+
+.form-group-modern .form-control {
+    padding: var(--spacing-md);
+    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    transition: all var(--transition-base);
+    background: white;
+}
+
+.form-group-modern .form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(41, 98, 255, 0.1);
+}
+
+.form-group-modern .form-control.is-invalid {
+    border-color: var(--danger);
+}
+
+.form-group-modern .invalid-feedback {
+    color: var(--danger);
+    font-size: 0.85rem;
+    display: none;
+}
+
+.form-group-modern .form-control.is-invalid ~ .invalid-feedback {
+    display: block;
+}
+
+/* ============================================================================
+   BOTONES DE ACCIÓN DEL WIZARD
+   ============================================================================ */
+
+.wizard-modern .actions {
+    background: var(--gray-50);
+    padding: var(--spacing-md) var(--spacing-xl) !important;
+    border-top: 1px solid var(--gray-200);
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wizard-modern .actions ul {
+    display: flex !important;
+    gap: var(--spacing-sm);
+    list-style: none;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.wizard-modern .actions li {
+    margin: 0 !important;
+    float: none !important;
+}
+
+.wizard-modern .actions li a {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px !important;
+    border: none;
+    border-radius: var(--radius-md) !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    cursor: pointer;
+    transition: all var(--transition-base) !important;
+    text-decoration: none !important;
+    min-height: 40px;
+    height: 40px;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.wizard-modern .actions li a:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+.wizard-modern .actions li a[href="#previous"] {
+    background: white !important;
+    color: var(--gray-700) !important;
+    border: 2px solid var(--gray-300) !important;
+}
+
+.wizard-modern .actions li a[href="#next"],
+.wizard-modern .actions li a[href="#finish"] {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+    color: white !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.wizard-modern .actions li.disabled a,
+.wizard-modern .actions li.disabled a:hover,
+.wizard-modern .actions li.disabled a:active {
+    opacity: 0.5 !important;
+    pointer-events: none !important;
+    transform: none !important;
+    background: #eee !important;
+    color: #aaa !important;
+}
+
+/* ============================================================================
+   LAYOUT (Ya no usa split, 100% width)
+   ============================================================================ */
+
+/* Los estilos de split-view ya no se usan, ahora es full width */
+
+/* ============================================================================
+   TABS MODERNOS
+   ============================================================================ */
+
+.tramite-always-visible,
+.tabs-modern-container {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    min-height: 500px; /* Asegurar altura mínima para el contenido */
+}
+
+.tabs-modern {
+    background: var(--gray-50);
+    border-bottom: 2px solid var(--gray-200);
+    padding: 0;
+    margin-bottom: 0;
+    display: flex;
+    gap: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.tabs-modern .nav-item {
+    margin-bottom: 0;
+}
+
+.tabs-modern .nav-link {
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    color: var(--gray-600);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background-color var(--transition-base), color var(--transition-base), border-color var(--transition-base);
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: transparent;
+}
+
+.tabs-modern .nav-link:hover {
+    background: rgba(41, 98, 255, 0.05);
+    color: var(--primary);
+}
+
+.tabs-modern .nav-link.active {
+    color: var(--primary);
+    background: white;
+    border-bottom-color: var(--primary);
+}
+
+.tabs-modern .nav-link i {
+    font-size: 1.1rem;
+}
+
+.tabs-modern-content {
+    padding: var(--spacing-2xl);
+    background: white;
+}
+
+.tabs-modern-content .tab-pane {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Asegurar que las tablas de GroceryCRUD se muestren */
+.tabs-modern-content .tab-pane table,
+.tabs-modern-content .tab-pane .table-responsive,
+.tabs-modern-content .tab-pane .dataTables_wrapper {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tabs-modern-content .tab-pane.active {
+    display: block !important;
+}
+
+/* Estilos para el contenido de GroceryCRUD */
+.tabs-modern-content .tab-pane .pd-20 {
+    padding: 20px;
+}
+
+.tabs-modern-content .tab-pane .pd-ltr-20 {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Asegurar visibilidad de todos los elementos dentro de tabs */
+.tabs-modern-content .tab-pane > * {
+    visibility: visible;
+    opacity: 1;
+}
+
+.tabs-modern-content .tab-pane .grocery-crud,
+.tabs-modern-content .tab-pane .gc-container {
+    width: 100%;
+    min-height: 400px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================================================
+   DROPZONE MODERNO
+   ============================================================================ */
+
+.dropzone-modern {
+    border: 3px dashed var(--gray-300);
+    border-radius: var(--radius-lg);
+    background: var(--gray-50);
+    padding: var(--spacing-2xl);
+    text-align: center;
+    transition: all var(--transition-base);
+    cursor: pointer;
+}
+
+.dropzone-modern:hover {
+    border-color: var(--primary);
+    background: rgba(41, 98, 255, 0.03);
+}
+
+.dropzone-modern .dz-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    color: var(--gray-600);
+}
+
+.dropzone-modern .dz-message i {
+    font-size: 3rem;
+    color: var(--primary);
+}
+
+.dropzone-modern .dz-message .dz-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.dropzone-modern .dz-message .dz-subtext {
+    font-size: 0.9rem;
+    color: var(--gray-500);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+@media (max-width: 768px) {
+    .tramite-header-modern {
+        padding: var(--spacing-lg);
+    }
+    
+    .header-top-row {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        align-items: stretch;
+    }
+    
+    .folio-badge,
+    .status-badge {
+        justify-content: center;
+    }
+    
+    /* Timeline responsive */
+    .timeline-info {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+    
+    .timeline-item {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .timeline-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    
+    .timeline-content h6 {
+        font-size: 0.7rem;
+    }
+    
+    .timeline-content p {
+        font-size: 0.9rem;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+    }
+    
+    .btn-modern {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .wizard-modern .steps ul {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .wizard-modern .steps ul::before,
+    .wizard-modern .steps ul::after {
+        display: none;
+    }
+    
+    .wizard-modern .content {
+        padding: var(--spacing-lg);
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .wizard-modern .actions {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md) !important;
+    }
+    
+    .wizard-modern .actions ul {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .wizard-modern .actions li a {
+        width: 100%;
+        max-width: 200px;
+        justify-content: center;
+    }
+    
+    /* Quick Actions en móvil */
+    .quick-actions-container {
+        padding: var(--spacing-lg);
+    }
+    
+    .quick-actions-title {
+        font-size: 1.2rem;
+    }
+    
+    .actions-grid {
+        gap: var(--spacing-sm);
+    }
+    
+    .action-card {
+        padding: var(--spacing-md);
+    }
+    
+    .action-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+    }
+    
+    .action-content h5 {
+        font-size: 0.9rem;
+    }
+    
+    .action-content p {
+        font-size: 0.8rem;
+    }
+    
+    /* Tabs horizontales scrolleables en móvil (por si se necesitan en el futuro) */
+    .tabs-modern {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .tabs-modern .nav-link {
+        white-space: nowrap;
+        padding: var(--spacing-md);
+        font-size: 0.85rem;
+    }
+    
+    .tabs-modern-content {
+        padding: var(--spacing-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .tramite-header-modern {
+        padding: var(--spacing-md);
+    }
+    
+    .timeline-content h6 {
+        font-size: 0.65rem;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .timeline-content p {
+        font-size: 0.85rem;
+        word-break: break-word;
+    }
+    
+    .folio-badge {
+        font-size: 0.95rem;
+        padding: var(--spacing-xs) var(--spacing-md);
+    }
+    
+    .status-badge {
+        font-size: 0.85rem;
+        padding: var(--spacing-xs) var(--spacing-md);
+    }
+}
+
+/* ============================================================================
+   UTILIDADES
+   ============================================================================ */
+
+.text-muted {
+    color: var(--gray-500);
+}
+
+.badge-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-modern.badge-success {
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--success);
+}
+
+.badge-modern.badge-warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--warning);
+}
+
+.badge-modern.badge-danger {
+    background: rgba(244, 67, 54, 0.1);
+    color: var(--danger);
+}
+
+.badge-modern.badge-info {
+    background: rgba(0, 172, 193, 0.1);
+    color: var(--info);
+}
+
+/* ============================================
+   DROPZONE COMPACT & MODERN STYLES
+   ============================================ */
+
+/* Dropzone Container */
+.dropzone-container {
+    margin: 15px 0;
+}
+
+.dropzone-compact {
+    min-height: 120px !important;
+    max-height: 120px;
+    border: 2px dashed var(--primary) !important;
+    border-radius: var(--radius-lg) !important;
+    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%) !important;
+    padding: 15px !important;
+    transition: all 0.3s ease !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.dropzone-compact:hover {
+    border-color: var(--secondary) !important;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(103, 58, 183, 0.15);
+}
+
+.dropzone-compact.dz-drag-hover {
+    border-color: var(--success) !important;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.2);
+}
+
+/* Dropzone Message */
+.dropzone-compact .dz-message {
+    margin: 0 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.dropzone-compact .dz-button {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.dropzone-compact .dz-icon {
+    width: 48px;
+    height: 48px;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+}
+
+.dropzone-compact:hover .dz-icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.dropzone-compact .dz-text {
+    font-size: 0.9rem;
+    color: var(--primary);
+    font-weight: 600;
+    margin: 0;
+}
+
+.dropzone-compact .dz-subtext {
+    font-size: 0.75rem;
+    color: #757575;
+    margin: 0;
+}
+
+/* Preview de archivos en Dropzone */
+.dropzone-compact .dz-preview {
+    margin: 8px !important;
+    min-height: 0 !important;
+}
+
+.dropzone-compact .dz-preview .dz-image {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 8px;
+}
+
+.dropzone-compact .dz-preview .dz-details {
+    padding: 8px !important;
+}
+
+.dropzone-compact .dz-preview .dz-filename {
+    font-size: 0.8rem !important;
+}
+
+.dropzone-compact .dz-preview .dz-size {
+    font-size: 0.7rem !important;
+}
+
+/* Botón Subir Compacto */
+.btnSubir {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(103, 58, 183, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btnSubir:hover {
+    box-shadow: 0 4px 12px rgba(103, 58, 183, 0.3);
+    transform: translateY(-2px);
+}
+
+.btnSubir:active {
+    transform: translateY(0);
+}
+
+.btnSubir::before {
+    content: '\f093';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+}
+
+/* Mensaje de eliminación compacto */
+.delete-notice {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    border-left: 4px solid #ff9800;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.delete-notice i {
+    font-size: 1.2rem;
+    color: #ff9800;
+    flex-shrink: 0;
+}
+
+.delete-notice h6 {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #bf360c;
+    font-weight: 600;
+}
+
+/* Separador más sutil */
+.dropzone-section hr {
+    margin: 20px 0;
+    border: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(103, 58, 183, 0.2), transparent);
+}
+
+/* ============================================
+   QUICK ACTIONS RIBBON (Horizontal Top Bar)
+   ============================================ */
+
+.quick-actions-ribbon {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+    margin-bottom: var(--spacing-xl);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.ribbon-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+    white-space: nowrap;
+    padding-right: var(--spacing-lg);
+    border-right: 2px solid #e8ecf1;
+}
+
+.ribbon-title i {
+    font-size: 1.3rem;
+}
+
+.ribbon-buttons {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.ribbon-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: white;
+    border: 2px solid #e8ecf1;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 90px;
+    position: relative;
+    overflow: hidden;
+}
+
+.ribbon-btn::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.ribbon-btn:hover::before {
+    transform: scaleX(1);
+}
+
+.ribbon-btn:hover {
+    border-color: var(--primary);
+    box-shadow: 0 6px 20px rgba(103, 58, 183, 0.15);
+    transform: translateY(-3px);
+}
+
+.ribbon-btn:active {
+    transform: translateY(-1px);
+}
+
+.ribbon-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.3rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.ribbon-btn:hover .ribbon-icon {
+    transform: scale(1.1);
+}
+
+.ribbon-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #424242;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Wizard Full Width Container */
+.wizard-full-width-container {
+    width: 100%;
+}
+
+.tramite-content-wrapper {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   FORM + DROPZONE GRID LAYOUT (70/30)
+   ============================================ */
+
+.form-dropzone-grid {
+    display: grid;
+    grid-template-columns: 70% 30%;
+    gap: var(--spacing-xl);
+    align-items: start;
+}
+
+.form-column {
+    min-width: 0; /* Evita overflow del grid */
+}
+
+.dropzone-column {
+    position: relative;
+}
+
+.dropzone-sticky {
+    position: sticky;
+    top: var(--spacing-xl);
+    background: #f8f9fa;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    border: 2px dashed var(--primary);
+}
+
+.dropzone-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin: 0 0 var(--spacing-md) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.dropzone-title i {
+    font-size: 1.2rem;
+}
+
+/* Gallery preview compacto */
+.gallery-preview {
+    margin-top: var(--spacing-md);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.gallery-preview::-webkit-scrollbar {
+    width: 6px;
+}
+
+.gallery-preview::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.gallery-preview::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+}
+
+.gallery-preview::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary);
+}
+
+/* Ajustar dropzone dentro del grid */
+.dropzone-column .dropzone-compact {
+    min-height: 100px !important;
+    max-height: 100px;
+}
+
+.dropzone-column .dz-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.dropzone-column .dz-text {
+    font-size: 0.85rem;
+}
+
+.dropzone-column .dz-subtext {
+    font-size: 0.7rem;
+}
+
+.dropzone-column .btnSubir {
+    width: 100%;
+    margin-top: var(--spacing-sm);
+}
+
+.dropzone-column .delete-notice {
+    padding: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+}
+
+.dropzone-column .delete-notice h6 {
+    font-size: 0.75rem;
+    margin: 0;
+}
+
+/* Responsive: Stack vertical en tablets y móviles */
+@media (max-width: 1024px) {
+    .form-dropzone-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .dropzone-sticky {
+        position: static;
+    }
+    
+    .dropzone-column .dropzone-compact {
+        min-height: 120px !important;
+        max-height: 120px;
+    }
+}
+
+/* Responsive Ribbon */
+@media (max-width: 768px) {
+    .quick-actions-ribbon {
+        padding: var(--spacing-md);
+        gap: var(--spacing-md);
+    }
+    
+    .ribbon-title {
+        width: 100%;
+        border-right: none;
+        border-bottom: 2px solid #e8ecf1;
+        padding-right: 0;
+        padding-bottom: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+    }
+    
+    .ribbon-buttons {
+        width: 100%;
+        justify-content: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .ribbon-btn {
+        min-width: 80px;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .ribbon-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    
+    .ribbon-label {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .ribbon-buttons {
+        justify-content: space-between;
+    }
+    
+    .ribbon-btn {
+        flex: 1;
+        min-width: 70px;
+    }
+}
+
+/* Modal Headers con Gradientes */
+.modal-header {
+    border-bottom: none;
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+.modal-header .modal-title {
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.modal-body {
+    padding: 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #e8ecf1;
+    padding: var(--spacing-md) var(--spacing-xl);
+}
+
+/* Animaciones de Modal */
+.modal-dialog.animate-in {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.modal-dialog.animate-out {
+    animation: modalSlideOut 0.25s ease-in;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes modalSlideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.97);
+    }
+}
+
+/* Efecto Ripple en Action Cards */
+.action-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple-effect {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(103, 58, 183, 0.3);
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+    from {
+        width: 0;
+        height: 0;
+        opacity: 1;
+    }
+    to {
+        width: 300px;
+        height: 300px;
+        opacity: 0;
+    }
+}
+
+/* ============================================================================
+   BOTONES - SISTEMA UNIFICADO Y PROFESIONAL
+   ============================================================================ */
+
+/* Estilos base para todos los botones */
+.btn-wizard,
+.btn-primary,
+.btn-success,
+.btn-secondary,
+.btn-danger,
+.btn-warning,
+.btn-info,
+.btnSubir,
+.approval-button {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    min-height: 44px;
+    min-width: 120px;
+}
+
+.btn-wizard:hover,
+.btn-primary:hover,
+.btn-success:hover,
+.btn-secondary:hover,
+.btn-danger:hover,
+.btn-warning:hover,
+.btn-info:hover,
+.btnSubir:hover,
+.approval-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-wizard:active,
+.btn-primary:active,
+.btn-success:active,
+.btn-secondary:active,
+.btn-danger:active,
+.btn-warning:active,
+.btn-info:active,
+.btnSubir:active,
+.approval-button:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Botón Primario (Guardar) */
+.btn-primary,
+.btn-wizard.btn-primary {
+    background: linear-gradient(135deg, #2962ff 0%, #0039cb 100%);
+    color: white;
+}
+
+.btn-primary:hover,
+.btn-wizard.btn-primary:hover {
+    background: linear-gradient(135deg, #0039cb 0%, #001970 100%);
+}
+
+/* Botón Success (Aprobar, Guardar confirmaciones) */
+.btn-success,
+.btn-wizard.btn-success,
+.approval-button {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    color: white;
+}
+
+.btn-success:hover,
+.btn-wizard.btn-success:hover,
+.approval-button:hover {
+    background: linear-gradient(135deg, #388e3c 0%, #1b5e20 100%);
+}
+
+/* Botón Secundario (Cancelar) */
+.btn-secondary,
+.btn-wizard.btn-secondary {
+    background: linear-gradient(135deg, #78909c 0%, #546e7a 100%);
+    color: white;
+}
+
+.btn-secondary:hover,
+.btn-wizard.btn-secondary:hover {
+    background: linear-gradient(135deg, #546e7a 0%, #37474f 100%);
+}
+
+/* Botón Danger (Eliminar, Cancelar trámite) */
+.btn-danger,
+.btn-wizard.btn-danger {
+    background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+    color: white;
+}
+
+.btn-danger:hover,
+.btn-wizard.btn-danger:hover {
+    background: linear-gradient(135deg, #c62828 0%, #8e0000 100%);
+}
+
+/* Botón Warning (Reembolsar) */
+.btn-warning,
+.btn-wizard.btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ffa000 100%);
+    color: #333;
+}
+
+.btn-warning:hover,
+.btn-wizard.btn-warning:hover {
+    background: linear-gradient(135deg, #ffa000 0%, #ff6f00 100%);
+}
+
+/* Botón Info */
+.btn-info,
+.btn-wizard.btn-info {
+    background: linear-gradient(135deg, #00acc1 0%, #00838f 100%);
+    color: white;
+}
+
+.btn-info:hover,
+.btn-wizard.btn-info:hover {
+    background: linear-gradient(135deg, #00838f 0%, #006064 100%);
+}
+
+/* Botón Subir Archivos */
+.btnSubir {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    width: 100%;
+    margin-top: var(--spacing-md);
+}
+
+.btnSubir:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #614298 100%);
+}
+
+/* Botones grandes (lg) */
+.btn-lg {
+    padding: 14px 32px;
+    font-size: 1.05rem;
+    min-height: 50px;
+    min-width: 160px;
+}
+
+/* Botones pequeños (sm) */
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    min-height: 36px;
+    min-width: 100px;
+}
+
+/* Botón con icono */
+.btn-wizard i,
+.btn-primary i,
+.btn-success i,
+.btn-secondary i,
+.btn-danger i,
+.btn-warning i,
+.btn-info i,
+.btnSubir i,
+.approval-button i {
+    font-size: 1.1em;
+}
+
+/* Estados disabled */
+.btn-wizard:disabled,
+.btn-primary:disabled,
+.btn-success:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled,
+.btn-warning:disabled,
+.btn-info:disabled,
+.btnSubir:disabled,
+.approval-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Contenedor de botones centrado */
+.button-group,
+.text-center.mt-4,
+#boton_autorizar {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: var(--spacing-lg);
+}
+
+/* Ajuste para botones de addservices */
+#add-service,
+#save-services {
+    min-width: 180px;
+}
+
+/* Botones modernos del header */
+.btn-modern {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+    min-height: 40px;
+    color: white;
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-modern.btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ffa000 100%);
+    color: #333;
+}
+
+.btn-modern.btn-danger {
+    background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+}
+
+.btn-modern.btn-success {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+}
+
+/* Efecto de guardado exitoso en botones */
+@keyframes successFlash {
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+        background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+.btn-success-flash {
+    animation: successFlash 0.6s ease-in-out;
+}
+
+/* Mensajes de alerta mejorados */
+.alert-success {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border: 2px solid #4caf50;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.alert-success i.fa-check-circle {
+    font-size: 1.5rem;
+    color: #4caf50;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    border: 2px solid #ff9800;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.alert-warning i {
+    font-size: 1.5rem;
+    color: #ff9800;
+}

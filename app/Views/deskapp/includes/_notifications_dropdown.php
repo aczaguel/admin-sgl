@@ -1,6 +1,6 @@
 <!-- Dropdown de Notificaciones -->
-<li class="dropdown">
-    <a class="dropdown-toggle no-arrow" href="javascript:;" role="button" data-toggle="dropdown" id="notificationDropdown">
+<div class="dropdown notification-dropdown">
+    <a class="dropdown-toggle no-arrow notification-bell" href="javascript:;" role="button" data-toggle="dropdown" id="notificationDropdown">
         <i class="dw dw-notification"></i>
         <span class="badge notification-badge badge-pill badge-danger" id="notification-count" style="display: none;">0</span>
     </a>
@@ -22,9 +22,45 @@
             <a href="<?= base_url('deskapp/notifications') ?>">Ver todas las notificaciones</a>
         </div>
     </div>
-</li>
+</div>
 
 <style>
+/* Contenedor de notificaciones */
+.notification-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.notification-bell i {
+    font-size: 20px;
+}
+
+/* Badge de contador */
+.notification-badge {
+    position: absolute !important;
+    top: -2px !important;
+    right: -2px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 2px 5px !important;
+    font-size: 10px !important;
+    line-height: 14px !important;
+    border-radius: 9px !important;
+    background-color: #dc3545 !important;
+    color: white !important;
+    font-weight: 600 !important;
+    z-index: 10 !important;
+}
+
 /* Estilos para el dropdown de notificaciones */
 .notifications-menu {
     width: 380px;
@@ -159,18 +195,6 @@
     text-decoration: underline;
 }
 
-.notification-badge {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    min-width: 18px;
-    height: 18px;
-    padding: 2px 5px;
-    font-size: 10px;
-    line-height: 14px;
-    border-radius: 9px;
-}
-
 .no-notifications {
     padding: 40px 20px;
     text-align: center;
@@ -245,7 +269,7 @@
         }
 
         container.innerHTML = notifications.map(n => `
-            <div class="notification-item ${n.is_read == 0 ? 'unread' : ''}" 
+            <div class="notification-item ${n.is_read ? '' : 'unread'}" 
                  data-id="${n.id}" 
                  data-url="${n.url || '#'}"
                  title="${escapeHtml(n.message)}">
@@ -272,11 +296,22 @@
 
     // Marcar como leída
     function markAsRead(notificationId, redirectUrl) {
-        fetch(`<?= base_url('deskapp/notifications/api_mark_read') ?>/${notificationId}`, {
-            method: 'POST'
+        const url = `<?= site_url('deskapp/notifications/api_mark_read') ?>/${notificationId}`;
+        console.log('Marking notification as read:', url);
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('Response data:', data);
             if (data.success) {
                 // Actualizar el contador
                 loadNotifications();
@@ -293,7 +328,7 @@
     // Marcar todas como leídas
     document.getElementById('markAllRead')?.addEventListener('click', function(e) {
         e.preventDefault();
-        fetch('<?= base_url('deskapp/notifications/api_mark_all_read') ?>', {
+        fetch('<?= site_url('deskapp/notifications/api_mark_all_read') ?>', {
             method: 'POST'
         })
         .then(response => response.json())
