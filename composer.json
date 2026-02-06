@@ -13,6 +13,7 @@
 		"grocery-crud/enterprise": "^3.1.7",
 		"kint-php/kint": "^3.3",
 		"laminas/laminas-escaper": "^2.6",
+		"phpoffice/phpspreadsheet": "^1.30",
 		"psr/log": "^1.1"
 	},
 	"require-dev": {

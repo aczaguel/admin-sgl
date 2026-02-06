@@ -40,7 +40,8 @@ class Notifications extends BaseController
     {
         $userId = $this->session->get('id');
         
-        $notifications = $this->notificationModel->getUnreadNotifications($userId, 10);
+        // Obtener las últimas notificaciones (leídas y no leídas) para mostrar en el dropdown
+        $notifications = $this->notificationModel->getRecentNotifications($userId, 10);
         $unreadCount = $this->notificationModel->countUnread($userId);
 
         return $this->response->setJSON([

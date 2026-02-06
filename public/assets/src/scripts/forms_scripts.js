@@ -821,12 +821,26 @@ $(document).ready(function() {
         data: formData, // Datos del formulario
         success: function(response) {
           if(response.success === true){
-            $('#derechos_mensaje').html(response.message); 
+            $('#derechos_mensaje').html('<i class="fas fa-check-circle"></i> ' + response.message); 
             $('#derechos_respuesta').show();
             
-            setTimeout(function() {
-                $('#derechos_respuesta').fadeOut('slow'); 
-            }, 3000); 
+            // Agregar clase de éxito al botón
+            $('#derechosForm button[type="submit"]').addClass('btn-success-flash');
+            
+            // Verificar si hay redirect y ejecutarlo
+            if(response.redirect) {
+                setTimeout(function() {
+                    window.location.href = response.redirect;
+                }, 1500);
+            } else {
+                setTimeout(function() {
+                    $('#derechosForm button[type="submit"]').removeClass('btn-success-flash');
+                }, 2000);
+                
+                setTimeout(function() {
+                    $('#derechos_respuesta').fadeOut('slow'); 
+                }, 3000);
+            } 
           }else{
               $('#derechos_mensaje_error').html("Favor de revisar los campos requeridos");
               $('#derechos_respuesta_error').show();
@@ -859,12 +873,26 @@ $(document).ready(function() {
         data: formData, // Datos del formulario
         success: function(response) {
           if(response.success === true){
-            $('#bancario_mensaje').html(response.message); 
+            $('#bancario_mensaje').html('<i class="fas fa-check-circle"></i> ' + response.message); 
             $('#bancario_respuesta').show();
             
-            setTimeout(function() {
-                $('#bancario_respuesta').fadeOut('slow'); 
-            }, 3000); 
+            // Agregar clase de éxito al botón
+            $('#bancarioForm button[type="submit"]').addClass('btn-success-flash');
+            
+            // Verificar si hay redirect y ejecutarlo
+            if(response.redirect) {
+                setTimeout(function() {
+                    window.location.href = response.redirect;
+                }, 1500);
+            } else {
+                setTimeout(function() {
+                    $('#bancarioForm button[type="submit"]').removeClass('btn-success-flash');
+                }, 2000);
+                
+                setTimeout(function() {
+                    $('#bancario_respuesta').fadeOut('slow'); 
+                }, 3000);
+            } 
           }else{
               $('#bancario_mensaje_error').html("Favor de revisar los campos requeridos");
               $('#bancario_respuesta_error').show();
@@ -901,12 +929,26 @@ $(document).ready(function() {
         contentType: false, // Evitar que jQuery establezca el tipo de contenido, será automático con FormData
         success: function(response) {
             if(response.success === true){
-                $('#pago_gestor_mensaje').html(response.message); 
+                $('#pago_gestor_mensaje').html('<i class="fas fa-check-circle"></i> ' + response.message); 
                 $('#pago_gestor_respuesta').show();
+                
+                // Agregar clase de éxito al botón de guardar temporalmente
+                $('#pagoGestorForm button[type="submit"]').addClass('btn-success-flash');
+                
+                // Verificar si hay redirect y ejecutarlo
+                if(response.redirect) {
+                    setTimeout(function() {
+                        window.location.href = response.redirect;
+                    }, 1500);
+                } else {
+                    setTimeout(function() {
+                        $('#pagoGestorForm button[type="submit"]').removeClass('btn-success-flash');
+                    }, 2000);
 
-                setTimeout(function() {
-                    $('#pago_gestor_respuesta').fadeOut('slow'); 
-                }, 3000); 
+                    setTimeout(function() {
+                        $('#pago_gestor_respuesta').fadeOut('slow'); 
+                    }, 3000);
+                } 
             } else {
                 $('#pago_gestor_mensaje_error').html("Favor de revisar los campos requeridos");
                 $('#pago_gestor_respuesta_error').show();
@@ -945,8 +987,14 @@ $(document).ready(function() {
           contentType: false, // Evitar que jQuery establezca el tipo de contenido, será automático con FormData
           success: function(response) {
               if(response.success === true){
-                  $('#final_mensaje').html(response.message); 
+                  $('#final_mensaje').html('<i class="fas fa-check-circle"></i> ' + response.message); 
                   $('#final_respuesta').show();
+                  
+                  // Agregar clase de éxito al botón
+                  $('#finalForm button[type="submit"]').addClass('btn-success-flash');
+                  setTimeout(function() {
+                      $('#finalForm button[type="submit"]').removeClass('btn-success-flash');
+                  }, 2000);
 
                   setTimeout(function() {
                       $('#final_respuesta').fadeOut('slow'); 
@@ -1401,8 +1449,8 @@ $(document).ready(function () {
             <div class="cost-item d-flex align-items-center mb-2" id="costo_tra_asoc_${asociadoId}">
                 <span class="service-name flex-grow-1">Servicio ${asociadoId}</span>
                 <input type="number" class="form-control cost-input text-end mx-2" 
-                    step="0.01" value="${costoInicial}" 
-                    data-id="${asociadoId}" onkeyup="sumarCostos()">
+                    value="${costoInicial}" 
+                    data-id="${asociadoId}" oninput="sumarCostos()">
                 <button type="button" class="btn btn-success btn-sm save-cost" data-id="${asociadoId}">Guardar</button>
             </div>
         `);
@@ -1466,8 +1514,19 @@ $(document).ready(function () {
             type: "POST",
             data: { tramite_id: tramiteId, services: selectedServices },
             success: function () {
-                alert("Servicios guardados exitosamente.");
-                window.location.reload();
+                // Mostrar mensaje con icono de éxito
+                var successMsg = $('<div class="alert alert-success" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">' +
+                    '<i class="fas fa-check-circle"></i> Servicios guardados exitosamente.' +
+                    '</div>');
+                $('body').append(successMsg);
+                
+                // Agregar animación al botón
+                $('#save-services').addClass('btn-success-flash');
+                
+                setTimeout(function() {
+                    successMsg.fadeOut('slow', function() { $(this).remove(); });
+                    window.location.reload();
+                }, 2000);
             },
             error: function () {
                 alert("Error al guardar los servicios.");
@@ -1508,8 +1567,8 @@ $(document).ready(function () {
                         <div class="cost-item d-flex align-items-center mb-2" id="costo_tra_asoc_${service.id}">
                             <span class="service-name flex-grow-1">${service.tipo_tramite}</span>
                             <input type="number" class="form-control cost-input text-end mx-2" 
-                                step="0.01" value="${service.costo_tramite || 0}" 
-                                data-id="${service.id}" onkeypress="sumarCostos()">
+                                value="${service.costo_tramite || 0}" 
+                                data-id="${service.id}" oninput="sumarCostos()">
                             ${saveButton} <!-- Aquí se inserta el botón o nada -->
                         </div>
                     `);
@@ -1556,14 +1615,35 @@ $(document).ready(function () {
     // 🔹 Guardar cambios en los costos
     $(document).on("click", ".save-cost", function () {
         var costId = $(this).data("id");
-        var newCost = $(this).siblings(".cost-input").val();
+        var $button = $(this);
+        var $input = $button.siblings(".cost-input");
+        var newCost = $input.val();
 
         $.ajax({
             url: "/deskapp/tramites/update_service_cost",
             type: "POST",
             data: { id: costId, costo_tramite: newCost },
             success: function () {
-                alert("✅ Costo actualizado correctamente.");
+                // Agregar palomita junto al input
+                var checkIcon = '<i class="fas fa-check-circle text-success ms-2 success-icon" style="font-size: 1.2rem;"></i>';
+                
+                // Remover palomita previa si existe
+                $button.siblings('.success-icon').remove();
+                
+                // Agregar la palomita después del input
+                $input.after(checkIcon);
+                
+                // Agregar animación al botón
+                $button.addClass('btn-success-flash');
+                
+                // Remover la palomita después de 3 segundos
+                setTimeout(function() {
+                    $button.siblings('.success-icon').fadeOut('slow', function() {
+                        $(this).remove();
+                    });
+                    $button.removeClass('btn-success-flash');
+                }, 3000);
+                
                 sumarCostos(); // Actualizar la sumatoria después de guardar
             },
             error: function () {

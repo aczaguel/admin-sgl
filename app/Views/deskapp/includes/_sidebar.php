@@ -1,349 +1,276 @@
 <div class="left-side-bar">
-		<div class="brand-logo">
-			<a href="<?php echo base_url('deskapp/dashboard'); ?>">
-				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo" width="150px">
-				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt_white.png" alt="" class="light-logo" width="150px">
-			</a>
-			<div class="close-sidebar" data-toggle="left-sidebar-close">
-				<i class="ion-close-round"></i>
-			</div>
-		</div>
-		<div class="menu-block customscroll">
-			<div class="sidebar-menu">
-				<ul id="accordion-menu">
-					<li>
-					<br>
-					</li>
-					<?php if (has_permission('menu_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-house-1"></span><span class="mtext">Trámites</span>
-							</a>
-							<ul class="submenu">
-								<?php //if (has_permission('listar_tramite_cliente', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-									<!-- <li><a href="<?php //echo base_url('deskapp/customers/list'); //listar_tramite?>">Trámites</a></li> -->
-								<?php //endif; ?>
-								<?php if (has_permission('listar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-									<li><a href="<?php echo base_url('deskapp/tramites/tramite'); //listar_tramite?>">Trámites</a></li>
-								<?php endif; ?>
-								<?php if (has_permission('listar_solicitudes_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-									<li><a href="<?php echo base_url('deskapp/tramites/solicitudes'); //listar_mios?>">Solicitudes Recientes</a></li>
-								<?php endif; ?>
-								<?php if (has_permission('listar_recoleccion_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-									<li><a href="<?php echo base_url('deskapp/tramites/recoleccion'); //listar_mios?>">Recolección de Documentos</a></li>
-								<?php endif; ?>	
-								<?php if (has_permission('listar_en_tramite_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-									<li><a href="<?php echo base_url('deskapp/tramites/en_tramite'); //listar_mios?>">En Trámite</a></li>
-								<?php endif; ?>	
-								<?php if (has_permission('listar_mis_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-									<li><a href="<?php echo base_url('deskapp/tramites/mios'); //listar_mios?>">Mis Trámites</a></li>
-								<?php endif; ?>	
-								<?php if (has_permission('listar_tramites_concluidos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-									<li><a href="<?php echo base_url('deskapp/concluido/final'); //listar_mios?>">Concluidos</a></li>
-								<?php endif; ?>	
-							</ul>
-						</li>
-					<?php endif; ?>
-					
-					<!-- Dashboard Administrativo (Solo para Admin) -->
-					<?php if (is_admin(esc($session->get('user_roles')))): ?>
-						<br>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-analytics-21"></span><span class="mtext">Dashboard Admin</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/dashboardadmin'); ?>">
-									<i class="icon-copy fa fa-tachometer-alt"></i> Panel Principal 2026
-								</a></li>
-								<li><a href="<?php echo base_url('deskapp/dashboardadmin/alertas'); ?>">
-									<i class="icon-copy fa fa-exclamation-triangle"></i> Alertas Críticas
-								</a></li>
-								<li><a href="<?php echo base_url('deskapp/dashboardadmin/financiero'); ?>">
-									<i class="icon-copy fa fa-file-invoice-dollar"></i> Análisis Financiero
-								</a></li>
-								<li><a href="<?php echo base_url('deskapp/dashboardadmin/reportes'); ?>">
-									<i class="icon-copy fa fa-chart-bar"></i> Reportes y Estadísticas
-								</a></li>
-								<li class="dropdown-divider"></li>
-								<li><a href="<?php echo base_url('deskapp/dashboardadmin?anio=2025'); ?>">
-									<i class="icon-copy fa fa-calendar"></i> Año 2025
-								</a></li>
-								<li><a href="<?php echo base_url('deskapp/dashboardadmin?anio=2024'); ?>">
-									<i class="icon-copy fa fa-calendar"></i> Año 2024
-								</a></li>
-								<li><a href="<?php echo base_url('deskapp/dashboardadmin?anio=2023'); ?>">
-									<i class="icon-copy fa fa-calendar"></i> Año 2023
-								</a></li>
-							</ul>
-						</li>
-					<?php endif; ?>
-					
-					<!-- <li class="dropdown">
-						<a href="javascript:;" class="dropdown-toggle">
-							<span class="micon dw dw-library"></span><span class="mtext">Seguimiento</span>
-						</a>
-						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/tradocstatus/documento'); ?>">Documentos del trámite</a></li>
-						</ul>
-					</li> -->
-					<?php if (has_permission('menu_proceso_final', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<!-- <li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-house-1"></span><span class="mtext">Proceso Final</span>
-							</a>
-							<ul class="submenu">
-								<?php if (has_permission('listar_final_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-									<li><a href="<?php echo base_url('deskapp/proceso/final'); //listar_final_tramite?>">Finalizando</a></li>
-								<?php endif; ?>	
-							</ul>
-						</li> -->
-					<li class="dropdown">
-						<a href="javascript:;" class="dropdown-toggle">
-							<span class="micon dw dw-house-1"></span><span class="mtext">Cierre</span>
-						</a>
-						<ul class="submenu">
-						<?php if (has_permission('listar_final_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-								<li><a href="<?php echo base_url('deskapp/proceso/final'); //listar_final_tramite?>">Finalizado</a></li>
-							<?php endif; ?>	
-							<?php if (has_permission('listar_concluidos_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-								<li><a href="<?php echo base_url('deskapp/tramites/cancelados'); //listar_final_tramite?>">Cancelados</a></li>
-							<?php endif; ?>	
-						</ul>
-					</li>
-					<?php endif; ?>	
-					<?php if (has_permission('menu_gestores', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<br>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-library"></span><span class="mtext">Gestores</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/gestores/gestores'); //listar_emp_gestoras?>">Empresa Gestora</a></li>
-								<li><a href="<?php echo base_url('deskapp/gestores/gestor'); //listar_gestores?>">Gestor</a></li>
-							</ul>
-						</li>
-					<?php endif; ?>	
-					<?php if (has_permission('menu_clientes', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-
-								<span class="micon dw dw-library"></span><span class="mtext">Clientes</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/cliente/cliente'); //listar_clientes?>">Clientes</a></li>
-								<li><a href="<?php echo base_url('deskapp/clidirecto/clidirecto'); //listar_cte_directo?>">Cliente Directo</a></li>
-								<li><a href="<?php echo base_url('deskapp/clidirecto/ejecutivo'); //listar_ejecutivos?>">Ejecutivo</a></li>
-							</ul>
-						</li>
-					<?php endif; ?>	
-					<?php if (has_permission('menu_configuracion', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<br>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-edit2"></span><span class="mtext">Configuración</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/tramites/tipo'); //listar_tp_tramite?>">Tipo de Trámite</a></li>
-								<li><a href="<?php echo base_url('deskapp/tramites/status'); //listar_st_tramite?>">Estatuses de Trámite</a></li>
-							</ul>
-						</li>
-					<?php endif; ?>	
-					<?php if (has_permission('menu_documentos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-edit2"></span><span class="mtext">Documentos</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/documentos/documento'); //listar_documentos?>">Documento</a></li>
-								<li><a href="<?php echo base_url('deskapp/documentos/status'); //listar_st_documentos?>">Estatus</a></li>
-								<li><a href="<?php echo base_url('deskapp/documentos/por_tramite'); //listar_st_documentos?>">Estatus</a></li>
-							</ul>
-						</li>
-					<?php endif; ?>	
-					<?php if (has_permission('menu_permisos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<br>
-						
-						<br>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-library"></span><span class="mtext">Permisos</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/users/users'); //listar_usuarios?>">Usuarios</a></li>
-								<li><a href="<?php echo base_url('deskapp/users/user_roles') //listar_usuarios_roles; ?>">Usuarios - Roles</a></li>
-								<li><a href="<?php echo base_url('deskapp/roles/roles'); //listar_roles;?>"> Roles </a></li>
-								<li><a href="<?php echo base_url('deskapp/permisos/permisos'); //listar_permisos?>">Permisos</a></li>
-								<li><a href="<?php echo base_url('deskapp/roles/role_permissions');//listar_roles_permisos ?>">Roles - Permisos</a></li>
-								
-							</ul>
-						</li>
-					<?php endif; ?>	
-
-					<?php if (has_permission('menu_erp_sa', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
-						<br>
-						
-						<br>
-						<li>
-							<a href="<?php echo base_url('deskapp/calendar'); ?>" class="dropdown-toggle no-arrow">
-								<span class="micon dw dw-calendar1"></span><span class="mtext">Calendar</span>
-							</a>
-						</li>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-apartment"></span><span class="mtext"> UI Elements </span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/ui/buttons'); ?>">Buttons</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/cards'); ?>">Cards</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/cardsHover'); ?>">Cards Hover</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/modals'); ?>">Modals</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/tabs'); ?>">Tabs</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/tooltip') ?>">Tooltip &amp; Popover</a></li>
-								
-								<li><a href="<?php echo base_url('deskapp/ui/sweetAlert'); ?>">Sweet Alert</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/notification'); ?>">Notification</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/timeline'); ?>">Timeline</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/progressbar'); ?>">Progressbar</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/typography'); ?>">Typography</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/listgroup'); ?>">List group</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/rangeSlider'); ?>">Range slider</a></li>
-								<li><a href="<?php echo base_url('deskapp/ui/carousel'); ?>">Carousel</a></li>
-								
-								<li><a href="<?php echo base_url('deskapp/forms/wizard') ?>">Form Wizard</a></li>
-								<li><a href="<?php echo base_url('deskapp/forms/html5Editor'); ?>">HTML5 Editor</a></li>
-								<li><a href="<?php echo base_url('deskapp/forms/pickers'); ?>">Form Pickers</a></li>
-								<li><a href="<?php echo base_url('deskapp/forms/imageCropper'); ?>">Image Cropper</a></li>
-								<li><a href="<?php echo base_url('deskapp/forms/imageDropZone'); ?>">Image Dropzone</a></li>
-							</ul>
-						</li>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-paint-brush"></span><span class="mtext">Icons</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/icons/fontawesome'); ?>">FontAwesome Icons</a></li>
-								<li><a href="<?php echo base_url('deskapp/icons/foundation'); ?>">Foundation Icons</a></li>
-								<li><a href="<?php echo base_url('deskapp/icons/ionicons'); ?>">Ionicons Icons</a></li>
-								<li><a href="<?php echo base_url('deskapp/icons/themify'); ?>">Themify Icons</a></li>
-								<li><a href="<?php echo base_url('deskapp/icons/custom'); ?>">Custom Icons</a></li>
-							</ul>
-						</li>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-analytics-21"></span><span class="mtext">Charts</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/charts/highchart'); ?>">Highchart</a></li>
-								<li><a href="<?php echo base_url('deskapp/charts/knobchart'); ?>">jQuery Knob</a></li>
-								<li><a href="<?php echo base_url('deskapp/charts/jvectormap'); ?>">jvectormap</a></li>
-								<li><a href="<?php echo base_url('deskapp/charts/apexcharts'); ?>">Apexcharts</a></li>
-							</ul>
-						</li>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-right-arrow1"></span><span class="mtext">Additional Pages</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/Additionalpages/videoplayer'); ?>">Video Player</a></li>
-								<li><a href="<?php echo base_url('deskapp/Additionalpages/login'); ?>">Login</a></li>
-								<li><a href="<?php echo base_url('deskapp/Additionalpages/forgot_password'); ?>">Forgot Password</a></li>
-								<li><a href="<?php echo base_url('deskapp/Additionalpages/reset_password'); ?>">Reset Password</a></li>
-							</ul>
-						</li>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-browser2"></span><span class="mtext">Error Pages</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/error/error_400'); ?>">400</a></li>
-								<li><a href="<?php echo base_url('deskapp/error/error_403'); ?>">403</a></li>
-								<li><a href="<?php echo base_url('deskapp/error/error_404'); ?>">404</a></li>
-								<li><a href="<?php echo base_url('deskapp/error/error_500'); ?>">500</a></li>
-								<li><a href="<?php echo base_url('deskapp/error/error_503'); ?>">503</a></li>
-							</ul>
-						</li>
-
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-copy"></span><span class="mtext">Extra Pages</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/extrapages/blank'); ?>">Blank</a></li>
-								<li><a href="<?php echo base_url('deskapp/extrapages/contact_directory'); ?>">Contact Directory</a></li>
-								<li><a href="<?php echo base_url('deskapp/extrapages/blog'); ?>">Blog</a></li>
-								<li><a href="<?php echo base_url('deskapp/extrapages/blog_detail'); ?>">Blog Detail</a></li>
-								<li><a href="<?php echo base_url('deskapp/extrapages/product'); ?>">Product</a></li>
-								<li><a href="<?php echo base_url('deskapp/extrapages/product_detail'); ?>">Product Detail</a></li>
-								<li><a href="<?php echo base_url('deskapp/extrapages/faq'); ?>">FAQ</a></li>
-								<li><a href="<?php echo base_url('deskapp/extrapages/profile'); ?>">Profile</a></li>
-								<li><a href="<?php echo base_url('deskapp/extrapages/gallery'); ?>">Gallery</a></li>
-								<li><a href="<?php echo base_url('deskapp/extrapages/pricing'); ?>">Pricing Tables</a></li>
-							</ul>
-						</li>
-						<li class="dropdown">
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-list3"></span><span class="mtext">Multi Level Menu</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="javascript:;">Level 1</a></li>
-								<li><a href="javascript:;">Level 1</a></li>
-								<li><a href="javascript:;">Level 1</a></li>
-								<li class="dropdown">
-									<a href="javascript:;" class="dropdown-toggle">
-										<span class="micon fa fa-plug"></span><span class="mtext">Level 2</span>
-									</a>
-									<ul class="submenu child">
-										<li><a href="javascript:;">Level 2</a></li>
-										<li><a href="javascript:;">Level 2</a></li>
-									</ul>
-								</li>
-								<li><a href="javascript:;">Level 1</a></li>
-								<li><a href="javascript:;">Level 1</a></li>
-								<li><a href="javascript:;">Level 1</a></li>
-							</ul>
-						</li>
-						<li>
-							<a href="<?php echo base_url('deskapp/sitemap'); ?>" class="dropdown-toggle no-arrow">
-								<span class="micon dw dw-diagram"></span><span class="mtext">Sitemap</span>
-							</a>
-						</li>
-						<li>
-							<a href="<?php echo base_url('deskapp/chat/'); ?>" class="dropdown-toggle no-arrow">
-								<span class="micon dw dw-chat3"></span><span class="mtext">Chat</span>
-							</a>
-						</li>
-						<li>
-							<a href="<?php echo base_url('deskapp/invoice/'); ?>" class="dropdown-toggle no-arrow">
-								<span class="micon dw dw-invoice"></span><span class="mtext">Invoice</span>
-							</a>
-						</li>
-						<br>
-						
-						<br>
-						<li>
-							<div class="sidebar-small-cap">Extra</div>
-						</li>
-						<li>
-							<a href="javascript:;" class="dropdown-toggle">
-								<span class="micon dw dw-edit-2"></span><span class="mtext">Documentation</span>
-							</a>
-							<ul class="submenu">
-								<li><a href="<?php echo base_url('deskapp/docs/introduction'); ?>">Introduction</a></li>
-								<li><a href="<?php echo base_url('deskapp/docs/getting_started'); ?>">Getting Started</a></li>
-								<li><a href="<?php echo base_url('deskapp/docs/color_settings'); ?>">Color Settings</a></li>
-								<li><a href="<?php echo base_url('deskapp/docs/third_party_plugins'); ?>">Third Party Plugins</a></li>
-							</ul>
-						</li>
-						<li>
-							<a href="https://dropways.github.io/deskapp-free-single-page-website-template/" target="_blank" class="dropdown-toggle no-arrow">
-								<span class="micon dw dw-paper-plane1"></span>
-								<span class="mtext">Landing Page <img src="<?php echo base_url(); ?>/public/assets/vendors/images/coming-soon.png" alt="" width="25"></span>
-							</a>
-						</li>
-					<?php endif; ?>
-				</ul>
-			</div>
+	<div class="brand-logo">
+		<a href="<?php echo base_url('deskapp/dashboard'); ?>" style="display: flex; justify-content: center; align-items: center; width: 100%; padding: 10px 0;">
+			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="Logo SGT" class="dark-logo" style="max-width: 150px; height: auto;">
+			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt_white.png" alt="Logo SGT" class="light-logo" style="max-width: 150px; height: auto;">
+		</a>
+		<div class="close-sidebar" data-toggle="left-sidebar-close">
+			<i class="ion-close-round"></i>
 		</div>
 	</div>
-	<div class="mobile-menu-overlay"></div>
+	<div class="menu-block customscroll">
+		<div class="sidebar-menu">
+			<ul id="accordion-menu">
+				<!-- SECCIÓN: DASHBOARD ADMINISTRATIVO -->
+				<li class="menu-section-title">
+					<span><i class="fas fa-chart-line me-2"></i> Análisis y Reportes</span>
+				</li>
+				<li class="dropdown">
+					<a href="javascript:;" class="dropdown-toggle">
+						<span class="micon"><i class="fas fa-tachometer-alt"></i></span>
+						<span class="mtext">Dashboard Admin</span>
+					</a>
+					<ul class="submenu">
+						<li><a href="<?php echo base_url('deskapp/dashboardadmin'); ?>">
+							<i class="fas fa-home"></i> Panel Principal 2026
+						</a></li>
+						<li><a href="<?php echo base_url('deskapp/dashboardadmin/alertas'); ?>">
+							<i class="fas fa-exclamation-triangle text-warning"></i> Alertas Críticas
+						</a></li>
+						<li><a href="<?php echo base_url('deskapp/dashboardadmin/financiero'); ?>">
+							<i class="fas fa-file-invoice-dollar text-success"></i> Análisis Financiero
+						</a></li>
+						<li><a href="<?php echo base_url('deskapp/dashboardadmin/reportes'); ?>">
+							<i class="fas fa-chart-bar"></i> Reportes y Estadísticas
+						</a></li>
+						<li><a href="<?php echo base_url('deskapp/dashboardadmin/por_cliente'); ?>">
+							<i class="fas fa-building"></i> Trámites por Cliente
+						</a></li>
+						<li class="dropdown-divider"></li>
+						<li><a href="<?php echo base_url('correccion-tramites'); ?>">
+							<i class="fas fa-edit text-info"></i> Corrección de Trámites
+						</a></li>
+						<?php 
+							// Auditoría solo para Admin y Super Admin
+							$userRole = $session->get('user_roles');
+							$userRoleStr = is_array($userRole) ? implode(',', $userRole) : (string)$userRole;
+							$userRoleLower = strtolower(str_replace(' ', '', $userRoleStr)); // Remover espacios y convertir a minúsculas
+							$isAdmin = (strpos($userRoleLower, 'admin') !== false || strpos($userRoleLower, 'superadmin') !== false);
+							if ($isAdmin): 
+						?>
+						<li><a href="<?php echo base_url('deskapp/tramites/audit_search'); ?>">
+							<i class="fas fa-history text-primary"></i> Auditoría de Trámite
+						</a></li>
+						<?php endif; ?>
+						<li class="dropdown-divider"></li>
+						<li class="submenu-title">Histórico por Año</li>
+						<li><a href="<?php echo base_url('deskapp/dashboardadmin?anio=2025'); ?>">
+							<i class="fas fa-calendar-alt"></i> 2025
+						</a></li>
+						<li><a href="<?php echo base_url('deskapp/dashboardadmin?anio=2024'); ?>">
+							<i class="fas fa-calendar-alt"></i> 2024
+						</a></li>
+						<li><a href="<?php echo base_url('deskapp/dashboardadmin?anio=2023'); ?>">
+							<i class="fas fa-calendar-alt"></i> 2023
+						</a></li>
+					</ul>
+				</li>
+
+
+				<!-- SECCIÓN: TRÁMITES -->
+				<?php if (has_permission('menu_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<li class="menu-section-title">
+						<span><i class="fas fa-file-alt me-2"></i> Gestión de Trámites</span>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon"><i class="fas fa-folder-open"></i></span>
+							<span class="mtext">Trámites</span>
+						</a>
+						<ul class="submenu">
+							<?php if (has_permission('listar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/tramite'); ?>">
+									<i class="fas fa-list"></i> Todos los Trámites
+								</a></li>
+							<?php endif; ?>
+							<?php if (has_permission('listar_solicitudes_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/solicitudes'); ?>">
+									<i class="fas fa-clock"></i> Solicitudes Recientes
+								</a></li>
+							<?php endif; ?>
+							<?php if (has_permission('listar_recoleccion_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/recoleccion'); ?>">
+									<i class="fas fa-file-download"></i> Recolección de Documentos
+								</a></li>
+							<?php endif; ?>	
+							<?php if (has_permission('listar_en_tramite_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/en_tramite'); ?>">
+									<i class="fas fa-spinner"></i> En Trámite
+								</a></li>
+							<?php endif; ?>	
+							<?php if (has_permission('listar_mis_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/mios'); ?>">
+									<i class="fas fa-user-check"></i> Mis Trámites
+								</a></li>
+							<?php endif; ?>	
+							<?php if (has_permission('listar_tramites_concluidos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/concluido/final'); ?>">
+									<i class="fas fa-check-circle"></i> Concluidos
+								</a></li>
+							<?php endif; ?>	
+						</ul>
+					</li>
+				<?php endif; ?>
+				
+				<!-- SECCIÓN: WIZARD TRÁMITES
+				<li class="menu-section-title">
+					<span><i class="fas fa-magic me-2"></i> Creación Rápida</span>
+				</li>
+				<li class="dropdown">
+					<a href="javascript:;" class="dropdown-toggle">
+						<span class="micon"><i class="fas fa-magic"></i></span>
+						<span class="mtext">Wizard Trámites</span>
+					</a>
+					<ul class="submenu">
+						<li><a href="<?php echo base_url('deskapp/tramitewizard'); ?>">
+							<i class="fas fa-plus-circle text-primary"></i> Crear Nuevo Trámite
+						</a></li>
+						<li><a href="<?php echo base_url('deskapp/tramitewizard/listado'); ?>">
+							<i class="fas fa-list-ul"></i> Listado de Trámites
+						</a></li>
+					</ul>
+				</li> -->
+				
+				<!-- SECCIÓN: PROCESO FINAL -->
+				<?php if (has_permission('menu_proceso_final', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<li class="menu-section-title">
+						<span><i class="fas fa-flag-checkered me-2"></i> Cierre de Trámites</span>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon"><i class="fas fa-tasks"></i></span>
+							<span class="mtext">Cierre</span>
+						</a>
+						<ul class="submenu">
+							<?php if (has_permission('listar_final_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/proceso/final'); ?>">
+									<i class="fas fa-check-double text-success"></i> Finalizado
+								</a></li>
+							<?php endif; ?>	
+							<?php if (has_permission('listar_concluidos_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites/cancelados'); ?>">
+									<i class="fas fa-times-circle text-danger"></i> Cancelados
+								</a></li>
+							<?php endif; ?>	
+						</ul>
+					</li>
+				<?php endif; ?>
+				
+				<!-- SECCIÓN: GESTORES -->
+				<?php if (has_permission('menu_gestores', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<li class="menu-section-title">
+						<span><i class="fas fa-handshake me-2"></i> Gestión de Gestores</span>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon"><i class="fas fa-handshake"></i></span>
+							<span class="mtext">Gestores</span>
+						</a>
+						<ul class="submenu">
+							<li><a href="<?php echo base_url('deskapp/gestores/gestores'); ?>">
+								<i class="fas fa-building"></i> Empresa Gestora
+							</a></li>
+							<li><a href="<?php echo base_url('deskapp/gestores/gestor'); ?>">
+								<i class="fas fa-user-tie"></i> Gestor
+							</a></li>
+						</ul>
+					</li>
+				<?php endif; ?>
+				
+				<!-- SECCIÓN: CLIENTES -->
+				<?php if (has_permission('menu_clientes', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<li class="menu-section-title">
+						<span><i class="fas fa-users me-2"></i> Gestión de Clientes</span>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon"><i class="fas fa-user-friends"></i></span>
+							<span class="mtext">Clientes</span>
+						</a>
+						<ul class="submenu">
+							<li><a href="<?php echo base_url('deskapp/clientes/cliente'); ?>">
+								<i class="fas fa-user-circle"></i> Cliente
+							</a></li>
+							<li><a href="<?php echo base_url('deskapp/clientes/contactos'); ?>">
+								<i class="fas fa-address-book"></i> Contactos
+							</a></li>
+						</ul>
+					</li>
+				<?php endif; ?>
+				
+				<!-- SECCIÓN: CONFIGURACIÓN -->
+				<?php if (has_permission('menu_configuracion', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<li class="menu-section-title">
+						<span><i class="fas fa-cog me-2"></i> Configuración del Sistema</span>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon"><i class="fas fa-cogs"></i></span>
+							<span class="mtext">Configuración</span>
+						</a>
+						<ul class="submenu">
+							<li><a href="<?php echo base_url('deskapp/tramites/tipo'); ?>">
+								<i class="fas fa-tags"></i> Tipo de Trámite
+							</a></li>
+							<li><a href="<?php echo base_url('deskapp/tramites/status'); ?>">
+								<i class="fas fa-traffic-light"></i> Estatuses de Trámite
+							</a></li>
+						</ul>
+					</li>
+				<?php endif; ?>
+				
+				<!-- SECCIÓN: DOCUMENTOS -->
+				<?php if (has_permission('menu_documentos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<li class="menu-section-title">
+						<span><i class="fas fa-folder me-2"></i> Gestión Documental</span>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon"><i class="fas fa-file-alt"></i></span>
+							<span class="mtext">Documentos</span>
+						</a>
+						<ul class="submenu">
+							<li><a href="<?php echo base_url('deskapp/documentos/documento'); ?>">
+								<i class="fas fa-file"></i> Documento
+							</a></li>
+							<li><a href="<?php echo base_url('deskapp/documentos/status'); ?>">
+								<i class="fas fa-info-circle"></i> Status de Documentos
+							</a></li>
+						</ul>
+					</li>
+				<?php endif; ?>
+				
+				<!-- SECCIÓN: PERMISOS Y USUARIOS -->
+				<?php if (has_permission('menu_roles', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<li class="menu-section-title">
+						<span><i class="fas fa-shield-alt me-2"></i> Seguridad y Accesos</span>
+					</li>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon"><i class="fas fa-user-shield"></i></span>
+							<span class="mtext">Roles y Permisos</span>
+						</a>
+						<ul class="submenu">
+							<li><a href="<?php echo base_url('deskapp/roles/roles'); ?>">
+								<i class="fas fa-user-tag"></i> Roles
+							</a></li>
+							<li><a href="<?php echo base_url('deskapp/permisos/permisos'); ?>">
+								<i class="fas fa-key"></i> Permisos
+							</a></li>
+							<li><a href="<?php echo base_url('deskapp/roles/role_permissions'); ?>">
+								<i class="fas fa-link"></i> Roles-Permisos
+							</a></li>
+							<li><a href="<?php echo base_url('deskapp/users/users'); ?>">
+								<i class="fas fa-users"></i> Usuarios
+							</a></li>
+							<li><a href="<?php echo base_url('deskapp/users/user_roles'); ?>">
+								<i class="fas fa-user-cog"></i> Usuarios-Roles
+							</a></li>
+						</ul>
+					</li>
+				<?php endif; ?>
+			</ul>
+		</div>
+	</div>
+</div>
+<div class="mobile-menu-overlay"></div>

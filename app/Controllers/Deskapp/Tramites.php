@@ -1,4 +1,28 @@
 <?php
+
+/**
+ * ============================================================================
+ * CONTROLADOR DE TRÁMITES - CON VALIDACIÓN MULTI-TENANCY
+ * ============================================================================
+ * 
+ * Este controlador gestiona todos los trámites del sistema.
+ * 
+ * IMPORTANTE - SEGURIDAD MULTI-TENANCY:
+ * Este controlador debe implementar filtrado por cliente_user para usuarios
+ * con restricciones de acceso. Los usuarios asignados a clientes específicos
+ * solo deben ver trámites de esos clientes.
+ * 
+ * RECOMENDACIONES:
+ * 1. Cargar el helper 'cliente_filter' en el constructor
+ * 2. Verificar si el usuario tiene restricción por cliente
+ * 3. Aplicar filtro get_cliente_filter_sql() si corresponde
+ * 4. Validar acceso en métodos update/view/delete
+ * 
+ * TODO: Implementar filtrado automático basado en cliente_user
+ * 
+ * ============================================================================
+ */
+
 // namespace App\Controllers;
 namespace App\Controllers\Deskapp;
 use App\Controllers\BaseController;
@@ -38,7 +62,7 @@ class Tramites extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url']);
+        helper(['form', 'url', 'cliente_filter', 'audit', 'notification']);
     }
 
     public function index()
@@ -63,6 +87,28 @@ class Tramites extends BaseController
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
+            
+            // ========================================================================
+            // FILTRADO POR CLIENTE - ARQUITECTURA MULTI-TENANCY
+            // ========================================================================
+            // 
+            // Aplicar filtro por clientes asignados al usuario.
+            // - Si el usuario es ADMIN: verá TODOS los trámites (sin filtro)
+            // - Si el usuario NO es admin: solo verá trámites de sus clientes asignados
+            // 
+            // La función get_cliente_filter_sql() automáticamente:
+            // 1. Detecta si el usuario es admin (retorna "1 = 1" sin filtro)
+            // 2. Obtiene los clientes del usuario desde cliente_user
+            // 3. Genera SQL que filtra por esos clientes
+            // 
+            // IMPORTANTE: Este filtro es CRÍTICO para la seguridad del sistema.
+            // No eliminar o modificar sin entender las implicaciones.
+            // ========================================================================
+            
+            $filterSql = get_cliente_filter_sql($myid);
+            $tramite_crud->where($filterSql, null, false);
+            
+            // Filtro adicional por status
             $tramite_crud->where('tra_status_id NOT IN (20, 21)');
             
             $tramite_crud->unsetAdd();
@@ -222,7 +268,13 @@ class Tramites extends BaseController
             $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
 
             /* SELECT Se configura el cliente final o cliente directo */
-            $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            // FILTRO DE CONFIDENCIALIDAD: Aplica filtro para mostrar solo clientes asignados
+            $clienteRelationFilter = get_cliente_relation_filter($myid);
+            if ($clienteRelationFilter !== null) {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social', $clienteRelationFilter);
+            } else {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            }
             $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
             
             /* SELECT Se configura el ejecutivo del cliente */
@@ -272,6 +324,11 @@ class Tramites extends BaseController
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
+            
+            // FILTRADO POR CLIENTE (Multi-tenancy)
+            $filterSql = get_cliente_filter_sql($myid);
+            $tramite_crud->where($filterSql, null, false);
+            
             //$tramite_crud->where('tra_status_id NOT IN (20, 21)');
             
             $tramite_crud->unsetAdd();
@@ -407,7 +464,13 @@ class Tramites extends BaseController
             $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
 
             /* SELECT Se configura el cliente final o cliente directo */
-            $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            // FILTRO DE CONFIDENCIALIDAD: Aplica filtro para mostrar solo clientes asignados
+            $clienteRelationFilter = get_cliente_relation_filter($myid);
+            if ($clienteRelationFilter !== null) {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social', $clienteRelationFilter);
+            } else {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            }
             $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
             
             /* SELECT Se configura el ejecutivo del cliente */
@@ -458,6 +521,11 @@ class Tramites extends BaseController
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
+            
+            // FILTRADO POR CLIENTE (Multi-tenancy)
+            $filterSql = get_cliente_filter_sql($myid);
+            $tramite_crud->where($filterSql, null, false);
+            
             //$tramite_crud->where('tra_status_id NOT IN (20, 21)');
             
             $tramite_crud->unsetAdd();
@@ -595,7 +663,13 @@ class Tramites extends BaseController
             $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
 
             /* SELECT Se configura el cliente final o cliente directo */
-            $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            // FILTRO DE CONFIDENCIALIDAD: Aplica filtro para mostrar solo clientes asignados
+            $clienteRelationFilter = get_cliente_relation_filter($myid);
+            if ($clienteRelationFilter !== null) {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social', $clienteRelationFilter);
+            } else {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            }
             $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
             
             /* SELECT Se configura el ejecutivo del cliente */
@@ -646,6 +720,10 @@ class Tramites extends BaseController
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
+            
+            // FILTRADO POR CLIENTE (Multi-tenancy)
+            $filterSql = get_cliente_filter_sql($myid);
+            $tramite_crud->where($filterSql, null, false);
             
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -784,7 +862,13 @@ class Tramites extends BaseController
             $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
 
             /* SELECT Se configura el cliente final o cliente directo */
-            $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            // FILTRO DE CONFIDENCIALIDAD: Aplica filtro para mostrar solo clientes asignados
+            $clienteRelationFilter = get_cliente_relation_filter($myid);
+            if ($clienteRelationFilter !== null) {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social', $clienteRelationFilter);
+            } else {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            }
             $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
             
             /* SELECT Se configura el ejecutivo del cliente */
@@ -835,6 +919,10 @@ class Tramites extends BaseController
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
+            
+            // FILTRADO POR CLIENTE (Multi-tenancy)
+            $filterSql = get_cliente_filter_sql($myid);
+            $tramite_crud->where($filterSql, null, false);
             
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -972,7 +1060,13 @@ class Tramites extends BaseController
             $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
 
             /* SELECT Se configura el cliente final o cliente directo */
-            $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            // FILTRO DE CONFIDENCIALIDAD: Aplica filtro para mostrar solo clientes asignados
+            $clienteRelationFilter = get_cliente_relation_filter($myid);
+            if ($clienteRelationFilter !== null) {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social', $clienteRelationFilter);
+            } else {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            }
             $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
             
             /* SELECT Se configura el ejecutivo del cliente */
@@ -1023,6 +1117,10 @@ class Tramites extends BaseController
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
+            
+            // FILTRADO POR CLIENTE (Multi-tenancy)
+            $filterSql = get_cliente_filter_sql($myid);
+            $tramite_crud->where($filterSql, null, false);
             
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -1093,7 +1191,13 @@ class Tramites extends BaseController
             $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
 
             /* SELECT Se configura el cliente final o cliente directo */
-            $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            // FILTRO DE CONFIDENCIALIDAD: Aplica filtro para mostrar solo clientes asignados
+            $clienteRelationFilter = get_cliente_relation_filter($myid);
+            if ($clienteRelationFilter !== null) {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social', $clienteRelationFilter);
+            } else {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            }
             $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
             
             /* SELECT Se configura el ejecutivo del cliente */
@@ -1400,6 +1504,26 @@ class Tramites extends BaseController
                 ];
                 $tra_user_log->insert($log, 'tra_user_log');
 
+                // AUDITORÍA: Registrar creación del trámite
+                log_tramite_change(
+                    $lastInsertID,
+                    'insert',
+                    'tramite',
+                    "Trámite creado con folio {$newFolio}",
+                    null,
+                    null,
+                    null,
+                    [
+                        'folio' => $newFolio,
+                        'tipo_tramite_id' => $tra_tipos_id,
+                        'contrato' => $data['contrato'] ?? null,
+                        'serie' => $data['serie'] ?? null
+                    ]
+                );
+
+                // NOTIFICACIÓN: Enviar notificación de trámite creado
+                notify_tramite_creado($lastInsertID, $newFolio, $myid);
+
                 // Si la solicitud es AJAX, devuelve una respuesta JSON indicando éxito
                 if ($this->request->isAJAX()) {
                     return $this->response->setJSON([
@@ -1427,6 +1551,20 @@ class Tramites extends BaseController
     }
 
     public function update($id) {
+        // ========================================================================
+        // VALIDACIÓN DE ACCESO - MULTI-TENANCY
+        // ========================================================================
+        // Verificar que el usuario tenga acceso a este trámite
+        // - Si es admin: siempre tiene acceso
+        // - Si no es admin: solo si el trámite pertenece a sus clientes
+        // ========================================================================
+        
+        if (!validate_tramite_access($id)) {
+            log_unauthorized_access_attempt('tramite', $id);
+            return redirect()->to('/deskapp/tramites/tramite')
+                ->with('error', '⛔ No tienes permiso para editar este trámite');
+        }
+        
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -1452,7 +1590,14 @@ class Tramites extends BaseController
 
         // Retrieve the record
         $tramite = $builder->getWhere(['id' => $id])->getRowArray();
+        if (!$tramite) {
+            return redirect()->to('/deskapp/tramites/tramite')
+                ->with('error', 'No se encontró el trámite solicitado');
+        }
 
+        $TraTiposModel = new TraTiposModel($db2);
+        $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
+        
         $entidades = new EntidadesModel($db2);
         $entidad_options = $entidades->getEntidades();
         $clienteDirecto = new ClienteDirectoModel($db2);
@@ -1535,7 +1680,7 @@ class Tramites extends BaseController
             // "gestoria_comision_hidden" => ["label" => "", "type" => "hidden", "value" => $tramite['gestoria_comision']],
             "gestor_id" => ["label" => "", "type" => "hidden", "value" => $tramite['gestor_id']],
             "gestor_name" => ["label" => "Gestor", "type" => "text", "value" => $gestor_nombre, "disabled"=>"disabled"],
-            "costo_tramite" => ["label" => "Costos de los Trámites", "type" => "number", "value" => $tramite['costo_tramite']],
+            "costo_tramite" => ["label" => "Costos de los Trámites", "type" => "number", "value" => $tramite['costo_tramite'], "disabled" => "disabled"],
             "deposito_gestor" => ["label" => "Deposito a Gestor", "type" => "number", "value" => $tramite['deposito_gestor'], "required" => "required"],
             "col_a_favor" => ["label" => "Saldo a Favor SGL", "type" => "number", "value" => $tramite['col_a_favor'], "required" => "required"], 
             "col_a_favor_gestor" => ["label" => "Saldo a Favor del Gestor", "type" => "number", "value" => $tramite['col_a_favor_gestor'], "required" => "required"],
@@ -1580,6 +1725,12 @@ class Tramites extends BaseController
         $data['derechos_comprobante'] = $tramite['derechos_comprobante'];
         $data['reembolso_status_id'] = $tramite['reembolso_status_id'];
         $data['cobro_status_id'] = $tramite['cobro_status_id'];
+        
+        // Obtener nombres para el header
+        $data['tipo_tramite'] = isset($tra_tipos_options[$tramite['tra_tipos_id']]) ? $tra_tipos_options[$tramite['tra_tipos_id']] : 'N/A';
+        $data['cliente'] = isset($cli_directo_options[$tramite['cli_directo_id']]) ? $cli_directo_options[$tramite['cli_directo_id']] : 'N/A';
+        $data['gestor'] = $gestor_nombre ?? 'Sin asignar';
+        $data['empresa_gestora'] = isset($empresa_gestora_options[$tramite['empresa_gestora_id']]) ? $empresa_gestora_options[$tramite['empresa_gestora_id']] : 'Sin asignar';
 
         $form->id = $id;
 
@@ -1730,14 +1881,14 @@ class Tramites extends BaseController
         $form->pago_gestor = [
             // nombre del gestor
             "gestor_id" => ["label" => "Gestor", "type" => "text", "value" => $gestor_nombre, "disabled"=>"disabled"],
-            "costo_tramite" => ["label" => "Costo del Trámite", "type" => "number", "value" => $tramite['costo_tramite'], "required" => "required"],
-            "deposito_gestor" => ["label" => "Deposito a Gestor", "type" => "number", "value" => $tramite['deposito_gestor'], "required" => "required"],
-            "col_a_favor" => ["label" => "Saldo Pendiente", "type" => "number", "value" => $tramite['col_a_favor'], "required" => "required"], 
+            "costo_tramite" => ["label" => "Costo del Trámite", "type" => "number", "value" => $tramite['costo_tramite']],
+            "deposito_gestor" => ["label" => "Deposito a Gestor", "type" => "number", "value" => $tramite['deposito_gestor']],
+            "col_a_favor" => ["label" => "Saldo Pendiente", "type" => "number", "value" => $tramite['col_a_favor']], 
             "num_factura_gestor" => ["label" => "Número de Factura", "type" => "text", "value" => $tramite['num_factura_gestor']],    
             "pago_gestor_st_id" => ["label" => "Estatus del Pago", "type" => "select", "options" => $pago_gestor_st_opciones, "value" => $tramite['pago_gestor_st_id']],
-            "impuesto_gestoria" => ["label" => "Honorarios de Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria'], "required" => "required"],
-            "gestoria_comision" => ["label" => "Gratificación", "type" => "number", "value" => $tramite['gestoria_comision'], "required" => "required"],
-            "gestor_total_pago" => ["label" => "Pago Total", "type" => "number", "value" => $tramite['gestor_total_pago'], "required" => "required"],
+            "impuesto_gestoria" => ["label" => "Honorarios de Gestoría", "type" => "number", "value" => $tramite['impuesto_gestoria']],
+            "gestoria_comision" => ["label" => "Gratificación", "type" => "number", "value" => $tramite['gestoria_comision']],
+            "gestor_total_pago" => ["label" => "Pago Total", "type" => "number", "value" => $tramite['gestor_total_pago']],
             "reembolso_status_id" => ["label" => "Estatus del Reembolso", "type" => "select", "options" => $reembolso_status_options, "value" => $tramite['reembolso_status_id']]
         ];
 
@@ -2316,47 +2467,57 @@ class Tramites extends BaseController
     public function delete_comprobante()
     {
         $request = \Config\Services::request();
-
-        // Obtener el ID del trámite desde la URI
-        $uri = $request->getUri();
         $tramiteId = $request->getPost('tramite_id');
-
-        // Validar que se haya proporcionado el ID del trámite
-        if ($tramiteId === null) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
-        }
-
-        // Obtener el nombre del archivo desde la solicitud POST
         $fileName = $request->getPost('file');
+
+        // Validar ID del trámite
+        if (!$tramiteId || !is_numeric($tramiteId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        // Validar nombre del archivo
         if (empty($fileName)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado']);
+            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado.']);
         }
 
-        // Ruta base del directorio de los archivos
-        $ds = DIRECTORY_SEPARATOR;
-        $storeFolder = 'assets/uploads/pago_derechos/' . $tramiteId;
-        $filePath = FCPATH . $storeFolder . $ds . $fileName;
-        // echo "<br>" . $filePath; die();
-        // Eliminar archivo de la carpeta si existe
-        if (file_exists($filePath)) {
-            if (!unlink($filePath)) {
-                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor']);
+        try {
+            // Verificar que el registro existe en la base de datos
+            $db = \Config\Database::connect();
+            $builder = $db->table('tra_pago_derechos');
+            $existingRecord = $builder->where('tramite_id', $tramiteId)
+                                      ->where('file', $fileName)
+                                      ->get()->getRowArray();
+            
+            if (!$existingRecord) {
+                return $this->response->setJSON(['success' => false, 'message' => 'El registro no existe en la base de datos.']);
             }
-        } else {
-            return $this->response->setJSON(['success' => false, 'message' => 'El archivo no existe en el servidor']);
+
+            // Ruta del archivo
+            $ds = DIRECTORY_SEPARATOR;
+            $storeFolder = 'assets/uploads/pago_derechos/' . $tramiteId;
+            $filePath = FCPATH . $storeFolder . $ds . $fileName;
+
+            // Eliminar archivo físico
+            if (file_exists($filePath)) {
+                if (!unlink($filePath)) {
+                    return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor.']);
+                }
+            }
+
+            // Eliminar registro de la base de datos con WHERE obligatorio
+            $builder->where('tramite_id', $tramiteId);
+            $builder->where('file', $fileName);
+
+            if (!$builder->delete()) {
+                throw new \Exception('No se pudo eliminar el registro de la base de datos.');
+            }
+
+            return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente.']);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en delete_comprobante: ' . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => 'Error al eliminar: ' . $e->getMessage()]);
         }
-
-        // Conectar a la base de datos y eliminar el registro
-        $db = \Config\Database::connect();
-        $builder = $db->table('tra_pago_derechos');
-        $builder->where('tramite_id', $tramiteId);
-        $builder->where('file', $fileName);
-
-        if (!$builder->delete()) {
-            return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el registro en la base de datos']);
-        }
-
-        return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente']);
     }
 
     public function upload_comprobante()
@@ -2414,47 +2575,57 @@ class Tramites extends BaseController
     public function delete_pago_gestor()
     {
         $request = \Config\Services::request();
-
-        // Obtener el ID del trámite desde la URI
-        $uri = $request->getUri();
         $tramiteId = $request->getPost('tramite_id');
-
-        // Validar que se haya proporcionado el ID del trámite
-        if ($tramiteId === null) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
-        }
-
-        // Obtener el nombre del archivo desde la solicitud POST
         $fileName = $request->getPost('file');
+
+        // Validar ID del trámite
+        if (!$tramiteId || !is_numeric($tramiteId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        // Validar nombre del archivo
         if (empty($fileName)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado']);
+            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado.']);
         }
 
-        // Ruta base del directorio de los archivos
-        $ds = DIRECTORY_SEPARATOR;
-        $storeFolder = 'assets/uploads/pago_gestor/' . $tramiteId;
-        $filePath = FCPATH . $storeFolder . $ds . $fileName;
-
-        // Eliminar archivo de la carpeta si existe
-        if (file_exists($filePath)) {
-            if (!unlink($filePath)) {
-                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor']);
+        try {
+            // Verificar que el registro existe
+            $db = \Config\Database::connect();
+            $builder = $db->table('tra_pago_gestor');
+            $existingRecord = $builder->where('tramite_id', $tramiteId)
+                                      ->where('file', $fileName)
+                                      ->get()->getRowArray();
+            
+            if (!$existingRecord) {
+                return $this->response->setJSON(['success' => false, 'message' => 'El registro no existe en la base de datos.']);
             }
-        } else {
-            return $this->response->setJSON(['success' => false, 'message' => 'El archivo no existe en el servidor']);
+
+            // Ruta del archivo
+            $ds = DIRECTORY_SEPARATOR;
+            $storeFolder = 'assets/uploads/pago_gestor/' . $tramiteId;
+            $filePath = FCPATH . $storeFolder . $ds . $fileName;
+
+            // Eliminar archivo físico
+            if (file_exists($filePath)) {
+                if (!unlink($filePath)) {
+                    return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor.']);
+                }
+            }
+
+            // Eliminar registro de la base de datos con WHERE obligatorio
+            $builder->where('tramite_id', $tramiteId);
+            $builder->where('file', $fileName);
+
+            if (!$builder->delete()) {
+                throw new \Exception('No se pudo eliminar el registro de la base de datos.');
+            }
+
+            return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente.']);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en delete_pago_gestor: ' . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => 'Error al eliminar: ' . $e->getMessage()]);
         }
-
-        // Conectar a la base de datos y eliminar el registro
-        $db = \Config\Database::connect();
-        $builder = $db->table('tra_pago_gestor'); // Cambiado a la tabla 'tra_pago_gestor'
-        $builder->where('tramite_id', $tramiteId);
-        $builder->where('file', $fileName);
-
-        if (!$builder->delete()) {
-            return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el registro en la base de datos']);
-        }
-
-        return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente']);
     }
 
     public function upload_pago_gestor()
@@ -2509,50 +2680,60 @@ class Tramites extends BaseController
         return $this->response->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
     }
 
-    public function delete_cobro_cliente(): ResponseInterface
+    public function delete_cobro_cliente()
     {
         $request = \Config\Services::request();
-
-        // Obtener el ID del trámite desde la URI
-        $uri = $request->getUri();
         $tramiteId = $request->getPost('tramite_id');
-
-        // Validar que se haya proporcionado el ID del trámite
-        if ($tramiteId === null) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
-        }
-
-        // Obtener el nombre del archivo desde la solicitud POST
         $fileName = $request->getPost('file');
+
+        // Validar ID del trámite
+        if (!$tramiteId || !is_numeric($tramiteId)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        // Validar nombre del archivo
         if (empty($fileName)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado']);
+            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado.']);
         }
 
-        // Ruta base del directorio de los archivos
-        $ds = DIRECTORY_SEPARATOR;
-        $storeFolder = 'assets/uploads/cobro_cliente/' . $tramiteId;
-        $filePath = FCPATH . $storeFolder . $ds . $fileName;
-
-        // Eliminar archivo de la carpeta si existe
-        if (file_exists($filePath)) {
-            if (!unlink($filePath)) {
-                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor']);
+        try {
+            // Verificar que el registro existe
+            $db = \Config\Database::connect();
+            $builder = $db->table('tra_cobro_cliente');
+            $existingRecord = $builder->where('tramite_id', $tramiteId)
+                                      ->where('file', $fileName)
+                                      ->get()->getRowArray();
+            
+            if (!$existingRecord) {
+                return $this->response->setJSON(['success' => false, 'message' => 'El registro no existe en la base de datos.']);
             }
-        } else {
-            return $this->response->setJSON(['success' => false, 'message' => 'El archivo no existe en el servidor']);
+
+            // Ruta del archivo
+            $ds = DIRECTORY_SEPARATOR;
+            $storeFolder = 'assets/uploads/cobro_cliente/' . $tramiteId;
+            $filePath = FCPATH . $storeFolder . $ds . $fileName;
+
+            // Eliminar archivo físico
+            if (file_exists($filePath)) {
+                if (!unlink($filePath)) {
+                    return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor.']);
+                }
+            }
+
+            // Eliminar registro de la base de datos con WHERE obligatorio
+            $builder->where('tramite_id', $tramiteId);
+            $builder->where('file', $fileName);
+
+            if (!$builder->delete()) {
+                throw new \Exception('No se pudo eliminar el registro de la base de datos.');
+            }
+
+            return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente.']);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en delete_cobro_cliente: ' . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => 'Error al eliminar: ' . $e->getMessage()]);
         }
-
-        // Conectar a la base de datos y eliminar el registro
-        $db = \Config\Database::connect();
-        $builder = $db->table('tra_cobro_cliente'); // Cambiado a la tabla 'tra_cobro_cliente'
-        $builder->where('tramite_id', $tramiteId);
-        $builder->where('file', $fileName);
-
-        if (!$builder->delete()) {
-            return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el registro en la base de datos']);
-        }
-
-        return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente']);
     }
 
     public function upload_cobro_cliente()
@@ -2632,42 +2813,74 @@ class Tramites extends BaseController
     
     public function update_save() {
         $session = session();
-        $data['session'] = \Config\Services::session();
-        $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
         $id = $this->request->uri->getSegment(4);
-        $validation = \Config\Services::validation();   
-        $db2 = $this->_getDbData();    
-        // Set validation rules
+
+        // Validar ID
+        if (!$id || !is_numeric($id)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        $validation = \Config\Services::validation();
         $validation->setRules([
             "folio" => "required",
             "contrato" => "required"
         ]);
     
         if ($validation->withRequest($this->request)->run() === FALSE) {
-            // Validation failed, return errors as JSON
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => $validation->getErrors()
             ]);
-        } else {
-            // Update the data in the database
-            $data = $this->request->getPost();
+        }
+
+        try {
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
-            $data["user_id"] = $myid;
-            $builder->where('id', $id);
+            
+            // Verificar que el trámite existe
+            $existingTramite = $builder->where('id', $id)->get()->getRowArray();
+            if (!$existingTramite) {
+                return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
+            }
 
-            $builder->update($data);
+            // Actualizar datos
+            $data = $this->request->getPost();
+            $data["user_id"] = $myid;
+            
+            // AUDITORÍA: Comparar datos antes de actualizar
+            $changes = compare_tramite_data($existingTramite, $data);
+            
+            // Log temporal para debug - guardar en archivo separado
+            $logFile = WRITEPATH . 'logs/audit_debug.log';
+            $logData = [
+                'timestamp' => date('Y-m-d H:i:s'),
+                'tramite_id' => $id,
+                'user_id' => $myid,
+                'post_fields' => array_keys($data),
+                'existing_fields' => array_keys($existingTramite),
+                'changes_detected' => count($changes),
+                'changes' => $changes
+            ];
+            file_put_contents($logFile, json_encode($logData, JSON_PRETTY_PRINT) . "\n\n", FILE_APPEND);
+            
+            $builder->where('id', $id);
+            $updateResult = $builder->update($data);
+
+            if (!$updateResult) {
+                throw new \Exception('No se pudo actualizar el trámite.');
+            }
+
             $folio = $data["folio"];
-            #adding bitacora
+            $db2 = $this->_getDbData();
+
+            // Bitácora
             $bitacoraModel = new BitacoraModel($db2);
-            $data_bitacora = $data;
-            $diferencias = $this->encontrarDiferencias($data_bitacora, []);
+            $diferencias = $this->encontrarDiferencias($data, []);
             $insert_bitacora = [
-                "id"=>null,
-                "tipo"=>"update",
-                "origen"=>"tramite",
+                "id" => null,
+                "tipo" => "update",
+                "origen" => "tramite",
                 "folio_tramite" => $folio,
                 "tramite_id" => (int)$id,
                 "cambios" => json_encode($diferencias),
@@ -2675,97 +2888,165 @@ class Tramites extends BaseController
             ];
             $bitacoraModel->insert($insert_bitacora, 'bitacora');
 
+            // Log de usuario
             $tra_user_log = new TraUserLogModel($db2);
             $log = [
-                "tramite_id"    => (int)$id,
-                "user_id"       => (int)$myid,
+                "tramite_id" => (int)$id,
+                "user_id" => (int)$myid,
                 "tra_status_id" => 11
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
-            // Return success message as JSON
+            // AUDITORÍA: Registrar cambios detectados
+            if (!empty($changes)) {
+                $changeCount = log_tramite_bulk_changes($id, $changes, 'tramite', [
+                    'form_name' => 'Datos Generales',
+                    'form_step' => 1,
+                    'form_section' => 'update_save'
+                ]);
+                log_message('info', "[Tramites::update_save] Registrados {$changeCount} cambios para trámite ID: {$id}");
+                
+                // NOTIFICACIÓN: Enviar notificación de trámite actualizado
+                $cambiosTexto = implode(', ', array_keys($changes));
+                notify_tramite_actualizado($id, $folio ?? "Trámite #{$id}", $cambiosTexto, $myid);
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'El trámite se guardó correctamente.',
-                'redirect' => '/deskapp/tramites/update/'.$id
+                'redirect' => '/deskapp/tramites/update/' . $id
             ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en update_save: ' . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => 'Error al actualizar: ' . $e->getMessage()]);
         }
     }
 
     public function update_gestor_save() {
         $session = session();
-        $data['session'] = \Config\Services::session();
-        $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
         $id = $this->request->uri->getSegment(4);
-        $validation = \Config\Services::validation();   
-        $db2 = $this->_getDbData();    
+
+        // Validar ID
+        if (!$id || !is_numeric($id)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        $validation = \Config\Services::validation();
         $validation->setRules([
             "empresa_gestora_id" => "required",
             "gestor_id" => "required"
         ]);
+
         if ($validation->withRequest($this->request)->run() === FALSE) {
-            // Validation failed, return errors as JSON
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => $validation->getErrors()
             ]);
-        } else {
-            // Update the data in the database
-            $data = $this->request->getPost();
+        }
+
+        try {
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
-            $builder->where('id', $id);
+            
+            // Verificar que el trámite existe
+            $tramite_base = $builder->where('id', $id)->get()->getRowArray();
+            if (!$tramite_base) {
+                return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
+            }
 
             $this->updateTramiteStatus($id, 25);
 
+            // Preparar datos
+            $data = $this->request->getPost();
+            
             if (empty($tramite_base['started_at'])) {
                 $data["started_at"] = date('Y-m-d H:i:s');
             }
 
-            if(isset($data['gestor_name'])){
+            if (isset($data['gestor_name'])) {
                 unset($data['gestor_name']);
             }
 
-            $builder->where('id', $id);
-            $builder->update($data);
+            // AUDITORÍA: Comparar datos antes de actualizar
+            $changes = compare_tramite_data($tramite_base, $data);
 
+            // Actualizar con WHERE obligatorio
+            $builder->where('id', $id);
+            $updateResult = $builder->update($data);
+
+            if (!$updateResult) {
+                throw new \Exception('No se pudo asignar el gestor.');
+            }
+
+            $db2 = $this->_getDbData();
+
+            // Bitácora
             $bitacoraModel = new BitacoraModel($db2);
-            $data_bitacora = $data;
-            $diferencias = $this->encontrarDiferencias($data_bitacora, []);
+            $diferencias = $this->encontrarDiferencias($data, []);
             $insert_bitacora = [
-                "id"=>null,
-                "tipo"=>"update",
-                "origen"=>"tramite",
+                "id" => null,
+                "tipo" => "update",
+                "origen" => "tramite",
                 "tramite_id" => (int)$id,
                 "cambios" => json_encode($diferencias),
                 "user_id" => (int)$myid
             ];
             $bitacoraModel->insert($insert_bitacora, 'bitacora');
 
+            // Log de usuario
             $tra_user_log = new TraUserLogModel($db2);
             $log = [
-                "tramite_id"    => (int)$id,
-                "user_id"       => (int)$myid,
+                "tramite_id" => (int)$id,
+                "user_id" => (int)$myid,
                 "tra_status_id" => 22
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
-            // Return success message as JSON
+            // AUDITORÍA: Registrar cambios detectados
+            if (!empty($changes)) {
+                log_tramite_bulk_changes($id, $changes, 'tramite', [
+                    'form_name' => 'Asignación de Gestor',
+                    'form_step' => 2,
+                    'form_section' => 'update_gestor_save'
+                ]);
+                
+                // NOTIFICACIÓN: Enviar notificación de gestor asignado
+                if (isset($changes['gestor_id'])) {
+                    // Obtener folio y nombre del gestor
+                    $db = \Config\Database::connect();
+                    $tramiteData = $db->table('tramite')->select('folio')->where('id', $id)->get()->getRowArray();
+                    $gestor = $db->table('ges_gestor')->select('nombre')->where('id', $data['gestor_id'])->get()->getRowArray();
+                    
+                    $folio = $tramiteData['folio'] ?? "Trámite #{$id}";
+                    $gestorNombre = $gestor['nombre'] ?? 'Gestor';
+                    
+                    notify_gestor_asignado($id, $folio, $gestorNombre, $myid);
+                }
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'El Gestor se asignó correctamente.',
-                'redirect' => '/deskapp/tramites/update/'.$id
+                'redirect' => '/deskapp/tramites/update/' . $id
             ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en update_gestor_save: ' . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => 'Error al asignar gestor: ' . $e->getMessage()]);
         }
     }
 
     public function update_gestor_costos() {
         $session = session();
-        $data['session'] = \Config\Services::session();
-        $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
-        $id = $this->request->uri->getSegment(4);  // Obtener el ID del trámite desde la URL
+        $id = $this->request->uri->getSegment(4);
+
+        // Validar ID
+        if (!$id || !is_numeric($id)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
     
         // Validación de los campos
         $validation = \Config\Services::validation();
@@ -2775,7 +3056,6 @@ class Tramites extends BaseController
             "reembolso_status_id" => "required|integer"
         ]);
     
-        // Validación fallida
         if ($validation->withRequest($this->request)->run() === FALSE) {
             return $this->response->setJSON([
                 'success' => false,
@@ -2783,21 +3063,29 @@ class Tramites extends BaseController
             ]);
         }
     
-        // Obtener los datos enviados
         $data = $this->request->getPost();
     
         try {
-            // Conexión a la base de datos y actualización del trámite
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
+
+            // Verificar que el trámite existe
+            $existingTramite = $builder->where('id', $id)->get()->getRowArray();
+            if (!$existingTramite) {
+                return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
+            }
     
-            // Actualizar los campos en la tabla tramite
+            // Actualizar con WHERE obligatorio
             $builder->where('id', $id);
-            $builder->update([
+            $updateResult = $builder->update([
                 'costo_tramite' => $data['costo_tramite'],
                 'deposito_gestor' => $data['deposito_gestor'],
                 'reembolso_status_id' => $data['reembolso_status_id']
             ]);
+
+            if (!$updateResult) {
+                throw new \Exception('No se pudo actualizar los costos.');
+            }
     
             // Registro en la bitácora
             $db2 = $this->_getDbData();
@@ -2839,34 +3127,53 @@ class Tramites extends BaseController
 
     public function update_derechos_save() {
         $session = session();
-        $data['session'] = \Config\Services::session();
-        $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
         $id = $this->request->uri->getSegment(4);
-        $validation = \Config\Services::validation();   
-        $db2 = $this->_getDbData();    
+
+        // Validar ID
+        if (!$id || !is_numeric($id)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        $validation = \Config\Services::validation();
         $validation->setRules([
-            "derechos_tramite"=> "required",
+            "derechos_tramite" => "required",
             "derechos_pago_sitio" => "required",
             "derechos_vigencia" => "required"
         ]);
+
         if ($validation->withRequest($this->request)->run() === FALSE) {
-            // Validation failed, return errors as JSON
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => $validation->getErrors()
             ]);
-        } else {
-            // Update the data in the database
-            $data = $this->request->getPost();
+        }
+
+        try {
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
-            $builder->where('id', $id);
+            
+            // Verificar que el trámite existe
+            $existingTramite = $builder->where('id', $id)->get()->getRowArray();
+            if (!$existingTramite) {
+                return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
+            }
 
             $this->updateTramiteStatus($id, 26);
 
+            $data = $this->request->getPost();
+            
+            // AUDITORÍA: Comparar datos antes de actualizar
+            $changes = compare_tramite_data($existingTramite, $data);
+            
             $builder->where('id', $id);
-            $builder->update($data);
+            $updateResult = $builder->update($data);
+
+            if (!$updateResult) {
+                throw new \Exception('No se pudo guardar los derechos.');
+            }
+
+            $db2 = $this->_getDbData();
             #adding bitacora
             $bitacoraModel = new BitacoraModel($db2);
             $data_bitacora = $data;
@@ -2889,44 +3196,83 @@ class Tramites extends BaseController
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
+            // AUDITORÍA: Registrar cambios detectados
+            if (!empty($changes)) {
+                log_tramite_bulk_changes($id, $changes, 'tramite', [
+                    'form_name' => 'Pago de Derechos',
+                    'form_step' => 3,
+                    'form_section' => 'update_derechos_save'
+                ]);
+                
+                // NOTIFICACIÓN: Enviar notificación de trámite actualizado
+                $db = \Config\Database::connect();
+                $tramiteData = $db->table('tramite')->select('folio')->where('id', $id)->get()->getRowArray();
+                $folio = $tramiteData['folio'] ?? "Trámite #{$id}";
+                
+                notify_tramite_actualizado($id, $folio, 'Pago de Derechos actualizado', $myid);
+            }
+
             // Return success message as JSON
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'El trámite se guardó correctamente.',
                 'redirect' => '/deskapp/tramites/update/'.$id
             ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en update_derechos_save: ' . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => 'Error al guardar derechos: ' . $e->getMessage()]);
         }
     }
 
     public function update_bancario_save() {
         $session = session();
-        $data['session'] = \Config\Services::session();
-        $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
         $id = $this->request->uri->getSegment(4);
-        $validation = \Config\Services::validation();   
-        $db2 = $this->_getDbData();    
+
+        // Validar ID
+        if (!$id || !is_numeric($id)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        $validation = \Config\Services::validation();
         $validation->setRules([
-            "derechos_revol_cliente"=> "required",
+            "derechos_revol_cliente" => "required",
             "derechos_refer_banc" => "required"
         ]);
+
         if ($validation->withRequest($this->request)->run() === FALSE) {
-            // Validation failed, return errors as JSON
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => $validation->getErrors()
             ]);
-        } else {
-            // Update the data in the database
-            $data = $this->request->getPost();
+        }
+
+        try {
             $db = \Config\Database::connect();
             $builder = $db->table('tramite');
-            $builder->where('id', $id);
+            
+            // Verificar que el trámite existe
+            $existingTramite = $builder->where('id', $id)->get()->getRowArray();
+            if (!$existingTramite) {
+                return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
+            }
 
             $this->updateTramiteStatus($id, 27);
 
+            $data = $this->request->getPost();
+            
+            // AUDITORÍA: Comparar datos antes de actualizar
+            $changes = compare_tramite_data($existingTramite, $data);
+            
             $builder->where('id', $id);
-            $builder->update($data);
+            $updateResult = $builder->update($data);
+
+            if (!$updateResult) {
+                throw new \Exception('No se pudo guardar los datos bancarios.');
+            }
+
+            $db2 = $this->_getDbData();
             #adding bitacora
             $bitacoraModel = new BitacoraModel($db2);
             $data_bitacora = $data;
@@ -2949,12 +3295,32 @@ class Tramites extends BaseController
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
+            // AUDITORÍA: Registrar cambios detectados
+            if (!empty($changes)) {
+                log_tramite_bulk_changes($id, $changes, 'tramite', [
+                    'form_name' => 'Datos Bancarios',
+                    'form_step' => 3,
+                    'form_section' => 'update_bancario_save'
+                ]);
+                
+                // NOTIFICACIÓN: Enviar notificación de trámite actualizado
+                $db = \Config\Database::connect();
+                $tramiteData = $db->table('tramite')->select('folio')->where('id', $id)->get()->getRowArray();
+                $folio = $tramiteData['folio'] ?? "Trámite #{$id}";
+                
+                notify_tramite_actualizado($id, $folio, 'Datos Bancarios actualizados', $myid);
+            }
+
             // Return success message as JSON
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'El trámite se guardó correctamente.',
                 'redirect' => '/deskapp/tramites/update/'.$id
             ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en update_bancario_save: ' . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => 'Error al guardar datos bancarios: ' . $e->getMessage()]);
         }
     }
 
@@ -2967,91 +3333,150 @@ class Tramites extends BaseController
         $validation = \Config\Services::validation();   
         $db2 = $this->_getDbData();
     
+        // Validar que el ID del trámite sea válido
+        if (!$id || !is_numeric($id)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'ID de trámite inválido.'
+            ]);
+        }
+    
         $db = \Config\Database::connect();
         $builder = $db->table('tramite');
         $builder->where('id', $id);
         $existingData = $builder->get()->getRowArray();
+        
+        // Verificar que el trámite existe
+        if (!$existingData) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'El trámite no existe.'
+            ]);
+        }
     
-        // Reglas de validación
+        // Reglas de validación - solo campos que realmente son obligatorios
         $validation->setRules([
-            // "costo_gestoria" => "required|decimal",
-            // "impuesto_gestoria" => "required|decimal",
-            // "gestoria_comision" => "required|decimal",
-            // "pago_gestor_st_id" => "required|integer",
             "reembolso_status_id" => "required|integer",
         ], [
-            // "costo_gestoria" => ["required" => "El costo de gestoría es obligatorio.", "decimal" => "Debe ser un número decimal válido."],
-            // "impuesto_gestoria" => ["required" => "El impuesto de gestoría es obligatorio.", "decimal" => "Debe ser un número decimal válido."],
-            // "gestoria_comision" => ["required" => "La Gratificación es obligatoria.", "decimal" => "Debe ser un número decimal válido."],
-            // "pago_gestor_st_id" => ["required" => "El estatus del pago es obligatorio.", "integer" => "Debe ser un número entero válido."],
-            "reembolso_status_id" => ["required" => "El estatus del reembolso es obligatorio.", "integer" => "Debe ser un número entero válido."]
+            "reembolso_status_id" => [
+                "required" => "El estatus del reembolso es obligatorio.", 
+                "integer" => "Debe ser un número entero válido."
+            ]
         ]);
     
         if ($validation->withRequest($this->request)->run() === FALSE) {
-            // Validación fallida
             return $this->response->setJSON([
                 'success' => false,
+                'message' => 'Error en la validación de datos.',
                 'errors' => $validation->getErrors()
             ]);
-        } else {
-            // Obtener datos del formulario
-            $data = $this->request->getPost();
-            // echo "<pre>";
-            // print_r($data); 
-            // echo "</pre>";
-            $data["user_id"] = $myid;
-    
-            // Cálculo de campos adicionales
-            // $data["gestor_total_pago"] = $data["gestor_total_pago_hidden"];
-            unset($data["gestor_total_pago_hidden"]);
-            // $data["reembolso_status_id"] = $data["reembolso_status_id_hidden"];
-            unset($data["reembolso_status_id_hidden"]);
-            // $data["impuesto_gestoria"] = $data["impuesto_gestoria_hidden"];
-            unset($data["impuesto_gestoria_hidden"]);
-            // $data["gestoria_comision"] = $data["gestoria_comision_hidden"];
-            unset($data["gestoria_comision_hidden"]);
-            
-            if(isset($data['gestor_name'])){
-                unset($data['gestor_name']);
+        }
+        
+        // Obtener datos del formulario
+        $data = $this->request->getPost();
+        $data["user_id"] = $myid;
+        
+        // AUDITORÍA: Comparar datos antes de actualizar
+        $changes = compare_tramite_data($existingData, $data);
+        
+        // Limpiar campos que no deben guardarse
+        $camposAEliminar = [
+            'gestor_total_pago_hidden', 
+            'reembolso_status_id_hidden', 
+            'impuesto_gestoria_hidden', 
+            'gestoria_comision_hidden',
+            'gestor_name',
+            'gestor_id' // Este campo es readonly, no debe actualizarse
+        ];
+        
+        foreach ($camposAEliminar as $campo) {
+            if (isset($data[$campo])) {
+                unset($data[$campo]);
             }
-            
-            
+        }
+        
+        // Convertir campos numéricos vacíos a NULL
+        $camposNumericos = [
+            'costo_tramite', 
+            'deposito_gestor', 
+            'col_a_favor', 
+            'impuesto_gestoria', 
+            'gestoria_comision', 
+            'gestor_total_pago'
+        ];
+        
+        foreach ($camposNumericos as $campo) {
+            if (isset($data[$campo]) && $data[$campo] === '') {
+                $data[$campo] = null;
+            }
+        }
+        
+        try {
             // Actualizar en la base de datos
             $builder->where('id', $id);
-            $builder->update($data);
+            $updateResult = $builder->update($data);
+            
+            if (!$updateResult) {
+                throw new \Exception('No se pudo actualizar el trámite.');
+            }
 
-            // $builder->where('id', $id);
-            // $builder->set($data);  // importante para que compile correctamente
-            // $sql = $builder->getCompiledUpdate();
-            // echo $sql;die();
-
-
+            // Actualizar estatus del trámite a 28 (Pago a Gestor completado)
             $this->updateTramiteStatus($id, 28);
+            
             // Bitácora
             $bitacoraModel = new BitacoraModel($db2);
             $diferencias = $this->encontrarDiferencias($data, $existingData);
-            $bitacoraModel->insert([
-                "id" => null,
-                "tipo" => "update",
-                "origen" => "tramite",
-                "tramite_id" => (int)$id,
-                "cambios" => json_encode($diferencias),
-                "user_id" => (int)$myid
-            ], 'bitacora');
+            
+            if (!empty($diferencias)) {
+                $bitacoraModel->insert([
+                    "id" => null,
+                    "tipo" => "update",
+                    "origen" => "tramite",
+                    "tramite_id" => (int)$id,
+                    "cambios" => json_encode($diferencias),
+                    "user_id" => (int)$myid
+                ], 'bitacora');
+            }
     
-            // Registrar log
+            // Registrar log de usuario
             $tra_user_log = new TraUserLogModel($db2);
             $tra_user_log->insert([
                 "tramite_id"    => (int)$id,
                 "user_id"       => (int)$myid,
-                "tra_status_id" => 22
+                "tra_status_id" => 28
             ], 'tra_user_log');
+    
+            // AUDITORÍA: Registrar cambios detectados
+            if (!empty($changes)) {
+                log_tramite_bulk_changes($id, $changes, 'tramite', [
+                    'form_name' => 'Pago a Gestor',
+                    'form_step' => 5,
+                    'form_section' => 'update_pago_gestor'
+                ]);
+                
+                // NOTIFICACIÓN: Enviar notificación de pago a gestor
+                if (isset($changes['pago_gestor_monto'])) {
+                    $db = \Config\Database::connect();
+                    $tramiteData = $db->table('tramite')->select('folio')->where('id', $id)->get()->getRowArray();
+                    $folio = $tramiteData['folio'] ?? "Trámite #{$id}";
+                    $monto = $data['pago_gestor_monto'] ?? 0;
+                    
+                    notify_pago_gestor($id, $folio, $monto, $myid);
+                }
+            }
     
             // Respuesta de éxito
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'El trámite se guardó correctamente.',
-                'redirect' => '/deskapp/tramites/update/' . $id
+                'message' => 'Pago a gestor guardado correctamente.',
+                'redirect' => '/deskapp/tramites/update/'.$id
+            ]);
+            
+        } catch (\Exception $e) {
+            log_message('error', 'Error en update_pago_gestor: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al guardar el pago a gestor: ' . $e->getMessage()
             ]);
         }
     }    
@@ -3059,14 +3484,15 @@ class Tramites extends BaseController
     public function update_final_save()
     {
         $session = session();
-        $data['session'] = \Config\Services::session();
-        $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
         $id = $this->request->uri->getSegment(4);
-        $validation = \Config\Services::validation();
-        $db2 = $this->_getDbData();
 
-        // Reglas de validación para los campos definidos en el fragmento
+        // Validar ID
+        if (!$id || !is_numeric($id)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        $validation = \Config\Services::validation();
         $validation->setRules([
             "id_give_cliente" => "required",
             "numero_factura" => "required",
@@ -3078,13 +3504,23 @@ class Tramites extends BaseController
         ]);
 
         if ($validation->withRequest($this->request)->run() === FALSE) {
-            // Validación fallida, retornar errores como JSON
             return $this->response->setJSON([
                 'success' => false,
                 'errors' => $validation->getErrors()
             ]);
-        } else {
-            // Obtener los datos permitidos del formulario
+        }
+
+        try {
+            $db = \Config\Database::connect();
+            $builder = $db->table('tramite');
+            
+            // Verificar que el trámite existe
+            $existingTramite = $builder->where('id', $id)->get()->getRowArray();
+            if (!$existingTramite) {
+                return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
+            }
+
+            // Preparar datos
             $data = $this->request->getPost([
                 "id_give_cliente",
                 "numero_factura",
@@ -3099,18 +3535,24 @@ class Tramites extends BaseController
             $data["user_id"] = $myid;
             $data["costo_gestoria"] = $data["costo_gestoria_hidden"];
             unset($data["costo_gestoria_hidden"]);
-            // Calcular el costo total
-            $data["costo_total"] = $data["costo_gestoria"] + $data["costo_pago_cliente"] + $data["comision_derechos"] + $data["iva"] ;
-            #costo_gestoria, #costo_pago_cliente, #comision_derechos
-            // Actualizar los datos en la tabla 'tramite'
-
-            $db = \Config\Database::connect();
             
-            $builder = $db->table('tramite');
+            // Calcular el costo total
+            $data["costo_total"] = $data["costo_gestoria"] + $data["costo_pago_cliente"] + $data["comision_derechos"] + $data["iva"];
+
+            // AUDITORÍA: Comparar datos antes de actualizar
+            $changes = compare_tramite_data($existingTramite, $data);
+
+            // Actualizar con WHERE obligatorio
             $builder->where('id', $id);
-            $builder->update($data);
+            $updateResult = $builder->update($data);
+
+            if (!$updateResult) {
+                throw new \Exception('No se pudo guardar el trámite final.');
+            }
 
             $this->updateTramiteStatus($id, 28);
+
+            $db2 = $this->_getDbData();
 
             // Agregar registro en bitácora
             $bitacoraModel = new BitacoraModel($db2);
@@ -3135,12 +3577,35 @@ class Tramites extends BaseController
             ];
             $tra_user_log->insert($log, 'tra_user_log');
     
+            // AUDITORÍA: Registrar cambios detectados
+            if (!empty($changes)) {
+                log_tramite_bulk_changes($id, $changes, 'tramite', [
+                    'form_name' => 'Cobro a Cliente',
+                    'form_step' => 6,
+                    'form_section' => 'update_final_save'
+                ]);
+                
+                // NOTIFICACIÓN: Enviar notificación de factura cobrada
+                if (isset($changes['cobro_monto_final'])) {
+                    $db = \Config\Database::connect();
+                    $tramiteData = $db->table('tramite')->select('folio')->where('id', $id)->get()->getRowArray();
+                    $folio = $tramiteData['folio'] ?? "Trámite #{$id}";
+                    $monto = $data['cobro_monto_final'] ?? 0;
+                    
+                    notify_factura_cobrada($id, $folio, $monto, $myid);
+                }
+            }
+    
             // Retornar mensaje de éxito como JSON
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'El trámite se guardó correctamente.',
                 'redirect' => '/deskapp/tramites/update/' . $id
             ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en update_final_save: ' . $e->getMessage());
+            return $this->response->setJSON(['success' => false, 'message' => 'Error al guardar trámite final: ' . $e->getMessage()]);
         }
     }
 
@@ -3166,9 +3631,13 @@ class Tramites extends BaseController
         $newStatusIndex = array_search($newStatus, $arr_status);
 
         if ($newStatusIndex !== false && $newStatusIndex >= $currentStatusIndex) {
+            $oldStatus = $tramite_base['tra_status_id'];
             $data = ['tra_status_id' => $newStatus];
             $builder->where('id', $id);
             $builder->update($data);
+
+            // AUDITORÍA: Registrar cambio de estatus
+            log_tramite_status_change($id, $oldStatus, $newStatus);
 
             return ['success' => true, 'message' => 'Estado actualizado correctamente'];
         }
@@ -4117,6 +4586,20 @@ class Tramites extends BaseController
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
 
+            // AUDITORÍA: Registrar cambios en documentos
+            if (!empty($diferencias) && $tramite_id) {
+                log_tramite_change(
+                    $tramite_id,
+                    'update',
+                    'tra_doc_status',
+                    'Actualización de documento',
+                    null,
+                    null,
+                    null,
+                    json_encode($diferencias)
+                );
+            }
+
         });
 
         $uploadValidations = [
@@ -4222,6 +4705,16 @@ class Tramites extends BaseController
                     "user_id" => (int)$myid
                 ];
                 $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+                
+                // AUDITORÍA: Registrar inserción de evidencia
+                if ($tramite_id) {
+                    log_tramite_upload(
+                        $tramite_id,
+                        'tra_evidencias',
+                        $data['file'] ?? 'archivo',
+                        "Nueva evidencia agregada"
+                    );
+                }
             }
             return $stateParameters;
         });
@@ -4262,6 +4755,20 @@ class Tramites extends BaseController
                 "user_id" => (int)$myid
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+            
+            // AUDITORÍA: Registrar actualización de evidencia
+            if (!empty($diferencias) && $tramite_id) {
+                log_tramite_change(
+                    $tramite_id,
+                    'update',
+                    'tra_evidencias',
+                    'Actualización de evidencia',
+                    null,
+                    null,
+                    null,
+                    json_encode($diferencias)
+                );
+            }
 
         });
 
@@ -5335,6 +5842,10 @@ class Tramites extends BaseController
         $builder = $db->table('tramite');
 
         try {
+            // Obtener datos actuales para auditoría
+            $tramiteActual = $builder->where('id', $tramiteId)->get()->getRowArray();
+            $oldStatusId = $tramiteActual['tra_status_id'] ?? null;
+            
             // Actualizar el estatus del trámite
             $builder->where('id', $tramiteId);
             $builder->update(['tra_status_id' => $statusId]);
@@ -5350,6 +5861,20 @@ class Tramites extends BaseController
             ];
 
             $tra_user_log->insert($logData, 'tra_user_log');
+            
+            // AUDITORÍA: Registrar autorización con cambio de estatus
+            if ($oldStatusId) {
+                log_tramite_status_change($tramiteId, $oldStatusId, $statusId);
+            }
+            log_tramite_change(
+                $tramiteId,
+                'update',
+                'tramite',
+                'Trámite autorizado',
+                'autorizado',
+                '0',
+                '1'
+            );
 
             return $this->response->setJSON(['success' => true]);
         } catch (\Exception $e) {
@@ -5491,14 +6016,29 @@ class Tramites extends BaseController
     public function delete_service()
     {
         $serviceId = $this->request->getPost('asociado_id');
-        if (empty($serviceId)) {
-            return $this->response->setJSON(['status' => 'error', 'message' => 'Datos insuficientes']);
+        
+        // Validar ID del servicio
+        if (!$serviceId || !is_numeric($serviceId)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'ID de servicio inválido.']);
         }
 
-        $model = new TraTramiteAsociadoModel();
-        $model->deleteService( $serviceId);
+        try {
+            $model = new TraTramiteAsociadoModel();
+            
+            // Verificar que el servicio existe antes de eliminar
+            $existingService = $model->find($serviceId);
+            if (!$existingService) {
+                return $this->response->setJSON(['status' => 'error', 'message' => 'El servicio no existe.']);
+            }
 
-        return $this->response->setJSON(['status' => 'deleted', 'message' => 'Servicio eliminado correctamente']);
+            $model->deleteService($serviceId);
+
+            return $this->response->setJSON(['status' => 'deleted', 'message' => 'Servicio eliminado correctamente.']);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en delete_service: ' . $e->getMessage());
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Error al eliminar: ' . $e->getMessage()]);
+        }
     }
 
     public function get_service_costs_by_tramite($tramiteId)
@@ -5517,22 +6057,65 @@ class Tramites extends BaseController
         $id = $this->request->getPost('id');
         $costo_tramite = $this->request->getPost('costo_tramite');
 
-        if (empty($id) || !is_numeric($costo_tramite)) {
+        // Validar ID
+        if (!$id || !is_numeric($id)) {
             return $this->response->setJSON([
                 'status' => 'error',
-                'message' => 'Datos inválidos para la actualización.'
+                'message' => 'ID de servicio inválido.'
             ]);
         }
 
-        $db = \Config\Database::connect();
-        $builder = $db->table('tra_tramite_asociado');
-        $builder->where('id', $id);
-        $builder->update(['costo_tramite' => $costo_tramite, 'updated_at' => date('Y-m-d H:i:s')]);
+        // Validar costo_tramite (debe ser numérico si no está vacío)
+        if ($costo_tramite !== '' && $costo_tramite !== null && !is_numeric($costo_tramite)) {
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'El costo debe ser un valor numérico válido.'
+            ]);
+        }
 
-        return $this->response->setJSON([
-            'status' => 'success',
-            'message' => 'Costo actualizado correctamente.'
-        ]);
+        // Convertir vacío a NULL
+        if ($costo_tramite === '' || $costo_tramite === null) {
+            $costo_tramite = null;
+        }
+
+        try {
+            $db = \Config\Database::connect();
+            $builder = $db->table('tra_tramite_asociado');
+            
+            // Verificar que el registro existe
+            $existingRecord = $builder->where('id', $id)->get()->getRowArray();
+            if (!$existingRecord) {
+                return $this->response->setJSON([
+                    'status' => 'error',
+                    'message' => 'El servicio asociado no existe.'
+                ]);
+            }
+
+            // Actualizar
+            $data = [
+                'costo_tramite' => $costo_tramite,
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+
+            $builder->where('id', $id);
+            $updateResult = $builder->update($data);
+
+            if (!$updateResult) {
+                throw new \Exception('No se pudo actualizar el costo del servicio.');
+            }
+
+            return $this->response->setJSON([
+                'status' => 'success',
+                'message' => 'Costo actualizado correctamente.'
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en update_service_cost: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'status' => 'error',
+                'message' => 'Error al actualizar: ' . $e->getMessage()
+            ]);
+        }
     }
     public function sincronizarTramites()
     {
@@ -5963,6 +6546,135 @@ class Tramites extends BaseController
         }
     }
 
-    
+    /**
+     * ========================================================================
+     * TIMELINE DE AUDITORÍA DEL TRÁMITE
+     * ========================================================================
+     * Muestra todos los cambios realizados en el trámite con detalles completos
+     */
+    public function audit_timeline($tramiteId = null)
+    {
+        $session = session();
+        
+        if (!$tramiteId) {
+            return redirect()->to('deskapp/tramites')->with('error', 'ID de trámite no proporcionado');
+        }
+        
+        // Verificar que el trámite existe
+        $db = Database::connect();
+        $tramite = $db->table('tramite')->select('id, folio')->where('id', $tramiteId)->get()->getRowArray();
+        
+        if (!$tramite) {
+            return redirect()->to('deskapp/tramites')->with('error', 'Trámite no encontrado');
+        }
+        
+        // Obtener datos de auditoría
+        $auditLog = get_tramite_audit_log($tramiteId);
+        
+        $data = [
+            'session' => $session,
+            'tramite_id' => $tramiteId,
+            'folio' => $tramite['folio'],
+            'audit_log' => $auditLog,
+            'last_modifier' => get_tramite_last_modifier($tramiteId),
+            'summary' => get_tramite_audit_summary($tramiteId),
+            'total_changes' => count($auditLog)
+        ];
+        
+        // Log temporal para debug
+        log_message('info', "[audit_timeline] Trámite ID: {$tramiteId}, Total registros: " . count($auditLog));
+        
+        return view('deskapp/tramites/audit_timeline', $data);
+    }
+
+    /**
+     * Vista de búsqueda de auditoría
+     * Solo accesible por admin y super_admin
+     */
+    public function audit_search()
+    {
+        $session = session();
+        
+        // Validar que sea admin o super_admin
+        $userRoles = $session->get('user_roles');
+        $userRoleStr = is_array($userRoles) ? implode(',', $userRoles) : (string)$userRoles;
+        $userRoleLower = strtolower(str_replace(' ', '', $userRoleStr));
+        $isAdmin = (strpos($userRoleLower, 'admin') !== false || strpos($userRoleLower, 'superadmin') !== false);
+        
+        if (!$isAdmin) {
+            return redirect()->to('deskapp/dashboard')->with('error', 'No tienes permisos para acceder a esta función');
+        }
+        
+        $data = [
+            'session' => $session,
+            'title' => 'Buscar Auditoría de Trámite'
+        ];
+        
+        return view('deskapp/tramites/audit_search', $data);
+    }
+
+    /**
+     * Buscar trámite por folio para auditoría
+     * Solo accesible por admin y super_admin
+     */
+    public function buscar_por_folio()
+    {
+        $session = session();
+        
+        // Validar que sea admin o super_admin
+        $userRoles = $session->get('user_roles');
+        if (!in_array($userRoles, ['admin', 'super_admin'])) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No tienes permisos para acceder a esta función'
+            ]);
+        }
+        
+        if (!$this->request->isAJAX()) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Petición inválida'
+            ]);
+        }
+        
+        $json = $this->request->getJSON();
+        $folio = $json->folio ?? '';
+        
+        if (empty($folio)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'El folio es requerido'
+            ]);
+        }
+        
+        try {
+            $db = Database::connect();
+            $tramite = $db->table('tramite')
+                ->select('id, folio')
+                ->where('folio', $folio)
+                ->get()
+                ->getRowArray();
+            
+            if (!$tramite) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se encontró ningún trámite con el folio: ' . $folio
+                ]);
+            }
+            
+            return $this->response->setJSON([
+                'success' => true,
+                'tramite_id' => $tramite['id'],
+                'folio' => $tramite['folio']
+            ]);
+            
+        } catch (\Exception $e) {
+            log_message('error', '[Tramites::buscar_por_folio] Error: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al buscar el trámite: ' . $e->getMessage()
+            ]);
+        }
+    }
 
 }

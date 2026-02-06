@@ -34,6 +34,8 @@ class Example extends BaseController
         $crud->setSubject('tramite', 'Tramites');
 
         $salida = $crud->render();
+        $data['title'] = 'Gestión de Trámites';
+        $data['description'] = 'Administra todos los trámites registrados en el sistema';
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
     }

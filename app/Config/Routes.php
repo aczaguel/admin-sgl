@@ -148,6 +148,11 @@ $routes->post('/tramites/tipo', 'Deskapp/Tramites::tipo');
 $routes->get('/tramites/status', 'Deskapp/Tramites::status',['filter' => 'auth']);
 $routes->post('/tramites/status', 'Deskapp/Tramites::status');
 
+// Ruta de auditoría del trámite
+$routes->get('/tramites/audit_search', 'Deskapp/Tramites::audit_search',['filter' => 'auth']);
+$routes->get('/tramites/audit_timeline/(:num)', 'Deskapp/Tramites::audit_timeline/$1',['filter' => 'auth']);
+$routes->post('/tramites/buscar_por_folio', 'Deskapp/Tramites::buscar_por_folio',['filter' => 'auth']);
+
 $routes->get('/tramites/documentostatus/(:tramite_id)', 'Deskapp/Tramites::documentostatus/$1',['filter' => 'auth']);
 $routes->post('/tramites/documentostatus/(:tramite_id)', 'Deskapp/Tramites::documentostatus/$1');
 
@@ -319,13 +324,54 @@ $routes->get('/deskapp/dashboardadmin/exportar_pdf', 'Deskapp/DashboardAdmin::ex
 // ============================================================================
 // Notificaciones - Rutas
 // ============================================================================
-$routes->get('/deskapp/notifications', 'Deskapp/Notifications::index',['filter' => 'auth']);
-$routes->get('/deskapp/notifications/api_unread', 'Deskapp/Notifications::api_unread',['filter' => 'auth']);
-$routes->get('/deskapp/notifications/api_count', 'Deskapp/Notifications::api_count',['filter' => 'auth']);
-$routes->post('/deskapp/notifications/api_mark_read/(:num)', 'Deskapp/Notifications::api_mark_read/$1',['filter' => 'auth']);
-$routes->post('/deskapp/notifications/api_mark_all_read', 'Deskapp/Notifications::api_mark_all_read',['filter' => 'auth']);
-$routes->delete('/deskapp/notifications/api_delete/(:num)', 'Deskapp/Notifications::api_delete/$1',['filter' => 'auth']);
-$routes->get('/deskapp/notifications/api_load_more', 'Deskapp/Notifications::api_load_more',['filter' => 'auth']);
+$routes->get('/notifications', 'Deskapp/Notifications::index',['filter' => 'auth']);
+$routes->get('/notifications/api_unread', 'Deskapp/Notifications::api_unread',['filter' => 'auth']);
+$routes->get('/notifications/api_count', 'Deskapp/Notifications::api_count',['filter' => 'auth']);
+$routes->get('/notifications/api_mark_read/(:num)', 'Deskapp/Notifications::api_mark_read/$1',['filter' => 'auth']);
+$routes->post('/notifications/api_mark_read/(:num)', 'Deskapp/Notifications::api_mark_read/$1',['filter' => 'auth']);
+$routes->post('/notifications/api_mark_all_read', 'Deskapp/Notifications::api_mark_all_read',['filter' => 'auth']);
+$routes->delete('/notifications/api_delete/(:num)', 'Deskapp/Notifications::api_delete/$1',['filter' => 'auth']);
+$routes->get('/notifications/api_load_more', 'Deskapp/Notifications::api_load_more',['filter' => 'auth']);
+// ============================================================================
+
+// Corrección de Trámites - Rutas (Solo Admin)
+// ============================================================================
+$routes->get('correccion-tramites', 'Deskapp\CorrecionTramites::index', ['filter' => 'auth']);
+$routes->post('correccion-tramites', 'Deskapp\CorrecionTramites::index', ['filter' => 'auth']);
+$routes->get('correccion-tramites/historial', 'Deskapp\CorrecionTramites::historial', ['filter' => 'auth']);
+$routes->get('correccion-tramites/buscar', 'Deskapp\CorrecionTramites::buscar', ['filter' => 'auth']);
+
+// API routes para Grocery CRUD
+$routes->match(['get', 'post', 'put', 'delete'], 'deskapp/correccion-tramites/crud_api/(:any)', 'Deskapp\CorrecionTramites::crud_api/$1', ['filter' => 'auth']);
+$routes->match(['get', 'post', 'put', 'delete'], 'deskapp/correccion-tramites/crud_api', 'Deskapp\CorrecionTramites::crud_api', ['filter' => 'auth']);
+// ============================================================================
+
+// ============================================================================
+// WIZARD DE TRÁMITES - Módulo Moderno
+// ============================================================================
+// Vista principal del wizard
+$routes->get('/deskapp/tramitewizard', 'Deskapp/TramiteWizard::index',['filter' => 'auth']);
+$routes->get('/deskapp/tramitewizard/index', 'Deskapp/TramiteWizard::index',['filter' => 'auth']);
+
+// Listado de trámites creados con wizard
+$routes->get('/deskapp/tramitewizard/listado', 'Deskapp/TramiteWizard::listado',['filter' => 'auth']);
+
+// Guardar trámite completo
+$routes->post('/deskapp/tramitewizard/guardar', 'Deskapp/TramiteWizard::guardar',['filter' => 'auth']);
+
+// Guardar borrador (auto-save)
+$routes->post('/deskapp/tramitewizard/guardar_borrador', 'Deskapp/TramiteWizard::guardar_borrador',['filter' => 'auth']);
+
+// Recuperar borrador guardado
+$routes->get('/deskapp/tramitewizard/recuperar_borrador', 'Deskapp/TramiteWizard::recuperar_borrador',['filter' => 'auth']);
+
+// Exportar a Excel
+$routes->get('/deskapp/tramitewizard/exportar_excel', 'Deskapp/TramiteWizard::exportar_excel',['filter' => 'auth']);
+
+// APIs AJAX para selectores dependientes
+$routes->post('/deskapp/tramitewizard/get_municipios', 'Deskapp/TramiteWizard::get_municipios',['filter' => 'auth']);
+$routes->post('/deskapp/tramitewizard/get_ejecutivos_cliente', 'Deskapp/TramiteWizard::get_ejecutivos_cliente',['filter' => 'auth']);
+$routes->post('/deskapp/tramitewizard/get_gestores', 'Deskapp/TramiteWizard::get_gestores',['filter' => 'auth']);
 // ============================================================================
 
 

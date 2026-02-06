@@ -46,9 +46,13 @@ if (!function_exists('render_full_form')) {
         
         if (puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'botones', $reembolso_status_id, $cobro_status_id, $step)) { // este que sea un render_buttons para validarlo con la funcion puede_editar_modulo
             if (has_permission($submit_permission, esc($session->get('user_permissions')), esc($session->get('user_roles')))) {
-                $html .= '<div class="text-center mt-4" id="boton_autorizar">
-                            <a href="' . esc($cancel_url) . '" class="btn btn-secondary ml-2">Cancelar</a> 
-                            <button type="submit" class="btn btn-primary">Guardar</button>
+                $html .= '<div class="button-group" id="boton_autorizar">
+                            <a href="' . esc($cancel_url) . '" class="btn-wizard btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a> 
+                            <button type="submit" class="btn-wizard btn-primary">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
                         </div>';
             }
         }

@@ -1,0 +1,228 @@
+/* ========================================
+   SIDEBAR MODERNO - ESTILOS PERSONALIZADOS
+   ======================================== */
+
+/* Títulos de sección del menú */
+.menu-section-title {
+    padding: 15px 20px 10px 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999;
+    margin-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.menu-section-title:first-child {
+    margin-top: 0;
+    border-top: none;
+}
+
+.menu-section-title span {
+    display: flex;
+    align-items: center;
+}
+
+.menu-section-title i {
+    margin-right: 8px;
+    font-size: 12px;
+}
+
+/* Mejoras en los íconos del menú */
+.sidebar-menu .micon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.sidebar-menu .dropdown > a:hover .micon,
+.sidebar-menu .dropdown.active > a .micon {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+/* Mejoras en el texto del menú */
+.sidebar-menu .mtext {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* Estilos para submenu */
+.sidebar-menu .submenu li a {
+    padding: 10px 20px 10px 50px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-menu .submenu li a i {
+    margin-right: 10px;
+    font-size: 14px;
+    width: 20px;
+    text-align: center;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.sidebar-menu .submenu li a:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: #1b00ff;
+    padding-left: 55px;
+}
+
+.sidebar-menu .submenu li a:hover i {
+    opacity: 1;
+    transform: translateX(3px);
+}
+
+/* Separadores en submenu */
+.sidebar-menu .submenu .dropdown-divider {
+    margin: 8px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Subtítulos en submenu */
+.sidebar-menu .submenu .submenu-title {
+    padding: 12px 20px 8px 50px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    opacity: 0.8;
+}
+
+/* Animaciones suaves para el accordion */
+.sidebar-menu .submenu {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mejoras visuales en estados activos */
+.sidebar-menu .dropdown.show > a {
+    background: rgba(255, 255, 255, 0.08);
+    border-left: 3px solid #1b00ff;
+}
+
+/* Badges y contadores */
+.menu-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    color: #fff;
+    background: #1b00ff;
+    border-radius: 10px;
+    margin-left: auto;
+}
+
+.menu-badge.badge-danger {
+    background: #ff4757;
+}
+
+.menu-badge.badge-success {
+    background: #2ed573;
+}
+
+.menu-badge.badge-warning {
+    background: #ffa502;
+}
+
+.menu-badge.badge-info {
+    background: #1e90ff;
+}
+
+/* Hover effects con gradientes sutiles */
+.sidebar-menu .dropdown > a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(180deg, #1b00ff 0%, #00d4ff 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-menu .dropdown > a:hover::before,
+.sidebar-menu .dropdown.active > a::before {
+    opacity: 1;
+}
+
+/* Mejoras en el scrollbar del sidebar */
+.menu-block.customscroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.menu-block.customscroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.menu-block.customscroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.menu-block.customscroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Animación de entrada para items del menú */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.sidebar-menu .dropdown {
+    animation: slideInLeft 0.4s ease-out;
+}
+
+/* Microinteracciones en íconos con colores */
+.text-primary { color: #1b00ff !important; }
+.text-success { color: #2ed573 !important; }
+.text-danger { color: #ff4757 !important; }
+.text-warning { color: #ffa502 !important; }
+.text-info { color: #1e90ff !important; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .menu-section-title {
+        padding: 10px 15px 8px 15px;
+        font-size: 10px;
+    }
+    
+    .sidebar-menu .submenu li a {
+        padding: 8px 15px 8px 40px;
+    }
+}
+
+/* Dark mode optimizations */
+.dark-mode .menu-section-title {
+    color: #aaa;
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .sidebar-menu .dropdown > a:hover .micon,
+.dark-mode .sidebar-menu .dropdown.active > a .micon {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.dark-mode .sidebar-menu .submenu li a:hover {
+    background: rgba(255, 255, 255, 0.08);
+}

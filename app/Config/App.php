@@ -25,6 +25,7 @@ class App extends BaseConfig
 	 */
 
 	// public $baseURL = 'http://admin-sgl/';
+
 	public $baseURL = 'http://backend.sglservicio.com.mx/';
 	
 	public $displayErrorDetails = true;
@@ -39,7 +40,7 @@ class App extends BaseConfig
 	 *
 	 * @var string
 	 */
-	public $indexPage = 'index.php';
+	public $indexPage = '';
 
 	/**
 	 * --------------------------------------------------------------------------

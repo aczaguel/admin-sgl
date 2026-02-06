@@ -70,6 +70,8 @@ class Cliente extends BaseController
             return logOperation($stateParameters, $tableName);
         });
         $salida = $crud->render();
+        $data['title'] = 'Gestión de Clientes';
+        $data['description'] = 'Administra la información de los clientes y sus datos de contacto';
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
     }

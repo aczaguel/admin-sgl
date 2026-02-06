@@ -1,0 +1,987 @@
+/**
+ * Custom Grocery CRUD Enterprise Theme
+ * Designed to match admin-sgl design system
+ * Version: 1.0
+ */
+
+/* ========================================
+   1. VARIABLES AND GLOBAL OVERRIDES
+   ======================================== */
+:root {
+    --gc-primary-color: #667eea;
+    --gc-primary-dark: #5568d3;
+    --gc-secondary-color: #764ba2;
+    --gc-success-color: #10b981;
+    --gc-danger-color: #ef4444;
+    --gc-warning-color: #f59e0b;
+    --gc-info-color: #06b6d4;
+    --gc-border-color: #e3e8ef;
+    --gc-hover-bg: #f8fafc;
+    --gc-text-primary: #1e293b;
+    --gc-text-secondary: #475569;
+    --gc-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --gc-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
+    --gc-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12);
+    --gc-radius-sm: 6px;
+    --gc-radius-md: 8px;
+    --gc-radius-lg: 12px;
+}
+
+/* ========================================
+   2. TYPOGRAPHY ENHANCEMENTS
+   ======================================== */
+.grocery-crud-body * {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.grocery-crud-body h1,
+.grocery-crud-body h2,
+.grocery-crud-body h3,
+.grocery-crud-body h4 {
+    font-weight: 600;
+    color: var(--gc-text-primary);
+    letter-spacing: -0.02em;
+}
+
+/* ========================================
+   3. TABLE ENHANCEMENTS
+   ======================================== */
+.grocery-crud-body .table-responsive {
+    border-radius: var(--gc-radius-md);
+    box-shadow: var(--gc-shadow-sm);
+}
+
+.grocery-crud-body table.table {
+    margin-bottom: 0;
+}
+
+.grocery-crud-body table.table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.grocery-crud-body table.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Zebra striping */
+.grocery-crud-body table.table tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+/* Column alignment */
+.grocery-crud-body table.table td:first-child,
+.grocery-crud-body table.table th:first-child {
+    padding-left: 20px;
+}
+
+.grocery-crud-body table.table td:last-child,
+.grocery-crud-body table.table th:last-child {
+    padding-right: 20px;
+}
+
+/* ========================================
+   4. BUTTON SYSTEM
+   ======================================== */
+.grocery-crud-body .btn {
+    font-family: inherit;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+}
+
+.grocery-crud-body .btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.grocery-crud-body .btn:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Button sizes */
+.grocery-crud-body .btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.grocery-crud-body .btn-lg {
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+.grocery-crud-body .btn:hover {
+    color: inherit;
+}
+
+/* Button variants */
+.grocery-crud-body .btn-primary {
+    background: linear-gradient(135deg, var(--gc-primary-color) 0%, var(--gc-secondary-color) 100%);
+}
+
+.grocery-crud-body .btn-primary:hover {
+    background: linear-gradient(135deg, var(--gc-primary-dark) 0%, #6a3f8f 100%);
+}
+
+.grocery-crud-body .btn-success {
+    background: var(--gc-success-color);
+}
+
+.grocery-crud-body .btn-success:hover {
+    background: #059669;
+}
+
+.grocery-crud-body .btn-danger {
+    background: var(--gc-danger-color);
+}
+
+.grocery-crud-body .btn-danger:hover {
+    background: #dc2626;
+}
+
+.grocery-crud-body .btn-warning {
+    background: var(--gc-warning-color);
+}
+
+.grocery-crud-body .btn-warning:hover {
+    background: #d97706;
+}
+
+.grocery-crud-body .btn-info {
+    background: var(--gc-info-color);
+}
+
+.grocery-crud-body .btn-info:hover {
+    background: #0891b2;
+}
+
+.grocery-crud-body .btn-outline-dark {
+    background: transparent;
+    border: 2px solid var(--gc-border-color);
+    color: var(--gc-text-primary);
+}
+
+.grocery-crud-body .btn-outline-dark:hover {
+    background: var(--gc-hover-bg);
+    border-color: var(--gc-text-primary);
+}
+
+/* ========================================
+   5. FORM CONTROLS
+   ======================================== */
+.grocery-crud-body .form-control,
+.grocery-crud-body input[type="text"],
+.grocery-crud-body input[type="email"],
+.grocery-crud-body input[type="password"],
+.grocery-crud-body input[type="number"],
+.grocery-crud-body textarea,
+.grocery-crud-body select {
+    background-color: #ffffff;
+    border: 2px solid var(--gc-border-color);
+    border-radius: var(--gc-radius-md);
+    padding: 5px 14px;
+    font-size: 14px;
+    color: var(--gc-text-primary);
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.grocery-crud-body .form-control:hover,
+.grocery-crud-body input:hover,
+.grocery-crud-body textarea:hover,
+.grocery-crud-body select:hover {
+    border-color: #cbd5e1;
+}
+
+.grocery-crud-body .form-control:focus,
+.grocery-crud-body input:focus,
+.grocery-crud-body textarea:focus,
+.grocery-crud-body select:focus {
+    border-color: var(--gc-primary-color);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+.grocery-crud-body .form-control.is-invalid,
+.grocery-crud-body input.is-invalid {
+    border-color: var(--gc-danger-color);
+}
+
+.grocery-crud-body .form-control.is-invalid:focus,
+.grocery-crud-body input.is-invalid:focus {
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+/* Select dropdown */
+.grocery-crud-body select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px 12px;
+    padding-right: 40px;
+    appearance: none;
+    min-width: 80px !important;
+    width: auto !important;
+}
+
+/* Fix for page length selector (Mostrar X registros) */
+.grocery-crud-body .paging_simple_numbers select,
+.grocery-crud-body select[name*="length"],
+.grocery-crud-body .dataTables_length select,
+.grocery-crud-body label select {
+    min-width: 80px !important;
+    width: auto !important;
+    display: inline-block !important;
+    padding: 8px 40px 8px 14px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+    text-align: center !important;
+}
+
+/* Textarea */
+.grocery-crud-body textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Labels */
+.grocery-crud-body label {
+    display: inline-block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--gc-text-primary);
+    font-size: 14px;
+}
+
+/* Required indicator */
+.grocery-crud-body .required::after {
+    content: ' *';
+    color: var(--gc-danger-color);
+}
+
+/* Help text */
+.grocery-crud-body .form-text,
+.grocery-crud-body .help-block {
+    font-size: 13px;
+    color: var(--gc-text-secondary);
+    margin-top: 4px;
+}
+
+/* ========================================
+   6. MODAL ENHANCEMENTS
+   ======================================== */
+.grocery-crud-body .modal-backdrop {
+    background-color: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.grocery-crud-body .modal-dialog {
+    margin-top: 60px;
+}
+
+.grocery-crud-body .modal-content {
+    border: none;
+    border-radius: var(--gc-radius-lg);
+    box-shadow: var(--gc-shadow-lg);
+}
+
+.grocery-crud-body .modal-header {
+    border-bottom: 1px solid var(--gc-border-color);
+    padding: 20px 24px;
+}
+
+.grocery-crud-body .modal-header .close,
+.grocery-crud-body .modal-header .btn-close {
+    padding: 0;
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    opacity: 0.7 !important;
+    transition: opacity 0.2s;
+    color: currentColor !important;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-weight: 300;
+}
+
+.grocery-crud-body .modal-header .close:hover,
+.grocery-crud-body .modal-header .btn-close:hover {
+    opacity: 1 !important;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Forzar visibilidad del símbolo × */
+.grocery-crud-body .modal-header .close span,
+.grocery-crud-body .modal-header .btn-close span {
+    display: inline-block !important;
+    color: inherit !important;
+    font-size: 28px;
+}
+
+/* Para Bootstrap 5 que usa btn-close sin contenido */
+.grocery-crud-body .modal-header .btn-close:not(:has(span))::before {
+    content: '×';
+    font-size: 32px;
+    line-height: 1;
+    display: block;
+}
+
+.grocery-crud-body .modal-body {
+    padding: 24px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.grocery-crud-body .modal-footer {
+    border-top: 1px solid var(--gc-border-color);
+    padding: 16px 24px;
+    gap: 10px;
+}
+
+/* ========================================
+   7. PAGINATION
+   ======================================== */
+.grocery-crud-body .pagination {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0 0;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.grocery-crud-body .pagination .page-item {
+    display: inline-block;
+}
+
+.grocery-crud-body .pagination .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 8px 12px;
+    border: 1px solid var(--gc-border-color);
+    border-radius: var(--gc-radius-sm);
+    background: white;
+    color: var(--gc-text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.grocery-crud-body .pagination .page-link:hover {
+    background: var(--gc-primary-color);
+    border-color: var(--gc-primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--gc-shadow-sm);
+}
+
+.grocery-crud-body .pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, var(--gc-primary-color) 0%, var(--gc-secondary-color) 100%);
+    border-color: var(--gc-primary-color);
+    color: white;
+    pointer-events: none;
+}
+
+.grocery-crud-body .pagination .page-item.disabled .page-link {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* ========================================
+   8. SEARCH AND FILTERS
+   ======================================== */
+.grocery-crud-body .floatL,
+.grocery-crud-body .search-field,
+.grocery-crud-body .search-box {
+    margin-bottom: 20px;
+}
+
+.grocery-crud-body .floatL input[type="text"],
+.grocery-crud-body .search-field input[type="text"] {
+    min-width: 300px;
+    padding-left: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 12px center;
+    background-size: 20px;
+}
+
+/* ========================================
+   9. ALERTS AND MESSAGES
+   ======================================== */
+.grocery-crud-body .alert {
+    border-radius: var(--gc-radius-md);
+    padding: 14px 18px;
+    border-left: 4px solid;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.grocery-crud-body .alert-success {
+    background: #ecfdf5;
+    border-color: var(--gc-success-color);
+    color: #065f46;
+}
+
+.grocery-crud-body .alert-danger {
+    background: #fef2f2;
+    border-color: var(--gc-danger-color);
+    color: #991b1b;
+}
+
+.grocery-crud-body .alert-warning {
+    background: #fffbeb;
+    border-color: var(--gc-warning-color);
+    color: #92400e;
+}
+
+.grocery-crud-body .alert-info {
+    background: #ecfeff;
+    border-color: var(--gc-info-color);
+    color: #155e75;
+}
+
+/* ========================================
+   10. LOADING STATES
+   ======================================== */
+.grocery-crud-body .spinner-border,
+.grocery-crud-body .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(102, 126, 234, 0.2);
+    border-top-color: var(--gc-primary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ========================================
+   11. BADGES AND PILLS
+   ======================================== */
+.grocery-crud-body .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.grocery-crud-body .badge-primary {
+    background: var(--gc-primary-color);
+    color: white;
+}
+
+.grocery-crud-body .badge-success {
+    background: var(--gc-success-color);
+    color: white;
+}
+
+.grocery-crud-body .badge-danger {
+    background: var(--gc-danger-color);
+    color: white;
+}
+
+.grocery-crud-body .badge-warning {
+    background: var(--gc-warning-color);
+    color: white;
+}
+
+.grocery-crud-body .badge-info {
+    background: var(--gc-info-color);
+    color: white;
+}
+
+/* ========================================
+   12. FILE UPLOAD
+   ======================================== */
+.grocery-crud-body .file-upload-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.grocery-crud-body input[type="file"] {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+}
+
+.grocery-crud-body .file-upload-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--gc-hover-bg);
+    border: 2px dashed var(--gc-border-color);
+    border-radius: var(--gc-radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    justify-content: center;
+}
+
+.grocery-crud-body .file-upload-label:hover {
+    border-color: var(--gc-primary-color);
+    background: rgba(102, 126, 234, 0.05);
+}
+
+/* ========================================
+   12.5 TOGGLE SWITCH FOR STATUS FIELDS
+   ======================================== */
+/* Hide original input but keep it in the DOM for form submission */
+/* Applies to: status, activo, active, enabled, habilitado */
+.grocery-crud-body input[name="status"],
+.grocery-crud-body select[name="status"],
+.grocery-crud-body input[name="activo"],
+.grocery-crud-body select[name="activo"],
+.grocery-crud-body input[name="active"],
+.grocery-crud-body select[name="active"],
+.grocery-crud-body input[name="enabled"],
+.grocery-crud-body select[name="enabled"],
+.grocery-crud-body input[name="habilitado"],
+.grocery-crud-body select[name="habilitado"] {
+    position: absolute !important;
+    left: -9999px !important;
+    opacity: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+}
+
+/* Toggle switch container */
+.grocery-crud-body .status-toggle-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Toggle switch */
+.grocery-crud-body .status-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 32px;
+    background-color: #cbd5e1;
+    border-radius: 32px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.grocery-crud-body .status-toggle-switch:hover {
+    background-color: #b0bac7;
+}
+
+/* Toggle switch slider */
+.grocery-crud-body .status-toggle-slider {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 26px;
+    height: 26px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Active state */
+.grocery-crud-body .status-toggle-switch.active {
+    background: linear-gradient(135deg, var(--gc-success-color) 0%, #059669 100%);
+}
+
+.grocery-crud-body .status-toggle-switch.active:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.grocery-crud-body .status-toggle-switch.active .status-toggle-slider {
+    transform: translateX(28px);
+}
+
+/* Label text */
+.grocery-crud-body .status-toggle-label {
+    font-weight: 600;
+    color: var(--gc-text-primary);
+    user-select: none;
+}
+
+.grocery-crud-body .status-toggle-switch.active ~ .status-toggle-label {
+    color: var(--gc-success-color);
+}
+
+/* Status badge in table */
+.grocery-crud-body table td .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.grocery-crud-body table td .status-badge.active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.grocery-crud-body table td .status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.grocery-crud-body table td .status-badge i {
+    font-size: 10px;
+}
+
+/* ========================================
+   13. TOOLTIPS
+   ======================================== */
+.grocery-crud-body [data-toggle="tooltip"],
+.grocery-crud-body [title] {
+    position: relative;
+}
+
+/* ========================================
+   14. ACTION BUTTONS IN ROWS
+   ======================================== */
+.grocery-crud-body .action-buttons,
+.grocery-crud-body .gc-action-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.grocery-crud-body .action-buttons .btn,
+.grocery-crud-body .gc-action-buttons .btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-width: auto;
+}
+
+.grocery-crud-body .action-buttons .btn i,
+.grocery-crud-body .gc-action-buttons .btn i {
+    margin: 0;
+}
+
+/* Remove transform effect for action buttons to prevent dropdown jumping */
+.grocery-crud-body table.table .action-buttons .btn:hover,
+.grocery-crud-body table.table .gc-action-buttons .btn:hover,
+.grocery-crud-body table.table td .btn:hover,
+.grocery-crud-body table.table td .dropdown-toggle:hover {
+    transform: none;
+}
+
+/* Dropdown specific fixes */
+.grocery-crud-body .dropdown-menu {
+    z-index: 9999 !important;
+    min-width: 160px;
+    padding: 8px 0;
+    margin: 4px 0 0;
+    background-color: #ffffff;
+    border: 1px solid var(--gc-border-color);
+    border-radius: var(--gc-radius-md);
+    box-shadow: var(--gc-shadow-lg);
+}
+
+.grocery-crud-body .dropdown-menu.show {
+    display: block;
+}
+
+.grocery-crud-body .dropdown-menu .dropdown-item {
+    padding: 8px 16px;
+    color: var(--gc-text-primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.grocery-crud-body .dropdown-menu .dropdown-item:hover {
+    background-color: var(--gc-hover-bg);
+    color: var(--gc-primary-color);
+}
+
+.grocery-crud-body .dropdown-menu .dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+
+/* ========================================
+   15. RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 992px) {
+    .grocery-crud-header {
+        padding: 20px;
+    }
+
+    .grocery-crud-body {
+        padding: 20px;
+    }
+
+    .grocery-crud-body .modal-dialog {
+        margin: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .grocery-crud-header h2 {
+        font-size: 20px;
+    }
+
+    .grocery-crud-body table.table {
+        font-size: 13px;
+    }
+
+    .grocery-crud-body .floatL input[type="text"],
+    .grocery-crud-body .search-field input[type="text"] {
+        min-width: 100%;
+    }
+
+    .grocery-crud-body .action-buttons {
+        flex-direction: column;
+    }
+
+    .grocery-crud-body .pagination .page-link {
+        min-width: 36px;
+        height: 36px;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+}
+
+/* ========================================
+   16. PRINT STYLES
+   ======================================== */
+@media print {
+    .grocery-crud-header {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+    }
+
+    .grocery-crud-body .btn,
+    .grocery-crud-body .action-buttons {
+        display: none !important;
+    }
+
+    .grocery-crud-wrapper {
+        box-shadow: none !important;
+    }
+}
+
+/* ========================================
+   17. ACCESSIBILITY IMPROVEMENTS
+   ======================================== */
+.grocery-crud-body *:focus-visible {
+    outline: 2px solid var(--gc-primary-color);
+    outline-offset: 2px;
+}
+
+.grocery-crud-body .btn:focus-visible,
+.grocery-crud-body .form-control:focus-visible,
+.grocery-crud-body input:focus-visible,
+.grocery-crud-body select:focus-visible,
+.grocery-crud-body textarea:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+/* Screen reader only */
+.grocery-crud-body .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ========================================
+   18. ANIMATIONS
+   ======================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.grocery-crud-body table tbody tr {
+    animation: fadeIn 0.3s ease-out backwards;
+}
+
+.grocery-crud-body table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.grocery-crud-body table tbody tr:nth-child(2) { animation-delay: 0.10s; }
+.grocery-crud-body table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.grocery-crud-body table tbody tr:nth-child(4) { animation-delay: 0.20s; }
+.grocery-crud-body table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+/* ========================================
+   19. COLUMN RESIZING - DESACTIVADO
+   ======================================== */
+
+/* Tabla con anchos automáticos basados en contenido */
+.grocery-crud-body table:not(.JColResizer) {
+    table-layout: auto !important;
+}
+
+/* Cuando colResizable esté activo (desactivado por ahora) */
+.grocery-crud-body table.JColResizer {
+    table-layout: auto !important;
+}
+
+/* Container for resize grips */
+.JCLRgrips {
+    height: 0;
+    position: relative;
+    z-index: 999;
+}
+
+/* Individual resize grip */
+.JCLRgrip {
+    margin-left: -5px;
+    position: absolute;
+    z-index: 1000;
+    height: 100%;
+    cursor: col-resize;
+    width: 10px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* Show grip on hover */
+.grocery-crud-body table:hover .JCLRgrip {
+    opacity: 1;
+}
+
+/* Active dragging state */
+.JCLRgrip.JCLRdrag {
+    border-left: 2px solid var(--gc-primary-color);
+    background-color: rgba(102, 126, 234, 0.15);
+    opacity: 1 !important;
+}
+
+/* Visual indicator for drag */
+.rangeDrag {
+    border-left: 2px solid var(--gc-primary-color) !important;
+    background-color: rgba(102, 126, 234, 0.2) !important;
+}
+
+/* Inner grip visual */
+.rangeGrip {
+    width: 4px;
+    height: 100%;
+    background: var(--gc-primary-color);
+    margin: 0 auto;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+    border-radius: 2px;
+}
+
+/* Hover effect on grip */
+.JCLRgrip:hover .rangeGrip,
+.JCLRgrip.JCLRdrag .rangeGrip {
+    opacity: 1;
+    background: var(--gc-primary-dark);
+}
+
+/* Ensure table headers are positioned correctly */
+.grocery-crud-body table.JColResizer thead th {
+    position: relative;
+    overflow: visible;
+}
+
+/* Prevent text selection during drag */
+.JCLRgrip.JCLRdrag * {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* Add visual hint that columns are resizable */
+.grocery-crud-body table.JColResizer thead th::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 20px;
+    background: rgba(102, 126, 234, 0.2);
+    border-radius: 1px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.grocery-crud-body table.JColResizer thead th:hover::after {
+    opacity: 1;
+}
+
+/* Cursor indicator */
+.JCLRgrip {
+    cursor: ew-resize;
+}
+
+/* Better text wrapping for auto-width columns */
+.grocery-crud-body table.JColResizer:not(.user-resized) td,
+.grocery-crud-body table.JColResizer:not(.user-resized) th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Responsive: Disable on mobile */
+@media (max-width: 768px) {
+    .JCLRgrip {
+        display: none !important;
+    }
+    
+    .grocery-crud-body table.JColResizer {
+        table-layout: auto !important;
+    }
+}

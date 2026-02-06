@@ -79,6 +79,8 @@ class Tradocstatus extends BaseController
         });
 
         $salida = $crud->render();
+        $data['title'] = 'Gestión de Documentos de Trámites';
+        $data['description'] = 'Administra los documentos y evidencias asociadas a los trámites';
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
     }

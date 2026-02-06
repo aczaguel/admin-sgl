@@ -1,23 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<!-- Basic Page Info -->
-	<meta charset="utf-8">
-	<title>SGT - Tramites</title>
+<?= $this->extend('layout/main') ?>
+
+<?= $this->section('additional_css') ?>
+	<?php $assets = base_url('/public/assets'); ?>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.css">
+	<link rel="stylesheet" href="<?= $assets ?>/src/styles/jquery.steps.css">
+	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
     <?php foreach($css_files as $file): ?>
         <link type="text/css" rel="stylesheet" href="<?php echo $file; ?>" />
     <?php endforeach; ?>
-    <?php foreach($js_files as $file): ?>
-        <script src="<?php echo $file; ?>"></script>
-    <?php endforeach; ?>
-	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.css">
-	<link rel="stylesheet" href="/public/assets/src/styles/forms_styles.css">
-	<link rel="stylesheet" href="/public/assets/src/styles/my_wizard.scss">
-	<link rel="stylesheet" href="/public/assets/src/styles/my_grocery.css">
-	<!-- jQuery Steps CSS -->
-	<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-steps/1.1.0/jquery.steps.css"> -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/jquery.steps.css">
+
     <style>
         .form-container {
             display: flex;
@@ -103,72 +95,105 @@
 			color: #000 !important;
 			font-weight: 400;
 		}
-		
 
+		/* Estilos modernos para inputs */
+		.modern-input, .modern-textarea, .modern-select {
+			border: 2px solid #e0e0e0 !important;
+			border-radius: 8px !important;
+			padding: 12px 16px !important;
+			font-size: 15px !important;
+			line-height: 1.5 !important;
+			transition: all 0.3s !important;
+			background: #f8f9fa !important;
+			height: auto !important;
+			min-height: 45px !important;
+		}
+
+		.modern-input:focus, .modern-textarea:focus {
+			border-color: #667eea !important;
+			background: white !important;
+			box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+			outline: none !important;
+		}
+
+		.modern-textarea {
+			min-height: 100px !important;
+		}
+		
+		/* Ajustar Select2 para que sea visible */
+		.select2-container--default .select2-selection--single {
+			height: 45px !important;
+			padding: 8px 12px !important;
+			border: 2px solid #e0e0e0 !important;
+			border-radius: 8px !important;
+			background: #f8f9fa !important;
+			line-height: 1.5 !important;
+		}
+
+		.select2-container--default .select2-selection--single .select2-selection__rendered {
+			color: #495057 !important;
+			line-height: 27px !important;
+			font-size: 15px !important;
+			padding-left: 4px !important;
+		}
+
+		.select2-container--default .select2-selection--single .select2-selection__arrow {
+			height: 43px !important;
+			top: 1px !important;
+			right: 4px !important;
+		}
+
+		.select2-container--default .select2-selection--single .select2-selection__placeholder {
+			color: #6c757d !important;
+			font-size: 15px !important;
+		}
+
+		/* Hover effect for tabs */
+		.nav-tabs .nav-link:hover {
+			color: rgba(255,255,255,0.9) !important;
+			background: rgba(255,255,255,0.1);
+		}
+
+		.nav-tabs .nav-link.active {
+			background: rgba(255,255,255,0.2) !important;
+		}
     </style>
-	<!-- Site favicon -->
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/assets/vendors/images/apple-touch-icon.png">
-	<link rel="icon" type="image/png" sizes="32x32" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-32x32.png">
-	<link rel="icon" type="image/png" sizes="16x16" href="<?php echo base_url(); ?>/public/assets/vendors/images/favicon-16x16.png">
-		
-	<!-- Mobile Specific Metas -->
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<?= $this->endSection() ?>
 
-	<!-- Google Font -->
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
-	
-	
-	
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<!-- jQuery Validate (opcional si usas validaciones de jQuery) -->
-
-
-	<script>
-		window.dataLayer = window.dataLayer || [];
-		function gtag(){dataLayer.push(arguments);}
-		gtag('js', new Date());
-
-		gtag('config', 'UA-119386393-1');
-	</script>
-	<script>
-		var wiz_step = 0;
-	</script>
-</head>
-<body>
-	<!-- echo header,rightsidebar,leftsidebar and loader -->
-	<?php 
-		echo view('deskapp/includes/_header');
-		echo view('deskapp/includes/_sidebar');
-
-	?>
+<?= $this->section('content') ?>
 
 	<div class="main-container">
-		<div class="tab">
-			<ul class="nav nav-tabs" role="tablist">
-				<li class="nav-item">
-					<a class="nav-link active text-blue" data-toggle="tab" href="#home" role="tab" aria-selected="true">Trámite</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link text-blue" data-toggle="tab" href="#profile" role="tab" aria-selected="false">Documentos</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link text-blue" data-toggle="tab" href="#contact" role="tab" aria-selected="false">Bitácora</a>
-				</li>
-			</ul>
-			<div class="tab-content">
-				<div class="tab-pane fade show active" id="home" role="tabpanel">
-					<div class="pd-20">
-						<div id="wizard">
-							<!-- Step 1: Formulario de paso 1 -->
-							<h3>Información</h3>
-							<section>
-								<div class="min-height-200px">
+		<div class="pd-ltr-20 xs-pd-20-10">
+			<div class="min-height-200px">
+				<div class="page-header" style="margin-bottom: 30px;">
+					<div class="row align-items-center">
+						<div class="col-md-6 col-sm-12">
+							<div class="title">
+								<h4 style="color: #1b2850; font-weight: 700; font-size: 28px; margin-bottom: 8px;">
+									<i class="icon-copy dw dw-add-file" style="color: #667eea; margin-right: 12px;"></i>
+									Agregar Nuevo Trámite
+								</h4>
+								<p style="color: #6c757d; font-size: 14px; margin: 0;">Complete los datos del trámite</p>
+							</div>
+						</div>
+						<div class="col-md-6 col-sm-12 text-right">
+							<a href="/tramites/tramite" class="btn btn-secondary" style="border-radius: 8px; padding: 10px 20px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+								<i class="fa fa-arrow-left"></i> Volver
+							</a>
+						</div>
+					</div>
+				</div>
 
-									<?php echo form_open('/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'tramiteForm', 'method' => 'post']); ?>
+				<div class="card" style="background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; border: none;">
+					<div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 20px 30px;">
+						<h5 style="color: white; margin: 0; font-weight: 600; font-size: 18px;">
+							<i class="fa fa-file-text-o" style="margin-right: 10px;"></i>
+							Información del Trámite
+						</h5>
+					</div>
+					<div class="card-body" style="padding: 30px;">
+
+						<?php echo form_open('/deskapp/tramites/insert', ['class' => 'form-horizontal', 'id' => 'tramiteForm', 'method' => 'post']); ?>
 										<div id="tramite_respuesta" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
 											<span id="tramite_mensaje"></span>
 										</div>
@@ -188,9 +213,12 @@
 													<?php if ($field_info['type'] == 'hidden'): ?>
 														<input type="hidden" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>">
 													<?php else: ?>
-														<div class="mb-3 row">
-															<label for="<?php echo $field_name; ?>" class="col-sm-4 col-form-label"><?php echo $field_info['label']; ?></label>
-															<div class="col-sm-8">
+														<div class="form-group" style="margin-bottom: 24px;">
+															<label for="<?php echo $field_name; ?>" style="display: block; font-weight: 600; color: #1b2850; margin-bottom: 8px; font-size: 14px;">
+																<?php echo $field_info['label']; ?>
+																<?php if ($required): ?><span style="color: #e74c3c;">*</span><?php endif; ?>
+															</label>
+															<div style="position: relative;">
 																<?php if ($field_info['type'] == 'text'): ?>
 																	<input type="text" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 																<?php elseif ($field_info['type'] == 'select'): ?>
@@ -214,9 +242,9 @@
 																		<label class="form-check-label" for="status_inactive">Inactivo</label>
 																	</div>
 																<?php elseif ($field_info['type'] == 'datetime'): ?>
-																	<input type="text" class="form-control datetime-picker" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $disabled; ?>>
+																	<input type="text" class="form-control datetime-picker" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?> style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 12px 16px; font-size: 14px; background: #f8f9fa;">
 																<?php endif; ?>
-																<div class="invalid-feedback">
+																<div class="invalid-feedback" style="color: #e74c3c; font-size: 13px; margin-top: 6px;">
 																	<?php echo \Config\Services::validation()->showError($field_name); ?>
 																</div>
 															</div>
@@ -236,9 +264,12 @@
 													<?php if ($field_info['type'] == 'hidden'): ?>
 														<input type="hidden" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>">
 													<?php else: ?>
-														<div class="mb-3 row">
-															<label for="<?php echo $field_name; ?>" class="col-sm-4 col-form-label"><?php echo $field_info['label']; ?></label>
-															<div class="col-sm-8">
+														<div class="form-group" style="margin-bottom: 24px;">
+															<label for="<?php echo $field_name; ?>" style="display: block; font-weight: 600; color: #1b2850; margin-bottom: 8px; font-size: 14px;">
+																<?php echo $field_info['label']; ?>
+																<?php if ($required): ?><span style="color: #e74c3c;">*</span><?php endif; ?>
+															</label>
+															<div style="position: relative;">
 																<?php if ($field_info['type'] == 'text'): ?>
 																	<input type="text" class="form-control" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $required; ?> <?php echo $readonly; ?> <?php echo $disabled; ?>>
 																<?php elseif ($field_info['type'] == 'select'): ?>
@@ -262,9 +293,9 @@
 																		<label class="form-check-label" for="status_inactive">Inactivo</label>
 																	</div>
 																<?php elseif ($field_info['type'] == 'datetime'): ?>
-																	<input type="text" class="form-control datetime-picker" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?>>
+																	<input type="text" class="form-control datetime-picker" id="<?php echo $field_name; ?>" name="<?php echo $field_name; ?>" value="<?php echo $value; ?>" <?php echo $readonly; ?> <?php echo $disabled; ?> style="border: 2px solid #e0e0e0; border-radius: 8px; padding: 12px 16px; font-size: 14px; background: #f8f9fa;">
 																<?php endif; ?>
-																<div class="invalid-feedback">
+																<div class="invalid-feedback" style="color: #e74c3c; font-size: 13px; margin-top: 6px;">
 																	<?php echo \Config\Services::validation()->showError($field_name); ?>
 																</div>
 															</div>
@@ -274,10 +305,16 @@
 											</div>
 										</div>
 
-										<div class="text-center mt-4" id="boton_autorizar">
-											<button type="submit" name="accion" value="quotation" class="btn btn-warning"><?php echo 'Guardar Como Cotización'; ?></button>
-											<a href="/tramites/tramite" class="btn btn-secondary ml-2">Cancelar</a>
-											<button type="submit" name="accion" value="tramite" class="btn btn-primary"><?php echo 'Guarda Trámite'; ?></button>
+										<div class="text-center mt-4" id="boton_autorizar" style="padding: 30px 0; border-top: 2px solid #f0f0f0; margin-top: 20px;">
+											<button type="submit" name="accion" value="quotation" class="btn btn-warning" style="background: linear-gradient(135deg, #f5af19 0%, #f12711 100%); border: none; border-radius: 8px; padding: 12px 32px; font-weight: 600; font-size: 15px; color: white; box-shadow: 0 4px 15px rgba(245, 175, 25, 0.4); transition: all 0.3s; margin: 0 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(245, 175, 25, 0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(245, 175, 25, 0.4)';">
+												<i class="fa fa-file-text-o"></i> Guardar Como Cotización
+											</button>
+											<a href="/tramites/tramite" class="btn btn-secondary ml-2" style="background: #6c757d; border: none; border-radius: 8px; padding: 12px 32px; font-weight: 600; font-size: 15px; color: white; box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3); transition: all 0.3s; margin: 0 8px; text-decoration: none; display: inline-block;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(108, 117, 125, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(108, 117, 125, 0.3)';">
+												<i class="fa fa-times"></i> Cancelar
+											</a>
+											<button type="submit" name="accion" value="tramite" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; padding: 12px 32px; font-weight: 600; font-size: 15px; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s; margin: 0 8px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';">
+												<i class="fa fa-save"></i> Guardar Trámite
+											</button>
 										</div>
 
 									<?php echo form_close(); ?>
@@ -286,57 +323,36 @@
 										var cliDirectoId = "<?php echo isset($fields['cli_directo']['value']) ? $fields['cli_directo']['value'] : ''; ?>";
 										var ejecutivoId = "<?php echo isset($fields['cli_directo_ejecutivo_id']['value']) ? $fields['cli_directo_ejecutivo_id']['value'] : ''; ?>";
 									</script>
-								</div>
-							</section>
-						</div>
-					</div>
-				</div>
-				<div class="tab-pane fade" id="profile" role="tabpanel">
-					<div class="pd-20">
-						<div class="pd-ltr-20 xs-pd-20-10">
-							<?php 
-								if (!empty($output_docs)) {
-										echo $output_docs;
-								}
-							?>
-						</div>
-					</div>
-				</div>
-				<div class="tab-pane fade" id="contact" role="tabpanel">
-					<div class="pd-20">
-						<div class="pd-ltr-20 xs-pd-20-10">
-							<?php
-								if (!empty($output_bitacora)) {
-										echo $output_bitacora;
-								}
-							?>
-						</div>			
+
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>	
-<!-- footer -->
-<?php echo view('deskapp/includes/_footer'); ?>
-	<!-- js -->
 
-<?php
-if (!empty($js_files)) {
-    foreach($js_files as $file) { ?>
+<?= $this->endSection() ?>
+
+<?= $this->section('additional_js') ?>
+	<?php foreach($js_files as $file): ?>
         <script src="<?php echo $file; ?>"></script>
-    <?php }
-}
-?>
-	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/core.js"></script>
-	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/script.min.js"></script>
-	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/process.js"></script>
-	<script src="<?php echo base_url(); ?>/public/assets/vendors/scripts/layout-settings.js"></script>
+    <?php endforeach; ?>
+    
 	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/jquery-steps/jquery.steps.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/my_scripts.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/forms_scripts_add.js?v=<?php echo time(); ?>"></script>
-</body>
-</html>
+	<script>
+		var wiz_step = 0;
+		
+		// Aplicar estilos modernos a los campos del formulario
+		$(document).ready(function() {
+			// Agregar clases modern a inputs y selects
+			$('#tramiteForm input[type="text"]:not(.modern-input)').addClass('modern-input');
+			$('#tramiteForm textarea:not(.modern-textarea)').addClass('modern-textarea');
+			$('#tramiteForm select:not(.modern-select)').addClass('modern-select');
+		});
+	</script>
+<?= $this->endSection() ?>
 
