@@ -448,6 +448,13 @@ class Users extends BaseController
                     mkdir($uploadPath, 0755, true);
                 }
                 
+                // Debug de permisos/rutas en producción
+                log_message('error', '[AVATAR DEBUG] uploadPath=' . $uploadPath
+                    . ' is_dir=' . (is_dir($uploadPath) ? 'yes' : 'no')
+                    . ' is_writable=' . (is_writable($uploadPath) ? 'yes' : 'no')
+                    . ' tmp=' . $avatar->getTempName()
+                    . ' tmp_exists=' . (file_exists($avatar->getTempName()) ? 'yes' : 'no'));
+                
                 // Eliminar avatar anterior si existe y no es el default
                 if (!empty($oldUser['avatar']) && $oldUser['avatar'] !== 'uploads/avatars/default.png') {
                     $oldPath = ROOTPATH . 'public/' . $oldUser['avatar'];
