@@ -67,6 +67,65 @@
     .btn-group a {
         margin-right: 5px; /* Separar los botones ligeramente */
     }
+
+	/* Dropdown usuario: bloque de sesión más prolijo */
+	.header-right .user-info-dropdown .dropdown-menu{
+		min-width: 260px;
+		max-width: min(360px, 92vw);
+	}
+	.header-right .user-info-dropdown .sgl-session-summary{
+		padding: 12px 14px;
+		background: #f8f9fa;
+		border-bottom: 1px solid #eef0f2;
+	}
+	.header-right .user-info-dropdown .sgl-session-summary-inner{
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+	.header-right .user-info-dropdown .sgl-session-indicator{
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		background: #28a745;
+		box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.15);
+		flex: 0 0 auto;
+	}
+	.header-right .user-info-dropdown .sgl-session-label{
+		font-size: 10px;
+		font-weight: 700;
+		color: #6c757d;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		line-height: 1.2;
+		margin: 0 0 2px 0;
+	}
+	.header-right .user-info-dropdown .sgl-session-name{
+		font-size: 14px;
+		font-weight: 700;
+		color: #202342;
+		line-height: 1.2;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 300px;
+	}
+	.header-right .user-info-dropdown .sgl-session-meta{
+		margin-top: 3px;
+		font-size: 12px;
+		font-weight: 600;
+		color: #6c757d;
+		line-height: 1.2;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 300px;
+	}
+	.header-right .user-info-dropdown .dropdown-divider{
+		height: 1px;
+		background: #e9ecef;
+		margin: 0;
+	}
 </style>
 <div class="header">
 	<div class="header-left">
@@ -179,13 +238,39 @@
 		
 		<div class="user-info-dropdown">
 			<div class="dropdown">
-				<a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+				<a class="dropdown-toggle no-arrow" href="#" role="button" data-toggle="dropdown">
 					<span class="user-icon">
 						<img src="<?php echo base_url(); ?>/public/assets/vendors/images/img.jpg" alt="">
 					</span>
 					<!-- <span class="user-name"><?= esc($session->get('firstname').' '.$session->get('midname').' '.$session->get('lastname')); ?></span> -->
 				</a>
 				<div class="dropdown-menu dropdown-menu-right dropdown-menu-icon-list">
+					<?php
+						$firstName = $session->get('firstname') ?? '';
+						$midName = $session->get('midname') ?? '';
+						$lastName = $session->get('lastname') ?? '';
+						$fullName = trim(preg_replace('/\s+/', ' ', $firstName . ' ' . $midName . ' ' . $lastName));
+						$sessionUser = $session->get('user_name') ?? ($session->get('username') ?? null);
+						$sessionEmail = $session->get('email') ?? null;
+						$sessionMetaLabel = $sessionUser ? 'Usuario' : ($sessionEmail ? 'Email' : null);
+						$sessionMetaValue = $sessionUser ?? $sessionEmail;
+						if ($fullName === '') {
+							$fullName = $session->get('user_name') ?? ($session->get('username') ?? ($session->get('email') ?? 'Usuario'));
+						}
+					?>
+					<div class="sgl-session-summary">
+						<div class="sgl-session-summary-inner">
+							<span class="sgl-session-indicator" aria-hidden="true"></span>
+							<div class="sgl-session-text">
+								<div class="sgl-session-label">Sesión activa</div>
+								<div class="sgl-session-name" title="<?= esc($fullName) ?>"><?= esc($fullName) ?></div>
+								<?php if ($sessionMetaLabel && $sessionMetaValue): ?>
+									<div class="sgl-session-meta" title="<?= esc($sessionMetaLabel . ': ' . $sessionMetaValue) ?>"><?= esc($sessionMetaLabel) ?>: <?= esc($sessionMetaValue) ?></div>
+								<?php endif; ?>
+							</div>
+						</div>
+					</div>
+					<div class="dropdown-divider"></div>
 					<?php if (has_permission('listar_settings', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-user1"></i> Profile</a>
 						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-settings2"></i> Setting</a>

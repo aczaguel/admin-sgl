@@ -1176,6 +1176,34 @@ table.dataTable.dtr-inline.collapsed>tbody>tr.parent>td:first-child:before, tabl
 	transform: translate(0px, -50%);
 }
 
+/* Resumen de sesión dentro del dropdown del usuario */
+.sgl-session-summary{
+	padding: 10px 16px;
+	cursor: default;
+	user-select: none;
+}
+.sgl-session-summary .sgl-session-label{
+	font-size: 11px;
+	font-weight: 600;
+	color: #8898aa;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	margin-bottom: 2px;
+}
+.sgl-session-summary .sgl-session-name{
+	font-size: 14px;
+	font-weight: 600;
+	color: #202342;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.dropdown-menu .dropdown-divider{
+	height: 1px;
+	background: #e9ecef;
+	margin: 0;
+}
+
 .user-notification{
 	float: right;
 	margin-right: 10px;

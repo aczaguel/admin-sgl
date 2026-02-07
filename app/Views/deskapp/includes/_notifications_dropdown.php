@@ -31,6 +31,11 @@
     display: inline-block;
 }
 
+/* Ajuste fino para alineación en el header */
+.header-right .user-notification .notification-dropdown {
+    margin-top: -2px;
+}
+
 .notification-bell {
     position: relative;
     display: inline-flex;
