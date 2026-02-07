@@ -168,8 +168,13 @@ $routes->post('/documentos/tp_doctos_tramite', 'Deskapp/Documentos::tp_doctos_tr
 $routes->get('/gestores/gestores', 'Deskapp/Gestores:gestores',['filter' => 'auth']);
 $routes->post('/gestores/gestor', 'Deskapp/Gestores::gestor');
 
-$routes->get('/cliente/cliente', 'Deskapp/cliente:cliente',['filter' => 'auth']);
-$routes->post('/cliente/cliente', 'Deskapp/cliente::cliente');
+// Gestión de clientes (controlador Deskapp\Cliente)
+$routes->get('/cliente/cliente', 'Deskapp/Cliente::cliente',['filter' => 'auth']);
+$routes->post('/cliente/cliente', 'Deskapp/Cliente::cliente');
+
+// Ruta usada en el sidebar: deskapp/clientes/cliente
+$routes->get('/deskapp/clientes/cliente', 'Deskapp/Cliente::cliente',['filter' => 'auth']);
+$routes->post('/deskapp/clientes/cliente', 'Deskapp/Cliente::cliente');
 
 $routes->get('/clidirecto/clidirecto', 'Deskapp/Clidirecto:clidirecto',['filter' => 'auth']);
 $routes->post('/clidirecto/clidirecto', 'Deskapp/Clidirecto::clidirecto');

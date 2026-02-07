@@ -186,23 +186,23 @@ class Users extends BaseController
             $users_crud->setRelationNtoN(
                 'clientes',        // Nombre del campo que se usará en el formulario
                 'cliente_user',    // Tabla de unión (pivote) ← TABLA CRÍTICA
-                'cli_directo',     // Tabla de destino
+                'cliente',         // Tabla de destino (clientes "maestros")
                 'user_id',         // Llave foránea en la tabla de unión que apunta a la tabla principal ('users')
-                'cliente_id',      // Llave foránea en la tabla de unión que apunta a la tabla relacionada ('cli_directo')
-                'nombre'           // Campo en la tabla relacionada que se desea mostrar en el multiselect
+                'cliente_id',      // Llave foránea en la tabla de unión que apunta a la tabla relacionada ('cliente')
+                'razon_social'     // Campo en la tabla relacionada que se desea mostrar en el multiselect
             );
 
             // Callback column para mostrar los clientes asociados con un usuario
             $users_crud->callbackColumn('clientes', function ($value, $row) {
                 $db = \Config\Database::connect();
                 $builder = $db->table('cliente_user');
-                $builder->select('cli_directo.nombre');
-                $builder->join('cli_directo', 'cliente_user.cliente_id = cli_directo.id');
+                $builder->select('cliente.razon_social');
+                $builder->join('cliente', 'cliente_user.cliente_id = cliente.id');
                 $builder->where('cliente_user.user_id', $row->id);
                 $clientes = $builder->get()->getResult();
 
                 $clienteNombres = array_map(function($cliente) {
-                    return $cliente->nombre;
+                    return $cliente->razon_social;
                 }, $clientes);
 
                 return implode(', ', $clienteNombres); // Mostrar los nombres de los clientes separados por comas

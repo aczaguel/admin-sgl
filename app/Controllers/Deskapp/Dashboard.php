@@ -25,6 +25,8 @@
 		$tramiteModel = new TramitesModel($db2);
 
 		// Obtener clientes asignados al usuario
+		// Nota: este método devuelve los IDs de cli_directo (clientes directos)
+		// que pertenecen a los clientes (tabla cliente) asignados al usuario
 		$clientesAsignados = $this->_getClientesAsignados($userId, $userRoles, $db);
 		$data['clientes_asignados'] = $clientesAsignados;
 
@@ -56,13 +58,22 @@
 		$tiposTramite = $db->table('tra_tipos')->select('id, tipo_tramite as nombre')->get()->getResultArray();
 		$data['tipos_tramite'] = $tiposTramite;
 
-		// Obtener clientes para el filtro
+		// Obtener clientes directos para el filtro
 		if ($clientesAsignados === null) {
-			// SuperAdmin - todos los clientes
-			$clientesLista = $db->table('cli_directo')->select('id, nombre')->orderBy('nombre', 'ASC')->get()->getResultArray();
+			// Admin/SuperAdmin - todos los clientes directos
+			$clientesLista = $db->table('cli_directo')
+				->select('id, nombre')
+				->orderBy('nombre', 'ASC')
+				->get()
+				->getResultArray();
 		} else {
-			// Usuario normal - solo clientes asignados
-			$clientesLista = $db->table('cli_directo')->select('id, nombre')->whereIn('id', $clientesAsignados)->orderBy('nombre', 'ASC')->get()->getResultArray();
+			// Usuario normal - solo cli_directo ligados a sus clientes permitidos
+			$clientesLista = $db->table('cli_directo')
+				->select('id, nombre')
+				->whereIn('id', $clientesAsignados)
+				->orderBy('nombre', 'ASC')
+				->get()
+				->getResultArray();
 		}
 		$data['clientes_lista'] = $clientesLista;
 
@@ -81,26 +92,41 @@
  	}
 
 	/**
-	 * Obtiene los clientes asignados al usuario según su rol
-	 * Si es admin, retorna null (acceso a todos)
-	 * Si no, retorna array de IDs de clientes asignados
+	 * Obtiene los clientes asignados al usuario según su rol.
+	 *
+	 * Si es Admin/Super Admin: retorna null (acceso a todos los clientes directos).
+	 * Si no: retorna array de IDs de cli_directo ligados a los clientes (tabla cliente)
+	 *        que están asignados al usuario vía cliente_user.
 	 */
 	private function _getClientesAsignados($userId, $userRoles, $db)
 	{
 		// Verificar si es Super Admin o Admin
 		if (is_array($userRoles) && (in_array('Super Admin', $userRoles) || in_array('Admin', $userRoles))) {
-			return null; // null significa acceso a todos los clientes
+			return null; // null = sin filtro por cliente (acceso completo)
 		}
 
-		// Obtener clientes asignados desde cliente_user
-		$query = $db->table('cliente_user')
+		// 1) Obtener IDs de clientes (tabla cliente) asignados al usuario
+		$clienteIdsQuery = $db->table('cliente_user')
 			->select('cliente_id')
 			->where('user_id', $userId)
 			->get();
 
-		$clientesAsignados = array_column($query->getResultArray(), 'cliente_id');
+		$clienteIds = array_column($clienteIdsQuery->getResultArray(), 'cliente_id');
 
-		return !empty($clientesAsignados) ? $clientesAsignados : [0]; // [0] significa sin acceso
+		if (empty($clienteIds)) {
+			// Sin clientes asignados: devolver un array que no matchee ningún cli_directo
+			return [0];
+		}
+
+		// 2) Traducir esos clientes a sus cli_directo asociados
+		$cliDirectoQuery = $db->table('cli_directo')
+			->select('id')
+			->whereIn('cliente_id', $clienteIds)
+			->get();
+
+		$cliDirectoIds = array_column($cliDirectoQuery->getResultArray(), 'id');
+
+		return !empty($cliDirectoIds) ? $cliDirectoIds : [0];
 	}
  	public function one()
  	{

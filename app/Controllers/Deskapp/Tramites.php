@@ -106,6 +106,7 @@ class Tramites extends BaseController
             // ========================================================================
             
             $filterSql = get_cliente_filter_sql($myid);
+            
             $tramite_crud->where($filterSql, null, false);
             
             // Filtro adicional por status
@@ -302,7 +303,7 @@ class Tramites extends BaseController
             $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
 
             $tramite_salida = $tramite_crud->render();
-            
+
             $salida_total = array_merge((array)$tramite_salida, $data);
             $salida_total['insert_button_url'] = '/public/deskapp/tramites/add';
 
@@ -327,6 +328,7 @@ class Tramites extends BaseController
             
             // FILTRADO POR CLIENTE (Multi-tenancy)
             $filterSql = get_cliente_filter_sql($myid);
+
             $tramite_crud->where($filterSql, null, false);
             
             //$tramite_crud->where('tra_status_id NOT IN (20, 21)');
