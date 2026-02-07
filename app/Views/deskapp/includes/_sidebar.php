@@ -11,6 +11,15 @@
 	<div class="menu-block customscroll">
 		<div class="sidebar-menu">
 			<ul id="accordion-menu">
+				<?php 
+					// Determinar si el usuario es Admin o Super Admin por rol
+					$userRole = $session->get('user_roles');
+					$userRoleStr = is_array($userRole) ? implode(',', $userRole) : (string)$userRole;
+					$userRoleLower = strtolower(str_replace(' ', '', $userRoleStr)); // Remover espacios y convertir a minúsculas
+					$isAdmin = (strpos($userRoleLower, 'admin') !== false || strpos($userRoleLower, 'superadmin') !== false);
+				?>
+
+				<?php if ($isAdmin || has_permission('menu_dashboard_admin', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 				<!-- SECCIÓN: DASHBOARD ADMINISTRATIVO -->
 				<li class="menu-section-title">
 					<span><i class="fas fa-chart-line me-2"></i> Análisis y Reportes</span>
@@ -40,14 +49,7 @@
 						<li><a href="<?php echo base_url('correccion-tramites'); ?>">
 							<i class="fas fa-edit text-info"></i> Corrección de Trámites
 						</a></li>
-						<?php 
-							// Auditoría solo para Admin y Super Admin
-							$userRole = $session->get('user_roles');
-							$userRoleStr = is_array($userRole) ? implode(',', $userRole) : (string)$userRole;
-							$userRoleLower = strtolower(str_replace(' ', '', $userRoleStr)); // Remover espacios y convertir a minúsculas
-							$isAdmin = (strpos($userRoleLower, 'admin') !== false || strpos($userRoleLower, 'superadmin') !== false);
-							if ($isAdmin): 
-						?>
+						<?php if ($isAdmin): ?>
 						<li><a href="<?php echo base_url('deskapp/tramites/audit_search'); ?>">
 							<i class="fas fa-history text-primary"></i> Auditoría de Trámite
 						</a></li>
@@ -65,6 +67,7 @@
 						</a></li>
 					</ul>
 				</li>
+				<?php endif; ?>
 
 
 				<!-- SECCIÓN: TRÁMITES -->
@@ -191,9 +194,15 @@
 							<li><a href="<?php echo base_url('deskapp/clientes/cliente'); ?>">
 								<i class="fas fa-user-circle"></i> Cliente
 							</a></li>
-							<li><a href="<?php echo base_url('deskapp/clientes/contactos'); ?>">
+							<li><a href="<?php echo base_url('deskapp/clidirecto/clidirecto'); ?>">
+								<i class="fas fa-building"></i> Clientes directos
+								</a></li>
+							<li><a href="<?php echo base_url('deskapp/clidirecto/ejecutivo'); ?>">
+								<i class="fas fa-user-tie"></i> Ejecutivos de cliente
+								</a></li>
+							<!-- <li><a href="<?php echo base_url('deskapp/clientes/contactos'); ?>">
 								<i class="fas fa-address-book"></i> Contactos
-							</a></li>
+							</a></li> -->
 						</ul>
 					</li>
 				<?php endif; ?>
