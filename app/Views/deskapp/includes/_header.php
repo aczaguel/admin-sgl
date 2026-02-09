@@ -217,10 +217,110 @@
 		min-width: 260px;
 	}
 
+	/* Sidebar colapsable (desktop): icon-only + persistencia */
+	.header-left .sgl-sidebar-collapse-btn{
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		margin-left: 8px;
+		border-radius: 8px;
+		background: #f3f5f7;
+		color: #111;
+		cursor: pointer;
+		transition: background 0.2s ease-in-out, transform 0.2s ease-in-out;
+	}
+	/* En <=1300px el botón funciona como abrir/cerrar (overlay). */
+	@media (max-width: 1300px) {
+		.header-left .sgl-sidebar-collapse-btn{ width: 40px; height: 40px; }
+	}
+
+	/* Botón también visible dentro del sidebar (brand-logo) */
+	.left-side-bar .brand-logo{ position: relative; }
+	.left-side-bar .brand-logo .sgl-sidebar-collapse-btn--sidebar{
+		position: absolute;
+		left: 10px;
+		top: 18px;
+		margin-left: 0;
+	}
+	.header-left .sgl-sidebar-collapse-btn:hover{
+		background: #e8ecf0;
+	}
+	@media (min-width: 1301px) {
+		body.sgl-sidebar-collapsed .left-side-bar{
+			width: 72px;
+		}
+		body.sgl-sidebar-collapsed .left-side-bar .brand-logo{
+			width: 72px;
+			padding-left: 0;
+			padding-right: 0;
+		}
+		body.sgl-sidebar-collapsed .left-side-bar .brand-logo a{
+			justify-content: center !important;
+		}
+		body.sgl-sidebar-collapsed .left-side-bar .brand-logo a img{
+			max-width: 46px !important;
+		}
+		body.sgl-sidebar-collapsed .header{
+			width: calc(100% - 72px);
+		}
+		body.sgl-sidebar-collapsed .main-container{
+			padding-left: 92px;
+		}
+
+		body.sgl-sidebar-collapsed .left-side-bar .sidebar-menu .menu-section-title{
+			display: none;
+		}
+		body.sgl-sidebar-collapsed .left-side-bar .sidebar-menu .dropdown-toggle .mtext{
+			display: none;
+		}
+		body.sgl-sidebar-collapsed .left-side-bar .sidebar-menu .dropdown-toggle:after{
+			display: none;
+		}
+
+		body.sgl-sidebar-collapsed .left-side-bar .sidebar-menu .dropdown-toggle{
+			padding-left: 0;
+			padding-right: 0;
+			text-align: center;
+		}
+		body.sgl-sidebar-collapsed .left-side-bar .sidebar-menu .dropdown-toggle .micon{
+			left: 0;
+			width: 72px;
+			text-align: center;
+		}
+
+		/* Submenús como flyout al pasar el mouse */
+		body.sgl-sidebar-collapsed .left-side-bar .sidebar-menu > ul > li.dropdown{
+			position: relative;
+		}
+		body.sgl-sidebar-collapsed .left-side-bar .sidebar-menu > ul > li.dropdown > .submenu{
+			position: absolute;
+			left: 72px;
+			top: 0;
+			min-width: 240px;
+			background: #142127;
+			border-radius: 10px;
+			padding: 10px 0;
+			box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+			display: none;
+			z-index: 2000;
+		}
+		body.sgl-sidebar-collapsed .left-side-bar .sidebar-menu > ul > li.dropdown:hover > .submenu{
+			display: block;
+		}
+		body.sgl-sidebar-collapsed .left-side-bar .sidebar-menu > ul > li.dropdown > .submenu li a{
+			padding-left: 18px;
+		}
+	}
+
 </style>
 <div class="header">
 	<div class="header-left">
 		<div class="menu-icon dw dw-menu"></div>
+		<div class="sgl-sidebar-collapse-btn" role="button" tabindex="0" aria-label="Contraer/expandir menú" title="Contraer/expandir menú">
+			<i class="dw dw-left-arrow" aria-hidden="true"></i>
+		</div>
 		<div class="search-toggle-icon dw dw-search2" data-toggle="header_search"></div>
 		<div class="header-search">
 			<!-- <form>
@@ -375,6 +475,184 @@
 		</div>
 	</div>
 </div>
+
+<script>
+	(function () {
+		var STORAGE_SIDEBAR = 'sglSidebarCollapsed';
+		var STORAGE_CLIENTE = 'sglClienteId';
+
+		function isOverlayLayout() {
+			try {
+				return window.matchMedia && window.matchMedia('(max-width: 1300px)').matches;
+			} catch (e) {
+				return false;
+			}
+		}
+
+		function setCollapseIcons(isCollapsed) {
+			var icons = document.querySelectorAll('.sgl-sidebar-collapse-btn i');
+			icons.forEach(function (el) {
+				if (!el) return;
+				el.classList.remove('dw-left-arrow', 'dw-right-arrow');
+				el.classList.add(isCollapsed ? 'dw-right-arrow' : 'dw-left-arrow');
+			});
+		}
+
+		function applyOverlayOpenState(isOpen) {
+			var sidebar = document.querySelector('.left-side-bar');
+			if (!sidebar) return;
+			sidebar.classList.toggle('open', !!isOpen);
+			var overlay = document.querySelector('.mobile-menu-overlay');
+			if (overlay) overlay.classList.toggle('show', !!isOpen);
+			// En overlay, usamos el mismo icono: abierto = flecha izq (cerrar), cerrado = flecha der (abrir)
+			setCollapseIcons(!isOpen);
+		}
+
+		function toggleOverlayOpen() {
+			var sidebar = document.querySelector('.left-side-bar');
+			if (!sidebar) return;
+			applyOverlayOpenState(!sidebar.classList.contains('open'));
+		}
+
+		function applyCollapsedState(isCollapsed) {
+			if (!document || !document.body) return;
+			document.body.classList.toggle('sgl-sidebar-collapsed', !!isCollapsed);
+			setCollapseIcons(!!isCollapsed);
+		}
+
+		function loadCollapsedState() {
+			try {
+				return localStorage.getItem(STORAGE_SIDEBAR) === '1';
+			} catch (e) {
+				return false;
+			}
+		}
+
+		function saveCollapsedState(isCollapsed) {
+			try {
+				localStorage.setItem(STORAGE_SIDEBAR, isCollapsed ? '1' : '0');
+			} catch (e) {
+				// ignore
+			}
+		}
+
+		function safeGetClienteFromStorage() {
+			try {
+				var v = localStorage.getItem(STORAGE_CLIENTE);
+				if (!v) return '';
+				return String(v);
+			} catch (e) {
+				return '';
+			}
+		}
+
+		function safeSetClienteToStorage(value) {
+			try {
+				if (!value) {
+					localStorage.removeItem(STORAGE_CLIENTE);
+					return;
+				}
+				localStorage.setItem(STORAGE_CLIENTE, String(value));
+			} catch (e) {
+				// ignore
+			}
+		}
+
+		function getClienteFromUrl() {
+			try {
+				var params = new URLSearchParams(window.location.search || '');
+				return params.get('cliente_id') || '';
+			} catch (e) {
+				return '';
+			}
+		}
+
+		function normalizeClienteValue(value) {
+			if (!value) return '';
+			var n = parseInt(value, 10);
+			return Number.isFinite(n) && n > 0 ? String(n) : '';
+		}
+
+		document.addEventListener('DOMContentLoaded', function () {
+			applyCollapsedState(loadCollapsedState());
+			if (isOverlayLayout()) {
+				// sincroniza icono con estado inicial (normalmente cerrado)
+				applyOverlayOpenState(!!(document.querySelector('.left-side-bar') && document.querySelector('.left-side-bar').classList.contains('open')));
+			}
+
+			var btns = document.querySelectorAll('.sgl-sidebar-collapse-btn');
+			function toggleSidebarCollapsed() {
+				if (isOverlayLayout()) {
+					toggleOverlayOpen();
+					return;
+				}
+				var next = !document.body.classList.contains('sgl-sidebar-collapsed');
+				applyCollapsedState(next);
+				saveCollapsedState(next);
+			}
+			btns.forEach(function (btn) {
+				btn.addEventListener('click', function (e) {
+					e.preventDefault();
+					toggleSidebarCollapsed();
+				});
+				btn.addEventListener('keydown', function (e) {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault();
+						toggleSidebarCollapsed();
+					}
+				});
+			});
+
+			// Si se redimensiona, re-sincroniza iconos para el modo actual
+			window.addEventListener('resize', function () {
+				if (isOverlayLayout()) {
+					applyOverlayOpenState(!!(document.querySelector('.left-side-bar') && document.querySelector('.left-side-bar').classList.contains('open')));
+				} else {
+					applyCollapsedState(loadCollapsedState());
+				}
+			});
+
+			// Persistencia de cliente seleccionado
+			var clienteSelect = document.querySelector('.sgl-cliente-context select[name="cliente_id"]');
+			var clienteFromUrl = normalizeClienteValue(getClienteFromUrl());
+			if (clienteFromUrl) {
+				safeSetClienteToStorage(clienteFromUrl);
+			}
+
+			if (clienteSelect) {
+				clienteSelect.addEventListener('change', function () {
+					var v = normalizeClienteValue(clienteSelect.value);
+					safeSetClienteToStorage(v);
+				});
+			}
+
+			// Propagar cliente_id en navegación interna (para no re-seleccionar en cada salto)
+			document.addEventListener('click', function (e) {
+				var a = e.target && e.target.closest ? e.target.closest('a') : null;
+				if (!a) return;
+				var href = a.getAttribute('href');
+				if (!href || href === '#' || href.indexOf('javascript:') === 0) return;
+				if (a.getAttribute('target') === '_blank') return;
+				if (a.hasAttribute('download')) return;
+
+				var stored = normalizeClienteValue(safeGetClienteFromStorage());
+				if (!stored) return;
+
+				try {
+					var url = new URL(href, window.location.origin);
+					// solo mismo origen
+					if (url.origin !== window.location.origin) return;
+					// si ya trae cliente_id, no tocar
+					if (url.searchParams.has('cliente_id')) return;
+					url.searchParams.set('cliente_id', stored);
+					a.setAttribute('href', url.pathname + (url.search ? url.search : '') + (url.hash ? url.hash : ''));
+				} catch (err) {
+					// ignore
+				}
+			}, true);
+		});
+	})();
+</script>
 
 <!-- Script para Debug Toggle -->
 <script>
