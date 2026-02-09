@@ -1281,7 +1281,9 @@ class Tramites extends BaseController
         $entidad_options = $entidades->getEntidades();
 
         $clienteDirecto = new ClienteDirectoModel($db2);
-        $cli_directo_options = $clienteDirecto->getClientesDirectosOptions();
+        // Multi-tenancy: filtra clientes directos por asignación en cliente_user (si no es admin)
+        $clienteRelationFilter = get_cliente_relation_filter($myid);
+        $cli_directo_options = $clienteDirecto->getClientesDirectosOptions($clienteRelationFilter);
         $empGestora = new EmpresaGestoraModel($db2);
         $empresa_gestora_options = $empGestora->getEmpresasGestorasOptions();
 
@@ -1323,6 +1325,30 @@ class Tramites extends BaseController
     }
 
     public function getEjecutivosByClienteId($clienteDirectoId) {
+        $session = session();
+        $myid = (int) $session->get('id');
+
+        $clienteDirectoId = (int) $clienteDirectoId;
+        if ($clienteDirectoId <= 0) {
+            return $this->response->setJSON([]);
+        }
+
+        // Validación de acceso: si no es admin, el cli_directo debe pertenecer a un cliente asignado
+        if (!user_is_admin($myid)) {
+            $clienteIds = get_user_cliente_ids($myid);
+            if (empty($clienteIds)) {
+                log_unauthorized_access_attempt('cli_directo', $clienteDirectoId, $myid);
+                return $this->response->setStatusCode(403)->setJSON([]);
+            }
+            $db = \Config\Database::connect();
+            $row = $db->table('cli_directo')->select('cliente_id')->where('id', $clienteDirectoId)->get(1)->getRowArray();
+            $tenantId = $row['cliente_id'] ?? null;
+            if (!$tenantId || !in_array((int) $tenantId, array_map('intval', $clienteIds), true)) {
+                log_unauthorized_access_attempt('cli_directo', $clienteDirectoId, $myid);
+                return $this->response->setStatusCode(403)->setJSON([]);
+            }
+        }
+
         $db2 = $this->_getDbData();
         $ejecutivoModel = new ClienteDirectoEjecutivoModel($db2);
         $options = $ejecutivoModel->getEjecutivosOptions($clienteDirectoId);
@@ -1333,6 +1359,9 @@ class Tramites extends BaseController
     // Function to handle inserting a new product into the database
     public function insert() {
         $validation = \Config\Services::validation();
+
+        $session = session();
+        $myid = (int) $session->get('id');
 
         // Set validation rules
         $validation->setRules([
@@ -1356,6 +1385,31 @@ class Tramites extends BaseController
                 // Insertar los datos en la base de datos
                 $data = $this->request->getPost();
                 $db = \Config\Database::connect();
+
+                // Forzar user_id desde sesión para evitar manipulación del POST
+                $data['user_id'] = $myid;
+
+                // Validación multi-tenant del cliente directo
+                $cliDirectoId = (int) ($data['cli_directo_id'] ?? 0);
+                if ($cliDirectoId <= 0) {
+                    if ($this->request->isAJAX()) {
+                        return $this->response->setJSON(['success' => false, 'errors' => ['cli_directo_id' => 'Cliente es requerido.']]);
+                    }
+                    return $this->add();
+                }
+
+                if (!user_is_admin($myid)) {
+                    $clienteIds = get_user_cliente_ids($myid);
+                    $row = $db->table('cli_directo')->select('cliente_id')->where('id', $cliDirectoId)->get(1)->getRowArray();
+                    $tenantId = $row['cliente_id'] ?? null;
+                    if (empty($clienteIds) || !$tenantId || !in_array((int) $tenantId, array_map('intval', $clienteIds), true)) {
+                        log_unauthorized_access_attempt('cli_directo', $cliDirectoId, $myid);
+                        if ($this->request->isAJAX()) {
+                            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'errors' => ['cli_directo_id' => 'Acceso denegado al cliente seleccionado.']]);
+                        }
+                        return redirect()->back()->with('error', '⛔ Acceso denegado al cliente seleccionado.');
+                    }
+                }
                 
                 $button_action = $this->request->getPost('accion');
                 $tra_tipos_id = $data["tra_tipos_id"];

@@ -407,6 +407,25 @@ class TramitesModel extends Model
     }
     public function getTramitesGroupedByStatusPerMonth($clientesAsignados = null, $clienteId = null)
     {
+        // Pre-llenar los últimos 6 meses (incluye el mes actual) para que el gráfico
+        // no quede en blanco cuando no hay actividad reciente.
+        $tramitesPorMes = [];
+        try {
+            $cursor = new \DateTime('first day of this month');
+            $cursor->modify('-5 months');
+            for ($i = 0; $i < 6; $i++) {
+                $key = $cursor->format('Y-m'); // YYYY-MM
+                $tramitesPorMes[$key] = [
+                    'recoleccion' => 0,
+                    'concluidos' => 0,
+                ];
+                $cursor->modify('+1 month');
+            }
+        } catch (\Throwable $e) {
+            // Si DateTime falla por alguna razón, seguimos sin prefill
+            $tramitesPorMes = [];
+        }
+
         $sql = new Sql($this->adapter);
         $select = $sql->select();
         $select->from('tramite');
@@ -435,15 +454,18 @@ class TramitesModel extends Model
         // Ejecutar la consulta
         $statement = $sql->prepareStatementForSqlObject($select);
         $results = $statement->execute();
-    
-        // Preparar un arreglo para almacenar los resultados
-        $tramitesPorMes = [];
+
+        // Mezclar resultados en el prefill (o construir el arreglo si no hubo prefill)
         foreach ($results as $row) {
-            $mes = $row['mes'];
-            $anio = $row['anio'];
-            $tramitesPorMes["$anio-$mes"] = [
-                'recoleccion' => $row['recoleccion'],
-                'concluidos' => $row['concluidos']
+            $mes = (int)($row['mes'] ?? 0);
+            $anio = (int)($row['anio'] ?? 0);
+            if ($anio <= 0 || $mes <= 0 || $mes > 12) {
+                continue;
+            }
+            $key = sprintf('%04d-%02d', $anio, $mes);
+            $tramitesPorMes[$key] = [
+                'recoleccion' => (int)($row['recoleccion'] ?? 0),
+                'concluidos' => (int)($row['concluidos'] ?? 0),
             ];
         }
     
