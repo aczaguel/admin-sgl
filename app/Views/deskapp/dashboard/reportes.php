@@ -29,20 +29,6 @@
                     <div class="col-md-6 col-sm-12 text-right">
                         <?php $cliente_qs = !empty($cliente_id_filtro) ? ('cliente_id=' . (int)$cliente_id_filtro) : ''; ?>
 
-                        <form method="GET" action="<?= base_url('/deskapp/dashboardadmin/reportes') ?>" class="d-inline-block mr-2" style="min-width: 260px;">
-                            <input type="hidden" name="anio" value="<?= isset($anio_seleccionado) ? esc($anio_seleccionado) : date('Y') ?>">
-                            <select name="cliente_id" class="form-control" onchange="this.form.submit()">
-                                <option value="">Todos los clientes</option>
-                                <?php if (!empty($clientes_lista)): ?>
-                                    <?php foreach ($clientes_lista as $cliente): ?>
-                                        <option value="<?= (int)$cliente['id'] ?>" <?= (!empty($cliente_id_filtro) && (int)$cliente_id_filtro === (int)$cliente['id']) ? 'selected' : '' ?>>
-                                            <?= esc($cliente['nombre']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </select>
-                        </form>
-
                         <div class="dropdown d-inline-block mr-2">
                             <a class="btn btn-primary dropdown-toggle" href="#" role="button" data-toggle="dropdown">
                                 <i class="icon-copy dw dw-calendar-1"></i> Año: <?= isset($anio_seleccionado) ? $anio_seleccionado : date('Y') ?>

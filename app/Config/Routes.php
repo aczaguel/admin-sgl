@@ -312,6 +312,12 @@ $routes->post('/deskapp/dashboardadmin/financiero', 'Deskapp/DashboardAdmin::fin
 $routes->get('/deskapp/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes',['filter' => 'auth']);
 $routes->post('/deskapp/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes');
 
+$routes->get('/deskapp/dashboardadmin/por_cliente', 'Deskapp/DashboardAdmin::por_cliente',['filter' => 'auth']);
+$routes->post('/deskapp/dashboardadmin/por_cliente', 'Deskapp/DashboardAdmin::por_cliente');
+
+$routes->get('/deskapp/dashboardadmin/detalle_cliente/(:num)', 'Deskapp/DashboardAdmin::detalle_cliente/$1',['filter' => 'auth']);
+$routes->post('/deskapp/dashboardadmin/detalle_cliente/(:num)', 'Deskapp/DashboardAdmin::detalle_cliente/$1');
+
 // APIs para datos en tiempo real (JSON)
 $routes->get('/deskapp/dashboardadmin/api_metricas', 'Deskapp/DashboardAdmin::api_metricas',['filter' => 'auth']);
 $routes->get('/deskapp/dashboardadmin/api_alertas', 'Deskapp/DashboardAdmin::api_alertas',['filter' => 'auth']);
@@ -324,6 +330,31 @@ $routes->get('/deskapp/dashboardadmin/api_financiero', 'Deskapp/DashboardAdmin::
 // Exportar reportes
 $routes->get('/deskapp/dashboardadmin/exportar_excel', 'Deskapp/DashboardAdmin::exportar_excel',['filter' => 'auth']);
 $routes->get('/deskapp/dashboardadmin/exportar_pdf', 'Deskapp/DashboardAdmin::exportar_pdf',['filter' => 'auth']);
+// ============================================================================
+
+// ============================================================================
+// Dashboard Administrativo - Alias sin prefijo /deskapp (compatibilidad prod)
+// ============================================================================
+$routes->get('/dashboardadmin', 'Deskapp/DashboardAdmin::index',['filter' => 'auth']);
+$routes->post('/dashboardadmin', 'Deskapp/DashboardAdmin::index');
+
+$routes->get('/dashboardadmin/alertas', 'Deskapp/DashboardAdmin::alertas',['filter' => 'auth']);
+$routes->post('/dashboardadmin/alertas', 'Deskapp/DashboardAdmin::alertas');
+
+$routes->get('/dashboardadmin/financiero', 'Deskapp/DashboardAdmin::financiero',['filter' => 'auth']);
+$routes->post('/dashboardadmin/financiero', 'Deskapp/DashboardAdmin::financiero');
+
+$routes->get('/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes',['filter' => 'auth']);
+$routes->post('/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes');
+
+$routes->get('/dashboardadmin/por_cliente', 'Deskapp/DashboardAdmin::por_cliente',['filter' => 'auth']);
+$routes->post('/dashboardadmin/por_cliente', 'Deskapp/DashboardAdmin::por_cliente');
+
+$routes->get('/dashboardadmin/detalle_cliente/(:num)', 'Deskapp/DashboardAdmin::detalle_cliente/$1',['filter' => 'auth']);
+$routes->post('/dashboardadmin/detalle_cliente/(:num)', 'Deskapp/DashboardAdmin::detalle_cliente/$1');
+
+$routes->get('/dashboardadmin/exportar_excel', 'Deskapp/DashboardAdmin::exportar_excel',['filter' => 'auth']);
+$routes->get('/dashboardadmin/exportar_pdf', 'Deskapp/DashboardAdmin::exportar_pdf',['filter' => 'auth']);
 // ============================================================================
 
 // ============================================================================
