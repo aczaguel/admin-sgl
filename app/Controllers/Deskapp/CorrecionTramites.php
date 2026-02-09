@@ -16,7 +16,14 @@ class CorrecionTramites extends BaseController
     public function __construct()
     {
         $this->db = Database::connect();
-        helper(['url', 'form', 'session']);
+        helper(['url', 'form', 'session', 'cliente_filter', 'cliente_context']);
+
+        $session = session();
+        $userId = $session->get('id');
+        $requested = $this->request ? $this->request->getGet('cliente_id') : null;
+
+        // Persistir cliente activo (si viene en GET) para que el filtro aplique en ESTA misma request
+        resolve_active_cliente_id($userId, $requested);
     }
 
     private function _getDbData() {
@@ -51,7 +58,7 @@ class CorrecionTramites extends BaseController
         }
         
         $data = (array)$output;
-        $data['title'] = $data['title'] ?? 'Corrección de Trámites';
+        $data['title'] = is_string($data['title'] ?? null) ? $data['title'] : 'Corrección de Trámites';
         $data['session'] = session();
         
         return view('deskapp/correccion_tramites/index', $data);
@@ -80,6 +87,8 @@ class CorrecionTramites extends BaseController
             $crud->setApiUrlPath('/deskapp/correccion-tramites/crud_api');
 
             $crud->setTable('tramite');
+            $filterSql = get_tramite_filter_sql($session->get('id'));
+            $crud->where($filterSql);
             $crud->setSubject('Trámite', 'Trámites para Corrección');
             $crud->defaultOrdering('tramite.id', 'desc');
 

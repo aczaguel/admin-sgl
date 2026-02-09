@@ -29,7 +29,14 @@ class Proceso extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context']);
+
+        $session = session();
+        $userId = $session->get('id');
+        $requested = $this->request ? $this->request->getGet('cliente_id') : null;
+
+        // Persistir cliente activo (si viene en GET) para que el filtro aplique en ESTA misma request
+        resolve_active_cliente_id($userId, $requested);
     }
 
     public function index()
@@ -190,7 +197,7 @@ class Proceso extends BaseController
                 "created_at" => date('Y-m-d H:i:s'),
                 "updated_at" => date('Y-m-d H:i:s')
             ];
-            $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+            $db->table('bitacora')->insert($insert_bitacora);
 
         });
 
@@ -310,6 +317,8 @@ class Proceso extends BaseController
             //lista todos los unset de grocery crud
             
             $tramite_crud->setTable('tramite');
+            $filterSql = get_tramite_filter_sql($myid);
+            $tramite_crud->where($filterSql);
             $tramite_crud->setSubject('tramite', 'Tramites');
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
             
@@ -483,6 +492,8 @@ class Proceso extends BaseController
             $crud->setCsrfTokenName(csrf_token());
             $crud->setCsrfTokenValue(csrf_hash());
             $crud->setTable('tramite');
+            $filterSql = get_tramite_filter_sql($myid);
+            $crud->where($filterSql);
             $crud->setSubject('tramite', 'Tramites');
             $crud->columns(['created_at', "started_at", "id", "folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id",'ent_municipio_id', "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", 
             "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite", "comision_derechos", "costo_total", "numero_factura", "numero_refactura",

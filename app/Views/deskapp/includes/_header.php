@@ -12,6 +12,25 @@
 </div>
  -->
 
+<?php
+	helper(['cliente_filter', 'cliente_context']);
+
+	$session = $session ?? session();
+	$userId = $session->get('id');
+	$request = service('request');
+	$requestedClienteId = $request ? $request->getGet('cliente_id') : null;
+
+	$cliente_id_filtro = $cliente_id_filtro ?? resolve_active_cliente_id($userId, $requestedClienteId);
+	$clientes_lista = $clientes_lista ?? get_clientes_lista_for_user($userId);
+
+	$clientes_count = is_array($clientes_lista) ? count($clientes_lista) : 0;
+	$solo_uno = ($clientes_count === 1) && !user_is_admin($userId);
+	$nombre_unico = $solo_uno ? ($clientes_lista[0]['nombre'] ?? 'Cliente') : null;
+
+	$currentUrl = function_exists('current_url') ? current_url() : '';
+	$qs = $_GET ?? [];
+?>
+
 
 <style>
     .pre-loader {
@@ -164,6 +183,40 @@
 		margin: 0;
 	}
 
+	/* Selector de cliente en header (lado izquierdo) */
+	.header-left .sgl-cliente-context{
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-left: 15px;
+	}
+	.header-left .sgl-cliente-context .sgl-cliente-label{
+		font-size: 10px;
+		font-weight: 700;
+		color: #6c757d;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		line-height: 1.2;
+		margin: 0;
+	}
+	.header-left .sgl-cliente-context .sgl-cliente-name{
+		font-size: 12px;
+		font-weight: 700;
+		color: #202342;
+		line-height: 1.2;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 220px;
+	}
+	.header-left .sgl-cliente-context select.form-control{
+		height: 34px;
+		padding-top: 4px;
+		padding-bottom: 4px;
+		font-size: 12px;
+		min-width: 260px;
+	}
+
 </style>
 <div class="header">
 	<div class="header-left">
@@ -205,6 +258,36 @@
 				</div>
 			</form> -->
 		</div>
+
+		<?php if (!empty($userId) && $clientes_count > 0): ?>
+			<div class="sgl-cliente-context">
+				<?php if ($solo_uno): ?>
+					<div>
+						<div class="sgl-cliente-label">Cliente</div>
+						<div class="sgl-cliente-name" title="<?= esc($nombre_unico) ?>">
+							<?= esc($nombre_unico) ?>
+						</div>
+					</div>
+				<?php else: ?>
+					<form method="GET" action="<?= esc($currentUrl) ?>" class="m-0">
+						<?php foreach ($qs as $key => $value): ?>
+							<?php if ($key === 'cliente_id') continue; ?>
+							<?php if (is_array($value)) continue; ?>
+							<input type="hidden" name="<?= esc($key) ?>" value="<?= esc($value) ?>">
+						<?php endforeach; ?>
+
+						<select name="cliente_id" class="form-control" onchange="this.form.submit()" aria-label="Seleccionar cliente">
+							<option value="" <?= empty($cliente_id_filtro) ? 'selected' : '' ?>>Todos los clientes</option>
+							<?php foreach ($clientes_lista as $cliente): ?>
+								<option value="<?= (int)($cliente['id'] ?? 0) ?>" <?= (!empty($cliente_id_filtro) && (int)$cliente_id_filtro === (int)($cliente['id'] ?? 0)) ? 'selected' : '' ?>>
+									<?= esc($cliente['nombre'] ?? ('Cliente #' . (int)($cliente['id'] ?? 0))) ?>
+								</option>
+							<?php endforeach; ?>
+						</select>
+					</form>
+				<?php endif; ?>
+			</div>
+		<?php endif; ?>
 	</div>
 	<div class="header-right">
 			<!-- Botones con iconos modernos -->
@@ -237,7 +320,7 @@
 				</button>
 			</div>
 		<?php endif; ?>
-		
+
 		<div class="dashboard-setting user-notification">
 			<!-- Notificaciones -->
 			<?php echo view('deskapp/includes/_notifications_dropdown'); ?>

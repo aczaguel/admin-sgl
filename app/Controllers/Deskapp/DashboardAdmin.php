@@ -18,6 +18,65 @@ class DashboardAdmin extends BaseController
     }
 
     /**
+     * Resuelve el filtro cliente_id desde la URL y valida acceso.
+     */
+    private function resolveClienteIdFilter(int $userId): ?int
+    {
+        $raw = $this->request->getGet('cliente_id');
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+        if (!is_numeric($raw)) {
+            return null;
+        }
+
+        $clienteId = (int) $raw;
+        if ($clienteId <= 0) {
+            return null;
+        }
+
+        // Admin ve todo; usuario normal solo sus clientes
+        if (!has_access_to_cliente($clienteId, $userId)) {
+            return null;
+        }
+
+        return $clienteId;
+    }
+
+    /**
+     * Lista de clientes visibles para el usuario (tabla cliente).
+     */
+    private function getClientesLista(int $userId): array
+    {
+        $db = \Config\Database::connect();
+        $builder = $db->table('cliente');
+        $builder->select("id, COALESCE(NULLIF(razon_social,''), NULLIF(nombre,''), CONCAT('Cliente #', id)) as nombre", false);
+
+        $clienteIds = get_user_cliente_ids($userId);
+        if (is_array($clienteIds)) {
+            if (empty($clienteIds)) {
+                return [];
+            }
+            $builder->whereIn('id', array_map('intval', $clienteIds));
+        }
+
+        $builder->orderBy('nombre', 'ASC');
+        return $builder->get()->getResultArray();
+    }
+
+    /**
+     * Aplica el filtro en el modelo y agrega variables comunes para vistas.
+     */
+    private function applyClienteFilterToModelAndData(array &$data, int $userId): void
+    {
+        $clienteIdFiltro = $this->resolveClienteIdFilter($userId);
+        $this->dashboardModel->setClienteIdFilter($clienteIdFiltro);
+
+        $data['cliente_id_filtro'] = $clienteIdFiltro;
+        $data['clientes_lista'] = $this->getClientesLista($userId);
+    }
+
+    /**
      * Vista principal del dashboard administrativo
      */
     public function index()
@@ -25,6 +84,8 @@ class DashboardAdmin extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
+
+        $this->applyClienteFilterToModelAndData($data, (int) $userId);
         
         // Obtener el año del parámetro GET o usar el año actual
         $anio = $this->request->getGet('anio') ?? date('Y');
@@ -102,6 +163,8 @@ class DashboardAdmin extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
+
+        $this->applyClienteFilterToModelAndData($data, (int) $userId);
         
         // Obtener todas las alertas sin límite
         $data['tramites_retrasados'] = $this->dashboardModel->getTramitesRetrasados(30, $userId);
@@ -119,6 +182,8 @@ class DashboardAdmin extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
+
+        $this->applyClienteFilterToModelAndData($data, (int) $userId);
         
         // Aging report
         $data['aging_report'] = $this->dashboardModel->getAgingReport($userId);
@@ -140,6 +205,8 @@ class DashboardAdmin extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
+
+        $this->applyClienteFilterToModelAndData($data, (int) $userId);
         
         // Obtener año de la URL o usar el actual
         $anio = $this->request->getGet('anio') ?? date('Y');
@@ -168,6 +235,8 @@ class DashboardAdmin extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
+
+        $this->applyClienteFilterToModelAndData($data, (int) $userId);
         
         // Obtener año de la URL o usar el actual
         $anio = $this->request->getGet('anio') ?? date('Y');
@@ -187,6 +256,10 @@ class DashboardAdmin extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
+
+        // En detalle por cliente, forzar el filtro al cliente del path
+        $this->dashboardModel->setClienteIdFilter((int) $clienteId);
+        $data['cliente_id_filtro'] = (int) $clienteId;
         
         // Obtener año de la URL o usar el actual
         $anio = $this->request->getGet('anio') ?? date('Y');
@@ -220,6 +293,10 @@ class DashboardAdmin extends BaseController
     {
         $periodo = $this->request->getGet('periodo') ?? 'hoy';
         $userId = $this->session->get('id');
+
+        // Aplicar filtro por cliente (si viene)
+        $clienteIdFiltro = $this->resolveClienteIdFilter((int) $userId);
+        $this->dashboardModel->setClienteIdFilter($clienteIdFiltro);
         
         $data = [];
         switch ($periodo) {
@@ -252,6 +329,9 @@ class DashboardAdmin extends BaseController
     {
         $tipo = $this->request->getGet('tipo') ?? 'todas';
         $userId = $this->session->get('id');
+
+        $clienteIdFiltro = $this->resolveClienteIdFilter((int) $userId);
+        $this->dashboardModel->setClienteIdFilter($clienteIdFiltro);
         
         $data = [];
         switch ($tipo) {
@@ -280,6 +360,9 @@ class DashboardAdmin extends BaseController
         $tipo = $this->request->getGet('tipo') ?? 'tramites_mes';
         $anio = $this->request->getGet('anio') ?? date('Y');
         $userId = $this->session->get('id');
+
+        $clienteIdFiltro = $this->resolveClienteIdFilter((int) $userId);
+        $this->dashboardModel->setClienteIdFilter($clienteIdFiltro);
         
         $data = [];
         switch ($tipo) {
@@ -313,6 +396,10 @@ class DashboardAdmin extends BaseController
     {
         $anio = $this->request->getGet('anio') ?? null;
         $userId = $this->session->get('id');
+
+        $clienteIdFiltro = $this->resolveClienteIdFilter((int) $userId);
+        $this->dashboardModel->setClienteIdFilter($clienteIdFiltro);
+
         $data = $this->dashboardModel->getKPIsPrincipales($anio, $userId);
         return $this->response->setJSON($data);
     }
@@ -324,6 +411,9 @@ class DashboardAdmin extends BaseController
     {
         $tipo = $this->request->getGet('tipo') ?? 'semanal';
         $userId = $this->session->get('id');
+
+        $clienteIdFiltro = $this->resolveClienteIdFilter((int) $userId);
+        $this->dashboardModel->setClienteIdFilter($clienteIdFiltro);
         
         $data = [];
         switch ($tipo) {
@@ -345,6 +435,9 @@ class DashboardAdmin extends BaseController
         $periodo = $this->request->getGet('periodo') ?? 'mes';
         $anio = $this->request->getGet('anio') ?? null;
         $userId = $this->session->get('id');
+
+        $clienteIdFiltro = $this->resolveClienteIdFilter((int) $userId);
+        $this->dashboardModel->setClienteIdFilter($clienteIdFiltro);
         
         $data = [];
         switch ($tipo) {
@@ -365,6 +458,10 @@ class DashboardAdmin extends BaseController
     public function api_financiero()
     {
         $userId = $this->session->get('id');
+
+        $clienteIdFiltro = $this->resolveClienteIdFilter((int) $userId);
+        $this->dashboardModel->setClienteIdFilter($clienteIdFiltro);
+
         $data = [
             'aging_report' => $this->dashboardModel->getAgingReport($userId),
             'resumen_rangos' => $this->dashboardModel->getResumenFinancieroPorRangos($userId),

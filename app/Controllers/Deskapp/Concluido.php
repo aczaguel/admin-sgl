@@ -33,7 +33,14 @@ class Concluido extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context']);
+
+        $session = session();
+        $userId = $session->get('id');
+        $requested = service('request')->getGet('cliente_id');
+
+        // Persistir cliente activo (si viene en GET) para que el filtro aplique en ESTA misma request
+        resolve_active_cliente_id($userId, $requested);
     }
 
     public function index()
@@ -58,6 +65,10 @@ class Concluido extends BaseController
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
+
+            // Filtro multi-tenancy + cliente activo
+            $filterSql = get_tramite_filter_sql($myid);
+            $tramite_crud->where($filterSql);
             
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -459,7 +470,7 @@ class Concluido extends BaseController
             echo $salida->output;
             exit;
         }
-        return view('/deskapp/extra-pages/grocery_page', (array)$salida);
+        return view('/deskapp/extra-pages/grocery_page', (array) $salida);
     }
 
     private function _simple_output($salida = null) {

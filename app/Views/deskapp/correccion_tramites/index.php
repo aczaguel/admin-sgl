@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title><?= $title ?> - Admin SGL</title>
+	<title><?= esc(is_string($title ?? null) ? $title : (method_exists($title ?? null, '__toString') ? (string) $title : 'Corrección de Trámites')) ?> - Admin SGL</title>
 	<link rel="apple-touch-icon" sizes="180x180" href="<?= base_url() ?>/public/assets/vendors/images/apple-touch-icon.png">
 	<link rel="icon" type="image/png" sizes="32x32" href="<?= base_url() ?>/public/assets/vendors/images/favicon-32x32.png">
 	<link rel="icon" type="image/png" sizes="16x16" href="<?= base_url() ?>/public/assets/vendors/images/favicon-16x16.png">

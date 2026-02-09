@@ -6,11 +6,27 @@ use CodeIgniter\Model;
 class DashboardModel extends Model
 {
     protected $db;
+    protected $clienteIdFilter = null;
 
     public function __construct()
     {
         parent::__construct();
         $this->db = \Config\Database::connect();
+    }
+
+    /**
+     * Establece un filtro opcional por cliente (tabla cliente.id)
+     * para restringir TODAS las consultas del dashboard en esta instancia.
+     */
+    public function setClienteIdFilter($clienteId): void
+    {
+        if ($clienteId === null || $clienteId === '' || !is_numeric($clienteId)) {
+            $this->clienteIdFilter = null;
+            return;
+        }
+
+        $clienteId = (int) $clienteId;
+        $this->clienteIdFilter = $clienteId > 0 ? $clienteId : null;
     }
 
     /**
@@ -22,6 +38,25 @@ class DashboardModel extends Model
      */
     private function getClienteFilterSQL($userId = null, $tramiteAlias = 'tramite')
     {
+        // Filtro específico por cliente (si se estableció)
+        if ($this->clienteIdFilter !== null) {
+            $clienteId = (int) $this->clienteIdFilter;
+
+            helper('cliente_filter');
+
+            // Defensa en profundidad: si no es admin y no tiene acceso, no retornar datos
+            if ($userId !== null && !user_is_admin($userId) && !has_access_to_cliente($clienteId, $userId)) {
+                return '1 = 0';
+            }
+
+            return "{$tramiteAlias}.id IN (
+                SELECT t.id
+                FROM tramite t
+                INNER JOIN cli_directo cd ON t.cli_directo_id = cd.id
+                WHERE cd.cliente_id = {$clienteId}
+            )";
+        }
+
         if ($userId === null) {
             return '1 = 1'; // Sin filtro
         }

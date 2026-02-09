@@ -9,6 +9,18 @@ use GroceryCrud\Core\GroceryCrud;
 
 class Example extends BaseController
 {
+    public function __construct()
+    {
+        helper(['form', 'url', 'cliente_filter', 'cliente_context']);
+
+        $session = session();
+        $userId = $session->get('id');
+        $requested = $this->request ? $this->request->getGet('cliente_id') : null;
+
+        // Persistir cliente activo (si viene en GET) para que el filtro aplique en ESTA misma request
+        resolve_active_cliente_id($userId, $requested);
+    }
+
     public function index()
     {
         $output = (object)[
@@ -24,6 +36,7 @@ class Example extends BaseController
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
+        $myid = $session->get('id');
     
         $crud = $this->_getGroceryCrudEnterprise();
 
@@ -33,9 +46,13 @@ class Example extends BaseController
         $crud->setTable('tramite');
         $crud->setSubject('tramite', 'Tramites');
 
+        $filterSql = get_tramite_filter_sql($myid);
+        $crud->where($filterSql);
+
         $salida = $crud->render();
         $data['title'] = 'Gestión de Trámites';
         $data['description'] = 'Administra todos los trámites registrados en el sistema';
+
         $salida2 = array_merge((array)$salida, $data);
         return $this->_example_output($salida2);
     }

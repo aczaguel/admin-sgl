@@ -21,16 +21,29 @@
                         <nav aria-label="breadcrumb" role="navigation">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="<?= base_url('/deskapp/dashboard') ?>">Home</a></li>
-                                <li class="breadcrumb-item"><a href="<?= base_url('/deskapp/dashboardadmin') ?>">Dashboard Admin</a></li>
+                                <?php $cliente_qs = !empty($cliente_id_filtro) ? ('cliente_id=' . (int)$cliente_id_filtro) : ''; ?>
+                                <li class="breadcrumb-item"><a href="<?= base_url('/deskapp/dashboardadmin') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>">Dashboard Admin</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">Financiero</li>
                             </ol>
                         </nav>
                     </div>
                     <div class="col-md-6 col-sm-12 text-right">
+                        <form method="GET" action="<?= base_url('/deskapp/dashboardadmin/financiero') ?>" class="d-inline-block mr-2" style="min-width: 260px;">
+                            <select name="cliente_id" class="form-control" onchange="this.form.submit()">
+                                <option value="">Todos los clientes</option>
+                                <?php if (!empty($clientes_lista)): ?>
+                                    <?php foreach ($clientes_lista as $cliente): ?>
+                                        <option value="<?= (int)$cliente['id'] ?>" <?= (!empty($cliente_id_filtro) && (int)$cliente_id_filtro === (int)$cliente['id']) ? 'selected' : '' ?>>
+                                            <?= esc($cliente['nombre']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </form>
                         <span class="badge badge-success mr-2" style="font-size: 12px; padding: 8px 12px;">
                             <i class="icon-copy fa fa-money"></i> Pendientes de cobro (Todos los años)
                         </span>
-                        <a href="<?= base_url('/deskapp/dashboardadmin') ?>" class="btn btn-primary">
+                        <a href="<?= base_url('/deskapp/dashboardadmin') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>" class="btn btn-primary">
                             <i class="icon-copy fa fa-arrow-left"></i> Volver al Dashboard
                         </a>
                     </div>

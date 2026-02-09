@@ -27,17 +27,35 @@
                         </nav>
                     </div>
                     <div class="col-md-6 col-sm-12 text-right">
+                        <?php $cliente_qs = !empty($cliente_id_filtro) ? ('cliente_id=' . (int)$cliente_id_filtro) : ''; ?>
+
+                        <div class="d-flex justify-content-end align-items-start flex-wrap" style="gap: 10px;">
+                            <form method="GET" action="<?= base_url('/deskapp/dashboardadmin') ?>" class="m-0" style="min-width: 260px;">
+                                <input type="hidden" name="anio" value="<?= isset($anio_seleccionado) ? esc($anio_seleccionado) : date('Y') ?>">
+                                <select name="cliente_id" class="form-control" onchange="this.form.submit()">
+                                    <option value="">Todos los clientes</option>
+                                    <?php if (!empty($clientes_lista)): ?>
+                                        <?php foreach ($clientes_lista as $cliente): ?>
+                                            <option value="<?= (int)$cliente['id'] ?>" <?= (!empty($cliente_id_filtro) && (int)$cliente_id_filtro === (int)$cliente['id']) ? 'selected' : '' ?>>
+                                                <?= esc($cliente['nombre']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </form>
+
                         <div class="dropdown">
                             <a class="btn btn-primary dropdown-toggle" href="#" role="button" data-toggle="dropdown">
                                 <i class="icon-copy dw dw-calendar-1"></i> Año: <?= isset($anio_seleccionado) ? $anio_seleccionado : date('Y') ?>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right">
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin') ?>">2026 (Actual)</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin?anio=2025') ?>">2025</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin?anio=2024') ?>">2024</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin?anio=2023') ?>">2023</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin?anio=2022') ?>">2022</a>
+                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>">2026 (Actual)</a>
+                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin?anio=2025') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2025</a>
+                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin?anio=2024') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2024</a>
+                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin?anio=2023') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2023</a>
+                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin?anio=2022') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2022</a>
                             </div>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -48,7 +66,7 @@
                 <?php if (isset($count_retrasados) && $count_retrasados > 0): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <strong>⚠️ Alerta:</strong> Tienes <?= $count_retrasados ?> trámites retrasados. 
-                <a href="<?= base_url('/deskapp/dashboardadmin/alertas') ?>" class="alert-link">Ver detalles</a>
+                <a href="<?= base_url('/deskapp/dashboardadmin/alertas') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>" class="alert-link">Ver detalles</a>
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -58,7 +76,7 @@
             <?php if (isset($count_pendientes_cobro) && $count_pendientes_cobro > 0): ?>
             <div class="alert alert-warning alert-dismissible fade show" role="alert">
                 <strong>💰 Importante:</strong> Hay <?= $count_pendientes_cobro ?> trámites pendientes de cobro. 
-                <a href="<?= base_url('/deskapp/dashboardadmin/financiero') ?>" class="alert-link">Ver detalles</a>
+                <a href="<?= base_url('/deskapp/dashboardadmin/financiero') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>" class="alert-link">Ver detalles</a>
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -331,7 +349,7 @@
                     <div class="card-box pd-20 height-100-p">
                         <div class="d-flex justify-content-between mb-20">
                             <h4 class="h4 text-blue">Alertas Críticas</h4>
-                            <a href="<?= base_url('/deskapp/dashboardadmin/alertas') ?>" class="btn btn-sm btn-primary">Ver Todas</a>
+                            <a href="<?= base_url('/deskapp/dashboardadmin/alertas') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>" class="btn btn-sm btn-primary">Ver Todas</a>
                         </div>
                         
                         <ul class="nav nav-tabs" role="tablist">
@@ -556,7 +574,9 @@ estadosChart.render();
 // Función para cargar métricas dinámicamente
 function cargarMetricas(periodo) {
     // Aquí se puede implementar AJAX para actualizar las métricas sin recargar
-    window.location.href = '<?= base_url('/deskapp/dashboardadmin') ?>?periodo=' + periodo;
+    window.location.href = '<?= base_url('/deskapp/dashboardadmin') ?>?periodo=' + periodo +
+        '<?= isset($anio_seleccionado) ? ('&anio=' . (int)$anio_seleccionado) : '' ?>' +
+        '<?= !empty($cliente_id_filtro) ? ('&cliente_id=' . (int)$cliente_id_filtro) : '' ?>';
 }
 
 // Auto-refresh cada 5 minutos

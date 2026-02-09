@@ -27,20 +27,36 @@
                         </nav>
                     </div>
                     <div class="col-md-6 col-sm-12 text-right">
+                        <?php $cliente_qs = !empty($cliente_id_filtro) ? ('cliente_id=' . (int)$cliente_id_filtro) : ''; ?>
+
+                        <form method="GET" action="<?= base_url('/deskapp/dashboardadmin/reportes') ?>" class="d-inline-block mr-2" style="min-width: 260px;">
+                            <input type="hidden" name="anio" value="<?= isset($anio_seleccionado) ? esc($anio_seleccionado) : date('Y') ?>">
+                            <select name="cliente_id" class="form-control" onchange="this.form.submit()">
+                                <option value="">Todos los clientes</option>
+                                <?php if (!empty($clientes_lista)): ?>
+                                    <?php foreach ($clientes_lista as $cliente): ?>
+                                        <option value="<?= (int)$cliente['id'] ?>" <?= (!empty($cliente_id_filtro) && (int)$cliente_id_filtro === (int)$cliente['id']) ? 'selected' : '' ?>>
+                                            <?= esc($cliente['nombre']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </form>
+
                         <div class="dropdown d-inline-block mr-2">
                             <a class="btn btn-primary dropdown-toggle" href="#" role="button" data-toggle="dropdown">
                                 <i class="icon-copy dw dw-calendar-1"></i> Año: <?= isset($anio_seleccionado) ? $anio_seleccionado : date('Y') ?>
                             </a>
                             <div class="dropdown-menu dropdown-menu-right">
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes') ?>">2026 (Actual)</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2025') ?>">2025</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2024') ?>">2024</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2023') ?>">2023</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2022') ?>">2022</a>
+                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>">2026 (Actual)</a>
+                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2025') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2025</a>
+                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2024') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2024</a>
+                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2023') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2023</a>
+                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2022') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2022</a>
                             </div>
                         </div>
                         <div class="btn-group" role="group">
-                            <a href="<?= base_url('/deskapp/dashboardadmin') ?>" class="btn btn-primary">
+                            <a href="<?= base_url('/deskapp/dashboardadmin') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>" class="btn btn-primary">
                                 <i class="icon-copy fa fa-arrow-left"></i> Volver
                             </a>
                             <button class="btn btn-success" onclick="exportarReportePDF()">
@@ -464,11 +480,11 @@ tipoTramiteChart.render();
 
 // Funciones de exportación
 function exportarReporteExcel() {
-    window.location.href = '<?= base_url('/deskapp/dashboardadmin/exportar_excel') ?>?tipo=reportes';
+    window.location.href = '<?= base_url('/deskapp/dashboardadmin/exportar_excel') ?>?tipo=reportes<?= isset($anio_seleccionado) ? ('&anio=' . (int)$anio_seleccionado) : '' ?><?= !empty($cliente_id_filtro) ? ('&cliente_id=' . (int)$cliente_id_filtro) : '' ?>';
 }
 
 function exportarReportePDF() {
-    window.location.href = '<?= base_url('/deskapp/dashboardadmin/exportar_pdf') ?>?tipo=reportes';
+    window.location.href = '<?= base_url('/deskapp/dashboardadmin/exportar_pdf') ?>?tipo=reportes<?= isset($anio_seleccionado) ? ('&anio=' . (int)$anio_seleccionado) : '' ?><?= !empty($cliente_id_filtro) ? ('&cliente_id=' . (int)$cliente_id_filtro) : '' ?>';
 }
 
 function cambiarPeriodo(periodo) {
