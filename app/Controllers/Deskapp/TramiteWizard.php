@@ -27,7 +27,7 @@ class TramiteWizard extends BaseController
     
     public function __construct()
     {
-        helper(['form', 'url', 'cliente_filter']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context']);
         $this->db = \Config\Database::connect();
     }
 
@@ -43,16 +43,19 @@ class TramiteWizard extends BaseController
             return redirect()->to('/deskapp/auth/login');
         }
 
+        $requested = $this->request->getGet('cliente_id');
+        $clienteIdFiltro = resolve_active_cliente_id($userId, $requested);
+
         // Cargar datos para los selectores
         $data = [
             'session' => $session,
             'username' => $session->get('user_name'),
             'tra_tipos' => $this->getTraTipos(),
             'entidades' => $this->getEntidades(),
-            'clientes' => $this->getClientesFiltrados($userId),
+            'clientes' => $this->getClientesFiltrados($userId, $clienteIdFiltro),
             'empresas_gestoras' => $this->getEmpresasGestoras(),
             'usuarios' => $this->getUsuarios(),
-            'folio_sugerido' => $this->generarFolioSugerido()
+            'folio_sugerido' => $this->generarFolioSugerido(),
         ];
 
         return view('deskapp/tramite_wizard/index', $data);
@@ -69,6 +72,9 @@ class TramiteWizard extends BaseController
         if (!$userId) {
             return redirect()->to('/deskapp/auth/login');
         }
+
+        $requested = $this->request->getGet('cliente_id');
+        $clienteIdFiltro = resolve_active_cliente_id($userId, $requested);
 
         // Aplicar filtro multi-tenancy
         $builder = $this->db->table('tramite t');
@@ -87,13 +93,15 @@ class TramiteWizard extends BaseController
         $builder->join('tra_status ts', 'ts.id = t.tra_status_id', 'left');
         $builder->join('users u', 'u.id = t.user_id', 'left');
 
-        // Filtro multi-tenancy
-        if (!user_is_admin($userId)) {
+        // Filtro multi-tenancy + cliente activo
+        if (!empty($clienteIdFiltro)) {
+            $builder->where('cd.cliente_id', (int) $clienteIdFiltro);
+        } elseif (!user_is_admin($userId)) {
             $clienteIds = get_user_cliente_ids($userId);
             if (empty($clienteIds)) {
                 $builder->where('1 = 0'); // Usuario sin clientes asignados
             } else {
-                $builder->whereIn('t.cli_directo_id', $clienteIds);
+                $builder->whereIn('cd.cliente_id', array_map('intval', $clienteIds));
             }
         }
 
@@ -105,7 +113,7 @@ class TramiteWizard extends BaseController
         $data = [
             'session' => $session,
             'username' => $session->get('user_name'),
-            'tramites' => $tramites
+            'tramites' => $tramites,
         ];
 
         return view('deskapp/tramite_wizard/listado', $data);
@@ -508,10 +516,15 @@ class TramiteWizard extends BaseController
         return $builder->get()->getResultArray();
     }
 
-    private function getClientesFiltrados($userId)
+    private function getClientesFiltrados($userId, $clienteIdFiltro = null)
     {
         $builder = $this->db->table('cli_directo');
-        $builder->select('id, razon_social');
+        $builder->select('id, razon_social, cliente_id');
+
+        if (!empty($clienteIdFiltro)) {
+            // Cliente activo (tabla cliente.id)
+            $builder->where('cliente_id', (int) $clienteIdFiltro);
+        }
         
         // Aplicar filtro multi-tenancy
         if (!user_is_admin($userId)) {
@@ -519,7 +532,7 @@ class TramiteWizard extends BaseController
             if (empty($clienteIds)) {
                 $builder->where('1 = 0');
             } else {
-                $builder->whereIn('id', $clienteIds);
+                $builder->whereIn('cliente_id', array_map('intval', $clienteIds));
             }
         }
         
@@ -581,8 +594,19 @@ class TramiteWizard extends BaseController
             return true;
         }
 
+        // $clienteId aquí es cli_directo_id; validar por su cliente_id
+        $row = $this->db->table('cli_directo')
+            ->select('cliente_id')
+            ->where('id', (int) $clienteId)
+            ->get()
+            ->getRowArray();
+
+        if (empty($row['cliente_id'])) {
+            return false;
+        }
+
         $clienteIds = get_user_cliente_ids($userId);
-        return in_array($clienteId, $clienteIds);
+        return is_array($clienteIds) && in_array((int) $row['cliente_id'], array_map('intval', $clienteIds), true);
     }
 
     private function guardarArchivos($tramiteId, $archivos)

@@ -60,14 +60,26 @@ if (!function_exists('user_is_admin')) {
             }
         }
         
-        // Si no está en sesión, consultar la base de datos
-        $userModel = new \App\Models\UserModel();
-        $userRoles = $userModel->getUserRoles($userId);
-        
-        return in_array('admin', $userRoles) || 
-               in_array('superadmin', $userRoles) ||
-               in_array('Admin', $userRoles) ||
-               in_array('SuperAdmin', $userRoles);
+        // Si no está en sesión, consultar la base de datos (sin depender de modelos)
+        if (!is_numeric($userId) || (int) $userId <= 0) {
+            return false;
+        }
+
+        $db = \Config\Database::connect();
+        $builder = $db->table('us_user_roles as ur');
+        $builder->select('r.role_name');
+        $builder->join('us_roles as r', 'ur.role_id = r.id', 'inner');
+        $builder->where('ur.user_id', (int) $userId);
+        $rows = $builder->get()->getResultArray();
+
+        $roles = [];
+        foreach ($rows as $row) {
+            if (!empty($row['role_name'])) {
+                $roles[] = strtolower((string) $row['role_name']);
+            }
+        }
+
+        return in_array('admin', $roles, true) || in_array('superadmin', $roles, true);
     }
 }
 
@@ -102,10 +114,30 @@ if (!function_exists('get_user_cliente_ids')) {
             return $clientsInSession;
         }
         
-        // Si no está en sesión, consultar la base de datos
-        $userModel = new \App\Models\UserModel();
-        $clienteIds = $userModel->obtenerClientesPorUsuario($userId);
-        
+        // Si no está en sesión, consultar la base de datos (sin depender de modelos)
+        if (!is_numeric($userId) || (int) $userId <= 0) {
+            return [];
+        }
+
+        $db = \Config\Database::connect();
+        $rows = $db->table('cliente_user')
+            ->select('cliente_id')
+            ->where('user_id', (int) $userId)
+            ->get()
+            ->getResultArray();
+
+        $clienteIds = [];
+        foreach ($rows as $row) {
+            if (isset($row['cliente_id']) && is_numeric($row['cliente_id'])) {
+                $clienteIds[] = (int) $row['cliente_id'];
+            }
+        }
+        $clienteIds = array_values(array_unique($clienteIds));
+
+        if ($session->get('id') == $userId) {
+            $session->set('clients_by_user', $clienteIds);
+        }
+
         return $clienteIds;
     }
 }
@@ -130,7 +162,11 @@ if (!function_exists('has_access_to_cliente')) {
             return true;
         }
         
-        return in_array($clienteId, $clienteIds);
+        if (!is_array($clienteIds)) {
+            return false;
+        }
+
+        return in_array((int) $clienteId, array_map('intval', $clienteIds), true);
     }
 }
 
@@ -190,6 +226,51 @@ if (!function_exists('get_cliente_filter_sql')) {
     }
 }
 
+if (!function_exists('get_cliente_filter_sql_for_cliente_id')) {
+    /**
+     * Genera cláusula SQL WHERE para filtrar por un cliente específico (tabla cliente.id).
+     * Respeta multi-tenancy: si el usuario no es admin y no tiene acceso, retorna "1 = 0".
+     */
+    function get_cliente_filter_sql_for_cliente_id($clienteId, $userId = null, $tramiteTable = 'tramite')
+    {
+        $clienteId = is_numeric($clienteId) ? (int) $clienteId : 0;
+        if ($clienteId <= 0) {
+            return '1 = 1';
+        }
+
+        if (!user_is_admin($userId) && !has_access_to_cliente($clienteId, $userId)) {
+            return '1 = 0';
+        }
+
+        // Filtrar trámites a través de cli_directo -> cliente
+        return "{$tramiteTable}.id IN (
+            SELECT t.id
+            FROM tramite t
+            INNER JOIN cli_directo cd ON t.cli_directo_id = cd.id
+            WHERE cd.cliente_id = {$clienteId}
+        )";
+    }
+}
+
+if (!function_exists('get_tramite_filter_sql')) {
+    /**
+     * Devuelve el filtro SQL para trámites considerando el "cliente activo" en sesión.
+     * - Si hay cliente activo: filtra SOLO ese cliente
+     * - Si no: aplica el filtro multi-tenancy estándar (cliente_user)
+     */
+    function get_tramite_filter_sql($userId = null, $tramiteTable = 'tramite', $requestedClienteId = null)
+    {
+        helper('cliente_context');
+
+        $activeClienteId = resolve_active_cliente_id($userId, $requestedClienteId);
+        if (!empty($activeClienteId)) {
+            return get_cliente_filter_sql_for_cliente_id($activeClienteId, $userId, $tramiteTable);
+        }
+
+        return get_cliente_filter_sql($userId, $tramiteTable);
+    }
+}
+
 if (!function_exists('apply_cliente_filter')) {
     /**
      * Aplica el filtro de clientes a un Query Builder de CodeIgniter
@@ -239,11 +320,25 @@ if (!function_exists('is_user_cliente')) {
             }
         }
         
-        // Consultar si es cliente
-        $userModel = new \App\Models\UserModel();
-        $result = $userModel->isUserClient($userId);
-        
-        return $result['is_client'];
+        if (!is_numeric($userId) || (int) $userId <= 0) {
+            return false;
+        }
+
+        // Consultar si es cliente (tiene al menos 1 relación en cliente_user)
+        $db = \Config\Database::connect();
+        $row = $db->table('cliente_user')
+            ->select('cliente_id')
+            ->where('user_id', (int) $userId)
+            ->limit(1)
+            ->get()
+            ->getRowArray();
+
+        $isClient = !empty($row);
+        if ($session->get('id') == $userId) {
+            $session->set('user_client', ['is_client' => $isClient]);
+        }
+
+        return $isClient;
     }
 }
 

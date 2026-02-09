@@ -27,7 +27,14 @@ class Cancelado extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context']);
+
+        $session = session();
+        $userId = $session->get('id');
+        $requested = $this->request ? $this->request->getGet('cliente_id') : null;
+
+        // Persistir cliente activo (si viene en GET) para que el filtro aplique en ESTA misma request
+        resolve_active_cliente_id($userId, $requested);
     }
 
     public function index()
@@ -40,6 +47,30 @@ class Cancelado extends BaseController
         return $this->_example_output($output);
     }
 
+    public function encontrarDiferencias($datos1, $datos2) {
+        $diferencias = [];
+        foreach ($datos1 as $clave => $valor) {
+            if (array_key_exists($clave, $datos2) && $datos2[$clave] !== $valor) {
+                $diferencias[$clave] = [
+                    'valor_original' => $valor,
+                    'valor_nuevo' => $datos2[$clave]
+                ];
+            }
+        }
+        return $diferencias;
+    }
+
+    public function flattenObject($object, &$result = [], $prefix = '') {
+        foreach ($object as $key => $value) {
+            if (is_object($value)) {
+                // No-op (misma semántica que otros controladores)
+            } else {
+                $result[$key] = $value;
+            }
+        }
+        return $result;
+    }
+
     public function cancelado($id) {
         $session = session();
         $data['session'] = \Config\Services::session();
@@ -48,8 +79,13 @@ class Cancelado extends BaseController
         $db = \Config\Database::connect();
         $builder = $db->table('tramite');
         $db2 = $this->_getDbData();
-        // Retrieve the record
-        $tramite = $builder->getWhere(['id' => $id])->getRowArray();
+
+        // Multi-tenancy + cliente activo (evita ver trámites ajenos por URL)
+        $builder->where(get_tramite_filter_sql($myid), null, false);
+        $tramite = $builder->getWhere(['id' => (int) $id])->getRowArray();
+        if (!$tramite) {
+            throw new \Exception('Trámite no autorizado o no encontrado');
+        }
 
         $TraTiposModel = new TraTiposModel($db2);
         $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
@@ -168,7 +204,6 @@ class Cancelado extends BaseController
 
         $form->output = $output->output;
 
-
         $form = array_merge((array)$form, $data);
         return $this->_example_output_2($form, 'canceled');
     }
@@ -185,6 +220,18 @@ class Cancelado extends BaseController
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $myid = $session->get('id');
+        $allowed = $db->table('tramite')
+            ->select('id')
+            ->where('id', $tramite_id)
+            ->where(get_tramite_filter_sql($myid), null, false)
+            ->get()
+            ->getRowArray();
+        if (!$allowed) {
+            throw new \Exception('Trámite no autorizado');
+        }
+
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
@@ -331,6 +378,18 @@ class Cancelado extends BaseController
 
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $db = Database::connect();
+        $myid = $session->get('id');
+        $allowed = $db->table('tramite')
+            ->select('id')
+            ->where('id', $tramite_id)
+            ->where(get_tramite_filter_sql($myid), null, false)
+            ->get()
+            ->getRowArray();
+        if (!$allowed) {
+            throw new \Exception('Trámite no autorizado');
+        }
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
@@ -340,8 +399,6 @@ class Cancelado extends BaseController
             throw new \Exception('No existe el folio');
         } 
 
-        $db = Database::connect();
-    
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());
         $crud->setCsrfTokenValue(csrf_hash());
@@ -502,6 +559,18 @@ class Cancelado extends BaseController
 
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $db = Database::connect();
+        $myid = $session->get('id');
+        $allowed = $db->table('tramite')
+            ->select('id')
+            ->where('id', $tramite_id)
+            ->where(get_tramite_filter_sql($myid), null, false)
+            ->get()
+            ->getRowArray();
+        if (!$allowed) {
+            throw new \Exception('Trámite no autorizado');
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());
@@ -645,6 +714,18 @@ class Cancelado extends BaseController
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $db = Database::connect();
+        $myid = $session->get('id');
+        $allowed = $db->table('tramite')
+            ->select('id')
+            ->where('id', $tramite_id)
+            ->where(get_tramite_filter_sql($myid), null, false)
+            ->get()
+            ->getRowArray();
+        if (!$allowed) {
+            throw new \Exception('Trámite no autorizado');
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());

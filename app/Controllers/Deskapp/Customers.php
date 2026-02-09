@@ -56,7 +56,14 @@ class Customers extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url', 'cliente_filter']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context']);
+
+        $session = session();
+        $userId = $session->get('id');
+        $requested = $this->request ? $this->request->getGet('cliente_id') : null;
+
+        // Persistir cliente activo (si viene en GET) para que el filtro aplique en ESTA misma request
+        resolve_active_cliente_id($userId, $requested);
     }
 
     public function index()
@@ -145,22 +152,8 @@ class Customers extends BaseController
             // y los usuarios podrían ver información de otros clientes.
             // ========================================================================
             
-            $crud->where("
-                tramite.id IN (
-                    SELECT 
-                        t.id
-                    FROM 
-                        cliente_user cu
-                    INNER JOIN 
-                        cliente c ON cu.cliente_id = c.id
-                    INNER JOIN
-                        cli_directo cd ON cd.cliente_id = c.id
-                    INNER JOIN 
-                        tramite t ON cd.id = t.cli_directo_id
-                    WHERE 
-                        cu.user_id = $myid
-                )
-            ");
+            $filterSql = get_tramite_filter_sql($myid);
+            $crud->where($filterSql);
             
             $crud->columns(['created_at', "started_at", "id", "folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id",'ent_municipio_id', "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id", "gestor_id", 
             "fecha_asignacion", "fecha_conclusion", "costo_gestoria", "impuesto_gestoria", "derechos_tramite", "comision_derechos", "costo_total", "numero_factura", "numero_refactura",
@@ -303,8 +296,11 @@ class Customers extends BaseController
         $db2 = $this->_getDbData();
         // Retrieve the record
 
-
-        $tramite = $builder->getWhere(['id' => $id])->getRowArray();
+        $builder->where(get_tramite_filter_sql($myid), null, false);
+        $tramite = $builder->getWhere(['id' => (int) $id])->getRowArray();
+        if (!$tramite) {
+            throw new \Exception('Trámite no autorizado o no encontrado');
+        }
 
 
 
@@ -428,6 +424,30 @@ class Customers extends BaseController
 
         $form = array_merge((array)$form, $data);
         return $this->_example_output_2($form, 'clientes');
+    }
+
+    public function encontrarDiferencias($datos1, $datos2) {
+        $diferencias = [];
+        foreach ($datos1 as $clave => $valor) {
+            if (array_key_exists($clave, $datos2) && $datos2[$clave] !== $valor) {
+                $diferencias[$clave] = [
+                    'valor_original' => $valor,
+                    'valor_nuevo' => $datos2[$clave]
+                ];
+            }
+        }
+        return $diferencias;
+    }
+
+    public function flattenObject($object, &$result = [], $prefix = '') {
+        foreach ($object as $key => $value) {
+            if (is_object($value)) {
+                // No-op (misma semántica que otros controladores)
+            } else {
+                $result[$key] = $value;
+            }
+        }
+        return $result;
     }
 
     public function proceso_documentostatus()

@@ -88,8 +88,9 @@
                             </div>
                             <nav aria-label="breadcrumb" role="navigation">
                                 <ol class="breadcrumb">
-                                    <li class="breadcrumb-item"><a href="/deskapp/dashboardadmin">Dashboard</a></li>
-                                    <li class="breadcrumb-item"><a href="/deskapp/dashboardadmin/por_cliente?anio=<?= $anio_seleccionado ?>">Por Cliente</a></li>
+                                    <?php $cliente_qs = !empty($cliente_id_filtro) ? ('cliente_id=' . (int)$cliente_id_filtro) : ''; ?>
+                                    <li class="breadcrumb-item"><a href="<?= base_url('/deskapp/dashboardadmin') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>">Dashboard</a></li>
+                                    <li class="breadcrumb-item"><a href="<?= base_url('/deskapp/dashboardadmin/por_cliente?anio=' . $anio_seleccionado) ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">Por Cliente</a></li>
                                     <li class="breadcrumb-item active" aria-current="page"><?= esc($nombre_cliente) ?></li>
                                 </ol>
                             </nav>
@@ -275,7 +276,7 @@
                 <!-- Botón Regresar -->
                 <div class="row">
                     <div class="col-12">
-                        <a href="/deskapp/dashboardadmin/por_cliente?anio=<?= $anio_seleccionado ?>" class="btn btn-secondary">
+                        <a href="<?= base_url('/deskapp/dashboardadmin/por_cliente?anio=' . $anio_seleccionado) ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>" class="btn btn-secondary">
                             <i class="icon-copy fa fa-arrow-left"></i> Regresar al Resumen
                         </a>
                     </div>

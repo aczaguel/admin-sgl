@@ -51,6 +51,149 @@ if (isset($tra_status_id)) {
 		var tra_status_id = "<?php echo (int)$tra_status_id; ?>";
 	</script>
 
+	<style>
+		/* Stepper ("gusanito") arriba del wizard */
+		.sgl-wizard-stepper-wrap{
+			background: #fff;
+			border-radius: 14px;
+			padding: 14px 16px;
+			box-shadow: 0 4px 16px rgba(0,0,0,.06);
+			margin-bottom: 14px;
+		}
+		.sgl-wizard-stepper{
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 8px;
+			position: relative;
+			padding: 8px 6px 2px;
+		}
+		.sgl-wizard-stepper:before{
+			content: '';
+			position: absolute;
+			top: 22px;
+			left: 18px;
+			right: 18px;
+			height: 6px;
+			background: #e9ecef;
+			border-radius: 999px;
+			z-index: 0;
+		}
+		.sgl-wizard-step{
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 6px;
+			min-width: 90px;
+			flex: 1;
+			position: relative;
+			z-index: 1;
+		}
+		.sgl-wizard-step .sgl-dot{
+			width: 26px;
+			height: 26px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 12px;
+			font-weight: 800;
+			background: #fff;
+			border: 2px solid #cfd4da;
+			color: #6c757d;
+			box-shadow: 0 2px 8px rgba(0,0,0,.06);
+		}
+		.sgl-wizard-step .sgl-title{
+			font-size: 11px;
+			font-weight: 700;
+			color: #6c757d;
+			text-align: center;
+			line-height: 1.15;
+			max-width: 140px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.sgl-wizard-step.is-active .sgl-dot{
+			border-color: #10B981;
+			color: #10B981;
+		}
+		.sgl-wizard-step.is-active .sgl-title{
+			color: #202342;
+		}
+		.sgl-wizard-step.is-completed .sgl-dot{
+			background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+			border-color: transparent;
+			color: #fff;
+		}
+		.sgl-wizard-step.is-completed .sgl-dot:after{
+			content: '✓';
+			font-size: 12px;
+			font-weight: 900;
+		}
+		.sgl-wizard-step.is-completed .sgl-dot span{ display:none; }
+		.sgl-wizard-stepper .sgl-fill{
+			position: absolute;
+			top: 22px;
+			left: 18px;
+			height: 6px;
+			background: linear-gradient(90deg, #10B981 0%, #06B6D4 100%);
+			border-radius: 999px;
+			z-index: 0;
+			width: 0%;
+			transition: width .25s ease;
+		}
+		@media (max-width: 768px){
+			.sgl-wizard-step{ min-width: 70px; }
+			.sgl-wizard-step .sgl-title{ max-width: 90px; }
+		}
+
+		/* Listón discreto de "datos completos" por step */
+		.sgl-step-form-ribbon{
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 10px 12px;
+			border-radius: 12px;
+			background: #f8f9fa;
+			border: 1px solid #e9ecef;
+			margin: 0 0 12px 0;
+		}
+		.sgl-step-form-ribbon .sgl-icon{
+			width: 26px;
+			height: 26px;
+			border-radius: 999px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 13px;
+		}
+		.sgl-step-form-ribbon .sgl-text{
+			font-size: 12px;
+			font-weight: 700;
+			color: #495057;
+			line-height: 1.2;
+		}
+		.sgl-step-form-ribbon.is-complete{
+			background: rgba(16,185,129,0.08);
+			border-color: rgba(16,185,129,0.25);
+		}
+
+
+		.sgl-step-form-ribbon.is-complete .sgl-icon{
+			background: linear-gradient(135deg, #10B981 0%, #06B6D4 100%);
+			color: #fff;
+		}
+		.sgl-step-form-ribbon.is-incomplete{
+			background: rgba(245,158,11,0.10);
+			border-color: rgba(245,158,11,0.25);
+		}
+		.sgl-step-form-ribbon.is-incomplete .sgl-icon{
+			background: #F59E0B;
+			color: #fff;
+		}
+	</style>
+
 
 <?= $this->endSection() ?>
 
@@ -234,12 +377,41 @@ if (isset($tra_status_id)) {
 		<div class="wizard-full-width-container">
 			<div class="tramite-content-wrapper">
 				<div class="pd-20">
+						<div class="sgl-wizard-stepper-wrap" aria-label="Progreso del wizard">
+							<div class="sgl-wizard-stepper" id="sglWizardStepper" role="navigation" aria-label="Progreso del trámite">
+								<div class="sgl-fill" aria-hidden="true"></div>
+								<div class="sgl-wizard-step" data-step="0">
+									<div class="sgl-dot"><span>1</span></div>
+									<div class="sgl-title" title="Información">Información</div>
+								</div>
+								<div class="sgl-wizard-step" data-step="1">
+									<div class="sgl-dot"><span>2</span></div>
+									<div class="sgl-title" title="Gestor">Gestor</div>
+								</div>
+								<div class="sgl-wizard-step" data-step="2">
+									<div class="sgl-dot"><span>3</span></div>
+									<div class="sgl-title" title="Pago de Derechos">Pago de Derechos</div>
+								</div>
+								<div class="sgl-wizard-step" data-step="3">
+									<div class="sgl-dot"><span>4</span></div>
+									<div class="sgl-title" title="Pago a Gestor">Pago a Gestor</div>
+								</div>
+								<div class="sgl-wizard-step" data-step="4">
+									<div class="sgl-dot"><span>5</span></div>
+									<div class="sgl-title" title="Cobro a Cliente">Cobro a Cliente</div>
+								</div>
+							</div>
+						</div>
 						<div id="wizard" class="wizard-modern">
 							<!-- Step 1: Datos principales -->
 							<?php if (has_permission('section_inicial_datos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
 								<h3>Información</h3>
 								<section>
 									<div class="min-height-200px">
+										<div class="sgl-step-form-ribbon" data-form-id="tramiteForm" aria-live="polite">
+											<div class="sgl-icon"><i class="fas fa-check"></i></div>
+											<div class="sgl-text">Datos completos</div>
+										</div>
 										<?php 
 											$prefix_form = "tramite";
 											$form_action = "/deskapp/tramites/update_save/$id";
@@ -279,6 +451,10 @@ if (isset($tra_status_id)) {
 								<h3>Gestor</h3>
 								<section>
 									<div class="min-height-200px">
+										<div class="sgl-step-form-ribbon" data-form-id="gestorForm" aria-live="polite">
+											<div class="sgl-icon"><i class="fas fa-check"></i></div>
+											<div class="sgl-text">Datos completos</div>
+										</div>
 										<?php 
 											/* Paso 2: Asignar Gestor */
 											$prefix_form = "gestor";
@@ -305,6 +481,10 @@ if (isset($tra_status_id)) {
 							<div class="form-dropzone-grid">
 								<!-- Columna Izquierda: Formulario (70%) -->
 								<div class="form-column">
+									<div class="sgl-step-form-ribbon" data-form-id="derechosForm" aria-live="polite">
+										<div class="sgl-icon"><i class="fas fa-check"></i></div>
+										<div class="sgl-text">Datos completos</div>
+									</div>
 									<?php 
 										/* Paso 3: Pago de Derechos */
 										$prefix_form = "derechos";
@@ -424,6 +604,10 @@ if (isset($tra_status_id)) {
 									<div class="form-dropzone-grid">
 										<!-- Columna Izquierda: Formulario (70%) -->
 										<div class="form-column">
+											<div class="sgl-step-form-ribbon" data-form-id="pagoGestorForm" aria-live="polite">
+												<div class="sgl-icon"><i class="fas fa-check"></i></div>
+												<div class="sgl-text">Datos completos</div>
+											</div>
 											<?php 
 												$prefix_form = "pago_gestor";
 												$form_action = "/deskapp/tramites/update_pago_gestor/$id";
@@ -483,6 +667,10 @@ if (isset($tra_status_id)) {
 									<div class="form-dropzone-grid">
 										<!-- Columna Izquierda: Formulario (70%) -->
 										<div class="form-column">
+											<div class="sgl-step-form-ribbon" data-form-id="finalForm" aria-live="polite">
+												<div class="sgl-icon"><i class="fas fa-check"></i></div>
+												<div class="sgl-text">Datos completos</div>
+											</div>
 											<?php 
 												$prefix_form = "final";
 												$form_action = "/deskapp/tramites/update_final_save/$id";
@@ -762,6 +950,169 @@ if (isset($tra_status_id)) {
 	<script src="<?= $assets ?>/src/scripts/wizard_enhancements.js?v=<?php echo time(); ?>"></script>
 	<script src="<?= $assets ?>/src/scripts/dropzone.js?v=<?php echo time(); ?>"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script>
+		(function() {
+			var ribbonUpdateTimer = null;
+
+			function clampInt(value, min, max) {
+				var n = parseInt(value, 10);
+				if (isNaN(n)) n = 0;
+				if (n < min) n = min;
+				if (n > max) n = max;
+				return n;
+			}
+
+			function isValuePresent(el) {
+				var tag = (el.tagName || '').toLowerCase();
+				var type = (el.getAttribute('type') || '').toLowerCase();
+				if (type === 'hidden') return true;
+				if (el.disabled) return true;
+				// Ignorar campos no visibles (por tabs/condiciones)
+				if (el.offsetParent === null) return true;
+
+				if (type === 'checkbox' || type === 'radio') {
+					return !!el.checked;
+				}
+
+				if (tag === 'select') {
+					return (el.value !== null && String(el.value).trim() !== '');
+				}
+
+				return (el.value !== null && String(el.value).trim() !== '');
+			}
+
+			function isFormCompleteByRequired(formEl) {
+				if (!formEl) return true;
+				var required = formEl.querySelectorAll('input[required], select[required], textarea[required]');
+				if (!required || !required.length) return true;
+				for (var i = 0; i < required.length; i++) {
+					if (!isValuePresent(required[i])) return false;
+				}
+				return true;
+			}
+
+			function updateFormCompletionRibbons() {
+				var ribbons = document.querySelectorAll('.sgl-step-form-ribbon[data-form-id]');
+				if (!ribbons.length) return;
+				ribbons.forEach(function(ribbon) {
+					var formId = ribbon.getAttribute('data-form-id');
+					if (!formId) return;
+					var formEl = document.getElementById(formId);
+					var ok = isFormCompleteByRequired(formEl);
+					ribbon.classList.toggle('is-complete', ok);
+					ribbon.classList.toggle('is-incomplete', !ok);
+					var text = ribbon.querySelector('.sgl-text');
+					if (text) {
+						text.textContent = ok ? 'Datos completos' : 'Capturando información';
+					}
+					var icon = ribbon.querySelector('.sgl-icon i');
+					if (icon) {
+						icon.className = ok ? 'fas fa-check' : 'fas fa-pen';
+					}
+				});
+			}
+
+			function scheduleRibbonUpdate() {
+				if (ribbonUpdateTimer) {
+					clearTimeout(ribbonUpdateTimer);
+				}
+				ribbonUpdateTimer = setTimeout(updateFormCompletionRibbons, 120);
+			}
+
+			function getCurrentWizardIndex() {
+				try {
+					var $wizard = window.jQuery ? window.jQuery('#wizard') : null;
+					if (!$wizard || !$wizard.length) return null;
+					var $steps = $wizard.find('.steps li');
+					var $current = $wizard.find('.steps li.current');
+					if (!$steps.length || !$current.length) return null;
+					return $steps.index($current);
+				} catch (e) {
+					return null;
+				}
+			}
+
+			function renderStepper(activeIndex) {
+				var stepper = document.getElementById('sglWizardStepper');
+				if (!stepper) return;
+				var steps = stepper.querySelectorAll('.sgl-wizard-step');
+				var total = steps.length;
+				if (!total) return;
+
+				activeIndex = clampInt(activeIndex, 0, total - 1);
+				steps.forEach(function(stepEl) {
+					var idx = clampInt(stepEl.getAttribute('data-step'), 0, total - 1);
+					stepEl.classList.toggle('is-active', idx === activeIndex);
+					stepEl.classList.toggle('is-completed', idx < activeIndex);
+				});
+
+				var fill = stepper.querySelector('.sgl-fill');
+				if (fill) {
+					var pct = total <= 1 ? 0 : (activeIndex / (total - 1)) * 100;
+					fill.style.width = pct + '%';
+				}
+			}
+
+			function initStepperSync() {
+				// Step fijo basado en estatus (backend). Ej: step 4 => wiz_step = 3.
+				var statusStepIndex = clampInt((typeof window.wiz_step !== 'undefined') ? window.wiz_step : 0, 0, 99);
+				var lockToStatus = (statusStepIndex === 3);
+
+				// 1) Pintar con el step sugerido por backend (derivado de tra_status)
+				renderStepper(statusStepIndex);
+
+				// 2) Si NO está bloqueado, alinear con el step visible del wizard
+				if (!lockToStatus) {
+					var idx = getCurrentWizardIndex();
+					if (idx !== null) {
+						renderStepper(idx);
+					}
+				}
+
+				// 3) Escuchar cambios del wizard (eventos de jQuery Steps)
+				// Si está bloqueado (step 4), NO mover el gusanito aunque naveguen tabs.
+				if (window.jQuery) {
+					var $wizard = window.jQuery('#wizard');
+					$wizard.on('stepChanged', function(event, currentIndex) {
+						if (lockToStatus) {
+							renderStepper(statusStepIndex);
+							return;
+						}
+						if (typeof currentIndex === 'number') {
+							renderStepper(currentIndex);
+							return;
+						}
+						var fallbackIdx = getCurrentWizardIndex();
+						if (fallbackIdx !== null) renderStepper(fallbackIdx);
+					});
+				}
+			}
+
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', function() {
+					setTimeout(function() {
+						initStepperSync();
+						updateFormCompletionRibbons();
+						var wizard = document.getElementById('wizard');
+						if (wizard) {
+							wizard.addEventListener('input', scheduleRibbonUpdate, true);
+							wizard.addEventListener('change', scheduleRibbonUpdate, true);
+						}
+					}, 0);
+				});
+			} else {
+				setTimeout(function() {
+					initStepperSync();
+					updateFormCompletionRibbons();
+					var wizard = document.getElementById('wizard');
+					if (wizard) {
+						wizard.addEventListener('input', scheduleRibbonUpdate, true);
+						wizard.addEventListener('change', scheduleRibbonUpdate, true);
+					}
+				}, 0);
+			}
+		})();
+	</script>
 <?= $this->endSection() ?>
 
 

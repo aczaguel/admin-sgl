@@ -62,7 +62,14 @@ class Tramites extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url', 'cliente_filter', 'audit', 'notification']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context', 'audit', 'notification']);
+
+        $session = session();
+        $userId = $session->get('id');
+        $requested = service('request')->getGet('cliente_id');
+
+        // Persistir cliente activo (si viene en GET) para que el filtro aplique en ESTA misma request
+        resolve_active_cliente_id($userId, $requested);
     }
 
     public function index()
@@ -105,9 +112,9 @@ class Tramites extends BaseController
             // No eliminar o modificar sin entender las implicaciones.
             // ========================================================================
             
-            $filterSql = get_cliente_filter_sql($myid);
+            $filterSql = get_tramite_filter_sql($myid);
             
-            $tramite_crud->where($filterSql, null, false);
+            $tramite_crud->where($filterSql);
             
             // Filtro adicional por status
             $tramite_crud->where('tra_status_id NOT IN (20, 21)');
@@ -327,9 +334,9 @@ class Tramites extends BaseController
             $tramite_crud = $this->_getGroceryCrudEnterprise();
             
             // FILTRADO POR CLIENTE (Multi-tenancy)
-            $filterSql = get_cliente_filter_sql($myid);
+            $filterSql = get_tramite_filter_sql($myid);
 
-            $tramite_crud->where($filterSql, null, false);
+            $tramite_crud->where($filterSql);
             
             //$tramite_crud->where('tra_status_id NOT IN (20, 21)');
             
@@ -525,8 +532,8 @@ class Tramites extends BaseController
             $tramite_crud = $this->_getGroceryCrudEnterprise();
             
             // FILTRADO POR CLIENTE (Multi-tenancy)
-            $filterSql = get_cliente_filter_sql($myid);
-            $tramite_crud->where($filterSql, null, false);
+            $filterSql = get_tramite_filter_sql($myid);
+            $tramite_crud->where($filterSql);
             
             //$tramite_crud->where('tra_status_id NOT IN (20, 21)');
             
@@ -724,8 +731,8 @@ class Tramites extends BaseController
             $tramite_crud = $this->_getGroceryCrudEnterprise();
             
             // FILTRADO POR CLIENTE (Multi-tenancy)
-            $filterSql = get_cliente_filter_sql($myid);
-            $tramite_crud->where($filterSql, null, false);
+            $filterSql = get_tramite_filter_sql($myid);
+            $tramite_crud->where($filterSql);
             
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -923,8 +930,8 @@ class Tramites extends BaseController
             $tramite_crud = $this->_getGroceryCrudEnterprise();
             
             // FILTRADO POR CLIENTE (Multi-tenancy)
-            $filterSql = get_cliente_filter_sql($myid);
-            $tramite_crud->where($filterSql, null, false);
+            $filterSql = get_tramite_filter_sql($myid);
+            $tramite_crud->where($filterSql);
             
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -1121,8 +1128,8 @@ class Tramites extends BaseController
             $tramite_crud = $this->_getGroceryCrudEnterprise();
             
             // FILTRADO POR CLIENTE (Multi-tenancy)
-            $filterSql = get_cliente_filter_sql($myid);
-            $tramite_crud->where($filterSql, null, false);
+            $filterSql = get_tramite_filter_sql($myid);
+            $tramite_crud->where($filterSql);
             
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -1245,7 +1252,7 @@ class Tramites extends BaseController
             echo $salida->output;
             exit;
         }
-        return view('/deskapp/extra-pages/grocery_page', (array)$salida);
+        return view('/deskapp/extra-pages/grocery_page', (array) $salida);
     }
 
     private function _simple_output($salida = null) {
@@ -1387,7 +1394,7 @@ class Tramites extends BaseController
                     // Obtiene la serie existente
 
                     // Obtener el Nombre del usuario que creó el trámite existente
-                    $userModel = new UserModel();
+                    $userModel = new UserModel(\Config\Database::connect());
                     // Obtener el nombre completo del usuario por su ID
                     $user_id_existente = (int)$user_id_existente;
 
@@ -1449,7 +1456,7 @@ class Tramites extends BaseController
                 "created_at" => date('Y-m-d H:i:s'),
                 "updated_at" => date('Y-m-d H:i:s')
                 ];
-                $traTramiteAsociadoModel->insert($insert_tramite_asociado, 'tra_tramite_asociado');
+                $traTramiteAsociadoModel->insert($insert_tramite_asociado);
 
                 $tra_tipos_id = $data["tra_tipos_id"];
 
@@ -1577,7 +1584,7 @@ class Tramites extends BaseController
 
 
         // 🔹 1️⃣ Verificar si el trámite tiene relación en `tra_tramite_asociado`
-        $tramiteAsociadoModel = new TraTramiteAsociadoModel($db2);
+        $tramiteAsociadoModel = new TraTramiteAsociadoModel();
         $asociadoExists = $tramiteAsociadoModel->where('tramite_id', $id)->countAllResults();
 
         if ($asociadoExists == 0) {
@@ -4598,7 +4605,7 @@ class Tramites extends BaseController
                     null,
                     null,
                     null,
-                    json_encode($diferencias)
+                    $diferencias
                 );
             }
 
@@ -4768,7 +4775,7 @@ class Tramites extends BaseController
                     null,
                     null,
                     null,
-                    json_encode($diferencias)
+                    $diferencias
                 );
             }
 
@@ -6122,7 +6129,7 @@ class Tramites extends BaseController
     public function sincronizarTramites()
     {
         $db = \Config\Database::connect();
-        $traTramiteAsociadoModel = new TraTramiteAsociadoModel($db);
+        $traTramiteAsociadoModel = new TraTramiteAsociadoModel();
         $resultado = $traTramiteAsociadoModel->syncTramitesWithoutAsociados();
 
         return $this->response->setJSON(['message' => $resultado]);
