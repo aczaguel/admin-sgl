@@ -79,17 +79,6 @@
                         </div>
                         <div class="col-md-6 col-sm-12 text-right">
                             <form method="GET" action="<?= base_url('/deskapp/dashboardadmin/por_cliente') ?>" class="form-inline justify-content-end">
-                                <label class="mr-2">Cliente:</label>
-                                <select name="cliente_id" class="form-control mr-2" onchange="this.form.submit()" style="min-width: 260px;">
-                                    <option value="">Todos</option>
-                                    <?php if (!empty($clientes_lista)): ?>
-                                        <?php foreach ($clientes_lista as $cliente): ?>
-                                            <option value="<?= (int)$cliente['id'] ?>" <?= (!empty($cliente_id_filtro) && (int)$cliente_id_filtro === (int)$cliente['id']) ? 'selected' : '' ?>>
-                                                <?= esc($cliente['nombre']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </select>
                                 <label class="mr-2">Año:</label>
                                 <select name="anio" class="form-control mr-2" onchange="this.form.submit()">
                                     <?php for ($i = 2024; $i <= date('Y'); $i++): ?>

@@ -28,18 +28,6 @@
                         </nav>
                     </div>
                     <div class="col-md-6 col-sm-12 text-right">
-                        <form method="GET" action="<?= base_url('/deskapp/dashboardadmin/alertas') ?>" class="d-inline-block mr-2" style="min-width: 260px;">
-                            <select name="cliente_id" class="form-control" onchange="this.form.submit()">
-                                <option value="">Todos los clientes</option>
-                                <?php if (!empty($clientes_lista)): ?>
-                                    <?php foreach ($clientes_lista as $cliente): ?>
-                                        <option value="<?= (int)$cliente['id'] ?>" <?= (!empty($cliente_id_filtro) && (int)$cliente_id_filtro === (int)$cliente['id']) ? 'selected' : '' ?>>
-                                            <?= esc($cliente['nombre']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </select>
-                        </form>
                         <span class="badge badge-info mr-2" style="font-size: 12px; padding: 8px 12px;">
                             <i class="icon-copy dw dw-notification"></i> Solo año actual (<?= date('Y') ?>)
                         </span>
