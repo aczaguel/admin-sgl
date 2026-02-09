@@ -1,5 +1,8 @@
 <div class="left-side-bar">
 	<div class="brand-logo">
+		<div class="sgl-sidebar-collapse-btn sgl-sidebar-collapse-btn--sidebar" role="button" tabindex="0" aria-label="Contraer/expandir menú" title="Contraer/expandir menú">
+			<i class="dw dw-left-arrow" aria-hidden="true"></i>
+		</div>
 		<a href="<?php echo base_url('deskapp/dashboard'); ?>" style="display: flex; justify-content: center; align-items: center; width: 100%; padding: 10px 0;">
 			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="Logo SGT" class="dark-logo" style="max-width: 150px; height: auto;">
 			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt_white.png" alt="Logo SGT" class="light-logo" style="max-width: 150px; height: auto;">
