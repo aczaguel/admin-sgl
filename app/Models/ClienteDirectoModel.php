@@ -15,11 +15,27 @@ class ClienteDirectoModel extends Model
     ];
 
     // Función para obtener opciones de cli_directo
-    public function getClientesDirectosOptions()
+    // $conditions puede ser NULL (sin filtro) o un array estilo CI/GroceryCrud
+    // Ej: ['cliente_id' => [1,2,3]] o ['id' => 0]
+    public function getClientesDirectosOptions(?array $conditions = null)
     {
         $sql = new Sql($this->adapter);
         $select = $sql->select();
         $select->from('cli_directo');
+
+        if (is_array($conditions) && $conditions !== []) {
+            foreach ($conditions as $field => $value) {
+                if (is_array($value)) {
+                    // WHERE field IN (...)
+                    $select->where->in($field, $value);
+                } else {
+                    // WHERE field = value
+                    $select->where([$field => $value]);
+                }
+            }
+        }
+
+        $select->order('nombre ASC');
         
         $statement = $sql->prepareStatementForSqlObject($select);
         $result = $statement->execute();
