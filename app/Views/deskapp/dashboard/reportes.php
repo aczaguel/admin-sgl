@@ -28,6 +28,13 @@
                     </div>
                     <div class="col-md-6 col-sm-12 text-right">
                         <?php $cliente_qs = !empty($cliente_id_filtro) ? ('cliente_id=' . (int)$cliente_id_filtro) : ''; ?>
+                        <?php
+                            $roles = $session->get('user_roles') ?? [];
+                            if (!is_array($roles)) { $roles = [$roles]; }
+                            $perms = $session->get('user_permissions') ?? [];
+                            if (!is_array($perms)) { $perms = [$perms]; }
+                            $canExport = is_super_admin($roles) || is_admin($roles) || has_permission('menu_dashboard_admin', $perms, $roles);
+                        ?>
 
                         <div class="dropdown d-inline-block mr-2">
                             <a class="btn btn-primary dropdown-toggle" href="#" role="button" data-toggle="dropdown">
@@ -45,12 +52,14 @@
                             <a href="<?= base_url('/deskapp/dashboardadmin') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>" class="btn btn-primary">
                                 <i class="icon-copy fa fa-arrow-left"></i> Volver
                             </a>
-                            <button class="btn btn-success" onclick="exportarReportePDF()">
-                                <i class="icon-copy fa fa-file-pdf"></i> Exportar PDF
-                            </button>
-                            <button class="btn btn-info" onclick="exportarReporteExcel()">
-                                <i class="icon-copy fa fa-file-excel"></i> Exportar Excel
-                            </button>
+                            <?php if ($canExport): ?>
+                                <button class="btn btn-success" onclick="exportarReportePDF()">
+                                    <i class="icon-copy fa fa-file-pdf"></i> Exportar PDF
+                                </button>
+                                <button class="btn btn-info" onclick="exportarReporteExcel()">
+                                    <i class="icon-copy fa fa-file-excel"></i> Exportar Excel
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>

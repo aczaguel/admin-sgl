@@ -43,6 +43,18 @@ class TramiteWizard extends BaseController
             return redirect()->to('/deskapp/auth/login');
         }
 
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
+            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para acceder al wizard.');
+        }
+
         $requested = $this->request->getGet('cliente_id');
         $clienteIdFiltro = resolve_active_cliente_id($userId, $requested);
 
@@ -71,6 +83,18 @@ class TramiteWizard extends BaseController
 
         if (!$userId) {
             return redirect()->to('/deskapp/auth/login');
+        }
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
+            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para ver trámites.');
         }
 
         $requested = $this->request->getGet('cliente_id');
@@ -131,6 +155,21 @@ class TramiteWizard extends BaseController
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Sesión expirada'
+            ]);
+        }
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('editar_tramite', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'Acceso denegado'
             ]);
         }
 
@@ -227,6 +266,21 @@ class TramiteWizard extends BaseController
             ]);
         }
 
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('editar_tramite', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'Acceso denegado'
+            ]);
+        }
+
         try {
             $datosBorrador = [
                 'user_id' => $userId,
@@ -280,6 +334,21 @@ class TramiteWizard extends BaseController
             ]);
         }
 
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'message' => 'Acceso denegado'
+            ]);
+        }
+
         $builder = $this->db->table('tramite_borrador');
         $builder->where('user_id', $userId);
         $borrador = $builder->get()->getRow();
@@ -308,6 +377,19 @@ class TramiteWizard extends BaseController
 
         if (!$userId) {
             return redirect()->to('/deskapp/auth/login');
+        }
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+        $canExport = has_permission('export_tramite', $perms, $roles) || has_permission('export_final_tramite', $perms, $roles);
+        if (!(is_super_admin($roles) || is_admin($roles)) && !$canExport) {
+            return $this->response->setStatusCode(403)->setBody('Acceso denegado');
         }
 
         // Obtener filtros
@@ -350,7 +432,7 @@ class TramiteWizard extends BaseController
             if (empty($clienteIds)) {
                 $builder->where('1 = 0');
             } else {
-                $builder->whereIn('t.cli_directo_id', $clienteIds);
+                $builder->whereIn('cd.cliente_id', array_map('intval', $clienteIds));
             }
         }
 
@@ -438,13 +520,31 @@ class TramiteWizard extends BaseController
      */
     public function get_municipios()
     {
+        $session = session();
+        $userId = $session->get('id');
+        if (!$userId) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+        }
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
         $entidadId = $this->request->getPost('entidad_id');
         
         $builder = $this->db->table('rel_ent_municipio');
         $builder->select('ent_municipality_id as id, ent_municipality as municipio');
         
-        if ($entidadId) {
-            $builder->where('id_entity', $entidadId);
+        if ($entidadId && is_numeric($entidadId)) {
+            $builder->where('id_entity', (int) $entidadId);
         }
         
         $builder->orderBy('ent_municipality', 'ASC');
@@ -461,11 +561,46 @@ class TramiteWizard extends BaseController
      */
     public function get_ejecutivos_cliente()
     {
+        $session = session();
+        $userId = $session->get('id');
+        if (!$userId) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+        }
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
         $clienteId = $this->request->getPost('cliente_id');
+
+        if (!is_numeric($clienteId)) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Cliente inválido']);
+        }
+
+        // Validar multi-tenancy: el usuario debe tener acceso al cliente dueño del cli_directo
+        if (!user_is_admin($userId)) {
+            $row = $this->db->table('cli_directo')
+                ->select('cliente_id')
+                ->where('id', (int) $clienteId)
+                ->get()
+                ->getRowArray();
+
+            if (empty($row['cliente_id']) || !has_access_to_cliente((int) $row['cliente_id'], $userId)) {
+                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+            }
+        }
         
         $builder = $this->db->table('cli_directo_ejecutivo');
         $builder->select('id, nombre');
-        $builder->where('cli_directo_id', $clienteId);
+        $builder->where('cli_directo_id', (int) $clienteId);
         $builder->orderBy('nombre', 'ASC');
         
         $ejecutivos = $builder->get()->getResultArray();
@@ -481,11 +616,32 @@ class TramiteWizard extends BaseController
      */
     public function get_gestores()
     {
+        $session = session();
+        $userId = $session->get('id');
+        if (!$userId) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+        }
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
         $empresaId = $this->request->getPost('empresa_id');
+        if (!is_numeric($empresaId)) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Empresa inválida']);
+        }
         
         $builder = $this->db->table('ges_gestor');
         $builder->select('id, nombre');
-        $builder->where('empresa_gestora_id', $empresaId);
+        $builder->where('empresa_gestora_id', (int) $empresaId);
         $builder->orderBy('nombre', 'ASC');
         
         $gestores = $builder->get()->getResultArray();

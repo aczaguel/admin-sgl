@@ -391,7 +391,7 @@
 	</div>
 	<div class="header-right">
 			<!-- Botones con iconos modernos -->
-			<?php if (has_permission('header_buttons', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+			<?php if (has_permission('header_buttons', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 				<div class="d-flex align-items-center" style="gap: 8px; margin-right: 15px;">
 					<a href="/deskapp/tramites/tenencias/" class="btn btn-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(245, 87, 108, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(245, 87, 108, 0.3)';">
 						<i class="fas fa-car"></i> Tenencias

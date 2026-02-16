@@ -14,25 +14,25 @@
 					<li>
 					<br>
 					</li>
-					<?php if (has_permission('menu_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('menu_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 						<li class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle">
 								<span class="micon dw dw-house-1"></span><span class="mtext">Trámites</span>
 							</a>
 							<ul class="submenu">
-								<?php if (has_permission('listar_tramite_cliente', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<?php if (has_permission('listar_tramite_cliente', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 									<li><a href="<?php echo base_url('deskapp/customers/list'); //listar_tramite?>">Trámites</a></li>
 								<?php endif; ?>
-								<?php if (has_permission('listar_solicitudes_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<?php if (has_permission('listar_solicitudes_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 									<li><a href="<?php echo base_url('deskapp/tramites/solicitudes'); //listar_mios?>">Solicitudes Recientes</a></li>
 								<?php endif; ?>
-								<?php if (has_permission('listar_recoleccion_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<?php if (has_permission('listar_recoleccion_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 									<li><a href="<?php echo base_url('deskapp/tramites/recoleccion'); //listar_mios?>">Recolección de Documentos</a></li>
 								<?php endif; ?>	
-								<?php if (has_permission('listar_en_tramite_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<?php if (has_permission('listar_en_tramite_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 									<li><a href="<?php echo base_url('deskapp/tramites/en_tramite'); //listar_mios?>">En Trámite</a></li>
 								<?php endif; ?>	
-								<?php if (has_permission('listar_mis_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<?php if (has_permission('listar_mis_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 									<li><a href="<?php echo base_url('deskapp/tramites/mios'); //listar_mios?>">Mis Trámites</a></li>
 								<?php endif; ?>	
 							</ul>
@@ -46,19 +46,19 @@
 							<li><a href="<?php echo base_url('deskapp/tradocstatus/documento'); ?>">Documentos del trámite</a></li>
 						</ul>
 					</li> -->
-					<?php if (has_permission('menu_proceso_final', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('menu_proceso_final', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 						<li class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle">
 								<span class="micon dw dw-house-1"></span><span class="mtext">Proceso Final</span>
 							</a>
 							<ul class="submenu">
-								<?php if (has_permission('listar_final_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+								<?php if (has_permission('listar_final_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 									<li><a href="<?php echo base_url('deskapp/proceso/final'); //listar_final_tramite?>">Finalizando</a></li>
 								<?php endif; ?>	
 							</ul>
 						</li>
 					<?php endif; ?>	
-					<?php if (has_permission('menu_gestores', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('menu_gestores', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 						<br>
 						<li class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle">
@@ -70,7 +70,7 @@
 							</ul>
 						</li>
 					<?php endif; ?>	
-					<?php if (has_permission('menu_clientes', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('menu_clientes', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 						<li class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle">
 
@@ -83,7 +83,7 @@
 							</ul>
 						</li>
 					<?php endif; ?>	
-					<?php if (has_permission('menu_configuracion', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('menu_configuracion', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 						<br>
 						<li class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle">
@@ -95,7 +95,7 @@
 							</ul>
 						</li>
 					<?php endif; ?>	
-					<?php if (has_permission('menu_documentos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('menu_documentos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 						<li class="dropdown">
 							<a href="javascript:;" class="dropdown-toggle">
 								<span class="micon dw dw-edit2"></span><span class="mtext">Documentos</span>
@@ -107,7 +107,7 @@
 							</ul>
 						</li>
 					<?php endif; ?>	
-					<?php if (has_permission('menu_permisos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('menu_permisos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 						<br>
 						
 						<br>
@@ -126,7 +126,7 @@
 						</li>
 					<?php endif; ?>	
 
-					<?php if (has_permission('menu_erp_sa', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('menu_erp_sa', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 						<br>
 						
 						<br>

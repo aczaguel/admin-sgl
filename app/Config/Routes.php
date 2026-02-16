@@ -34,119 +34,122 @@ $routes->setAutoRoute(true);
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 $routes->get('/', 'Deskapp/Login::index');
+
+// Alias para que /deskapp sin acción vaya al dashboard
+$routes->get('/deskapp','Deskapp/Dashboard::index',['filter' => 'auth']);
 $routes->get('/deskapp/dashboard','Deskapp/Dashboard::index',['filter' => 'auth']);
-$routes->post('/deskapp/dashboard','Deskapp/Dashboard::index');
+$routes->post('/deskapp/dashboard','Deskapp/Dashboard::index',['filter' => 'auth']);
 
 // $routes->add('/example/customers', 'Deskapp/Example::customers');
 // $routes->add('/example/customers/(:segment)(/(:segment))?', 'Deskapp/Example::customers/$1/$2');
 
 $routes->get('/users/users', 'Deskapp/Users::users',['filter' => 'auth']);
-$routes->post('/users/users', 'Deskapp/Users::users');
+$routes->post('/users/users', 'Deskapp/Users::users',['filter' => 'auth']);
 
 $routes->get('/roles/roles', 'Deskapp/Roles::roles',['filter' => 'auth']);
-$routes->post('/roles/roles', 'Deskapp/Roles::roles');
+$routes->post('/roles/roles', 'Deskapp/Roles::roles',['filter' => 'auth']);
 
 $routes->get('/roles/role_permissions', 'Deskapp/Roles::role_permissions',['filter' => 'auth']);
-$routes->post('/roles/role_permissions', 'Deskapp/Roles::role_permissions');
+$routes->post('/roles/role_permissions', 'Deskapp/Roles::role_permissions',['filter' => 'auth']);
 
 $routes->get('/users/user_roles', 'Deskapp/Users::user_roles',['filter' => 'auth']);
-$routes->post('/users/user_roles', 'Deskapp/Users::user_roles');
+$routes->post('/users/user_roles', 'Deskapp/Users::user_roles',['filter' => 'auth']);
 
 $routes->get('/users/manage', 'Deskapp/Users::manage',['filter' => 'auth']);
-$routes->post('/users/manage', 'Deskapp/Users::manage');
+$routes->post('/users/manage', 'Deskapp/Users::manage',['filter' => 'auth']);
 
 $routes->get('/users/profile', 'Deskapp/Users::profile',['filter' => 'auth']);
-$routes->post('/users/profile', 'Deskapp/Users::profile');
+$routes->post('/users/profile', 'Deskapp/Users::profile',['filter' => 'auth']);
 
 $routes->get('/users/update_profile', 'Deskapp/Users::update_profile',['filter' => 'auth']);
-$routes->post('/users/update_profile', 'Deskapp/Users::update_profile');
+$routes->post('/users/update_profile', 'Deskapp/Users::update_profile',['filter' => 'auth']);
 
 $routes->get('/users/update_password', 'Deskapp/Users::update_password',['filter' => 'auth']);
-$routes->post('/users/update_password', 'Deskapp/Users::update_password');
+$routes->post('/users/update_password', 'Deskapp/Users::update_password',['filter' => 'auth']);
 
 
 $routes->get('/tramites/demo_multigrid', 'Deskapp/Tramites::demo_multigrid',['filter' => 'auth']);
-$routes->post('/tramites/demo_multigrid', 'Deskapp/Tramites::demo_multigrid');
+$routes->post('/tramites/demo_multigrid', 'Deskapp/Tramites::demo_multigrid',['filter' => 'auth']);
 
 $routes->get('/tramites/add', 'Deskapp/Tramites::add',['filter' => 'auth']);
-$routes->post('/tramites/add', 'Deskapp/Tramites::add');
+$routes->post('/tramites/add', 'Deskapp/Tramites::add',['filter' => 'auth']);
 
 $routes->get('/tramites/insert', 'Deskapp/Tramites::insert',['filter' => 'auth']);
-$routes->post('/tramites/insert', 'Deskapp/Tramites::insert');
+$routes->post('/tramites/insert', 'Deskapp/Tramites::insert',['filter' => 'auth']);
 
 $routes->get('/tramites/single_documentostatus', 'Deskapp/Tramites::single_documentostatus',['filter' => 'auth']);
-$routes->post('/tramites/single_documentostatus', 'Deskapp/Tramites::single_documentostatus');
+$routes->post('/tramites/single_documentostatus', 'Deskapp/Tramites::single_documentostatus',['filter' => 'auth']);
 
 $routes->get('/tramites/single_documentostatus/(:id)', 'Deskapp/Tramites::single_documentostatus/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/single_documentostatus/(:id)', 'Deskapp/Tramites::single_documentostatus/(:id)');
+$routes->post('/tramites/single_documentostatus/(:id)', 'Deskapp/Tramites::single_documentostatus/(:id)',['filter' => 'auth']);
 
 $routes->get('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_comprobante/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_comprobante/(:id)');
+$routes->post('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_comprobante/(:id)',['filter' => 'auth']);
 
 $routes->get('/tramites/delete_comprobante/(:id)', 'Deskapp/Tramites::delete_comprobante/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/delete_comprobante/(:id)', 'Deskapp/Tramites::delete_comprobante/(:id)');
+$routes->post('/tramites/delete_comprobante/(:id)', 'Deskapp/Tramites::delete_comprobante/(:id)',['filter' => 'auth']);
 
 
 $routes->get('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/(:id)');
+$routes->post('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/(:id)',['filter' => 'auth']);
 
 $routes->get('/tramites/single_pago_derechos/(:id)', 'Deskapp/Tramites::single_pago_derechos/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/single_pago_derechos/(:id)', 'Deskapp/Tramites::single_pago_derechos/(:id)');
+$routes->post('/tramites/single_pago_derechos/(:id)', 'Deskapp/Tramites::single_pago_derechos/(:id)',['filter' => 'auth']);
 
 
 $routes->get('/tramites/single_pago_gestor/(:id)', 'Deskapp/Tramites::single_pago_gestor/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/single_pago_gestor/(:id)', 'Deskapp/Tramites::single_pago_gestor/(:id)');
+$routes->post('/tramites/single_pago_gestor/(:id)', 'Deskapp/Tramites::single_pago_gestor/(:id)',['filter' => 'auth']);
 
 
 $routes->get('/tramites/single_cobro_cliente/(:id)', 'Deskapp/Tramites::single_cobro_cliente/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/single_cobro_cliente/(:id)', 'Deskapp/Tramites::single_cobro_cliente/(:id)');
+$routes->post('/tramites/single_cobro_cliente/(:id)', 'Deskapp/Tramites::single_cobro_cliente/(:id)',['filter' => 'auth']);
 
 
 
 $routes->get('/tramites/getEjecutivosByClienteId/(:cliente_directo_id)', 'Deskapp/Tramites::getEjecutivosByClienteId/$1',['filter' => 'auth']);
-$routes->post('/tramites/getEjecutivosByClienteId/(:cliente_directo_id)', 'Deskapp/Tramites::getEjecutivosByClienteId/$1');
+$routes->post('/tramites/getEjecutivosByClienteId/(:cliente_directo_id)', 'Deskapp/Tramites::getEjecutivosByClienteId/$1',['filter' => 'auth']);
 
 $routes->get('/tramites/getGestoresByEmpresaId/(:emp_gestora_id)', 'Deskapp/Tramites::getGestoresByEmpresaId/$1',['filter' => 'auth']);
-$routes->post('/tramites/getGestoresByEmpresaId/(:emp_gestora_id)', 'Deskapp/Tramites::getGestoresByEmpresaId/$1');
+$routes->post('/tramites/getGestoresByEmpresaId/(:emp_gestora_id)', 'Deskapp/Tramites::getGestoresByEmpresaId/$1',['filter' => 'auth']);
 
 $routes->get('/tramites/getDependentData/(:table)/(:id)', 'Deskapp/Tramites::getDependentData/$1/$2',['filter' => 'auth']);
-$routes->post('/tramites/getDependentData/(:table)/(:id)', 'Deskapp/Tramites::getDependentData/$1/$2');
+$routes->post('/tramites/getDependentData/(:table)/(:id)', 'Deskapp/Tramites::getDependentData/$1/$2',['filter' => 'auth']);
 
 $routes->get('/tramites/update_save/(:id)', 'Deskapp/Tramites::update_save/$1',['filter' => 'auth']);
-$routes->post('/tramites/update_save/(:id)', 'Deskapp/Tramites::update_save/$1');
+$routes->post('/tramites/update_save/(:id)', 'Deskapp/Tramites::update_save/$1',['filter' => 'auth']);
 
 $routes->get('/tramites/tramite', 'Deskapp/Tramites::tramite',['filter' => 'auth']);
-$routes->post('/tramites/tramite', 'Deskapp/Tramites::tramite');
+$routes->post('/tramites/tramite', 'Deskapp/Tramites::tramite',['filter' => 'auth']);
 
 $routes->get('/tramites/tramite_2024', 'Deskapp/Tramites::tramite_2024',['filter' => 'auth']);
-$routes->post('/tramites/tramite_2024', 'Deskapp/Tramites::tramite_2024');
+$routes->post('/tramites/tramite_2024', 'Deskapp/Tramites::tramite_2024',['filter' => 'auth']);
 
 $routes->get('/tramites/tramite_2025', 'Deskapp/Tramites::tramite_2025',['filter' => 'auth']);
-$routes->post('/tramites/tramite_2025', 'Deskapp/Tramites::tramite_2025');
+$routes->post('/tramites/tramite_2025', 'Deskapp/Tramites::tramite_2025',['filter' => 'auth']);
 
 $routes->get('/tramites/mios', 'Deskapp/Tramites::mios',['filter' => 'auth']);
-$routes->post('/tramites/mios', 'Deskapp/Tramites::mios');
+$routes->post('/tramites/mios', 'Deskapp/Tramites::mios',['filter' => 'auth']);
 
 $routes->get('/wizard', 'Deskapp/Wizard::index',['filter' => 'auth']);
-$routes->post('/wizard/step1', 'Deskapp/Wizard::step1');
-$routes->post('/wizard/step2', 'Deskapp/Wizard::step2');
-$routes->post('/wizard/step3', 'Deskapp/Wizard::step3');
-$routes->post('/wizard/complete', 'Deskapp/Wizard::complete');
+$routes->post('/wizard/step1', 'Deskapp/Wizard::step1',['filter' => 'auth']);
+$routes->post('/wizard/step2', 'Deskapp/Wizard::step2',['filter' => 'auth']);
+$routes->post('/wizard/step3', 'Deskapp/Wizard::step3',['filter' => 'auth']);
+$routes->post('/wizard/complete', 'Deskapp/Wizard::complete',['filter' => 'auth']);
 
 $routes->get('/tramites/recoleccion', 'Deskapp/Tramites::recoleccion',['filter' => 'auth']);
-$routes->post('/tramites/recoleccion', 'Deskapp/Tramites::recoleccion');
+$routes->post('/tramites/recoleccion', 'Deskapp/Tramites::recoleccion',['filter' => 'auth']);
 
 $routes->get('/tramites/en_tramite', 'Deskapp/Tramites::en_tramite',['filter' => 'auth']);
-$routes->post('/tramites/en_tramite', 'Deskapp/Tramites::en_tramite');
+$routes->post('/tramites/en_tramite', 'Deskapp/Tramites::en_tramite',['filter' => 'auth']);
 
 $routes->get('/tramites/autorizar', 'Deskapp/Tramites::autorizar',['filter' => 'auth']);
-$routes->post('/tramites/autorizar', 'Deskapp/Tramites::autorizar');
+$routes->post('/tramites/autorizar', 'Deskapp/Tramites::autorizar',['filter' => 'auth']);
 
 $routes->get('/tramites/tipo', 'Deskapp/Tramites::tipo',['filter' => 'auth']);
-$routes->post('/tramites/tipo', 'Deskapp/Tramites::tipo');
+$routes->post('/tramites/tipo', 'Deskapp/Tramites::tipo',['filter' => 'auth']);
 
 $routes->get('/tramites/status', 'Deskapp/Tramites::status',['filter' => 'auth']);
-$routes->post('/tramites/status', 'Deskapp/Tramites::status');
+$routes->post('/tramites/status', 'Deskapp/Tramites::status',['filter' => 'auth']);
 
 // Ruta de auditoría del trámite
 $routes->get('/tramites/audit_search', 'Deskapp/Tramites::audit_search',['filter' => 'auth']);
@@ -154,169 +157,209 @@ $routes->get('/tramites/audit_timeline/(:num)', 'Deskapp/Tramites::audit_timelin
 $routes->post('/tramites/buscar_por_folio', 'Deskapp/Tramites::buscar_por_folio',['filter' => 'auth']);
 
 $routes->get('/tramites/documentostatus/(:tramite_id)', 'Deskapp/Tramites::documentostatus/$1',['filter' => 'auth']);
-$routes->post('/tramites/documentostatus/(:tramite_id)', 'Deskapp/Tramites::documentostatus/$1');
+$routes->post('/tramites/documentostatus/(:tramite_id)', 'Deskapp/Tramites::documentostatus/$1',['filter' => 'auth']);
 
 $routes->get('/tramites/evidencias/(:tramite_id)', 'Deskapp/Tramites::evidencias/$1',['filter' => 'auth']);
-$routes->post('/tramites/evidencias/(:tramite_id)', 'Deskapp/Tramites::evidencias/$1');
+$routes->post('/tramites/evidencias/(:tramite_id)', 'Deskapp/Tramites::evidencias/$1',['filter' => 'auth']);
 
 $routes->get('/documentos/documento', 'Deskapp/Documentos::documento',['filter' => 'auth']);
-$routes->post('/documentos/status', 'Deskapp/Documentos::status');
+$routes->post('/documentos/status', 'Deskapp/Documentos::status',['filter' => 'auth']);
 
 $routes->get('/documentos/tp_doctos_tramite', 'Deskapp/Documentos::tp_doctos_tramite',['filter' => 'auth']);
-$routes->post('/documentos/tp_doctos_tramite', 'Deskapp/Documentos::tp_doctos_tramite');
+$routes->post('/documentos/tp_doctos_tramite', 'Deskapp/Documentos::tp_doctos_tramite',['filter' => 'auth']);
 
 $routes->get('/gestores/gestores', 'Deskapp/Gestores:gestores',['filter' => 'auth']);
-$routes->post('/gestores/gestor', 'Deskapp/Gestores::gestor');
+$routes->post('/gestores/gestor', 'Deskapp/Gestores::gestor',['filter' => 'auth']);
 
 // Gestión de clientes (controlador Deskapp\Cliente)
 $routes->get('/cliente/cliente', 'Deskapp/Cliente::cliente',['filter' => 'auth']);
-$routes->post('/cliente/cliente', 'Deskapp/Cliente::cliente');
+$routes->post('/cliente/cliente', 'Deskapp/Cliente::cliente',['filter' => 'auth']);
 
 // Ruta usada en el sidebar: deskapp/clientes/cliente
 $routes->get('/deskapp/clientes/cliente', 'Deskapp/Cliente::cliente',['filter' => 'auth']);
-$routes->post('/deskapp/clientes/cliente', 'Deskapp/Cliente::cliente');
+$routes->post('/deskapp/clientes/cliente', 'Deskapp/Cliente::cliente',['filter' => 'auth']);
 
 $routes->get('/clidirecto/clidirecto', 'Deskapp/Clidirecto:clidirecto',['filter' => 'auth']);
-$routes->post('/clidirecto/clidirecto', 'Deskapp/Clidirecto::clidirecto');
+$routes->post('/clidirecto/clidirecto', 'Deskapp/Clidirecto::clidirecto',['filter' => 'auth']);
 
 $routes->get('/clidirecto/ejecutivo', 'Deskapp/Clidirecto:ejecutivo',['filter' => 'auth']);
-$routes->post('/clidirecto/ejecutivo', 'Deskapp/Clidirecto::ejecutivo');
+$routes->post('/clidirecto/ejecutivo', 'Deskapp/Clidirecto::ejecutivo',['filter' => 'auth']);
 
 $routes->get('/tradocstatus/documento', 'Deskapp/Tradocstatus:documento',['filter' => 'auth']);
-$routes->post('/tradocstatus/documento', 'Deskapp/Tradocstatus::documento');
+$routes->post('/tradocstatus/documento', 'Deskapp/Tradocstatus::documento',['filter' => 'auth']);
 
 $routes->get('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora:index',['filter' => 'auth']);
-$routes->post('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora::index');
+$routes->post('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora::index',['filter' => 'auth']);
 
 $routes->get('/proceso/final', 'Deskapp/Proceso::final',['filter' => 'auth']);
-$routes->post('/proceso/final', 'Deskapp/Proceso::final');
+$routes->post('/proceso/final', 'Deskapp/Proceso::final',['filter' => 'auth']);
 
 $routes->get('/proceso/cobro_cliente', 'Deskapp/Proceso::cobro_cliente',['filter' => 'auth']);
-$routes->post('/proceso/cobro_cliente', 'Deskapp/Proceso::cobro_cliente');
+$routes->post('/proceso/cobro_cliente', 'Deskapp/Proceso::cobro_cliente',['filter' => 'auth']);
 
 $routes->get('/tramites/update_final/(:id)', 'Deskapp/Tramites::update_final/$1',['filter' => 'auth']);
-$routes->post('/tramites/update_final/(:id)', 'Deskapp/Tramites::update_final/$1');
+$routes->post('/tramites/update_final/(:id)', 'Deskapp/Tramites::update_final/$1',['filter' => 'auth']);
 
 $routes->get('/tramites/cancelado/(:id)', 'Deskapp/Tramites::cancelado/$1',['filter' => 'auth']);
-$routes->post('/tramites/cancelado/(:id)', 'Deskapp/Tramites::cancelado/$1');
+$routes->post('/tramites/cancelado/(:id)', 'Deskapp/Tramites::cancelado/$1',['filter' => 'auth']);
 
 $routes->get('/tramites/finalizados/(:id)', 'Deskapp/Tramites::finalizados/$1',['filter' => 'auth']);
-$routes->post('/tramites/finalizados/(:id)', 'Deskapp/Tramites::finalizados/$1');
+$routes->post('/tramites/finalizados/(:id)', 'Deskapp/Tramites::finalizados/$1',['filter' => 'auth']);
 
 $routes->get('/tramites/tenencias/', 'Deskapp/Tramites::tenencias/',['filter' => 'auth']);
-$routes->post('/tramites/tenencias/', 'Deskapp/Tramites::tenencias/');
+$routes->post('/tramites/tenencias/', 'Deskapp/Tramites::tenencias/',['filter' => 'auth']);
 
 $routes->get('/tramites/cotizaciones/', 'Deskapp/Tramites::cotizaciones/',['filter' => 'auth']);
-$routes->post('/tramites/cotizaciones/', 'Deskapp/Tramites::cotizaciones/');
+$routes->post('/tramites/cotizaciones/', 'Deskapp/Tramites::cotizaciones/',['filter' => 'auth']);
 
 $routes->get('/tramites/get_service_types/', 'Deskapp/Tramites::get_service_types/',['filter' => 'auth']);
-$routes->post('/tramites/get_service_types/', 'Deskapp/Tramites::get_service_types/');
+$routes->post('/tramites/get_service_types/', 'Deskapp/Tramites::get_service_types/',['filter' => 'auth']);
 
 $routes->get('/tramites/sincronizarTramites/', 'Deskapp/Tramites::sincronizarTramites/',['filter' => 'auth']);
-$routes->post('/tramites/sincronizarTramites/', 'Deskapp/Tramites::sincronizarTramites/');
+$routes->post('/tramites/sincronizarTramites/', 'Deskapp/Tramites::sincronizarTramites/',['filter' => 'auth']);
 
 
 
 $routes->get('/tramites/get_services_by_tramite/(:id)', 'Deskapp/Tramites::get_services_by_tramite/$1',['filter' => 'auth']);
-$routes->post('/tramites/get_services_by_tramite/(:id)', 'Deskapp/Tramites::get_services_by_tramite/$1');
+$routes->post('/tramites/get_services_by_tramite/(:id)', 'Deskapp/Tramites::get_services_by_tramite/$1',['filter' => 'auth']);
 
 $routes->get('/tramites/get_service_costs_by_tramite/(:id)', 'Deskapp/Tramites::get_service_costs_by_tramite/$1',['filter' => 'auth']);
-$routes->post('/tramites/get_service_costs_by_tramite/(:id)', 'Deskapp/Tramites::get_service_costs_by_tramite/$1');
+$routes->post('/tramites/get_service_costs_by_tramite/(:id)', 'Deskapp/Tramites::get_service_costs_by_tramite/$1',['filter' => 'auth']);
+
+
+// ============================================================================
+// Flujo nuevo de Trámites (clonado) - pruebas
+// ============================================================================
+
+$routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' => 'auth'], function($routes) {
+	// Trámites - Nuevo flujo (Tramitesn)
+	$routes->get('tramitesn', 'Tramitesn::tramite');
+	$routes->get('tramitesn/tramite', 'Tramitesn::tramite');
+	$routes->post('tramitesn/tramite', 'Tramitesn::tramite');
+	$routes->get('tramitesn/cobro_cliente', 'Tramitesn::cobro_cliente');
+	$routes->get('tramitesn/cobro_cliente/(:num)', 'Tramitesn::cobro_cliente_ver/$1');
+
+	$routes->get('tramitesn/update/(:num)', 'Tramitesn::update/$1');
+	$routes->post('tramitesn/update/(:num)', 'Tramitesn::update/$1');
+
+	// Guardado (reutiliza lógica heredada de Tramites::update_save)
+	$routes->post('tramitesn/update_save/(:num)', 'Tramitesn::update_save');
+
+	// Tipos de trámite asociados (tra_tramite_asociado)
+	$routes->get('tramitesn/services/(:num)', 'Tramitesn::services/$1');
+	$routes->post('tramitesn/services/add', 'Tramitesn::services_add');
+	$routes->post('tramitesn/services/update', 'Tramitesn::services_update');
+	$routes->post('tramitesn/services/delete', 'Tramitesn::services_delete');
+
+	// Update del tipo de trámite principal
+	$routes->post('tramitesn/principal/update_tipo', 'Tramitesn::principal_update_tipo');
+	$routes->get('tramitesn/get_service_costs_by_tramite/(:num)', 'Tramitesn::get_service_costs_by_tramite/$1');
+	$routes->post('tramitesn/get_service_costs_by_tramite/(:num)', 'Tramitesn::get_service_costs_by_tramite/$1');
+	$routes->post('tramitesn/update_service_cost', 'Tramitesn::update_service_cost');
+	$routes->post('tramitesn/upload_final_doc/(:num)/(:num)', 'Tramitesn::upload_final_doc/$1/$2');
+	$routes->post('tramitesn/delete_final_doc', 'Tramitesn::delete_final_doc');
+
+	$routes->get('tramitesn/add', 'Tramitesn::add');
+	$routes->post('tramitesn/add', 'Tramitesn::add');
+
+	$routes->get('tramitesn/insert', 'Tramitesn::insert');
+	$routes->post('tramitesn/insert', 'Tramitesn::insert');
+});
 
 
 
 $routes->get('/proceso/final_documentostatus/(:id)', 'Deskapp/Proceso::final_documentostatus/$1',['filter' => 'auth']);
-$routes->post('/proceso/final_documentostatus/(:id)', 'Deskapp/Proceso::final_documentostatus/$1');
+$routes->post('/proceso/final_documentostatus/(:id)', 'Deskapp/Proceso::final_documentostatus/$1',['filter' => 'auth']);
 
 $routes->get('/proceso/final_evidencias/(:id)', 'Deskapp/Proceso::final_evidencias/$1',['filter' => 'auth']);
-$routes->post('/proceso/final_evidencias/(:id)', 'Deskapp/Proceso::final_evidencias/$1');
+$routes->post('/proceso/final_evidencias/(:id)', 'Deskapp/Proceso::final_evidencias/$1',['filter' => 'auth']);
 
 $routes->get('/proceso/final_evidencias_finales/(:id)', 'Deskapp/Proceso::final_evidencias_finales/$1',['filter' => 'auth']);
-$routes->post('/proceso/final_evidencias_finales/(:id)', 'Deskapp/Proceso::final_evidencias_finales/$1');
+$routes->post('/proceso/final_evidencias_finales/(:id)', 'Deskapp/Proceso::final_evidencias_finales/$1',['filter' => 'auth']);
 
 $routes->get('/proceso/final_pago_derechos/(:id)', 'Deskapp/Proceso::final_pago_derechos/$1',['filter' => 'auth']);
-$routes->post('/proceso/final_pago_derechos/(:id)', 'Deskapp/Proceso::final_pago_derechos/$1');
+$routes->post('/proceso/final_pago_derechos/(:id)', 'Deskapp/Proceso::final_pago_derechos/$1',['filter' => 'auth']);
 
 
 $routes->get('/proceso/concluido', 'Deskapp/Proceso::concluido',['filter' => 'auth']);
-$routes->post('/proceso/concluido', 'Deskapp/Proceso::concluido');
+$routes->post('/proceso/concluido', 'Deskapp/Proceso::concluido',['filter' => 'auth']);
 
 $routes->get('/proceso/concluido_documentostatus/(:id)', 'Deskapp/Proceso::concluido_documentostatus/$1',['filter' => 'auth']);
-$routes->post('/proceso/concluido_documentostatus/(:id)', 'Deskapp/Proceso::concluido_documentostatus/$1');
+$routes->post('/proceso/concluido_documentostatus/(:id)', 'Deskapp/Proceso::concluido_documentostatus/$1',['filter' => 'auth']);
 
 $routes->get('/proceso/concluido_evidencias/(:id)', 'Deskapp/Proceso::concluido_evidencias/$1',['filter' => 'auth']);
-$routes->post('/proceso/concluido_evidencias/(:id)', 'Deskapp/Proceso::concluido_evidencias/$1');
+$routes->post('/proceso/concluido_evidencias/(:id)', 'Deskapp/Proceso::concluido_evidencias/$1',['filter' => 'auth']);
 
 $routes->get('/proceso/concluido_evidencias_finales/(:id)', 'Deskapp/Proceso::concluido_evidencias_finales/$1',['filter' => 'auth']);
-$routes->post('/proceso/concluido_evidencias_finales/(:id)', 'Deskapp/Proceso::concluido_evidencias_finales/$1');
+$routes->post('/proceso/concluido_evidencias_finales/(:id)', 'Deskapp/Proceso::concluido_evidencias_finales/$1',['filter' => 'auth']);
 
 $routes->get('/proceso/concluido_pago_derechos/(:id)', 'Deskapp/Proceso::concluido_pago_derechos/$1',['filter' => 'auth']);
-$routes->post('/proceso/concluido_pago_derechos/(:id)', 'Deskapp/Proceso::concluido_pago_derechos/$1');
+$routes->post('/proceso/concluido_pago_derechos/(:id)', 'Deskapp/Proceso::concluido_pago_derechos/$1',['filter' => 'auth']);
 
 
 $routes->get('/cancelado/cancelado', 'Deskapp/Cancelado::cancelado',['filter' => 'auth']);
-$routes->post('/cancelado/cancelado', 'Deskapp/Cancelado::cancelado');
+$routes->post('/cancelado/cancelado', 'Deskapp/Cancelado::cancelado',['filter' => 'auth']);
 
 $routes->get('/cancelado/cancelado_documentostatus/(:id)', 'Deskapp/Cancelado::cancelado_documentostatus/$1',['filter' => 'auth']);
-$routes->post('/cancelado/cancelado_documentostatus/(:id)', 'Deskapp/Cancelado::cancelado_documentostatus/$1');
+$routes->post('/cancelado/cancelado_documentostatus/(:id)', 'Deskapp/Cancelado::cancelado_documentostatus/$1',['filter' => 'auth']);
 
 $routes->get('/cancelado/cancelado_evidencias/(:id)', 'Deskapp/Cancelado::cancelado_evidencias/$1',['filter' => 'auth']);
-$routes->post('/cancelado/cancelado_evidencias/(:id)', 'Deskapp/Cancelado::cancelado_evidencias/$1');
+$routes->post('/cancelado/cancelado_evidencias/(:id)', 'Deskapp/Cancelado::cancelado_evidencias/$1',['filter' => 'auth']);
 
 $routes->get('/cancelado/cancelado_evidencias_finales/(:id)', 'Deskapp/Cancelado::cancelado_evidencias_finales/$1',['filter' => 'auth']);
-$routes->post('/cancelado/cancelado_evidencias_finales/(:id)', 'Deskapp/Cancelado::cancelado_evidencias_finales/$1');
+$routes->post('/cancelado/cancelado_evidencias_finales/(:id)', 'Deskapp/Cancelado::cancelado_evidencias_finales/$1',['filter' => 'auth']);
 
 $routes->get('/cancelado/cancelado_pago_derechos/(:id)', 'Deskapp/Cancelado::cancelado_pago_derechos/$1',['filter' => 'auth']);
-$routes->post('/cancelado/cancelado_pago_derechos/(:id)', 'Deskapp/Cancelado::cancelado_pago_derechos/$1');
+$routes->post('/cancelado/cancelado_pago_derechos/(:id)', 'Deskapp/Cancelado::cancelado_pago_derechos/$1',['filter' => 'auth']);
 
 $routes->get('/concluido/final', 'Deskapp/Concluido::final',['filter' => 'auth']);
-$routes->post('/concluido/final', 'Deskapp/Concluido::final');
+$routes->post('/concluido/final', 'Deskapp/Concluido::final',['filter' => 'auth']);
 
 $routes->get('/concluido/ver/(:id)', 'Deskapp/Concluido::ver/$1',['filter' => 'auth']);
-$routes->post('/concluido/ver/(:id)', 'Deskapp/Concluido::ver/$1');
+$routes->post('/concluido/ver/(:id)', 'Deskapp/Concluido::ver/$1',['filter' => 'auth']);
 
 
 
 
 $routes->get('/customers/list', 'Deskapp/Customers::list',['filter' => 'auth']);
-$routes->post('/customers/list', 'Deskapp/Customers::list');
+$routes->post('/customers/list', 'Deskapp/Customers::list',['filter' => 'auth']);
 
 
 $routes->get('/customers/tramite/(:id)', 'Deskapp/Customers::tramite/$1',['filter' => 'auth']);
-$routes->post('/customers/tramite/(:id)', 'Deskapp/Customers::tramite/$1');
+$routes->post('/customers/tramite/(:id)', 'Deskapp/Customers::tramite/$1',['filter' => 'auth']);
 
 $routes->get('/customers/proceso_documentostatus/(:id)', 'Deskapp/Customers::proceso_documentostatus/$1',['filter' => 'auth']);
-$routes->post('/customers/proceso_documentostatus/(:id)', 'Deskapp/Customers::proceso_documentostatus/$1');
+$routes->post('/customers/proceso_documentostatus/(:id)', 'Deskapp/Customers::proceso_documentostatus/$1',['filter' => 'auth']);
 
 $routes->get('/customers/proceso_evidencias/(:id)', 'Deskapp/Customers::proceso_evidencias/$1',['filter' => 'auth']);
-$routes->post('/customers/proceso_evidencias/(:id)', 'Deskapp/Customers::proceso_evidencias/$1');
+$routes->post('/customers/proceso_evidencias/(:id)', 'Deskapp/Customers::proceso_evidencias/$1',['filter' => 'auth']);
 
 $routes->get('/customers/proceso_evidencias_finales/(:id)', 'Deskapp/Customers::proceso_evidencias_finales/$1',['filter' => 'auth']);
-$routes->post('/customers/proceso_evidencias_finales/(:id)', 'Deskapp/Customers::proceso_evidencias_finales/$1');
+$routes->post('/customers/proceso_evidencias_finales/(:id)', 'Deskapp/Customers::proceso_evidencias_finales/$1',['filter' => 'auth']);
 
 $routes->get('/customers/proceso_pago_derechos/(:id)', 'Deskapp/Customers::proceso_pago_derechos/$1',['filter' => 'auth']);
-$routes->post('/customers/proceso_pago_derechos/(:id)', 'Deskapp/Customers::proceso_pago_derechos/$1');
+$routes->post('/customers/proceso_pago_derechos/(:id)', 'Deskapp/Customers::proceso_pago_derechos/$1',['filter' => 'auth']);
 
 // ============================================================================
 // Dashboard Administrativo - Rutas
 // ============================================================================
 $routes->get('/deskapp/dashboardadmin', 'Deskapp/DashboardAdmin::index',['filter' => 'auth']);
-$routes->post('/deskapp/dashboardadmin', 'Deskapp/DashboardAdmin::index');
+$routes->post('/deskapp/dashboardadmin', 'Deskapp/DashboardAdmin::index',['filter' => 'auth']);
 
 $routes->get('/deskapp/dashboardadmin/alertas', 'Deskapp/DashboardAdmin::alertas',['filter' => 'auth']);
-$routes->post('/deskapp/dashboardadmin/alertas', 'Deskapp/DashboardAdmin::alertas');
+$routes->post('/deskapp/dashboardadmin/alertas', 'Deskapp/DashboardAdmin::alertas',['filter' => 'auth']);
 
 $routes->get('/deskapp/dashboardadmin/financiero', 'Deskapp/DashboardAdmin::financiero',['filter' => 'auth']);
-$routes->post('/deskapp/dashboardadmin/financiero', 'Deskapp/DashboardAdmin::financiero');
+$routes->post('/deskapp/dashboardadmin/financiero', 'Deskapp/DashboardAdmin::financiero',['filter' => 'auth']);
 
 $routes->get('/deskapp/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes',['filter' => 'auth']);
-$routes->post('/deskapp/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes');
+$routes->post('/deskapp/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes',['filter' => 'auth']);
 
 $routes->get('/deskapp/dashboardadmin/por_cliente', 'Deskapp/DashboardAdmin::por_cliente',['filter' => 'auth']);
-$routes->post('/deskapp/dashboardadmin/por_cliente', 'Deskapp/DashboardAdmin::por_cliente');
+$routes->post('/deskapp/dashboardadmin/por_cliente', 'Deskapp/DashboardAdmin::por_cliente',['filter' => 'auth']);
 
 $routes->get('/deskapp/dashboardadmin/detalle_cliente/(:num)', 'Deskapp/DashboardAdmin::detalle_cliente/$1',['filter' => 'auth']);
-$routes->post('/deskapp/dashboardadmin/detalle_cliente/(:num)', 'Deskapp/DashboardAdmin::detalle_cliente/$1');
+$routes->post('/deskapp/dashboardadmin/detalle_cliente/(:num)', 'Deskapp/DashboardAdmin::detalle_cliente/$1',['filter' => 'auth']);
 
 // APIs para datos en tiempo real (JSON)
 $routes->get('/deskapp/dashboardadmin/api_metricas', 'Deskapp/DashboardAdmin::api_metricas',['filter' => 'auth']);
@@ -336,22 +379,22 @@ $routes->get('/deskapp/dashboardadmin/exportar_pdf', 'Deskapp/DashboardAdmin::ex
 // Dashboard Administrativo - Alias sin prefijo /deskapp (compatibilidad prod)
 // ============================================================================
 $routes->get('/dashboardadmin', 'Deskapp/DashboardAdmin::index',['filter' => 'auth']);
-$routes->post('/dashboardadmin', 'Deskapp/DashboardAdmin::index');
+$routes->post('/dashboardadmin', 'Deskapp/DashboardAdmin::index',['filter' => 'auth']);
 
 $routes->get('/dashboardadmin/alertas', 'Deskapp/DashboardAdmin::alertas',['filter' => 'auth']);
-$routes->post('/dashboardadmin/alertas', 'Deskapp/DashboardAdmin::alertas');
+$routes->post('/dashboardadmin/alertas', 'Deskapp/DashboardAdmin::alertas',['filter' => 'auth']);
 
 $routes->get('/dashboardadmin/financiero', 'Deskapp/DashboardAdmin::financiero',['filter' => 'auth']);
-$routes->post('/dashboardadmin/financiero', 'Deskapp/DashboardAdmin::financiero');
+$routes->post('/dashboardadmin/financiero', 'Deskapp/DashboardAdmin::financiero',['filter' => 'auth']);
 
 $routes->get('/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes',['filter' => 'auth']);
-$routes->post('/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes');
+$routes->post('/dashboardadmin/reportes', 'Deskapp/DashboardAdmin::reportes',['filter' => 'auth']);
 
 $routes->get('/dashboardadmin/por_cliente', 'Deskapp/DashboardAdmin::por_cliente',['filter' => 'auth']);
-$routes->post('/dashboardadmin/por_cliente', 'Deskapp/DashboardAdmin::por_cliente');
+$routes->post('/dashboardadmin/por_cliente', 'Deskapp/DashboardAdmin::por_cliente',['filter' => 'auth']);
 
 $routes->get('/dashboardadmin/detalle_cliente/(:num)', 'Deskapp/DashboardAdmin::detalle_cliente/$1',['filter' => 'auth']);
-$routes->post('/dashboardadmin/detalle_cliente/(:num)', 'Deskapp/DashboardAdmin::detalle_cliente/$1');
+$routes->post('/dashboardadmin/detalle_cliente/(:num)', 'Deskapp/DashboardAdmin::detalle_cliente/$1',['filter' => 'auth']);
 
 $routes->get('/dashboardadmin/exportar_excel', 'Deskapp/DashboardAdmin::exportar_excel',['filter' => 'auth']);
 $routes->get('/dashboardadmin/exportar_pdf', 'Deskapp/DashboardAdmin::exportar_pdf',['filter' => 'auth']);

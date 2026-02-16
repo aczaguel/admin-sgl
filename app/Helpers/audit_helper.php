@@ -89,15 +89,28 @@ if (!function_exists('log_tramite_change')) {
             
             $result = $db->table('tramite_audit_log')->insert($data);
             
-            // Actualizar último modificador en tramite
+            // Actualizar último modificador en tramite (si el esquema lo soporta)
             if ($result) {
-                $db->query("
-                    UPDATE tramite 
-                    SET last_modified_by = ?,
-                        last_modified_at = NOW(),
-                        modification_count = COALESCE(modification_count, 0) + 1
-                    WHERE id = ?
-                ", [$userId, $tramiteId]);
+                $setParts = [];
+                $params = [];
+
+                if ($db->fieldExists('last_modified_by', 'tramite')) {
+                    $setParts[] = 'last_modified_by = ?';
+                    $params[] = $userId;
+                }
+
+                if ($db->fieldExists('last_modified_at', 'tramite')) {
+                    $setParts[] = 'last_modified_at = NOW()';
+                }
+
+                if ($db->fieldExists('modification_count', 'tramite')) {
+                    $setParts[] = 'modification_count = COALESCE(modification_count, 0) + 1';
+                }
+
+                if (!empty($setParts)) {
+                    $params[] = $tramiteId;
+                    $db->query('UPDATE tramite SET ' . implode(', ', $setParts) . ' WHERE id = ?', $params);
+                }
             }
             
             return (bool)$result;
@@ -185,15 +198,58 @@ if (!function_exists('get_tramite_audit_log')) {
     function get_tramite_audit_log(int $tramiteId, ?int $limit = null): array
     {
         $db = \Config\Database::connect();
-        $builder = $db->table('tramite_audit_log');
-        $builder->where('tramite_id', $tramiteId);
-        $builder->orderBy('created_at', 'DESC');
-        
-        if ($limit) {
-            $builder->limit($limit);
+
+        $hasNew = $db->tableExists('tramite_audit_log');
+        $hasLegacy = $db->tableExists('tramite_auditoria');
+
+        if (!$hasNew && !$hasLegacy) {
+            return [];
         }
-        
-        return $builder->get()->getResultArray();
+
+        // Intentar primero con la tabla nueva si existe y tiene registros
+        if ($hasNew) {
+            $row = $db->query('SELECT COUNT(*) AS c FROM tramite_audit_log WHERE tramite_id = ?', [$tramiteId])->getRowArray();
+            $countNew = $row ? (int) $row['c'] : 0;
+            if ($countNew > 0) {
+                $builder = $db->table('tramite_audit_log');
+                $builder->where('tramite_id', $tramiteId);
+                $builder->orderBy('created_at', 'DESC');
+                if ($limit) {
+                    $builder->limit($limit);
+                }
+                return $builder->get()->getResultArray();
+            }
+        }
+
+        // Fallback: usar tabla legacy tramite_auditoria (si existe)
+        if ($hasLegacy) {
+            $sql = "SELECT
+                    a.tramite_id,
+                    a.usuario_modificacion AS user_id,
+                    CONCAT(u.firstname, ' ', IFNULL(u.midname, ''), ' ', u.lastname) AS username,
+                    u.email AS user_email,
+                    'update' AS action,
+                    'tramite' AS entity_type,
+                    CONCAT('Cambio en ', a.campo_modificado) AS description,
+                    a.campo_modificado AS field_name,
+                    a.valor_anterior AS old_value,
+                    a.valor_nuevo AS new_value,
+                    NULL AS ip_address,
+                    NULL AS user_agent,
+                    a.fecha_modificacion AS created_at
+                FROM tramite_auditoria a
+                LEFT JOIN users u ON u.id = a.usuario_modificacion
+                WHERE a.tramite_id = ?
+                ORDER BY a.fecha_modificacion DESC, a.id DESC";
+
+            if ($limit) {
+                $sql .= ' LIMIT ' . (int) $limit;
+            }
+
+            return $db->query($sql, [$tramiteId])->getResultArray();
+        }
+
+        return [];
     }
 }
 
@@ -206,19 +262,57 @@ if (!function_exists('get_tramite_last_modifier')) {
      */
     function get_tramite_last_modifier(int $tramiteId): ?array
     {
-        $db = \Config\Database::connect();
-        $result = $db->query("
-            SELECT 
-                t.last_modified_by as user_id,
-                CONCAT(u.firstname, ' ', IFNULL(u.midname, ''), ' ', u.lastname) as username,
-                t.last_modified_at as modified_at,
-                t.modification_count as total_changes
-            FROM tramite t
-            LEFT JOIN users u ON t.last_modified_by = u.id
-            WHERE t.id = ?
-        ", [$tramiteId])->getRowArray();
-        
-        return $result ?: null;
+        try {
+            $db = \Config\Database::connect();
+
+            $hasLastModifiedBy = $db->fieldExists('last_modified_by', 'tramite');
+            $hasLastModifiedAt = $db->fieldExists('last_modified_at', 'tramite');
+
+            // Preferir columnas denormalizadas si existen
+            if ($hasLastModifiedBy && $hasLastModifiedAt) {
+                $totalChangesExpr = $db->fieldExists('modification_count', 'tramite')
+                    ? 't.modification_count'
+                    : 'NULL';
+
+                $result = $db->query(
+                    "SELECT 
+                        t.last_modified_by as user_id,
+                        CONCAT(u.firstname, ' ', IFNULL(u.midname, ''), ' ', u.lastname) as username,
+                        t.last_modified_at as modified_at,
+                        {$totalChangesExpr} as total_changes
+                    FROM tramite t
+                    LEFT JOIN users u ON t.last_modified_by = u.id
+                    WHERE t.id = ?",
+                    [$tramiteId]
+                )->getRowArray();
+
+                return $result ?: null;
+            }
+
+            // Fallback: calcular desde el log de auditoría (no requiere ALTER TABLE en tramite)
+            $result = $db->query(
+                "SELECT
+                    l.user_id as user_id,
+                    l.username as username,
+                    l.created_at as modified_at,
+                    s.total_changes as total_changes
+                FROM tramite_audit_log l
+                CROSS JOIN (
+                    SELECT COUNT(*) as total_changes
+                    FROM tramite_audit_log
+                    WHERE tramite_id = ?
+                ) s
+                WHERE l.tramite_id = ?
+                ORDER BY l.created_at DESC, l.id DESC
+                LIMIT 1",
+                [$tramiteId, $tramiteId]
+            )->getRowArray();
+
+            return $result ?: null;
+        } catch (\Throwable $e) {
+            log_message('error', 'Error en get_tramite_last_modifier: ' . $e->getMessage());
+            return null;
+        }
     }
 }
 
@@ -260,12 +354,12 @@ if (!function_exists('compare_tramite_data')) {
     {
         $changes = [];
         $ignoreFields = array_merge($ignoreFields, ['updated_at', 'created_at', 'modification_count']);
-        
+		
         foreach ($newData as $field => $newValue) {
             if (in_array($field, $ignoreFields)) {
                 continue;
             }
-            
+			
             if (!isset($oldData[$field])) {
                 $changes[$field] = [
                     'old' => null, 
@@ -278,7 +372,7 @@ if (!function_exists('compare_tramite_data')) {
                 ];
             }
         }
-        
+		
         return $changes;
     }
 }

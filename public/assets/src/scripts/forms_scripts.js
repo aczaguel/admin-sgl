@@ -1202,6 +1202,7 @@ $(document).ready(function() {
 
 
 let previousResponseCobroCliente = null; // Variable global para almacenar el estado anterior
+let intervalCobroClienteId = null;
 function fetchCobroClienteFiles() {
     $.ajax({
         url: `/deskapp/tramites/getCobroClienteFiles/${tramite_id}`, // Ruta del endpoint
@@ -1244,12 +1245,17 @@ function fetchCobroClienteFiles() {
             });
         },
         error: function (xhr, status, error) {
+            if (xhr && xhr.status === 403) {
+                if (intervalCobroClienteId) clearInterval(intervalCobroClienteId);
+                return;
+            }
             console.error("Error fetching files:", error);
         }
     });
 }
 
 let previousResponsePagoGestor = null; // Variable global para almacenar el estado anterior
+let intervalPagoGestorId = null;
 function fetchPagoGestorFiles() {
     $.ajax({
         url: `/deskapp/tramites/getPagoGestorFiles/${tramite_id}`, // Ruta del endpoint
@@ -1292,12 +1298,17 @@ function fetchPagoGestorFiles() {
             });
         },
         error: function (xhr, status, error) {
+            if (xhr && xhr.status === 403) {
+                if (intervalPagoGestorId) clearInterval(intervalPagoGestorId);
+                return;
+            }
             console.error("Error fetching files:", error);
         }
     });
 }
 
 let previousResponseDerechos = null; // Variable global para almacenar el estado anterior
+let intervalPagoDerechosId = null;
 function fetchPagoDerechosFiles() {
     $.ajax({
         url: `/deskapp/tramites/getPagoDerechosFiles/${tramite_id}`, // Ruta del endpoint
@@ -1340,22 +1351,38 @@ function fetchPagoDerechosFiles() {
             });
         },
         error: function (xhr, status, error) {
+            if (xhr && xhr.status === 403) {
+                if (intervalPagoDerechosId) clearInterval(intervalPagoDerechosId);
+                return;
+            }
             console.error("Error fetching files:", error);
         }
     });
 }
 
 // Ejecutar la función cada 3 segundos
-fetchPagoDerechosFiles();
-fetchPagoGestorFiles();
-fetchCobroClienteFiles();
-setInterval(fetchPagoDerechosFiles, 3000);
-setInterval(fetchPagoGestorFiles, 3000);
-setInterval(fetchCobroClienteFiles, 3000);
+if (typeof tramite_id !== 'undefined') {
+    if ($('#documentos-container').length) {
+        fetchPagoDerechosFiles();
+        intervalPagoDerechosId = setInterval(fetchPagoDerechosFiles, 3000);
+    }
+    if ($('#gestor-container').length) {
+        fetchPagoGestorFiles();
+        intervalPagoGestorId = setInterval(fetchPagoGestorFiles, 3000);
+    }
+    if ($('#cliente-container').length) {
+        fetchCobroClienteFiles();
+        intervalCobroClienteId = setInterval(fetchCobroClienteFiles, 3000);
+    }
+}
 
 $(document).ready(function () {
     var tramiteId = tramite_id; // ID del trámite cargado en la URL
     var serviceList = $("#service-list");
+
+    if (typeof tramite_id === 'undefined' || serviceList.length === 0) {
+        return;
+    }
 
     // 🔹 Cargar los tipos de servicio desde el backend y devolver una promesa
     function loadServiceTypes() {
@@ -1365,7 +1392,10 @@ $(document).ready(function () {
             dataType: "json"
         }).done(function (data) {
             window.availableServices = data; // Guardamos los datos en una variable global
-        }).fail(function () {
+        }).fail(function (xhr) {
+            if (xhr && xhr.status === 403) {
+                return;
+            }
             alert("Error al cargar los tipos de servicio.");
         });
     }
@@ -1383,7 +1413,10 @@ $(document).ready(function () {
                 addServiceRow(service.id, service.tra_tipos_id, firstId);
                 addCostRow(service.id, service.costo_tramite || 0);
             });
-        }).fail(function () {
+        }).fail(function (xhr) {
+            if (xhr && xhr.status === 403) {
+                return;
+            }
             alert("Error al cargar los servicios del trámite.");
         });
     }
@@ -1483,7 +1516,11 @@ $(document).ready(function () {
                     sumarCostos(); // Recalcular la sumatoria
                     alert(`✅ Tipo de servicio eliminado correctamente. ${asociadoId}`);
                 },
-                error: function () {
+                error: function (xhr) {
+                    if (xhr && xhr.status === 403) {
+                        alert("Acceso denegado.");
+                        return;
+                    }
                     alert("❌ Error al eliminar el servicio.");
                 }
             });
@@ -1528,7 +1565,11 @@ $(document).ready(function () {
                     window.location.reload();
                 }, 2000);
             },
-            error: function () {
+            error: function (xhr) {
+                if (xhr && xhr.status === 403) {
+                    alert("Acceso denegado.");
+                    return;
+                }
                 alert("Error al guardar los servicios.");
             }
         });
@@ -1541,6 +1582,10 @@ $(document).ready(function () {
     var costosContainer = $("#gestor_costos_tipo_servicio");
     var totalCostoInput = $("#costo_tramite");
     var totalCostoInput2 = $("#costo_tramite_total");
+
+    if (typeof tramite_id === 'undefined' || costosContainer.length === 0) {
+        return;
+    }
 
     // 🔹 Cargar los costos de los tipos de servicio asociados al trámite
     function loadServiceCosts() {
@@ -1577,7 +1622,10 @@ $(document).ready(function () {
                 // Ejecutamos la suma inicial
                 sumarCostos();
             },
-            error: function () {
+            error: function (xhr) {
+                if (xhr && xhr.status === 403) {
+                    return;
+                }
                 costosContainer.append("<p class='text-danger'>Error al cargar los costos.</p>");
             }
         });
@@ -1646,7 +1694,11 @@ $(document).ready(function () {
                 
                 sumarCostos(); // Actualizar la sumatoria después de guardar
             },
-            error: function () {
+            error: function (xhr) {
+                if (xhr && xhr.status === 403) {
+                    alert("Acceso denegado.");
+                    return;
+                }
                 alert("❌ Error al actualizar el costo.");
             }
         });

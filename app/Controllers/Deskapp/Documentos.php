@@ -9,8 +9,39 @@ use GroceryCrud\Core\GroceryCrud;
 
 class Documentos extends BaseController
 {
+    private function guardDocumentosAccess()
+    {
+        $session = session();
+        $userId = $session->get('id');
+
+        $isGroceryApi = $this->request->getGet('gc_state') !== null;
+
+        if (!$userId) {
+            if ($this->request->isAJAX() || $isGroceryApi) {
+                return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+            }
+            return redirect()->to('/deskapp/auth/login');
+        }
+
+        $perms = $session->get('user_permissions');
+        $roles = $session->get('user_roles');
+
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('menu_documentos', $perms, $roles)) {
+            if ($this->request->isAJAX() || $isGroceryApi) {
+                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+            }
+            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para acceder a Documentos.');
+        }
+
+        return null;
+    }
+
     public function index()
     {
+        if ($resp = $this->guardDocumentosAccess()) {
+            return $resp;
+        }
+
         $output = (object)[
             'js_files' => [],
             'output' => ''
@@ -21,6 +52,10 @@ class Documentos extends BaseController
 
     public function documento()
     {
+        if ($resp = $this->guardDocumentosAccess()) {
+            return $resp;
+        }
+
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -54,6 +89,20 @@ class Documentos extends BaseController
             $data['user_id'] = $myid;
             return $data;
         });
+
+        $crud->callbackBeforeInsert(function ($stateParameters) {
+            $session = session();
+            $myid = $session->get('id');
+            $stateParameters->data['user_id'] = $myid;
+            return $stateParameters;
+        });
+
+        $crud->callbackBeforeUpdate(function ($stateParameters) {
+            $session = session();
+            $myid = $session->get('id');
+            $stateParameters->data['user_id'] = $myid;
+            return $stateParameters;
+        });
         $crud->setFieldUploadMultiple(
             'file', 
             'assets/uploads/documentos/', 
@@ -84,6 +133,10 @@ class Documentos extends BaseController
 
     public function status()
     {
+        if ($resp = $this->guardDocumentosAccess()) {
+            return $resp;
+        }
+
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -106,6 +159,20 @@ class Documentos extends BaseController
         $crud->fieldType('user_id','hidden');
         $crud->fieldType('created_at','hidden');
         $crud->fieldType('updated_at','hidden');
+
+        $crud->callbackBeforeInsert(function ($stateParameters) {
+            $session = session();
+            $myid = $session->get('id');
+            $stateParameters->data['user_id'] = $myid;
+            return $stateParameters;
+        });
+
+        $crud->callbackBeforeUpdate(function ($stateParameters) {
+            $session = session();
+            $myid = $session->get('id');
+            $stateParameters->data['user_id'] = $myid;
+            return $stateParameters;
+        });
 
          // Callbacks para registrar el log
          $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {

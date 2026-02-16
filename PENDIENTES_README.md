@@ -5,6 +5,20 @@
 
 ## Hecho (confirmado)
 
+### Trámites (nuevo flujo) - tipos asociados y permisos
+- Se agregó UI en el update del flujo `Tramitesn` para:
+  - Ver tipos ligados (listón superior + header de detalles).
+  - Agregar tipo asociado (pendiente → guardar por renglón).
+  - Cambiar tipo principal y cambiar/eliminar asociados vía modals (según permisos).
+- Permisos nuevos (pendientes de mapear en roles/DB):
+  - `editar_tramite_principal`: permite cambiar el **tipo principal** (modal “Cambiar tipo de trámite principal”).
+  - `editar_tramite_asociado`: permite cambiar un **tipo asociado** (modal “Cambiar tipo de trámite asociado”).
+  - `delete_tramite_asociado`: permite **eliminar** un tipo asociado (modal “Eliminar tipo asociado”).
+- Endpoints protegidos por esos permisos:
+  - `POST /deskapp/tramitesn/principal/update_tipo`
+  - `POST /deskapp/tramitesn/services/update`
+  - `POST /deskapp/tramitesn/services/delete`
+
 ### Header (Admin)
 - Dropdown de usuario sin “caret/flechita” extra.
 - Avatar/ícono estable (sin brincos al abrir dropdown).

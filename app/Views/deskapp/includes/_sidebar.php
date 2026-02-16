@@ -22,7 +22,7 @@
 					$isAdmin = (strpos($userRoleLower, 'admin') !== false || strpos($userRoleLower, 'superadmin') !== false);
 				?>
 
-				<?php if ($isAdmin || has_permission('menu_dashboard_admin', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+				<?php if ($isAdmin || has_permission('menu_dashboard_admin', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 				<!-- SECCIÓN: DASHBOARD ADMINISTRATIVO -->
 				<li class="menu-section-title">
 					<span><i class="fas fa-chart-line me-2"></i> Análisis y Reportes</span>
@@ -74,7 +74,7 @@
 
 
 				<!-- SECCIÓN: TRÁMITES -->
-				<?php if (has_permission('menu_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+				<?php if (has_permission('menu_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-file-alt me-2"></i> Gestión de Trámites</span>
 					</li>
@@ -84,32 +84,42 @@
 							<span class="mtext">Trámites</span>
 						</a>
 						<ul class="submenu">
-							<?php if (has_permission('listar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('listar_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramites/tramite'); ?>">
 									<i class="fas fa-list"></i> Todos los Trámites
 								</a></li>
 							<?php endif; ?>
-							<?php if (has_permission('listar_solicitudes_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('listar_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramitesn/tramite'); ?>">
+									<i class="fas fa-magic text-primary"></i> Trámites (nuevo flujo)
+								</a></li>
+							<?php endif; ?>
+							<?php if (has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramitesn/cobro_cliente'); ?>">
+									<i class="fas fa-receipt text-success"></i> Cobro a Cliente
+								</a></li>
+							<?php endif; ?>
+							<?php if (has_permission('listar_solicitudes_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramites/solicitudes'); ?>">
 									<i class="fas fa-clock"></i> Solicitudes Recientes
 								</a></li>
 							<?php endif; ?>
-							<?php if (has_permission('listar_recoleccion_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('listar_recoleccion_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramites/recoleccion'); ?>">
 									<i class="fas fa-file-download"></i> Recolección de Documentos
 								</a></li>
 							<?php endif; ?>	
-							<?php if (has_permission('listar_en_tramite_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('listar_en_tramite_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramites/en_tramite'); ?>">
 									<i class="fas fa-spinner"></i> En Trámite
 								</a></li>
 							<?php endif; ?>	
-							<?php if (has_permission('listar_mis_tramites', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('listar_mis_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramites/mios'); ?>">
 									<i class="fas fa-user-check"></i> Mis Trámites
 								</a></li>
 							<?php endif; ?>	
-							<?php if (has_permission('listar_tramites_concluidos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('listar_tramites_concluidos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/concluido/final'); ?>">
 									<i class="fas fa-check-circle"></i> Concluidos
 								</a></li>
@@ -138,7 +148,7 @@
 				</li> -->
 				
 				<!-- SECCIÓN: PROCESO FINAL -->
-				<?php if (has_permission('menu_proceso_final', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+				<?php if (has_permission('menu_proceso_final', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-flag-checkered me-2"></i> Cierre de Trámites</span>
 					</li>
@@ -148,12 +158,12 @@
 							<span class="mtext">Cierre</span>
 						</a>
 						<ul class="submenu">
-							<?php if (has_permission('listar_final_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('listar_final_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/proceso/final'); ?>">
 									<i class="fas fa-check-double text-success"></i> Finalizado
 								</a></li>
 							<?php endif; ?>	
-							<?php if (has_permission('listar_concluidos_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('listar_concluidos_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramites/cancelados'); ?>">
 									<i class="fas fa-times-circle text-danger"></i> Cancelados
 								</a></li>
@@ -163,7 +173,7 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: GESTORES -->
-				<?php if (has_permission('menu_gestores', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+				<?php if (has_permission('menu_gestores', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-handshake me-2"></i> Gestión de Gestores</span>
 					</li>
@@ -184,7 +194,7 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: CLIENTES -->
-				<?php if (has_permission('menu_clientes', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+				<?php if (has_permission('menu_clientes', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-users me-2"></i> Gestión de Clientes</span>
 					</li>
@@ -211,7 +221,7 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: CONFIGURACIÓN -->
-				<?php if (has_permission('menu_configuracion', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+				<?php if (has_permission('menu_configuracion', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-cog me-2"></i> Configuración del Sistema</span>
 					</li>
@@ -232,7 +242,7 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: DOCUMENTOS -->
-				<?php if (has_permission('menu_documentos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+				<?php if (has_permission('menu_documentos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-folder me-2"></i> Gestión Documental</span>
 					</li>
@@ -253,7 +263,7 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: PERMISOS Y USUARIOS -->
-				<?php if (has_permission('menu_roles', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+				<?php if (has_permission('menu_roles', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-shield-alt me-2"></i> Seguridad y Accesos</span>
 					</li>

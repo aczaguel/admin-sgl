@@ -1,36 +1,87 @@
 <?php
+
+if (! function_exists('normalize_permission_list')) {
+    function normalize_permission_list($value): array
+    {
+        if ($value === null) {
+            return [];
+        }
+
+        if (is_array($value)) {
+            return array_values($value);
+        }
+
+        if (is_string($value)) {
+            $decoded = html_entity_decode($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            $decoded = trim($decoded);
+
+            if ($decoded === '') {
+                return [];
+            }
+
+            $json = json_decode($decoded, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
+                return array_values($json);
+            }
+
+            if (strpos($decoded, ',') !== false) {
+                $parts = array_map('trim', explode(',', $decoded));
+                $parts = array_filter($parts, static function ($p) {
+                    return $p !== '';
+                });
+                return array_values($parts);
+            }
+
+            return [$decoded];
+        }
+
+        if (is_scalar($value)) {
+            return [(string) $value];
+        }
+
+        return [];
+    }
+}
+
 if (! function_exists('has_permission')) {
     function has_permission($required_permission, $user_permissions, $roles) {
+        $roles = normalize_permission_list($roles);
         if (is_super_admin($roles)) {
             return true;
         }
-        return in_array($required_permission, $user_permissions);
+
+        $user_permissions = normalize_permission_list($user_permissions);
+        return in_array($required_permission, $user_permissions, true);
     }
 }
 if (! function_exists('is_super_admin')) {
-    function is_super_admin(array $roles)
+    function is_super_admin($roles)
     {
-        return in_array("Super Admin", $roles);
+        $roles = normalize_permission_list($roles);
+        return in_array("Super Admin", $roles, true);
     }
 }
 
 if (! function_exists('is_admin')) {
-    function is_admin(array $roles)
+    function is_admin($roles)
     {
-        return in_array("Admin", $roles);
+        $roles = normalize_permission_list($roles);
+        return in_array("Admin", $roles, true);
     }
 }
 
 if (! function_exists('is_client')) {
-    function is_client(array $roles)
+    function is_client($roles)
     {
-        return in_array("Cliente", $roles);
+        $roles = normalize_permission_list($roles);
+        return in_array("Cliente", $roles, true);
     }
 }
 
 if (! function_exists('is_read_only')) {
-    function is_read_only(array $roles)
+    function is_read_only($roles)
     {
+        $roles = normalize_permission_list($roles);
         $roRoles = ['Starter', 'Cliente', 'Viewer', 'Executer'];
         foreach ($roRoles as $role) {
             if (in_array($role, $roles)) {
@@ -42,8 +93,9 @@ if (! function_exists('is_read_only')) {
 }
 
 if (! function_exists('is_starter')) {
-    function is_starter(array $roles)
+    function is_starter($roles)
     {
+        $roles = normalize_permission_list($roles);
         $roRoles = ['Starter'];
         foreach ($roRoles as $role) {
             if (in_array($role, $roles)) {
@@ -55,8 +107,9 @@ if (! function_exists('is_starter')) {
 }
 
 if (! function_exists('is_executer')) {
-    function is_executer(array $roles)
+    function is_executer($roles)
     {
+        $roles = normalize_permission_list($roles);
         $roRoles = ['Executer'];
         foreach ($roRoles as $role) {
             if (in_array($role, $roles)) {
@@ -68,8 +121,9 @@ if (! function_exists('is_executer')) {
 }
 
 if (! function_exists('is_upper_role')) {
-    function is_upper_role(array $roles)
+    function is_upper_role($roles)
     {
+        $roles = normalize_permission_list($roles);
         $roRoles = ['Executer', 'Super Admin', 'Admin'];
         foreach ($roRoles as $role) {
             if (in_array($role, $roles)) {

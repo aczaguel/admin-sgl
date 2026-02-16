@@ -167,9 +167,18 @@
                             <h4 class="h4 text-blue">
                                 <i class="icon-copy fa fa-file-invoice-dollar"></i> Aging Report - Detalle Completo
                             </h4>
-                            <button class="btn btn-sm btn-success" onclick="exportarExcel()">
-                                <i class="icon-copy fa fa-file-excel"></i> Exportar a Excel
-                            </button>
+                            <?php
+                                $roles = $session->get('user_roles') ?? [];
+                                if (!is_array($roles)) { $roles = [$roles]; }
+                                $perms = $session->get('user_permissions') ?? [];
+                                if (!is_array($perms)) { $perms = [$perms]; }
+                                $canExport = is_super_admin($roles) || is_admin($roles) || has_permission('menu_dashboard_admin', $perms, $roles);
+                            ?>
+                            <?php if ($canExport): ?>
+                                <button class="btn btn-sm btn-success" onclick="exportarExcel()">
+                                    <i class="icon-copy fa fa-file-excel"></i> Exportar a Excel
+                                </button>
+                            <?php endif; ?>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-striped data-table-export nowrap" id="aging-table">

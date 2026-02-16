@@ -122,6 +122,16 @@ class Customers extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+
+            if (!$myid) {
+                return redirect()->to('/deskapp/auth/login');
+            }
+
+            $perms = $session->get('user_permissions');
+            $roles = $session->get('user_roles');
+            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_final_tramite', $perms, $roles)) {
+                return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para ver trámites.');
+            }
             
             $crud = $this->_getGroceryCrudEnterprise();
             // $crud->where([
@@ -225,13 +235,13 @@ class Customers extends BaseController
             $crud->readOnlyFields(["folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id", "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id",
             "gestor_id", "fecha_asignacion", "fecha_conclusion", "numero_factura", "numero_refactura", "reembolso_status_id", "tra_status_id", "observaciones"]);
             
-            if (!has_permission('export_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('export_final_tramite', $perms, $roles)){
                 $crud->unsetExport();
             }
-            if (!has_permission('print_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('print_final_tramite', $perms, $roles)){
                 $crud->unsetPrint();
             }
-            if (!has_permission('read_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('read_final_tramite', $perms, $roles)){
                 $crud->unsetRead();
             }
             
@@ -291,6 +301,17 @@ class Customers extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
+
+        if (!$myid) {
+            return redirect()->to('/deskapp/auth/login');
+        }
+
+        $perms = $session->get('user_permissions');
+        $roles = $session->get('user_roles');
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_final_tramite', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
         $db = \Config\Database::connect();
         $builder = $db->table('tramite');
         $db2 = $this->_getDbData();
@@ -396,7 +417,6 @@ class Customers extends BaseController
         $form->js_files = $crudOutput->js_files;
         
         // Load the view with the fields and current data
-        // if (!is_read_only(esc($session->get('user_roles')))){
         $cruddocstatus = $this->_getGroceryCrudEnterprise();
         $cruddocstatus->setApiUrlPath('/deskapp/customers/proceso_documentostatus/'.$id);
         $output = $cruddocstatus->render();
@@ -459,9 +479,25 @@ class Customers extends BaseController
         $db2 = $this->_getDbData();
         $self = $this;
 
+        $myid = $session->get('id');
+        if (!$myid) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+        }
+
+        $perms = $session->get('user_permissions');
+        $roles = $session->get('user_roles');
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_final_tramite', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        if (!$tramite_id || !validate_tramite_access($tramite_id, $myid)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
@@ -604,10 +640,27 @@ class Customers extends BaseController
         $data['username'] = $session->get('user_name');
         $db2 = $this->_getDbData();
         $self = $this;
+
+        $myid = $session->get('id');
+        if (!$myid) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+        }
+
+        $perms = $session->get('user_permissions');
+        $roles = $session->get('user_roles');
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_final_tramite', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
         $request = \Config\Services::request();
 
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        if (!$tramite_id || !validate_tramite_access($tramite_id, $myid)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
@@ -775,10 +828,26 @@ class Customers extends BaseController
         $data['username'] = $session->get('user_name');
         $db2 = $this->_getDbData();
         $self = $this;
+
+        $myid = $session->get('id');
+        if (!$myid) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+        }
+
+        $perms = $session->get('user_permissions');
+        $roles = $session->get('user_roles');
+        if (!(is_super_admin($roles) || is_admin($roles)) && (!has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_pago_derechos', $perms, $roles))) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
         $request = \Config\Services::request();
 
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        if (!$tramite_id || !validate_tramite_access($tramite_id, $myid)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());
@@ -919,9 +988,25 @@ class Customers extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $self = $this;
+
+        $myid = $session->get('id');
+        if (!$myid) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+        }
+
+        $perms = $session->get('user_permissions');
+        $roles = $session->get('user_roles');
+        if (!(is_super_admin($roles) || is_admin($roles)) && (!has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_final_costos', $perms, $roles))) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        if (!$tramite_id || !validate_tramite_access($tramite_id, $myid)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());

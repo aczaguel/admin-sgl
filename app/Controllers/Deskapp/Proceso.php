@@ -29,7 +29,7 @@ class Proceso extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url', 'cliente_filter', 'cliente_context']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context', 'permissions']);
 
         $session = session();
         $userId = $session->get('id');
@@ -78,6 +78,16 @@ class Proceso extends BaseController
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+
+        // Catálogos: restringir a Admin/Super Admin
+        if (!(is_super_admin($roles) || is_admin($roles))) {
+            return $this->response->setStatusCode(403)->setBody('Acceso denegado');
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
 
@@ -116,6 +126,16 @@ class Proceso extends BaseController
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+
+        // Catálogos: restringir a Admin/Super Admin
+        if (!(is_super_admin($roles) || is_admin($roles))) {
+            return $this->response->setStatusCode(403)->setBody('Acceso denegado');
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
 
@@ -142,8 +162,35 @@ class Proceso extends BaseController
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
+
+        $myid = (int) ($session->get('id') ?? 0);
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_tramite', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
+        // Multi-tenancy: el trámite debe pertenecer a los clientes del usuario
+        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+            throw new \Exception('Trámite no autorizado');
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
+
+        // Endurecer: si no tiene permiso de edición, no permitir mutaciones vía API
+        if (!has_permission('editar_tramite', $perms, $roles)) {
+            $crud->unsetAdd();
+            $crud->unsetEdit();
+            $crud->unsetDelete();
+            $crud->unsetClone();
+        }
 
         $crud->setCsrfTokenName(csrf_token());
         $crud->setCsrfTokenValue(csrf_hash());
@@ -270,6 +317,14 @@ class Proceso extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
@@ -283,31 +338,31 @@ class Proceso extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('editar_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('delete_tramite', $perms, $roles)){
                 $tramite_crud->unsetDelete();
             }
 
-            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('export_tramite', $perms, $roles)){
                 $tramite_crud->unsetExport();
             }
 
-            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
             }
 
-            if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('clone_tramite', $perms, $roles)){
                 $tramite_crud->unsetClone();
             }
 
@@ -479,6 +534,14 @@ class Proceso extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
             $crud = $this->_getGroceryCrudEnterprise();
             $crud->where([
                 'tra_status_id' => 23                                                                                                                                                                                                                                                                                                                                  
@@ -548,13 +611,13 @@ class Proceso extends BaseController
             $crud->readOnlyFields(["folio", "contrato", "unidad", "serie", "placas", "tra_tipos_id", "cli_directo_id", "cli_directo_ejecutivo_id", "empresa_gestora_id",
             "gestor_id", "fecha_asignacion", "fecha_conclusion", "numero_factura", "numero_refactura", "reembolso_status_id", "tra_status_id", "observaciones"]);
             
-            if (!has_permission('export_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('export_final_tramite', $perms, $roles)){
                 $crud->unsetExport();
             }
-            if (!has_permission('print_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('print_final_tramite', $perms, $roles)){
                 $crud->unsetPrint();
             }
-            if (!has_permission('read_final_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('read_final_tramite', $perms, $roles)){
                 $crud->unsetRead();
             }
             
@@ -618,9 +681,27 @@ class Proceso extends BaseController
         $db2 = $this->_getDbData();
         $self = $this;
 
+        $myid = (int) ($session->get('id') ?? 0);
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_final_tramite', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+            throw new \Exception('Trámite no autorizado');
+        }
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
@@ -765,8 +846,26 @@ class Proceso extends BaseController
         $self = $this;
         $request = \Config\Services::request();
 
+        $myid = (int) ($session->get('id') ?? 0);
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_final_tramite', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+            throw new \Exception('Trámite no autorizado');
+        }
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
@@ -936,8 +1035,26 @@ class Proceso extends BaseController
         $self = $this;
         $request = \Config\Services::request();
 
+        $myid = (int) ($session->get('id') ?? 0);
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_pago_derechos', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+            throw new \Exception('Trámite no autorizado');
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());
@@ -1081,6 +1198,24 @@ class Proceso extends BaseController
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $myid = (int) ($session->get('id') ?? 0);
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_final_costos', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
+        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+            throw new \Exception('Trámite no autorizado');
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());
@@ -1208,7 +1343,27 @@ class Proceso extends BaseController
         $builder = $db->table('tramite');
         $db2 = $this->_getDbData();
         // Retrieve the record
-        $tramite = $builder->getWhere(['id' => $id])->getRowArray();
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_tramite', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
+        if ((int) $id <= 0 || !validate_tramite_access((int) $id, (int) $myid)) {
+            throw new \Exception('Trámite no autorizado');
+        }
+
+        $tramite = $builder->getWhere(['id' => (int) $id])->getRowArray();
+        if (!$tramite) {
+            throw new \Exception('Trámite no autorizado o no encontrado');
+        }
 
         $TraTiposModel = new TraTiposModel($db2);
         $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
@@ -1302,7 +1457,6 @@ class Proceso extends BaseController
         $form->js_files = $crudOutput->js_files;
         
         // Load the view with the fields and current data
-        // if (!is_read_only(esc($session->get('user_roles')))){
         $cruddocstatus = $this->_getGroceryCrudEnterprise();
         $cruddocstatus->setApiUrlPath('/deskapp/proceso/concluido_documentostatus/'.$id);
         $output = $cruddocstatus->render();
@@ -1341,9 +1495,27 @@ class Proceso extends BaseController
         $db2 = $this->_getDbData();
         $self = $this;
 
+        $myid = (int) ($session->get('id') ?? 0);
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_tramite', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+            throw new \Exception('Trámite no autorizado');
+        }
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
@@ -1488,8 +1660,26 @@ class Proceso extends BaseController
         $self = $this;
         $request = \Config\Services::request();
 
+        $myid = (int) ($session->get('id') ?? 0);
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_tramite', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+            throw new \Exception('Trámite no autorizado');
+        }
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
@@ -1659,8 +1849,26 @@ class Proceso extends BaseController
         $self = $this;
         $request = \Config\Services::request();
 
+        $myid = (int) ($session->get('id') ?? 0);
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_tramite', $perms, $roles) || !has_permission('section_pago_derechos', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+            throw new \Exception('Trámite no autorizado');
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());
@@ -1804,6 +2012,24 @@ class Proceso extends BaseController
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $myid = (int) ($session->get('id') ?? 0);
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_tramite', $perms, $roles) || !has_permission('section_final_costos', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
+        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+            throw new \Exception('Trámite no autorizado');
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());

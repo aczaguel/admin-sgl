@@ -44,8 +44,52 @@ class Users extends BaseController
         helper(['form', 'url', 'cliente_filter']);
     }
 
+    private function guardManagementAccess()
+    {
+        $session = session();
+        $userId = $session->get('id');
+        $isApi = $this->request->isAJAX() || $this->request->getGet('gc_state') !== null;
+
+        if (!$userId) {
+            if ($isApi) {
+                return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+            }
+            return redirect()->to('/deskapp/auth/login');
+        }
+
+        $perms = $session->get('user_permissions');
+        $roles = $session->get('user_roles');
+        $canManage = has_permission('menu_roles', $perms, $roles) || has_permission('menu_permisos', $perms, $roles);
+
+        if (!(is_super_admin($roles) || is_admin($roles)) && !$canManage) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+            }
+            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para administrar usuarios.');
+        }
+
+        return null;
+    }
+
+    private function guardSessionOnly(bool $json = false)
+    {
+        $session = session();
+        $userId = $session->get('id');
+        if (!$userId) {
+            if ($json) {
+                return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+            }
+            return redirect()->to('/deskapp/auth/login');
+        }
+        return null;
+    }
+
     public function index()
     {
+        if ($resp = $this->guardManagementAccess()) {
+            return $resp;
+        }
+
         $output = (object)[
             'js_files' => [],
             'output' => ''
@@ -75,6 +119,10 @@ class Users extends BaseController
      */
     public function users(){
         try {
+            if ($resp = $this->guardManagementAccess()) {
+                return $resp;
+            }
+
             $db2 = $this->_getDbData();
             $session = session();
             $session->get('user_permissions');
@@ -151,11 +199,7 @@ class Users extends BaseController
                 $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
                 // Comprueba y encripta la contraseña
                 if (isset($stateParameters->data['password']) && !empty($stateParameters->data['password'])) {
-                    log_message('error', 'Original Password: ' . $stateParameters->data['password']); // Log the original password
                     $stateParameters->data['password'] = password_hash($stateParameters->data['password'], PASSWORD_DEFAULT);
-                    log_message('error', 'Hashed Password: ' . $stateParameters->data['password']); // Log the hashed password
-                }else{
-                    log_message('error', 'Hashed Password: No existe el campo'); // Log the hashed password
                 }
                 
                 return $stateParameters;
@@ -295,6 +339,10 @@ class Users extends BaseController
     
     public function get_debug_info()
     {
+        if ($resp = $this->guardManagementAccess()) {
+            return $resp;
+        }
+
         // Endpoint para obtener información de debug
         $session = session();
         $debugInfo = [
@@ -314,6 +362,10 @@ class Users extends BaseController
     public function user_roles()
     {
         try {
+            if ($resp = $this->guardManagementAccess()) {
+                return $resp;
+            }
+
             $session = session();
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
@@ -392,6 +444,10 @@ class Users extends BaseController
     }
     public function profile()
     {
+        if ($resp = $this->guardSessionOnly(false)) {
+            return $resp;
+        }
+
         $db = \Config\Database::connect();
         $session = session();
         $userModel = new UserModel($db);
@@ -410,6 +466,10 @@ class Users extends BaseController
 
     public function update_profile()
     {
+        if ($resp = $this->guardSessionOnly(false)) {
+            return $resp;
+        }
+
         $db = \Config\Database::connect();
         $session = session();
         $userModel = new UserModel($db);
@@ -495,6 +555,10 @@ class Users extends BaseController
 
     public function update_password()
     {
+        if ($resp = $this->guardSessionOnly(false)) {
+            return $resp;
+        }
+
         $db = \Config\Database::connect();
         $session = session();
         $userModel = new UserModel($db);
@@ -539,6 +603,10 @@ class Users extends BaseController
      */
     public function delete_avatar()
     {
+        if ($resp = $this->guardSessionOnly(true)) {
+            return $resp;
+        }
+
         $session = session();
         $userId = $session->get('id');
         

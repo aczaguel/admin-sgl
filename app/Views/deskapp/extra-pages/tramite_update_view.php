@@ -280,10 +280,10 @@ if (isset($tra_status_id)) {
 			</div>
 
 			<!-- Botones de acciones -->
-			<?php if (has_permission('important_cancelar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles'))) || 
-			          has_permission('important_concluir_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+			<?php if (has_permission('important_cancelar_tramite', $session->get('user_permissions'), $session->get('user_roles')) || 
+			          has_permission('important_concluir_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 				<div class="header-actions">
-					<?php if (has_permission('important_cancelar_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('important_cancelar_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 						<?php if ($tra_status_id == 11) { ?>
 							<button type="button" class="btn-modern btn-warning" onclick="changeStatusTramite(<?php echo $id;?>, 29)">
 								<i class="fas fa-file-invoice"></i>
@@ -298,7 +298,7 @@ if (isset($tra_status_id)) {
 						<?php } ?>
 					<?php endif; ?>
 
-				<?php if (has_permission('important_concluir_tramite', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+				<?php if (has_permission('important_concluir_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<?php if (in_array($tra_status_id, array(28))) : ?>
 						<button type="button" class="btn-modern btn-success" onclick="concluirTramite(<?php echo $id;?>, 20)">
 							<i class="fas fa-check-circle"></i>
@@ -342,7 +342,7 @@ if (isset($tra_status_id)) {
 				</button>
 
 				<!-- Botón Pago al Gestor -->
-				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
+				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21]) && has_permission('section_pago_gestor', $session->get('user_permissions'), $session->get('user_roles'))) : ?>
 					<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-pago-gestor">
 						<div class="ribbon-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
 							<i class="fas fa-hand-holding-usd"></i>
@@ -404,7 +404,7 @@ if (isset($tra_status_id)) {
 						</div>
 						<div id="wizard" class="wizard-modern">
 							<!-- Step 1: Datos principales -->
-							<?php if (has_permission('section_inicial_datos', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('section_inicial_datos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<h3>Información</h3>
 								<section>
 									<div class="min-height-200px">
@@ -431,7 +431,7 @@ if (isset($tra_status_id)) {
 										<div id="service-list">
 											<!-- Aquí se pintarán dinámicamente los tipos de servicio -->
 										</div>
-										<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'botones_agregar_servicio', $reembolso_status_id, $cobro_status_id, 1)): ?>
+										<?php if(puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'botones_agregar_servicio', $reembolso_status_id, $cobro_status_id, 1)): ?>
 										<button type="button" id="add-service" class="btn-wizard btn-primary mt-3">
 											<i class="fas fa-plus-circle"></i> Agregar Servicio
 										</button>
@@ -447,7 +447,7 @@ if (isset($tra_status_id)) {
 							<?php endif; ?>			
 							<!-- Step 2: Asignacion de Gestor -->
 							
-							<?php if (has_permission('section_asigna_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('section_asigna_gestor', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<h3>Gestor</h3>
 								<section>
 									<div class="min-height-200px">
@@ -473,7 +473,7 @@ if (isset($tra_status_id)) {
 									</script>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_pago_derechos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
+							<?php if (has_permission('section_pago_derechos', $session->get('user_permissions'), $session->get('user_roles')) && !in_array($tra_status_id, [11])): ?>
 								<!-- Step 3: La forma en que se pagan los derechos -->
 						<h3>Pago de Derechos</h3>
 						<section>
@@ -509,8 +509,8 @@ if (isset($tra_status_id)) {
 									$step_actual = isset($arr_status[$tra_status_id]) ? $arr_status[$tra_status_id] : 1;
 									
 									// Solo mostrar el botón si estamos en step 3 o inferior (no aprobado aún)
-									if (has_permission('important_pasar_a_pagos', esc($session->get('user_permissions')),esc($session->get('user_roles')))):
-										if($step_actual <= 3 && puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'boton_aprobar_tramite', $reembolso_status_id, $cobro_status_id, 3)): ?>
+														if (has_permission('important_pasar_a_pagos', $session->get('user_permissions'), $session->get('user_roles'))):
+															if($step_actual <= 3 && puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'boton_aprobar_tramite', $reembolso_status_id, $cobro_status_id, 3)): ?>
 											<?php if ($paso3_completo): ?>
 												<div class="alert alert-info approval-ready" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50; border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 20px; box-shadow: 0 4px 6px rgba(76, 175, 80, 0.15);">
 													<div style="flex-shrink: 0;">
@@ -567,7 +567,7 @@ if (isset($tra_status_id)) {
 									<h5 class="dropzone-title">
 										<i class="fas fa-cloud-upload-alt"></i> Documentos de Derechos
 									</h5>
-									<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'step3_upload', $reembolso_status_id, $cobro_status_id, 3)): ?>									<!-- Contenedor Dropzone -->
+									<?php if(puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'step3_upload', $reembolso_status_id, $cobro_status_id, 3)): ?>									<!-- Contenedor Dropzone -->
 									<div class="dropzone-container">											<form class="dropzone dropzone-documentos dropzone-compact" id="miDropzone">
 												<div class="dz-default dz-message">
 													<button class="dz-button" type="button">
@@ -594,10 +594,17 @@ if (isset($tra_status_id)) {
 								</div>
 							</div>
 						</div> <!-- Cierra form-dropzone-grid -->
+						<?php if (isset($sumatoria_derechos)):
+							$sumDerechosNum = (float)$sumatoria_derechos;
+						?>
+							<div class="mt-3 alert alert-light" style="border: 1px solid #e9ecef; border-radius: 12px;">
+								<strong>Sumatoria de Derechos:</strong> $<?= number_format($sumDerechosNum, 2) ?>
+							</div>
+						<?php endif; ?>
 						</section>
 							<?php endif; ?>
-							<?php if (in_array($tra_status_id, [23, 28, 20, 21])) : ?>
-								<?php if (has_permission('section_pago_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles'))) ): ?>
+							<?php if (in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
+								<?php if (has_permission('section_pago_gestor', $session->get('user_permissions'), $session->get('user_roles')) ): ?>
 									<!-- Step 4: Se paga al gestor -->
 									<h3>Pago a Gestor</h3>
 									<section>
@@ -631,7 +638,7 @@ if (isset($tra_status_id)) {
 											<h5 class="dropzone-title">
 												<i class="fas fa-cloud-upload-alt"></i> Documentos de Pago
 											</h5>
-											<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'upload_pago_gestor', $reembolso_status_id, $cobro_status_id, 4)): ?>
+											<?php if(puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'upload_pago_gestor', $reembolso_status_id, $cobro_status_id, 4)): ?>
 													<!-- Contenedor Dropzone -->
 													<div class="dropzone-container">
 														<form class="dropzone dropzone-gestor dropzone-compact" id="miDropzoneGestor">
@@ -659,7 +666,7 @@ if (isset($tra_status_id)) {
 									</div> <!-- Cierra form-dropzone-grid -->
 									</section>
 								<?php endif; ?>
-								<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) ): ?>
+								<?php if (has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles')) ): ?>
 									<!-- Step 5: Se cobra al cliente -->
 									<h3>Cobro a Cliente</h3>
 									<section>
@@ -688,7 +695,7 @@ if (isset($tra_status_id)) {
 												<h5 class="dropzone-title">
 													<i class="fas fa-cloud-upload-alt"></i> Documentos
 												</h5>
-												<?php if(puede_editar_modulo(esc($session->get('user_roles')), $tra_status_id, 'upload_cobro_cliente', $reembolso_status_id, $cobro_status_id, 5)): ?>
+												<?php if(puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'upload_cobro_cliente', $reembolso_status_id, $cobro_status_id, 5)): ?>
 												<!-- Contenedor Dropzone -->
 												<div class="dropzone-container">
 												<form class="dropzone dropzone-cliente dropzone-compact" id="miDropzoneCliente">
@@ -720,7 +727,7 @@ if (isset($tra_status_id)) {
 								</div> <!-- Cierra form-dropzone-grid -->
 								</section>
 			<?php endif; ?>
-			<?php endif; ?> <!-- Cierra el if de línea 293: in_array($tra_status_id, [23, 28, 20, 21]) -->
+			<?php endif; ?> <!-- Cierra el if: in_array($tra_status_id, [23, 27, 28, 20, 21]) -->
 				</div> <!-- Cierra wizard-modern -->
 				</div> <!-- Cierra pd-20 -->
 			</div> <!-- Cierra tramite-content-wrapper -->
@@ -1054,36 +1061,33 @@ if (isset($tra_status_id)) {
 			}
 
 			function initStepperSync() {
-				// Step fijo basado en estatus (backend). Ej: step 4 => wiz_step = 3.
-				var statusStepIndex = clampInt((typeof window.wiz_step !== 'undefined') ? window.wiz_step : 0, 0, 99);
-				var lockToStatus = (statusStepIndex === 3);
-
-				// 1) Pintar con el step sugerido por backend (derivado de tra_status)
-				renderStepper(statusStepIndex);
-
-				// 2) Si NO está bloqueado, alinear con el step visible del wizard
-				if (!lockToStatus) {
-					var idx = getCurrentWizardIndex();
-					if (idx !== null) {
-						renderStepper(idx);
-					}
+				function statusToStepIndex(statusId) {
+					var id = clampInt(statusId, 0, 999);
+					// Mapeo de estatus a steps del wizard (0-4)
+					// 0: Información, 1: Gestor, 2: Pago Derechos, 3: Pago Gestor, 4: Cobro Cliente
+					var map = {
+						11: 0,
+						22: 1,
+						25: 2,
+						26: 2,
+						27: 2,
+						23: 3,
+						28: 4,
+						20: 4,
+						21: 4,
+						29: 0
+					};
+					return (typeof map[id] !== 'undefined') ? map[id] : 0;
 				}
 
-				// 3) Escuchar cambios del wizard (eventos de jQuery Steps)
-				// Si está bloqueado (step 4), NO mover el gusanito aunque naveguen tabs.
+				// Siempre fijo al estatus actual (no se mueve al navegar en el wizard)
+				var statusStepIndex = clampInt(statusToStepIndex(window.tra_status_id), 0, 4);
+				renderStepper(statusStepIndex);
+
 				if (window.jQuery) {
 					var $wizard = window.jQuery('#wizard');
-					$wizard.on('stepChanged', function(event, currentIndex) {
-						if (lockToStatus) {
-							renderStepper(statusStepIndex);
-							return;
-						}
-						if (typeof currentIndex === 'number') {
-							renderStepper(currentIndex);
-							return;
-						}
-						var fallbackIdx = getCurrentWizardIndex();
-						if (fallbackIdx !== null) renderStepper(fallbackIdx);
+					$wizard.on('stepChanged', function() {
+						renderStepper(statusStepIndex);
 					});
 				}
 			}

@@ -355,7 +355,7 @@
 						</div>
 					</div>
 					<div class="dropdown-divider"></div>
-					<?php if (has_permission('listar_settings', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('listar_settings', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-user1"></i> Profile</a>
 						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-settings2"></i> Setting</a>
 						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/faq'); ?>"><i class="dw dw-help"></i> Help</a>
