@@ -156,7 +156,7 @@ if (isset($tra_status_id)) {
 			<div class="header_wizard-bottom">
 				<strong>FOLIO: <?php echo (isset($folio)?$folio:"");?> </strong>
 			</div>
-			<?php if (has_permission('important_cancelar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
+			<?php if (has_permission('important_cancelar_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 				<div class="header_wizard-bottom">
 					<div>
 						<button type="button" class="btn btn-lg btn-danger" data-toggle="modal" data-target="#Medium-modal"">
@@ -207,7 +207,7 @@ if (isset($tra_status_id)) {
 					<div class="pd-20">
 						<div id="wizard">
 							<!-- Step 1: Datos principales -->
-							<?php if (has_permission('section_inicial_datos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('section_inicial_datos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 
 								<h3>Información</h3>
 								<section>
@@ -232,7 +232,7 @@ if (isset($tra_status_id)) {
 							<?php endif; ?>					
 							<!-- Step 2: Asignacion de Gestor -->
 							
-							<?php if (has_permission('section_asigna_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('section_asigna_gestor', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<h3>Gestor</h3>
 								<section>
 									<div class="min-height-200px">
@@ -255,7 +255,7 @@ if (isset($tra_status_id)) {
 									</script>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_pago_derechos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
+							<?php if (has_permission('section_pago_derechos', $session->get('user_permissions'), $session->get('user_roles')) && !in_array($tra_status_id, [11])): ?>
 								<!-- Step 3: La forma en que se pagan los derechos -->
 								<h3>Pago de Derechos</h3>
 								<section>
@@ -274,7 +274,7 @@ if (isset($tra_status_id)) {
 									</div>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_linea_captura', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
+							<?php if (has_permission('section_linea_captura', $session->get('user_permissions'), $session->get('user_roles')) && !in_array($tra_status_id, [11])): ?>
 								<!-- Step 4: Solo se agrega la linea de captura -->
 								<h3>Linea de Captura</h3>
 								<section>
@@ -293,11 +293,11 @@ if (isset($tra_status_id)) {
 									</div>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_documentos_pago', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && !in_array($tra_status_id, [11])): ?>
+							<?php if (has_permission('section_documentos_pago', $session->get('user_permissions'), $session->get('user_roles')) && !in_array($tra_status_id, [11])): ?>
 								<!-- Step 5: Todos los documentos relacionados con el proceso en ventanilla -->
 								<h3>Documentos de Pago</h3>
 								<section>
-									<?php if (has_permission('important_pasar_a_pagos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
+									<?php if (has_permission('important_pasar_a_pagos', $session->get('user_permissions'), $session->get('user_roles'))): 
 										if (!in_array($tra_status_id, array(20, 23, 21))) : ?>
 											<button type="button" class="btn btn-danger" id="" onclick="changeStatusTramite(<?php echo $id;?>, 23)">Aprobar Trámite</button>
 									<?php endif; 
@@ -333,7 +333,7 @@ if (isset($tra_status_id)) {
 
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_pago_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
+							<?php if (has_permission('section_pago_gestor', $session->get('user_permissions'), $session->get('user_roles')) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
 								<!-- Step 6: Se paga al gestor -->
 								<h3>Pago a Gestor</h3>
 								<section>
@@ -382,7 +382,7 @@ if (isset($tra_status_id)) {
 								</div>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_final_costos', esc($session->get('user_permissions')),esc($session->get('user_roles'))) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
+							<?php if (has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles')) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
 								<!-- Step 7: Se cobra al cliente -->
 								<h3>Cobro a Cliente</h3>
 								<section>
@@ -399,7 +399,7 @@ if (isset($tra_status_id)) {
 											$show_buttons = false;
 											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons); 
 										?>	
-										<?php if (has_permission('important_concluir_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))): 
+										<?php if (has_permission('important_concluir_tramite', $session->get('user_permissions'), $session->get('user_roles'))): 
 												if (!in_array($tra_status_id, array(20, 21))) : ?>
 													<button type="button" class="btn btn-danger" id="" onclick="changeStatusTramite(<?php echo $id;?>, 20)">Concluir Trámite</button>
 											<?php endif; 

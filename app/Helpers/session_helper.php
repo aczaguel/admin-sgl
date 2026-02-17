@@ -7,12 +7,12 @@ function getUserSessionData() {
 
 function getPermissions() {
     $session = session();
-    return esc($session->get('user_permissions'));
+    return $session->get('user_permissions');
 }
 
 function getRoles() {
     $session = session();
-    return esc($session->get('user_roles'));
+    return $session->get('user_roles');
 }
 
 function isUserLoggedIn() {

@@ -1,7 +1,12 @@
 
 "use strict";
 function loadDependentData(type, parentId, targetId, selectedId = null) {
-    console.log("loadDependentData");
+    if (!parentId || parentId === 'null') {
+      return;
+    }
+    if (!document.getElementById(targetId)) {
+      return;
+    }
   $.ajax({
       url: `/deskapp/tramites/getDependentData/${type}/${parentId}`,
       method: 'GET',
@@ -84,12 +89,17 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
 
     // Agregar listeners para los campos padres
     $('#empresa_gestora_id').on('change', function() {
-        loadDependentData('gestor', $(this).val(), 'gestor_id');
+      var value = $(this).val();
+      if (value) {
+        loadDependentData('gestor', value, 'gestor_id');
+      }
     });
 
     $('#cli_directo_id').on('change', function() {
-        console.log("cargando ejecutivos");
-        loadDependentData('ejecutivo', $(this).val(), 'cli_directo_ejecutivo_id');
+      var value = $(this).val();
+      if (value) {
+        loadDependentData('ejecutivo', value, 'cli_directo_ejecutivo_id');
+      }
     });
 
     // Carga inicial para formularios de actualización
@@ -107,7 +117,7 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
 
 
   // Form submission handler
-  $('#tramiteForm').on('submit', function(event) {
+  $('#tramiteForm').on('submit.sglAddFetch', function(event) {
     event.preventDefault();
 
     let form = event.target;
@@ -143,11 +153,12 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
         errorAlert.className = 'alert alert-danger alert-dismissible fade show';
         errorAlert.setAttribute('role', 'alert');
 
-        let errorList = '<strong>Error:</strong> No se pudo guardar el trámite. Por favor, revise los campos marcados.';
+        let errorList = '<strong>Error:</strong> No se pudo guardar el trámite.' +
+          '<div class="mt-2"><ul class="mb-0 pl-3">';
         
         if (data !== "undefined" && data.success === false) {
           if (typeof data.message !== "undefined") {
-            errorList += `<li>${mapErrorMessage(data.message)}</li>`;
+            errorList += formatErrorMessage(data.message);
           } else if (typeof data.errors !== "undefined") {
             for (let field in data.errors) {
               if (data.errors.hasOwnProperty(field)) {
@@ -158,7 +169,7 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
             errorList += `<li>Ocurrió un error desconocido.</li>`;
           }
         }
-
+        errorList += '</ul></div>';
         errorAlert.innerHTML = errorList;
         form.prepend(errorAlert);
       }
@@ -171,25 +182,53 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
       form.prepend(errorAlert);
     });
   });
-  function mapErrorMessage(message) {
+      function formatErrorMessage(message) {
+      if (message && typeof message === 'object') {
+        let items = '';
+        if (message.serie_existente) {
+          items += '<li><strong>Serie existente:</strong> ' + message.serie_existente + '</li>';
+        }
+        if (message.tipo_tramite_existente) {
+          items += '<li><strong>Tipo:</strong> ' + message.tipo_tramite_existente + '</li>';
+        }
+        if (message.nombre_usuario_existente) {
+          items += '<li><strong>Creado por:</strong> ' + message.nombre_usuario_existente + '</li>';
+        }
+        if (message.created_at_existente) {
+          items += '<li><strong>Fecha:</strong> ' + message.created_at_existente + '</li>';
+        }
+        if (message.id_existente) {
+          items += '<li><a href="/deskapp/tramites/update/' + message.id_existente + '" target="_blank">Abrir trámite existente</a></li>';
+        }
+        return items || '<li>Ocurrió un error desconocido.</li>';
+      }
+
+      return '<li>' + mapErrorMessage(message) + '</li>';
+      }
+
+      function mapErrorMessage(message) {
     const errorMap = {
-        'ent_municipio_id': 'Hubo un error en el campo Municipio',
-        'tra_tipos_id': 'El tipo de trámite es requerido',
-        'cli_directo_id': 'El cliente directo es requerido',
-        'cli_directo_ejecutivo_id': 'El ejecutivo del cliente es requerido',
-        'contrato': 'El campo contrato es requerido',
-        'unidad': 'El campo unidad es requerido',
-        'serie': 'El campo serie es requerido',
-        'placas': 'El campo placas es requerido'
+      'ent_municipio_id': 'Hubo un error en el campo Municipio',
+      'tra_tipos_id': 'El tipo de trámite es requerido',
+      'cli_directo_id': 'El cliente directo es requerido',
+      'cli_directo_ejecutivo_id': 'El ejecutivo del cliente es requerido',
+      'contrato': 'El campo contrato es requerido',
+      'unidad': 'El campo unidad es requerido',
+      'serie': 'El campo serie es requerido',
+      'placas': 'El campo placas es requerido'
     };
 
+    if (typeof message !== 'string') {
+      return 'Ocurrió un error desconocido.';
+    }
+
     for (let key in errorMap) {
-        if (message.includes(key)) {
-            return errorMap[key];
-        }
+      if (message.includes(key)) {
+        return errorMap[key];
+      }
     }
     return 'Ocurrió un error desconocido.';
-  }
+    }
 
   function authorizeTramite(tramiteId, status_id) {
     if (confirm('¿Estás seguro de que deseas autorizar este trámite?')) {
@@ -271,6 +310,9 @@ $(document).ready(function() {
   $.fn.steps.setStep = function (step)
   {
     var self = $(this);
+    if (!self.data('plugin_steps')) {
+      return;
+    }
     var currentIndex = self.steps('getCurrentIndex');
     // Calculates the number of missing steps to get to the desired step
     var missingSteps = Math.abs(step - currentIndex);
@@ -281,6 +323,7 @@ $(document).ready(function() {
       self.steps(direction);
     } 
   };
+  if ($.fn.steps && $("#wizard").length) {
   $("#wizard").steps({
     headerTag: "h3",
     bodyTag: "section",
@@ -316,6 +359,7 @@ $(document).ready(function() {
 
     
   });
+  }
     // Reorganiza los elementos
     var wizard = $(".wizard");
     var steps = wizard.find(".steps");      // Pasos
@@ -341,7 +385,7 @@ $(document).ready(function() {
   // var savedStep = localStorage.getItem("wizardStep");
   
   // Si hay un paso guardado, mostrarlo al recargar la página
-  if (wiz_step !== null) {
+  if (typeof wiz_step !== 'undefined' && wiz_step !== null && $("#wizard").data('plugin_steps')) {
       console.log("wiz_step", wiz_step);
       $("#wizard").steps("setStep", parseInt(wiz_step));
   }
@@ -358,6 +402,7 @@ $(document).ready(function() {
     dateFormat: "Y-m-d H:i",
   });
 
+  $('#tramiteForm').off('submit.sglAddFetch');
   $('#tramiteForm').on('submit', function(e) {
     e.preventDefault(); // Evitar el envío normal
 
@@ -428,11 +473,17 @@ $(document).ready(function() {
   });
 
   $('#empresa_gestora_id').on('change', function() {
-    loadDependentData('gestor', $(this).val(), 'gestor_id');
+    var value = $(this).val();
+    if (value) {
+      loadDependentData('gestor', value, 'gestor_id');
+    }
   });
 
   $('#cli_directo_id').on('change', function() {
-    loadDependentData('ejecutivo', $(this).val(), 'cli_directo_ejecutivo_id');
+    var value = $(this).val();
+    if (value) {
+      loadDependentData('ejecutivo', value, 'cli_directo_ejecutivo_id');
+    }
   });
 
   $('#saveCancelBtn').on('click', function() {

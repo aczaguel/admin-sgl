@@ -91,6 +91,14 @@ class Tramites extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
@@ -124,31 +132,33 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('editar_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+                    // Mantener flujo original de edición de Tramites
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('delete_tramite', $perms, $roles)){
                 $tramite_crud->unsetDelete();
             }
 
-            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('export_tramite', $perms, $roles)){
                 $tramite_crud->unsetExport();
             }
 
-            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
             }
 
-            if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
+                    // Mantener flujo original de detalle de Tramites
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('clone_tramite', $perms, $roles)){
                 $tramite_crud->unsetClone();
             }
 
@@ -329,6 +339,14 @@ class Tramites extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
@@ -345,31 +363,31 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('editar_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('delete_tramite', $perms, $roles)){
                 $tramite_crud->unsetDelete();
             }
 
-            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('export_tramite', $perms, $roles)){
                 $tramite_crud->unsetExport();
             }
 
-            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
             }
 
-            if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('clone_tramite', $perms, $roles)){
                 $tramite_crud->unsetClone();
             }
 
@@ -527,6 +545,14 @@ class Tramites extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
@@ -542,31 +568,31 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('editar_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('delete_tramite', $perms, $roles)){
                 $tramite_crud->unsetDelete();
             }
 
-            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('export_tramite', $perms, $roles)){
                 $tramite_crud->unsetExport();
             }
 
-            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
             }
 
-            if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('clone_tramite', $perms, $roles)){
                 $tramite_crud->unsetClone();
             }
 
@@ -726,6 +752,14 @@ class Tramites extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
@@ -739,31 +773,31 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('editar_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('delete_tramite', $perms, $roles)){
                 $tramite_crud->unsetDelete();
             }
 
-            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('export_tramite', $perms, $roles)){
                 $tramite_crud->unsetExport();
             }
 
-            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
             }
 
-            if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('clone_tramite', $perms, $roles)){
                 $tramite_crud->unsetClone();
             }
 
@@ -925,6 +959,14 @@ class Tramites extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
@@ -938,31 +980,31 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('editar_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('delete_tramite', $perms, $roles)){
                 $tramite_crud->unsetDelete();
             }
 
-            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('export_tramite', $perms, $roles)){
                 $tramite_crud->unsetExport();
             }
 
-            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
             }
 
-            if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('clone_tramite', $perms, $roles)){
                 $tramite_crud->unsetClone();
             }
 
@@ -1123,6 +1165,14 @@ class Tramites extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
@@ -1136,25 +1186,25 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('editar_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                     return '/deskapp/tramites/update_cotizacion/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('delete_tramite', $perms, $roles)){
                 $tramite_crud->unsetDelete();
             }
 
-            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('export_tramite', $perms, $roles)){
                 $tramite_crud->unsetExport();
             }
 
-            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
             }
 
-            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('clone_tramite', $perms, $roles)){
                 $tramite_crud->unsetClone();
             }
 
@@ -1245,7 +1295,7 @@ class Tramites extends BaseController
         }
     }
 
-    private function _example_output($salida = null) {
+    protected function _example_output($salida = null) {
         $salida = (object)esc($salida, 'raw');
         if ($salida->isJSONResponse) {
             header('Content-Type: application/json; charset=utf-8');
@@ -1334,7 +1384,7 @@ class Tramites extends BaseController
         }
 
         // Validación de acceso: si no es admin, el cli_directo debe pertenecer a un cliente asignado
-        if (!user_is_admin($myid)) {
+        if (!user_has_global_cliente_access($myid)) {
             $clienteIds = get_user_cliente_ids($myid);
             if (empty($clienteIds)) {
                 log_unauthorized_access_attempt('cli_directo', $clienteDirectoId, $myid);
@@ -1398,7 +1448,7 @@ class Tramites extends BaseController
                     return $this->add();
                 }
 
-                if (!user_is_admin($myid)) {
+                if (!user_has_global_cliente_access($myid)) {
                     $clienteIds = get_user_cliente_ids($myid);
                     $row = $db->table('cli_directo')->select('cliente_id')->where('id', $cliDirectoId)->get(1)->getRowArray();
                     $tenantId = $row['cliente_id'] ?? null;
@@ -1448,7 +1498,7 @@ class Tramites extends BaseController
                     // Obtiene la serie existente
 
                     // Obtener el Nombre del usuario que creó el trámite existente
-                    $userModel = new UserModel(\Config\Database::connect());
+                    $userModel = new UserModel($db);
                     // Obtener el nombre completo del usuario por su ID
                     $user_id_existente = (int)$user_id_existente;
 
@@ -1499,7 +1549,7 @@ class Tramites extends BaseController
                 // Espacio para guardar la relación DosStatus
                 unset($data["accion"]);
                 $builder->insert($data);
-                // Get the last insert ID
+
                 $lastInsertID = $db->insertID();
 
                 # Insertar relación en tra_tramite_asociado
@@ -1547,7 +1597,7 @@ class Tramites extends BaseController
 
                 $bitacoraModel = new BitacoraModel($db2);
                 $data_bitacora = $data;
-                $diferencias = $this->encontrarDiferencias($data_bitacora, []);
+                $diferencias = $this->encontrarDiferencias([], $data_bitacora);
                 $insert_bitacora = [
                     "id"=>null,
                     "tipo"=>"insert",
@@ -1592,13 +1642,15 @@ class Tramites extends BaseController
                     return $this->response->setJSON([
                         'from' => 'insert',
                         'success' => true,
-                        'redirect' => '/deskapp/tramites/update/'.$lastInsertID
+                        'redirect' => '/deskapp/tramitesn/update/'.$lastInsertID
                     ]);
                 } else {
                     // Si no es una solicitud AJAX, redirige a la página de lista
                     return redirect()->to('/deskapp/tramites/update/'.$lastInsertID);
                 }
             } catch (\Exception $e) {
+                log_message('error', 'Error en Tramites::insert: ' . $e->getMessage());
+                log_message('error', 'Trace Tramites::insert: ' . $e->getTraceAsString());
                 // Manejo de excepciones de la base de datos
                 if ($this->request->isAJAX()) {
                     return $this->response->setJSON([
@@ -1657,6 +1709,20 @@ class Tramites extends BaseController
             return redirect()->to('/deskapp/tramites/tramite')
                 ->with('error', 'No se encontró el trámite solicitado');
         }
+
+        // Sumatoria de pagos de derechos (tra_pago_derechos.costo) -> costo_gestoria
+        // Esto mantiene el campo siempre cargado y consistente con los pagos capturados.
+        try {
+            $sumRow = $db->table('tra_pago_derechos')
+                ->selectSum('costo', 'total')
+                ->where('tramite_id', (int)$id)
+                ->get()
+                ->getRowArray();
+            $sumDerechos = (float)($sumRow['total'] ?? 0);
+        } catch (\Exception $e) {
+            $sumDerechos = 0;
+        }
+        $tramite['costo_gestoria'] = number_format($sumDerechos, 2, '.', '');
 
         $TraTiposModel = new TraTiposModel($db2);
         $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
@@ -1788,6 +1854,7 @@ class Tramites extends BaseController
         $data['derechos_comprobante'] = $tramite['derechos_comprobante'];
         $data['reembolso_status_id'] = $tramite['reembolso_status_id'];
         $data['cobro_status_id'] = $tramite['cobro_status_id'];
+		$data['sumatoria_derechos'] = $sumDerechos;
         
         // Obtener nombres para el header
         $data['tipo_tramite'] = isset($tra_tipos_options[$tramite['tra_tipos_id']]) ? $tra_tipos_options[$tramite['tra_tipos_id']] : 'N/A';
@@ -1804,7 +1871,6 @@ class Tramites extends BaseController
         $form->js_files = $crudOutput->js_files;
         
         // Load the view with the fields and current data
-        // if (!is_read_only(esc($session->get('user_roles')))){
             $cruddocstatus = $this->_getGroceryCrudEnterprise();
             $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/'.$id);
             $output_docs = $cruddocstatus->render();            
@@ -1988,7 +2054,6 @@ class Tramites extends BaseController
         $form->js_files = $crudOutput->js_files;
         
         // Load the view with the fields and current data
-        // if (!is_read_only(esc($session->get('user_roles')))){
             $cruddocstatus = $this->_getGroceryCrudEnterprise();
             $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/'.$id);
             $output_docs = $cruddocstatus->render();            
@@ -2032,6 +2097,31 @@ class Tramites extends BaseController
 
     public function getPagoGestorFiles($id)
     {
+        helper(['permissions', 'cliente_filter']);
+        $session = session();
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $id = (int) $id;
+        if ($id <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([]);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($id, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+        if (!has_permission('section_pago_gestor', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+
         $db = \Config\Database::connect(); // Conexión a la base de datos
         $result = [];
         $ds = DIRECTORY_SEPARATOR;
@@ -2093,6 +2183,31 @@ class Tramites extends BaseController
     }
     public function getPagoDerechosFiles($id)
     {
+        helper(['permissions', 'cliente_filter']);
+        $session = session();
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $id = (int) $id;
+        if ($id <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([]);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($id, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+        if (!has_permission('section_pago_derechos', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+
         $db = \Config\Database::connect(); // Conexión a la base de datos
         $result = [];
         $ds = DIRECTORY_SEPARATOR;
@@ -2155,6 +2270,31 @@ class Tramites extends BaseController
 
     public function getCobroClienteFiles($id)
     {
+        helper(['permissions', 'cliente_filter']);
+        $session = session();
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $id = (int) $id;
+        if ($id <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([]);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($id, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+        if (!has_permission('section_final_costos', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+
         $db = \Config\Database::connect(); // Conexión a la base de datos
         $result = [];
         $ds = DIRECTORY_SEPARATOR;
@@ -2164,7 +2304,7 @@ class Tramites extends BaseController
 
         // Consulta a la base de datos
         $cobro_cliente_db = $db->table('tra_cobro_cliente')
-                                ->select('id, file')
+                    ->select('id, file, cobro_correcto')
                                 ->where('tramite_id', $id)
                                 ->get()
                                 ->getResultObject();
@@ -2207,6 +2347,7 @@ class Tramites extends BaseController
                 $obj['size'] = filesize($absoluteFilePath); // Tamaño del archivo físico
                 $obj['existing_path'] = base_url($filePath); // Ruta para la vista
                 $obj['icon'] = $assignIcon($extension, $filePath); // Ícono o imagen real según el tipo de archivo
+                $obj['cobro_correcto'] = $dbFile->cobro_correcto ?? null;
                 $result[] = $obj;
             }
         }
@@ -2223,6 +2364,14 @@ class Tramites extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
         $db = \Config\Database::connect();
         $builder = $db->table('tramite');
         $db2 = $this->_getDbData();
@@ -2252,7 +2401,7 @@ class Tramites extends BaseController
         
         // Fields to be displayed in the add form
 
-        if (is_read_only(esc($session->get('user_roles')))){
+        if (is_read_only($roles)){
             $form->fields = [
                 "folio" => ["label" => "Folio", "type" => "text", "value" => $tramite['folio'], "disabled"=>"disabled"],
                 "contrato" => ["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required", "disabled"=>"disabled"],
@@ -2286,7 +2435,7 @@ class Tramites extends BaseController
             ];
         }
 
-        if (!has_permission('tramite_view_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+        if (!has_permission('tramite_view_gestor', $perms, $roles)){
             unset($output->fields['empresa_gestora_id']);
             unset($output->fields['gestor_id']);
         }
@@ -2302,7 +2451,7 @@ class Tramites extends BaseController
         $form->js_files = $crudOutput->js_files;
         
         // Load the view with the fields and current data
-        if (!is_read_only(esc($session->get('user_roles')))){
+        if (!is_read_only($roles)){
             $cruddocstatus = $this->_getGroceryCrudEnterprise();
             $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/'.$id);
             $output = $cruddocstatus->render();
@@ -2327,6 +2476,14 @@ class Tramites extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
         $db = \Config\Database::connect();
         $builder = $db->table('tramite');
         $db2 = $this->_getDbData();
@@ -2356,7 +2513,7 @@ class Tramites extends BaseController
         
         // Fields to be displayed in the add form
 
-        if (is_read_only(esc($session->get('user_roles')))){
+        if (is_read_only($roles)){
             $form->fields = [
                 "folio" => ["label" => "Folio", "type" => "text", "value" => $tramite['folio'], "disabled"=>"disabled"],
                 "contrato" => ["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required", "disabled"=>"disabled"],
@@ -2390,7 +2547,7 @@ class Tramites extends BaseController
             ];
         }
 
-        if (!has_permission('tramite_view_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+        if (!has_permission('tramite_view_gestor', $perms, $roles)){
             unset($output->fields['empresa_gestora_id']);
             unset($output->fields['gestor_id']);
         }
@@ -2406,7 +2563,7 @@ class Tramites extends BaseController
         $form->js_files = $crudOutput->js_files;
         
         // Load the view with the fields and current data
-        if (!is_read_only(esc($session->get('user_roles')))){
+        if (!is_read_only($roles)){
             $cruddocstatus = $this->_getGroceryCrudEnterprise();
             $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/'.$id);
             $output = $cruddocstatus->render();
@@ -2430,6 +2587,14 @@ class Tramites extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
         $db = \Config\Database::connect();
         $db2 = $this->_getDbData();
         $builder = $db->table('tramite');
@@ -2458,7 +2623,7 @@ class Tramites extends BaseController
         
         // Fields to be displayed in the add form
 
-        if (is_read_only(esc($session->get('user_roles')))){
+        if (is_read_only($roles)){
             $form->fields = [
                 "folio" => ["label" => "Folio", "type" => "text", "value" => $tramite['folio'], "disabled"=>"disabled"],
                 "contrato" => ["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required", "disabled"=>"disabled"],
@@ -2492,7 +2657,7 @@ class Tramites extends BaseController
             ];
         }
 
-        if (!has_permission('tramite_view_gestor', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+        if (!has_permission('tramite_view_gestor', $perms, $roles)){
             unset($output->fields['empresa_gestora_id']);
             unset($output->fields['gestor_id']);
         }
@@ -2508,7 +2673,7 @@ class Tramites extends BaseController
         $form->js_files = $crudOutput->js_files;
         
         // Load the view with the fields and current data
-        if (!is_read_only(esc($session->get('user_roles')))){
+        if (!is_read_only($roles)){
             $cruddocstatus = $this->_getGroceryCrudEnterprise();
             $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/'.$id);
             $output = $cruddocstatus->render();
@@ -2529,18 +2694,51 @@ class Tramites extends BaseController
 
     public function delete_comprobante()
     {
+        helper(['permissions', 'cliente_filter']);
+        $session = session();
+        $userId = (int) $session->get('id');
+        if ($userId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+        }
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
         $request = \Config\Services::request();
-        $tramiteId = $request->getPost('tramite_id');
+        $tramiteId = (int) $request->getPost('tramite_id');
         $fileName = $request->getPost('file');
 
         // Validar ID del trámite
-        if (!$tramiteId || !is_numeric($tramiteId)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        if ($tramiteId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+
+        // Eliminar archivos queda reservado a Admin/Super Admin
+        if (!(is_super_admin($roles) || is_admin($roles))) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_derechos', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }
 
         // Validar nombre del archivo
-        if (empty($fileName)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado.']);
+        $fileName = trim((string) $fileName);
+        if ($fileName === '') {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado.']);
+        }
+        if ($fileName !== basename($fileName) || strpos($fileName, "\0") !== false || strpos($fileName, '..') !== false) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Nombre de archivo inválido.']);
         }
 
         try {
@@ -2575,23 +2773,78 @@ class Tramites extends BaseController
                 throw new \Exception('No se pudo eliminar el registro de la base de datos.');
             }
 
+            $db2 = $this->_getDbData();
+            $bitacoraModel = new BitacoraModel($db2);
+            $data_bitacora = $existingRecord;
+            $diferencias = $this->encontrarDiferencias([], $data_bitacora);
+            $insert_bitacora = [
+                'id' => null,
+                'tipo' => 'delete',
+                'origen' => 'tramite',
+                'tramite_id' => (int) $tramiteId,
+                'cambios' => json_encode($diferencias),
+                'user_id' => (int) $userId
+            ];
+            $bitacoraModel->insert($insert_bitacora, 'bitacora');
+
+            $this->updateCobrarClienteFlag($db, (int) $tramiteId);
+
             return $this->response->setJSON(['success' => true, 'message' => 'Archivo eliminado correctamente.']);
 
         } catch (\Exception $e) {
             log_message('error', 'Error en delete_comprobante: ' . $e->getMessage());
-            return $this->response->setJSON(['success' => false, 'message' => 'Error al eliminar: ' . $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Error al eliminar.']);
         }
     }
 
     public function upload_comprobante()
     {
+        helper(['permissions', 'cliente_filter']);
+        $session = session();
+        $userId = (int) $session->get('id');
+        if ($userId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+        }
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
         $request = \Config\Services::request();
 
         $uri = $request->getUri();
         $tramiteId = (int) $uri->getSegment(4);
 
-        if ($tramiteId === null) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        if ($tramiteId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        }
+
+        $db = \Config\Database::connect();
+        $tramiteRow = $db->table('tramite')
+            ->select('tra_status_id, reembolso_status_id, cobro_status_id')
+            ->where('id', (int) $tramiteId)
+            ->get(1)
+            ->getRowArray();
+        if (empty($tramiteRow)) {
+            return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => 'Trámite no encontrado']);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_derechos', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+        $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
+        $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+        if (!puede_editar_modulo($roles, $traStatusId, 'step3_upload', $reembolsoStatusId, $cobroStatusId, 3)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }
 
         $ds = DIRECTORY_SEPARATOR; 
@@ -2604,12 +2857,21 @@ class Tramites extends BaseController
 
         if (!empty($_FILES['file'])) {
             // Subir archivo
-            $tempFile = $_FILES['file']['tmp_name'];         
-            $originalFileName = pathinfo($_FILES['file']['name'], PATHINFO_FILENAME); // Nombre del archivo sin extensión
-            $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION); // Extensión del archivo
-
-            // Concatenar la cadena aleatoria al nombre del archivo
-            $fileName = $originalFileName .'.' . $extension;         
+            $tempFile = $_FILES['file']['tmp_name'];
+            $originalName = (string) ($_FILES['file']['name'] ?? '');
+            $extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
+            $baseName = (string) pathinfo($originalName, PATHINFO_FILENAME);
+            $safeBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $baseName);
+            $safeBase = trim((string) $safeBase, '_');
+            if ($safeBase === '') {
+                $safeBase = 'archivo';
+            }
+            try {
+                $random = bin2hex(random_bytes(8));
+            } catch (\Exception $e) {
+                $random = uniqid();
+            }
+            $fileName = $safeBase . '_' . $random . ($extension !== '' ? '.' . $extension : '');
             $targetFile = $targetPath . $fileName;
 
             if (move_uploaded_file($tempFile, $targetFile)) {
@@ -2619,7 +2881,7 @@ class Tramites extends BaseController
                 $data = [
                     'tramite_id' => $tramiteId,
                     'file' => $fileName,
-                    'user_id' => session()->get('user_id'), // Asume que el ID del usuario está en la sesión
+                    'user_id' => $userId,
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s'),
                     'status' => 1
@@ -2628,27 +2890,60 @@ class Tramites extends BaseController
                 $filePath = $ds . $storeFolder . $ds . $fileName;
                 return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente', 'filePath'=>$filePath]);
             } else {
-                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
+                return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
             }
         }
 
-        return $this->response->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
+        return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
     }
 
     public function delete_pago_gestor()
     {
+        helper(['permissions', 'cliente_filter']);
+        $session = session();
+        $userId = (int) $session->get('id');
+        if ($userId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+        }
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
         $request = \Config\Services::request();
-        $tramiteId = $request->getPost('tramite_id');
+        $tramiteId = (int) $request->getPost('tramite_id');
         $fileName = $request->getPost('file');
 
         // Validar ID del trámite
-        if (!$tramiteId || !is_numeric($tramiteId)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        if ($tramiteId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+
+        // Eliminar archivos queda reservado a Admin/Super Admin
+        if (!(is_super_admin($roles) || is_admin($roles))) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_gestor', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }
 
         // Validar nombre del archivo
-        if (empty($fileName)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado.']);
+        $fileName = trim((string) $fileName);
+        if ($fileName === '') {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado.']);
+        }
+        if ($fileName !== basename($fileName) || strpos($fileName, "\0") !== false || strpos($fileName, '..') !== false) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Nombre de archivo inválido.']);
         }
 
         try {
@@ -2687,19 +2982,58 @@ class Tramites extends BaseController
 
         } catch (\Exception $e) {
             log_message('error', 'Error en delete_pago_gestor: ' . $e->getMessage());
-            return $this->response->setJSON(['success' => false, 'message' => 'Error al eliminar: ' . $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Error al eliminar.']);
         }
     }
 
     public function upload_pago_gestor()
     {
+        helper(['permissions', 'cliente_filter']);
+        $session = session();
+        $userId = (int) $session->get('id');
+        if ($userId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+        }
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
         $request = \Config\Services::request();
 
         $uri = $request->getUri();
         $tramiteId = (int) $uri->getSegment(4);
 
-        if ($tramiteId === null) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        if ($tramiteId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        }
+
+        $db = \Config\Database::connect();
+        $tramiteRow = $db->table('tramite')
+            ->select('tra_status_id, reembolso_status_id, cobro_status_id')
+            ->where('id', (int) $tramiteId)
+            ->get(1)
+            ->getRowArray();
+        if (empty($tramiteRow)) {
+            return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => 'Trámite no encontrado']);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_gestor', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+        $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
+        $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+        if (!puede_editar_modulo($roles, $traStatusId, 'upload_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }
 
         $ds = DIRECTORY_SEPARATOR;
@@ -2712,13 +3046,28 @@ class Tramites extends BaseController
 
         if (!empty($_FILES['file'])) {
             // Subir archivo
-            $tempFile = $_FILES['file']['tmp_name'];         
-            $originalFileName = pathinfo($_FILES['file']['name'], PATHINFO_FILENAME); // Nombre del archivo sin extensión
-            $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION); // Extensión del archivo
-
-            // Concatenar la cadena aleatoria al nombre del archivo
-            $fileName = $originalFileName . '.' . $extension;         
+            $tempFile = $_FILES['file']['tmp_name'];
+            $originalName = (string) ($_FILES['file']['name'] ?? '');
+            $extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
+            $baseName = (string) pathinfo($originalName, PATHINFO_FILENAME);
+            $safeBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $baseName);
+            $safeBase = trim((string) $safeBase, '_');
+            if ($safeBase === '') {
+                $safeBase = 'archivo';
+            }
+            try {
+                $random = bin2hex(random_bytes(8));
+            } catch (\Exception $e) {
+                $random = uniqid();
+            }
+            $fileName = $safeBase . '_' . $random . ($extension !== '' ? '.' . $extension : '');
             $targetFile = $targetPath . $fileName;
+
+            $comprobanteFinal = (string) $request->getPost('comprobante_final');
+            $allowedComprobanteFinal = ['tramite_recibido', 'acuse_recibo_cliente', 'otro'];
+            if (!in_array($comprobanteFinal, $allowedComprobanteFinal, true)) {
+                $comprobanteFinal = null;
+            }
 
             if (move_uploaded_file($tempFile, $targetFile)) {
                 // Guardar el registro en la tabla tra_pago_gestor
@@ -2727,36 +3076,80 @@ class Tramites extends BaseController
                 $data = [
                     'tramite_id' => $tramiteId,
                     'file' => $fileName,
-                    'user_id' => session()->get('user_id'), // Asume que el ID del usuario está en la sesión
+                    'user_id' => $userId,
+                    'comprobante_final' => $comprobanteFinal,
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s'),
                     'status' => 1
                 ];
                 $builder->insert($data);
 
-                return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente']);
+                $this->updateCobrarClienteFlag($db, (int) $tramiteId);
+
+                $filePath = base_url('/assets/uploads/pago_gestor/' . $tramiteId . '/' . $fileName);
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Archivo subido y registro creado correctamente',
+                    'filePath' => $filePath,
+                    'fileName' => $fileName,
+                    'originalName' => $originalName,
+                    'comprobanteFinal' => $comprobanteFinal,
+                ]);
             } else {
-                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
+                return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
             }
         }
 
-        return $this->response->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
+        return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
     }
 
     public function delete_cobro_cliente()
     {
+        helper(['permissions', 'cliente_filter']);
+        $session = session();
+        $userId = (int) $session->get('id');
+        if ($userId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+        }
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
         $request = \Config\Services::request();
-        $tramiteId = $request->getPost('tramite_id');
+        $tramiteId = (int) $request->getPost('tramite_id');
         $fileName = $request->getPost('file');
 
         // Validar ID del trámite
-        if (!$tramiteId || !is_numeric($tramiteId)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        if ($tramiteId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+
+        // Eliminar archivos queda reservado a Admin/Super Admin
+        if (!(is_super_admin($roles) || is_admin($roles))) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_final_costos', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }
 
         // Validar nombre del archivo
-        if (empty($fileName)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado.']);
+        $fileName = trim((string) $fileName);
+        if ($fileName === '') {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Nombre del archivo no proporcionado.']);
+        }
+        if ($fileName !== basename($fileName) || strpos($fileName, "\0") !== false || strpos($fileName, '..') !== false) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Nombre de archivo inválido.']);
         }
 
         try {
@@ -2795,19 +3188,58 @@ class Tramites extends BaseController
 
         } catch (\Exception $e) {
             log_message('error', 'Error en delete_cobro_cliente: ' . $e->getMessage());
-            return $this->response->setJSON(['success' => false, 'message' => 'Error al eliminar: ' . $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Error al eliminar.']);
         }
     }
 
     public function upload_cobro_cliente()
     {
+        helper(['permissions', 'cliente_filter']);
+        $session = session();
+        $userId = (int) $session->get('id');
+        if ($userId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+        }
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
         $request = \Config\Services::request();
     
         $uri = $request->getUri();
         $tramiteId = (int) $uri->getSegment(4);
     
-        if ($tramiteId === null) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        if ($tramiteId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'ID de trámite no proporcionado']);
+        }
+
+        $db = \Config\Database::connect();
+        $tramiteRow = $db->table('tramite')
+            ->select('tra_status_id, reembolso_status_id, cobro_status_id')
+            ->where('id', (int) $tramiteId)
+            ->get(1)
+            ->getRowArray();
+        if (empty($tramiteRow)) {
+            return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => 'Trámite no encontrado']);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_final_costos', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+        $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
+        $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+        if (!puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }
     
         $ds = DIRECTORY_SEPARATOR;
@@ -2820,22 +3252,37 @@ class Tramites extends BaseController
     
         if (!empty($_FILES['file'])) {
             // Subir archivo
-            $tempFile = $_FILES['file']['tmp_name'];         
-            $originalFileName = pathinfo($_FILES['file']['name'], PATHINFO_FILENAME); // Nombre del archivo sin extensión
-            $extension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION); // Extensión del archivo
-    
-            // Concatenar la cadena aleatoria al nombre del archivo
-            $fileName = $originalFileName . '.' . $extension;         
+            $tempFile = $_FILES['file']['tmp_name'];
+            $originalName = (string) ($_FILES['file']['name'] ?? '');
+            $extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
+            $baseName = (string) pathinfo($originalName, PATHINFO_FILENAME);
+            $safeBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $baseName);
+            $safeBase = trim((string) $safeBase, '_');
+            if ($safeBase === '') {
+                $safeBase = 'archivo';
+            }
+            try {
+                $random = bin2hex(random_bytes(8));
+            } catch (\Exception $e) {
+                $random = uniqid();
+            }
+            $fileName = $safeBase . '_' . $random . ($extension !== '' ? '.' . $extension : '');
             $targetFile = $targetPath . $fileName;
     
             if (move_uploaded_file($tempFile, $targetFile)) {
                 // Guardar el registro en la tabla tra_cobro_cliente
                 $db = \Config\Database::connect();
                 $builder = $db->table('tra_cobro_cliente'); // Cambiado a la tabla 'tra_cobro_cliente'
+                $cobroCorrecto = $request->getPost('cobro_correcto');
+                $cobroCorrecto = is_string($cobroCorrecto) ? trim($cobroCorrecto) : '';
+                if (!in_array($cobroCorrecto, ['parcial', 'completo', 'otro'], true)) {
+                    $cobroCorrecto = 'otro';
+                }
                 $data = [
                     'tramite_id' => $tramiteId,
                     'file' => $fileName,
-                    'user_id' => session()->get('user_id'), // Asume que el ID del usuario está en la sesión
+                    'cobro_correcto' => $cobroCorrecto,
+                    'user_id' => $userId,
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s'),
                     'status' => 1
@@ -2844,17 +3291,42 @@ class Tramites extends BaseController
     
                 return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente']);
             } else {
-                return $this->response->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
+                return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
             }
         }
     
-        return $this->response->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
+        return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
     }
     
 
     public function getDependentData($type, $parentId) {
+        helper(['permissions', 'cliente_filter']);
+
+        $session = session();
+        $userId = (int) $session->get('id');
+        if ($userId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON([]);
+        }
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!(is_super_admin($roles) || is_admin($roles)) && !(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
+            return $this->response->setStatusCode(403)->setJSON([]);
+        }
+
+        $parentId = (int) $parentId;
+        if ($parentId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([]);
+        }
+
         $db = \Config\Database::connect();
-    
+        $result = [];
         switch ($type) {
             case 'gestor':
                 $builder = $db->table('ges_gestor');
@@ -2862,6 +3334,19 @@ class Tramites extends BaseController
                 $result = $builder->get()->getResultArray();
                 break;
             case 'ejecutivo':
+                $cliDirecto = $db->table('cli_directo')
+                    ->select('cliente_id')
+                    ->where('id', $parentId)
+                    ->get(1)
+                    ->getRowArray();
+                $clienteId = (int) ($cliDirecto['cliente_id'] ?? 0);
+                if ($clienteId <= 0) {
+                    return $this->response->setStatusCode(404)->setJSON([]);
+                }
+                if (!(is_super_admin($roles) || is_admin($roles)) && !has_access_to_cliente($clienteId, $userId)) {
+                    return $this->response->setStatusCode(403)->setJSON([]);
+                }
+
                 $builder = $db->table('cli_directo_ejecutivo');
                 $builder->where('cli_directo_id', $parentId);
                 $result = $builder->get()->getResultArray();
@@ -2870,7 +3355,7 @@ class Tramites extends BaseController
                 $result = [];
                 break;
         }
-    
+
         return $this->response->setJSON($result);
     }
     
@@ -2881,7 +3366,7 @@ class Tramites extends BaseController
 
         // Validar ID
         if (!$id || !is_numeric($id)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.', 'csrfHash' => csrf_hash()]);
         }
 
         $validation = \Config\Services::validation();
@@ -2893,7 +3378,8 @@ class Tramites extends BaseController
         if ($validation->withRequest($this->request)->run() === FALSE) {
             return $this->response->setJSON([
                 'success' => false,
-                'errors' => $validation->getErrors()
+                'errors' => $validation->getErrors(),
+                'csrfHash' => csrf_hash(),
             ]);
         }
 
@@ -2904,11 +3390,15 @@ class Tramites extends BaseController
             // Verificar que el trámite existe
             $existingTramite = $builder->where('id', $id)->get()->getRowArray();
             if (!$existingTramite) {
-                return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
+                return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.', 'csrfHash' => csrf_hash()]);
             }
 
             // Actualizar datos
             $data = $this->request->getPost();
+            $csrfName = csrf_token();
+            if (isset($data[$csrfName])) {
+                unset($data[$csrfName]);
+            }
             $data["user_id"] = $myid;
             
             // AUDITORÍA: Comparar datos antes de actualizar
@@ -2932,6 +3422,31 @@ class Tramites extends BaseController
 
             if (!$updateResult) {
                 throw new \Exception('No se pudo actualizar el trámite.');
+            }
+
+            // Propagar derechos_* a asociados (excluye tipo principal)
+            $principalTipoId = (int) ($existingTramite['tra_tipos_id'] ?? 0);
+            $asociadoData = [];
+            $asociadoFields = [
+                'derechos_tramite',
+                'derechos_pago_sitio',
+                'derechos_vigencia',
+                'derechos_revol_cliente',
+                'derechos_refer_banc',
+            ];
+            foreach ($asociadoFields as $field) {
+                if (array_key_exists($field, $data)) {
+                    $asociadoData[$field] = $data[$field];
+                }
+            }
+            if (!empty($asociadoData)) {
+                $asociadoData['updated_at'] = date('Y-m-d H:i:s');
+                $asociadoBuilder = $db->table('tra_tramite_asociado');
+                $asociadoBuilder->where('tramite_id', (int) $id);
+                if ($principalTipoId > 0) {
+                    $asociadoBuilder->where('tra_tipos_id !=', $principalTipoId);
+                }
+                $asociadoBuilder->update($asociadoData);
             }
 
             $folio = $data["folio"];
@@ -2977,12 +3492,13 @@ class Tramites extends BaseController
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'El trámite se guardó correctamente.',
-                'redirect' => '/deskapp/tramites/update/' . $id
+                'redirect' => '/deskapp/tramites/update/' . $id,
+                'csrfHash' => csrf_hash(),
             ]);
 
         } catch (\Exception $e) {
             log_message('error', 'Error en update_save: ' . $e->getMessage());
-            return $this->response->setJSON(['success' => false, 'message' => 'Error al actualizar: ' . $e->getMessage()]);
+            return $this->response->setJSON(['success' => false, 'message' => 'Error al actualizar: ' . $e->getMessage(), 'csrfHash' => csrf_hash()]);
         }
     }
 
@@ -3102,13 +3618,33 @@ class Tramites extends BaseController
     }
 
     public function update_gestor_costos() {
+        helper(['permissions', 'cliente_filter']);
+
         $session = session();
-        $myid = $session->get('id');
-        $id = $this->request->uri->getSegment(4);
+        $myid = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $id = (int) $this->request->uri->getSegment(4);
 
         // Validar ID
-        if (!$id || !is_numeric($id)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        if ($id <= 0) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        if (!has_permission('editar_pago_gestor', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($id, $myid);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }
     
         // Validación de los campos
@@ -3133,9 +3669,9 @@ class Tramites extends BaseController
             $builder = $db->table('tramite');
 
             // Verificar que el trámite existe
-            $existingTramite = $builder->where('id', $id)->get()->getRowArray();
-            if (!$existingTramite) {
-                return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
+            $existingTramite = $builder->select('id, tra_status_id')->where('id', $id)->get(1)->getRowArray();
+            if (empty($existingTramite)) {
+                return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
             }
     
             // Actualizar con WHERE obligatorio
@@ -3169,7 +3705,7 @@ class Tramites extends BaseController
             $log = [
                 "tramite_id" => (int)$id,
                 "user_id" => (int)$myid,
-                "tra_status_id" => 22  // Estado ejemplo
+                "tra_status_id" => (int) ($existingTramite['tra_status_id'] ?? 0)
             ];
             $tra_user_log->insert($log, 'tra_user_log');
     
@@ -3438,6 +3974,12 @@ class Tramites extends BaseController
         // Obtener datos del formulario
         $data = $this->request->getPost();
         $data["user_id"] = $myid;
+        // Remover CSRF del payload para evitar guardar en la tabla
+        foreach (array_keys($data) as $key) {
+            if (strpos($key, 'csrf') === 0) {
+                unset($data[$key]);
+            }
+        }
         
         // AUDITORÍA: Comparar datos antes de actualizar
         $changes = compare_tramite_data($existingData, $data);
@@ -3485,10 +4027,18 @@ class Tramites extends BaseController
 
             // Actualizar estatus del trámite a 28 (Pago a Gestor completado)
             $this->updateTramiteStatus($id, 28);
+
+            $this->updateCobrarClienteFlag($db, (int) $id);
             
             // Bitácora
             $bitacoraModel = new BitacoraModel($db2);
-            $diferencias = $this->encontrarDiferencias($data, $existingData);
+            $diferencias = [];
+            foreach ($changes as $field => $values) {
+                $diferencias[$field] = [
+                    'valor_original' => $values['old'] ?? null,
+                    'valor_nuevo' => $values['new'] ?? null,
+                ];
+            }
             
             if (!empty($diferencias)) {
                 $bitacoraModel->insert([
@@ -3544,6 +4094,34 @@ class Tramites extends BaseController
         }
     }    
 
+    private function updateCobrarClienteFlag($db, $tramiteId)
+    {
+        if (!$tramiteId) {
+            return;
+        }
+        $rows = $db->table('tra_pago_gestor')
+            ->select('comprobante_final')
+            ->where('tramite_id', (int) $tramiteId)
+            ->where('status', 1)
+            ->get()
+            ->getResultArray();
+
+        $hasTramite = false;
+        $hasAcuse = false;
+        foreach ($rows as $row) {
+            $tipo = (string) ($row['comprobante_final'] ?? '');
+            if ($tipo === 'tramite_recibido') {
+                $hasTramite = true;
+            } elseif ($tipo === 'acuse_recibo_cliente') {
+                $hasAcuse = true;
+            }
+        }
+        $canCobrar = ($hasTramite && $hasAcuse) ? 1 : 0;
+        $db->table('tramite')
+            ->where('id', (int) $tramiteId)
+            ->update(['cobrar_cliente' => $canCobrar]);
+    }
+
     public function update_final_save()
     {
         $session = session();
@@ -3561,6 +4139,7 @@ class Tramites extends BaseController
             "numero_factura" => "required",
             "numero_refactura" => "permit_empty",
             "cobro_status_id" => "required|integer",
+            "evidencia_cobro_txt" => "permit_empty|max_length[100]",
             "costo_pago_cliente" => "required|decimal",
             "comision_derechos" => "required|decimal",
             "costo_total" => "permit_empty|decimal"
@@ -3589,6 +4168,7 @@ class Tramites extends BaseController
                 "numero_factura",
                 "numero_refactura",
                 "cobro_status_id",
+                "evidencia_cobro_txt",
                 "costo_pago_cliente",
                 "comision_derechos",
                 "costo_gestoria",
@@ -3596,11 +4176,27 @@ class Tramites extends BaseController
                 "iva"
             ]);
             $data["user_id"] = $myid;
-            $data["costo_gestoria"] = $data["costo_gestoria_hidden"];
+
+            // Fallback: si no viene el hidden, calcular desde pagos de derechos
+            $costoGestoriaHidden = $data["costo_gestoria_hidden"] ?? null;
+            if ($costoGestoriaHidden === null || $costoGestoriaHidden === '' || (float)$costoGestoriaHidden === 0.0) {
+                try {
+                    $sumRow = $db->table('tra_pago_derechos')
+                        ->selectSum('costo', 'total')
+                        ->where('tramite_id', (int)$id)
+                        ->get()
+                        ->getRowArray();
+                    $costoGestoriaHidden = (string)((float)($sumRow['total'] ?? 0));
+                } catch (\Exception $e) {
+                    $costoGestoriaHidden = (string)0;
+                }
+            }
+
+            $data["costo_gestoria"] = $costoGestoriaHidden;
             unset($data["costo_gestoria_hidden"]);
             
             // Calcular el costo total
-            $data["costo_total"] = $data["costo_gestoria"] + $data["costo_pago_cliente"] + $data["comision_derechos"] + $data["iva"];
+            $data["costo_total"] = (float)$data["costo_gestoria"] + (float)$data["costo_pago_cliente"] + (float)$data["comision_derechos"] + (float)($data["iva"] ?? 0);
 
             // AUDITORÍA: Comparar datos antes de actualizar
             $changes = compare_tramite_data($existingTramite, $data);
@@ -3619,8 +4215,13 @@ class Tramites extends BaseController
 
             // Agregar registro en bitácora
             $bitacoraModel = new BitacoraModel($db2);
-            $data_bitacora = $data;
-            $diferencias = $this->encontrarDiferencias($data_bitacora, []);
+            $diferencias = [];
+            foreach ($changes as $field => $values) {
+                $diferencias[$field] = [
+                    'valor_original' => $values['old'] ?? null,
+                    'valor_nuevo' => $values['new'] ?? null,
+                ];
+            }
             $insert_bitacora = [
                 "id" => null,
                 "tipo" => "update",
@@ -3662,8 +4263,7 @@ class Tramites extends BaseController
             // Retornar mensaje de éxito como JSON
             return $this->response->setJSON([
                 'success' => true,
-                'message' => 'El trámite se guardó correctamente.',
-                'redirect' => '/deskapp/tramites/update/' . $id
+                'message' => 'El trámite se guardó correctamente.'
             ]);
 
         } catch (\Exception $e) {
@@ -4327,6 +4927,15 @@ class Tramites extends BaseController
 
     public function encontrarDiferencias($datos1, $datos2) {
         $diferencias = [];
+        if (empty($datos1) && !empty($datos2)) {
+            foreach ($datos2 as $clave => $valor) {
+                $diferencias[$clave] = [
+                    'valor_original' => '',
+                    'valor_nuevo' => $valor
+                ];
+            }
+            return $diferencias;
+        }
         foreach ($datos1 as $clave => $valor) {
             // Verificar si la clave existe en el segundo conjunto de datos y si los valores son diferentes
             if (array_key_exists($clave, $datos2) && $datos2[$clave] !== $valor) {
@@ -4551,6 +5160,8 @@ class Tramites extends BaseController
 
     public function single_documentostatus()
     {
+        helper(['permissions', 'cliente_filter']);
+
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -4561,6 +5172,45 @@ class Tramites extends BaseController
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
+        if ($userId <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
+            }
+            return redirect()->to('/');
+        }
+        if ($tramite_id <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
+            }
+            return redirect()->to('deskapp/tramites')->with('error', 'ID de trámite no proporcionado');
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
+        if (!$hasTenantAccess) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
+
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
@@ -4600,12 +5250,22 @@ class Tramites extends BaseController
             $session = session();
             $folio_tramite = $session->get('folio_tramite_id');
             $stateParameters->data['folio_tramite'] = $folio_tramite;
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+            $stateParameters->data['tramite_id'] = $tramite_id;
+            $stateParameters->data['user_id'] = (int) $session->get('id');
             return $stateParameters;
         });    
         $crud->callbackBeforeUpdate(function ($stateParameters) {
             $session = session();
             $folio_tramite = $session->get('folio_tramite_id');
             $stateParameters->data['folio_tramite'] = $folio_tramite;
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+            $stateParameters->data['tramite_id'] = $tramite_id;
+            $stateParameters->data['user_id'] = (int) $session->get('id');
             return $stateParameters;
         });    
         /* SELECT Se configura el documento */
@@ -4626,7 +5286,7 @@ class Tramites extends BaseController
             return $data;
         });
 
-        $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($self, $crud){
             $db2 = $this->_getDbData();
             $session = session();
             $data = $stateParameters->data;
@@ -4663,6 +5323,8 @@ class Tramites extends BaseController
                 );
             }
 
+            // GroceryCrud solo conserva UN callback por evento; consolidamos Bitácora + ApiLog.
+            return logOperation($stateParameters, $crud->getTable());
         });
 
         $uploadValidations = [
@@ -4702,10 +5364,6 @@ class Tramites extends BaseController
             $tableName = $crud->getTable();
             return logOperation($stateParameters, $tableName);
         });
-        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
-            $tableName = $crud->getTable();
-            return logOperation($stateParameters, $tableName);
-        });
         $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
             $tableName = $crud->getTable();
             return logOperation($stateParameters, $tableName);
@@ -4740,7 +5398,7 @@ class Tramites extends BaseController
             'folio_tramite' => $folio_tramite
         ]);   
 
-        $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
+        $crud->callbackAfterInsert(function ($stateParameters)  use ($self, $crud) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
                 $parameters = $stateParameters;
                 $db = Database::connect();
@@ -4874,6 +5532,8 @@ class Tramites extends BaseController
     }
 
     public function single_evidencias(){
+        helper(['permissions', 'cliente_filter']);
+
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -4883,6 +5543,44 @@ class Tramites extends BaseController
 
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
+        if ($userId <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
+            }
+            return redirect()->to('/');
+        }
+        if ($tramite_id <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
+            }
+            return redirect()->to('deskapp/tramites')->with('error', 'ID de trámite no proporcionado');
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
+        if (!$hasTenantAccess) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
@@ -4927,7 +5625,7 @@ class Tramites extends BaseController
         // });
 
 
-        $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
+        $crud->callbackAfterInsert(function ($stateParameters)  use ($self, $crud) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
                 $session = session();
                 $parameters = $stateParameters;
@@ -4955,7 +5653,8 @@ class Tramites extends BaseController
                 ];
                 $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
             }
-            return $stateParameters;
+            // GroceryCrud solo conserva UN callback por evento; consolidamos Bitácora + ApiLog.
+            return logOperation($stateParameters, $crud->getTable());
         });
 
         $crud->callbackEditForm(function ($data) use ($self){
@@ -4968,7 +5667,7 @@ class Tramites extends BaseController
             return $data;
         });
 
-        $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($self, $crud){
             $db = Database::connect();
             $db2 = $this->_getDbData();
             $session = session();
@@ -4992,6 +5691,9 @@ class Tramites extends BaseController
                 "user_id" => (int)$myid
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+
+            // GroceryCrud solo conserva UN callback por evento; consolidamos Bitácora + ApiLog.
+            return logOperation($stateParameters, $crud->getTable());
         });
 
         $uploadValidations = [
@@ -5040,14 +5742,6 @@ class Tramites extends BaseController
             return $data;
         });
         // Callbacks para registrar el log
-        $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
-            $tableName = $crud->getTable();
-            return logOperation($stateParameters, $tableName);
-        });
-        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
-            $tableName = $crud->getTable();
-            return logOperation($stateParameters, $tableName);
-        });
         $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
             $tableName = $crud->getTable();
             return logOperation($stateParameters, $tableName);
@@ -5059,6 +5753,8 @@ class Tramites extends BaseController
     }
 
     public function single_pago_derechos(){
+        helper(['permissions', 'cliente_filter']);
+
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -5066,8 +5762,46 @@ class Tramites extends BaseController
         $self = $this;
         $request = \Config\Services::request();
 
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
+        if ($userId <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
+            }
+            return redirect()->to('/');
+        }
+        if ($tramite_id <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
+            }
+            return redirect()->to('deskapp/tramites')->with('error', 'ID de trámite no proporcionado');
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
+        if (!$hasTenantAccess) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_derechos', $perms, $roles)) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
     
         // Paso 1: Definir directorios
         $sourceDir = FCPATH . 'assets/uploads/pago_derechos/';
@@ -5093,7 +5827,14 @@ class Tramites extends BaseController
         $files = $query->getResultArray();
 
         foreach ($files as $file) {
-            $fileName = $file['file'];
+            $fileName = trim((string) ($file['file'] ?? ''));
+            if ($fileName === '') {
+                continue;
+            }
+            if ($fileName !== basename($fileName) || strpos($fileName, "\0") !== false || strpos($fileName, '..') !== false) {
+                continue;
+            }
+
             $sourceFilePath = $sourceDir . $fileName;
             $targetFilePath = $targetDir . $fileName;
 
@@ -5144,7 +5885,7 @@ class Tramites extends BaseController
             'tramite_id' => $tramite_id
         ]);   
 
-        $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
+        $crud->callbackAfterInsert(function ($stateParameters)  use ($self, $crud) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
                 $session = session();
                 $parameters = $stateParameters;
@@ -5256,6 +5997,27 @@ class Tramites extends BaseController
         );
 
         $crud->callbackBeforeDelete(function ($stateParameters) {
+            helper(['permissions', 'cliente_filter']);
+
+            $session = session();
+            $userId = (int) $session->get('id');
+            if ($userId <= 0) {
+                throw new \Exception('Sesión expirada.');
+            }
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
+
+            // Eliminar archivos queda reservado a Admin/Super Admin
+            if (!(is_super_admin($roles) || is_admin($roles))) {
+                throw new \Exception('Acceso denegado.');
+            }
+
             // Access the primary key value directly from the $stateParameters object
             // var_dump($stateParameters->primaryKeyValue);die();
 
@@ -5276,8 +6038,24 @@ class Tramites extends BaseController
             $row = $query->getRowArray();
         
             if ($row) {
-                $tramite_id = $row['tramite_id'];
-                $fileName = $row['file'];
+                $tramite_id = (int) ($row['tramite_id'] ?? 0);
+                $fileName = trim((string) ($row['file'] ?? ''));
+
+                if ($tramite_id <= 0) {
+                    throw new \Exception('Trámite inválido.');
+                }
+
+                $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
+                if (!$hasTenantAccess) {
+                    throw new \Exception('Acceso denegado.');
+                }
+                if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_derechos', $perms, $roles)) {
+                    throw new \Exception('Acceso denegado.');
+                }
+
+                if ($fileName === '' || $fileName !== basename($fileName) || strpos($fileName, "\0") !== false || strpos($fileName, '..') !== false) {
+                    throw new \Exception('Nombre de archivo inválido.');
+                }
         
                 // Define the base image path
                 $baseImagePath = FCPATH . 'assets/uploads/pago_derechos/';
@@ -5308,6 +6086,17 @@ class Tramites extends BaseController
             // Continue with the delete operation
             return $stateParameters;
         });
+
+        $crud->callbackAfterDelete(function ($stateParameters) use ($self) {
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+            if ($tramite_id > 0) {
+                $db = \Config\Database::connect();
+                $self->updateCobrarClienteFlag($db, $tramite_id);
+            }
+            return $stateParameters;
+        });
         
         $crud->fieldType('user_id','hidden');
         $crud->fieldType('tramite_id','hidden');
@@ -5321,6 +6110,28 @@ class Tramites extends BaseController
             $data['user_id'] = $myid;
             $data['tramite_id'] = $tramite_id;
             return $data;
+        });
+
+        $crud->callbackBeforeInsert(function ($stateParameters) {
+            $session = session();
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+            $myid = (int) $session->get('id');
+            $stateParameters->data['user_id'] = $myid;
+            $stateParameters->data['tramite_id'] = $tramite_id;
+            return $stateParameters;
+        });
+
+        $crud->callbackBeforeUpdate(function ($stateParameters) {
+            $session = session();
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+            $myid = (int) $session->get('id');
+            $stateParameters->data['user_id'] = $myid;
+            $stateParameters->data['tramite_id'] = $tramite_id;
+            return $stateParameters;
         });
 
         // Callbacks para registrar el log
@@ -5343,15 +6154,55 @@ class Tramites extends BaseController
     }
 
     public function single_pago_gestor(){
+        helper(['permissions', 'cliente_filter']);
+
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $db2 = $this->_getDbData();
         $self = $this;
         $request = \Config\Services::request();
+
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
     
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
+        if ($userId <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
+            }
+            return redirect()->to('/');
+        }
+        if ($tramite_id <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
+            }
+            return redirect()->to('deskapp/tramites')->with('error', 'ID de trámite no proporcionado');
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
+        if (!$hasTenantAccess) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_gestor', $perms, $roles)) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
     
         // Paso 1: Definir directorios
         $sourceDir = FCPATH . 'assets/uploads/pago_gestor/';
@@ -5377,7 +6228,14 @@ class Tramites extends BaseController
         $files = $query->getResultArray();
     
         foreach ($files as $file) {
-            $fileName = $file['file'];
+            $fileName = trim((string) ($file['file'] ?? ''));
+            if ($fileName === '') {
+                continue;
+            }
+            if ($fileName !== basename($fileName) || strpos($fileName, "\0") !== false || strpos($fileName, '..') !== false) {
+                continue;
+            }
+
             $sourceFilePath = $sourceDir . $fileName;
             $targetFilePath = $targetDir . $fileName;
     
@@ -5478,6 +6336,27 @@ class Tramites extends BaseController
         );
 
         $crud->callbackBeforeDelete(function ($stateParameters) {
+            helper(['permissions', 'cliente_filter']);
+
+            $session = session();
+            $userId = (int) $session->get('id');
+            if ($userId <= 0) {
+                throw new \Exception('Sesión expirada.');
+            }
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
+
+            // Eliminar archivos queda reservado a Admin/Super Admin
+            if (!(is_super_admin($roles) || is_admin($roles))) {
+                throw new \Exception('Acceso denegado.');
+            }
+
             // Access the primary key value directly from the $stateParameters object
             // var_dump($stateParameters->primaryKeyValue);die();
 
@@ -5498,8 +6377,24 @@ class Tramites extends BaseController
             $row = $query->getRowArray();
         
             if ($row) {
-                $tramite_id = $row['tramite_id'];
-                $fileName = $row['file'];
+                $tramite_id = (int) ($row['tramite_id'] ?? 0);
+                $fileName = trim((string) ($row['file'] ?? ''));
+
+                if ($tramite_id <= 0) {
+                    throw new \Exception('Trámite inválido.');
+                }
+
+                $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
+                if (!$hasTenantAccess) {
+                    throw new \Exception('Acceso denegado.');
+                }
+                if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_gestor', $perms, $roles)) {
+                    throw new \Exception('Acceso denegado.');
+                }
+
+                if ($fileName === '' || $fileName !== basename($fileName) || strpos($fileName, "\0") !== false || strpos($fileName, '..') !== false) {
+                    throw new \Exception('Nombre de archivo inválido.');
+                }
         
                 // Define the base image path
                 $baseImagePath = FCPATH . 'assets/uploads/pago_gestor/';
@@ -5538,6 +6433,8 @@ class Tramites extends BaseController
 
     public function single_cobro_cliente()
     {
+        helper(['permissions', 'cliente_filter']);
+
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -5545,8 +6442,46 @@ class Tramites extends BaseController
         $self = $this;
         $request = \Config\Services::request();
 
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
+        if ($userId <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
+            }
+            return redirect()->to('/');
+        }
+        if ($tramite_id <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
+            }
+            return redirect()->to('deskapp/tramites')->with('error', 'ID de trámite no proporcionado');
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
+        if (!$hasTenantAccess) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_final_costos', $perms, $roles)) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
 
         // Paso 1: Definir directorios
         $sourceDir = FCPATH . 'assets/uploads/cobro_cliente/';
@@ -5572,7 +6507,14 @@ class Tramites extends BaseController
         $files = $query->getResultArray();
 
         foreach ($files as $file) {
-            $fileName = $file['file'];
+            $fileName = trim((string) ($file['file'] ?? ''));
+            if ($fileName === '') {
+                continue;
+            }
+            if ($fileName !== basename($fileName) || strpos($fileName, "\0") !== false || strpos($fileName, '..') !== false) {
+                continue;
+            }
+
             $sourceFilePath = $sourceDir . $fileName;
             $targetFilePath = $targetDir . $fileName;
 
@@ -5673,6 +6615,27 @@ class Tramites extends BaseController
         );
 
         $crud->callbackBeforeDelete(function ($stateParameters) {
+            helper(['permissions', 'cliente_filter']);
+
+            $session = session();
+            $userId = (int) $session->get('id');
+            if ($userId <= 0) {
+                throw new \Exception('Sesión expirada.');
+            }
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
+
+            // Eliminar archivos queda reservado a Admin/Super Admin
+            if (!(is_super_admin($roles) || is_admin($roles))) {
+                throw new \Exception('Acceso denegado.');
+            }
+
             // Access the primary key value directly from the $stateParameters object
             // var_dump($stateParameters->primaryKeyValue);die();
 
@@ -5690,8 +6653,24 @@ class Tramites extends BaseController
             $row = $query->getRowArray();
         
             if ($row) {
-                $tramite_id = $row['tramite_id'];
-                $fileName = $row['file'];
+                $tramite_id = (int) ($row['tramite_id'] ?? 0);
+                $fileName = trim((string) ($row['file'] ?? ''));
+
+                if ($tramite_id <= 0) {
+                    throw new \Exception('Trámite inválido.');
+                }
+
+                $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
+                if (!$hasTenantAccess) {
+                    throw new \Exception('Acceso denegado.');
+                }
+                if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_final_costos', $perms, $roles)) {
+                    throw new \Exception('Acceso denegado.');
+                }
+
+                if ($fileName === '' || $fileName !== basename($fileName) || strpos($fileName, "\0") !== false || strpos($fileName, '..') !== false) {
+                    throw new \Exception('Nombre de archivo inválido.');
+                }
         
                 // Define the base image path
                 $baseImagePath = FCPATH . 'assets/uploads/cobro_cliente/';
@@ -5745,6 +6724,8 @@ class Tramites extends BaseController
         return true;
     }
     public function single_evidencias_finales(){
+        helper(['permissions', 'cliente_filter']);
+
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -5752,6 +6733,44 @@ class Tramites extends BaseController
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
+        if ($userId <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
+            }
+            return redirect()->to('/');
+        }
+        if ($tramite_id <= 0) {
+            if ($isApi) {
+                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
+            }
+            return redirect()->to('deskapp/tramites')->with('error', 'ID de trámite no proporcionado');
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
+        if (!$hasTenantAccess) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
+            if ($isApi) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+            return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());
@@ -5774,7 +6793,7 @@ class Tramites extends BaseController
             'costo', 'created_at'
         ]); 
 
-        $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
+        $crud->callbackAfterInsert(function ($stateParameters)  use ($self, $crud) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
                 $session = session();
                 $parameters = $stateParameters;
@@ -5799,10 +6818,11 @@ class Tramites extends BaseController
                 ];
                 $bitacoraModel->insert($insert_bitacora, 'bitacora');
             }
-            return $stateParameters;
+            // GroceryCrud solo conserva UN callback por evento; consolidamos Bitácora + ApiLog.
+            return logOperation($stateParameters, $crud->getTable());
         });
 
-        $crud->callbackAfterUpdate(function ($stateParameters) use ($self){
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($self, $crud){
             $db2 = $this->_getDbData();
             $session = session();
             $data = $stateParameters->data;
@@ -5823,6 +6843,9 @@ class Tramites extends BaseController
                 "user_id" => (int)$myid
             ];
             $bitacoraModel->insert($insert_bitacora, 'bitacora');
+
+            // GroceryCrud solo conserva UN callback por evento; consolidamos Bitácora + ApiLog.
+            return logOperation($stateParameters, $crud->getTable());
         });
 
         $uploadValidations = [
@@ -5858,14 +6881,6 @@ class Tramites extends BaseController
         });
 
         // Callbacks para registrar el log
-        $crud->callbackAfterInsert(function ($stateParameters) use ($crud) {
-            $tableName = $crud->getTable();
-            return logOperation($stateParameters, $tableName);
-        });
-        $crud->callbackAfterUpdate(function ($stateParameters) use ($crud) {
-            $tableName = $crud->getTable();
-            return logOperation($stateParameters, $tableName);
-        });
         $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
             $tableName = $crud->getTable();
             return logOperation($stateParameters, $tableName);
@@ -5876,7 +6891,7 @@ class Tramites extends BaseController
         return $this->_example_output($salida2);
     }
 
-    private function _getDbData() {
+    protected function _getDbData() {
         $db = (new ConfigDatabase())->default;
         return [
             'adapter' => [
@@ -5889,7 +6904,7 @@ class Tramites extends BaseController
             ]
         ];
     }
-    private function _getGroceryCrudEnterprise($bootstrap = true, $jquery = true) {
+    protected function _getGroceryCrudEnterprise($bootstrap = true, $jquery = true) {
         $db = $this->_getDbData();
         $config = (new ConfigGroceryCrud())->getDefaultConfig();
 
@@ -5898,13 +6913,56 @@ class Tramites extends BaseController
     }
 
     public function autorizar(){
-        $tramiteId = $this->request->getPost('tramite_id');
-        $statusId = $this->request->getPost('status_id');
+        helper(['permissions', 'cliente_filter']);
+
+        $session = session();
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $tramiteId = (int) $this->request->getPost('tramite_id');
+        $statusId = (int) $this->request->getPost('status_id');
         $db = \Config\Database::connect();
         $db2 = $this->_getDbData();
         $builder = $db->table('tramite');
 
         try {
+            if ($tramiteId <= 0 || $statusId <= 0) {
+                return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Datos inválidos.']);
+            }
+
+            $requiredPermission = null;
+            switch ($statusId) {
+                case 23:
+                    $requiredPermission = 'important_pasar_a_pagos';
+                    break;
+                case 20:
+                    $requiredPermission = 'important_concluir_tramite';
+                    break;
+                case 29:
+                case 11:
+                    $requiredPermission = 'important_cancelar_tramite';
+                    break;
+                default:
+                    $requiredPermission = 'editar_tramite';
+                    break;
+            }
+
+            if (!has_permission($requiredPermission, $perms, $roles)) {
+                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            }
+
+            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+            if (!$hasTenantAccess) {
+                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            }
+
             // Obtener datos actuales para auditoría
             $tramiteActual = $builder->where('id', $tramiteId)->get()->getRowArray();
             $oldStatusId = $tramiteActual['tra_status_id'] ?? null;
@@ -5914,13 +6972,12 @@ class Tramites extends BaseController
             $builder->update(['tra_status_id' => $statusId]);
 
             // Opcional: Insertar un registro en tra_user_log
-            $session = session();
-            $myid = $session->get('id');
+            $myid = $userId;
             $tra_user_log = new TraUserLogModel($db2);
             $logData = [
                 'tramite_id' => $tramiteId,
                 'user_id' => $myid,
-                'tra_status_id' => 23
+                'tra_status_id' => $statusId
             ];
 
             $tra_user_log->insert($logData, 'tra_user_log');
@@ -5946,10 +7003,37 @@ class Tramites extends BaseController
     }
 
     public function check_reembolso_status() {
-        $tramiteId = $this->request->getPost('tramite_id');
+        helper(['permissions', 'cliente_filter']);
+
+        $session = session();
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $tramiteId = (int) $this->request->getPost('tramite_id');
         $db = \Config\Database::connect();
     
         try {
+            if ($tramiteId <= 0) {
+                return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Datos inválidos.']);
+            }
+
+            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+            if (!$hasTenantAccess) {
+                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            }
+
+            // Endpoint auxiliar para concluir trámite: exige el mismo permiso de la transición
+            if (!has_permission('important_concluir_tramite', $perms, $roles)) {
+                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            }
+
             // Consultar el reembolso_status_id del trámite
             $builder = $db->table('tramite');
             $builder->select('reembolso_status_id');
@@ -5970,13 +7054,66 @@ class Tramites extends BaseController
     }
 
     public function change_status(){
-        $tramiteId = $this->request->getPost('tramite_id');
-        $statusId = $this->request->getPost('status_id');
+        helper(['permissions', 'cliente_filter']);
+
+        $tramiteId = (int) $this->request->getPost('tramite_id');
+        $statusId = (int) $this->request->getPost('status_id');
         $db = \Config\Database::connect();
         $db2 = $this->_getDbData();
         $builder = $db->table('tramite');
 
         try {
+            $session = session();
+            $userId = (int) $session->get('id');
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
+
+            if ($tramiteId <= 0 || $statusId <= 0) {
+                return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Datos inválidos.']);
+            }
+
+            // Permiso requerido según transición (alineado con los botones en vistas)
+            $requiredPermission = null;
+            switch ($statusId) {
+                case 23: // Aprobar Trámite
+                    $requiredPermission = 'important_pasar_a_pagos';
+                    break;
+                case 20: // Concluir Trámite
+                    $requiredPermission = 'important_concluir_tramite';
+                    break;
+                case 29: // Es solo Cotización
+                case 11: // Reactivar como trámite (desde cotización)
+                    $requiredPermission = 'important_cancelar_tramite';
+                    break;
+                default:
+                    $requiredPermission = 'editar_tramite';
+                    break;
+            }
+
+            if (!has_permission($requiredPermission, $perms, $roles)) {
+                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            }
+
+            // Multi-tenancy: validar acceso al cliente del trámite
+            $tramiteRow = $db->table('tramite')->select('cli_directo_id')->where('id', $tramiteId)->get(1)->getRowArray();
+            if (empty($tramiteRow)) {
+                return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => 'Trámite no encontrado.']);
+            }
+            $cliDirectoId = (int) ($tramiteRow['cli_directo_id'] ?? 0);
+            if ($cliDirectoId > 0) {
+                $cliRow = $db->table('cli_directo')->select('cliente_id')->where('id', $cliDirectoId)->get(1)->getRowArray();
+                $clienteId = (int) ($cliRow['cliente_id'] ?? 0);
+                if ($clienteId > 0 && !has_access_to_cliente($clienteId, $userId)) {
+                    return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado al cliente del trámite.']);
+                }
+            }
+
             // Actualizar el estatus del trámite
 
             $builder->where('id', $tramiteId);
@@ -5994,8 +7131,7 @@ class Tramites extends BaseController
 
             
             // Opcional: Insertar un registro en tra_user_log
-            $session = session();
-            $myid = $session->get('id');
+            $myid = $userId;
             $tra_user_log = new TraUserLogModel($db2);
             $logData = [
                 'tramite_id' => $tramiteId,
@@ -6012,14 +7148,56 @@ class Tramites extends BaseController
     }
 
     public function cancelar_tramite(){
-        $tramiteId = $this->request->getPost('tramite_id');
-        $motivo = $this->request->getPost('motivo');
-        $statusId = $this->request->getPost('status_id');
+        helper(['permissions', 'cliente_filter']);
+
+        $session = session();
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $tramiteId = (int) $this->request->getPost('tramite_id');
+        $motivo = (string) $this->request->getPost('motivo');
+        $statusId = (int) $this->request->getPost('status_id');
         $db = \Config\Database::connect();
         $db2 = $this->_getDbData();
         $builder = $db->table('tramite');
 
         try {
+            if ($tramiteId <= 0 || $statusId <= 0) {
+                return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Datos inválidos.']);
+            }
+
+            // Permiso requerido según transición (alineado con change_status)
+            $requiredPermission = null;
+            switch ($statusId) {
+                case 23:
+                    $requiredPermission = 'important_pasar_a_pagos';
+                    break;
+                case 20:
+                    $requiredPermission = 'important_concluir_tramite';
+                    break;
+                case 29:
+                case 11:
+                default:
+                    $requiredPermission = 'important_cancelar_tramite';
+                    break;
+            }
+
+            if (!has_permission($requiredPermission, $perms, $roles)) {
+                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            }
+
+            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+            if (!$hasTenantAccess) {
+                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            }
+
             // Actualizar el estatus del trámite
 
             $builder->where('id', $tramiteId);
@@ -6029,8 +7207,7 @@ class Tramites extends BaseController
             ]);
             
             // Opcional: Insertar un registro en tra_user_log
-            $session = session();
-            $myid = $session->get('id');
+            $myid = $userId;
             $tra_user_log = new TraUserLogModel($db2);
             $logData = [
                 'tramite_id' => $tramiteId,
@@ -6047,6 +7224,22 @@ class Tramites extends BaseController
     }
     public function get_service_types()
     {
+        helper(['permissions']);
+
+        $session = session();
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_gestor', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+        }
+
         $db2 = $this->_getDbData();
         $TraTiposModel = new TraTiposModel($db2);
         $tra_tipos_options = $TraTiposModel->getTraTiposOptions();
@@ -6055,16 +7248,67 @@ class Tramites extends BaseController
 
     public function get_services_by_tramite($tramiteId)
     {
+        helper(['permissions', 'cliente_filter']);
+
+        $session = session();
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $tramiteId = (int) $tramiteId;
+        if ($tramiteId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([]);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+        }
+        if (!has_permission('section_pago_gestor', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+        }
+
         $model = new TraTramiteAsociadoModel();
         return $this->response->setJSON($model->getServicesByTramiteId($tramiteId));
     }
     public function save_services()
     {
-        $tramiteId = $this->request->getPost('tramite_id');
+        helper(['permissions', 'cliente_filter']);
+
+        $session = session();
+        $userId = (int) $session->get('id');
+        if ($userId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
+        }
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $tramiteId = (int) $this->request->getPost('tramite_id');
         $services = $this->request->getPost('services');
 
-        if (empty($tramiteId) || empty($services)) {
-            return $this->response->setJSON(['status' => 'error', 'message' => 'Datos insuficientes']);
+        if ($tramiteId <= 0 || empty($services)) {
+            return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'Datos insuficientes']);
+        }
+
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('editar_pago_gestor', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
         }
 
         $model = new TraTramiteAsociadoModel();
@@ -6078,11 +7322,27 @@ class Tramites extends BaseController
     // Eliminar un servicio asociado al trámite
     public function delete_service()
     {
+        helper(['permissions', 'cliente_filter']);
+
+        $session = session();
+        $userId = (int) $session->get('id');
+        if ($userId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
+        }
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
         $serviceId = $this->request->getPost('asociado_id');
         
         // Validar ID del servicio
         if (!$serviceId || !is_numeric($serviceId)) {
-            return $this->response->setJSON(['status' => 'error', 'message' => 'ID de servicio inválido.']);
+            return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de servicio inválido.']);
         }
 
         try {
@@ -6094,18 +7354,58 @@ class Tramites extends BaseController
                 return $this->response->setJSON(['status' => 'error', 'message' => 'El servicio no existe.']);
             }
 
+            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('editar_pago_gestor', $perms, $roles)) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+
+            $tramiteId = (int) ($existingService['tramite_id'] ?? 0);
+            if ($tramiteId <= 0) {
+                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'Servicio inválido.']);
+            }
+
+            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+            if (!$hasTenantAccess) {
+                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+            }
+
             $model->deleteService($serviceId);
 
             return $this->response->setJSON(['status' => 'deleted', 'message' => 'Servicio eliminado correctamente.']);
 
         } catch (\Exception $e) {
             log_message('error', 'Error en delete_service: ' . $e->getMessage());
-            return $this->response->setJSON(['status' => 'error', 'message' => 'Error al eliminar: ' . $e->getMessage()]);
+            return $this->response->setStatusCode(500)->setJSON(['status' => 'error', 'message' => 'Error al eliminar.']);
         }
     }
 
     public function get_service_costs_by_tramite($tramiteId)
     {
+        helper(['permissions', 'cliente_filter']);
+
+        $session = session();
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        $tramiteId = (int) $tramiteId;
+        if ($tramiteId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([]);
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+        if (!$hasTenantAccess) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+        }
+        if (!has_permission('section_pago_gestor', $perms, $roles)) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+        }
+
         $db = \Config\Database::connect();
         $query = $db->table('tra_tramite_asociado')
                     ->select('tra_tramite_asociado.id, tra_tramite_asociado.costo_tramite, tra_tipos.tipo_tramite')
@@ -6117,6 +7417,19 @@ class Tramites extends BaseController
     }
 
     public function update_service_cost(){
+        helper(['permissions', 'cliente_filter']);
+
+        $session = session();
+        $userId = (int) $session->get('id');
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
         $id = $this->request->getPost('id');
         $costo_tramite = $this->request->getPost('costo_tramite');
 
@@ -6154,6 +7467,29 @@ class Tramites extends BaseController
                 ]);
             }
 
+            if (!has_permission('editar_pago_gestor', $perms, $roles)) {
+                return $this->response->setStatusCode(403)->setJSON([
+                    'status' => 'error',
+                    'message' => 'Acceso denegado.'
+                ]);
+            }
+
+            $tramiteId = (int) ($existingRecord['tramite_id'] ?? 0);
+            if ($tramiteId <= 0) {
+                return $this->response->setStatusCode(400)->setJSON([
+                    'status' => 'error',
+                    'message' => 'Servicio inválido.'
+                ]);
+            }
+
+            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
+            if (!$hasTenantAccess) {
+                return $this->response->setStatusCode(403)->setJSON([
+                    'status' => 'error',
+                    'message' => 'Acceso denegado.'
+                ]);
+            }
+
             // Actualizar
             $data = [
                 'costo_tramite' => $costo_tramite,
@@ -6182,6 +7518,18 @@ class Tramites extends BaseController
     }
     public function sincronizarTramites()
     {
+        helper(['permissions']);
+
+        $session = session();
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+
+        if (!(is_super_admin($roles) || is_admin($roles))) {
+            return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+        }
+
         $db = \Config\Database::connect();
         $traTramiteAsociadoModel = new TraTramiteAsociadoModel();
         $resultado = $traTramiteAsociadoModel->syncTramitesWithoutAsociados();
@@ -6198,6 +7546,14 @@ class Tramites extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
@@ -6208,31 +7564,31 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('editar_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('delete_tramite', $perms, $roles)){
                 $tramite_crud->unsetDelete();
             }
 
-            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('export_tramite', $perms, $roles)){
                 $tramite_crud->unsetExport();
             }
 
-            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
             }
 
-            if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('clone_tramite', $perms, $roles)){
                 $tramite_crud->unsetClone();
             }
 
@@ -6408,6 +7764,14 @@ class Tramites extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            $roles = $session->get('user_roles') ?? [];
+            if (!is_array($roles)) {
+                $roles = [$roles];
+            }
+            $perms = $session->get('user_permissions') ?? [];
+            if (!is_array($perms)) {
+                $perms = [$perms];
+            }
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
@@ -6418,31 +7782,31 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('editar_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('delete_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('delete_tramite', $perms, $roles)){
                 $tramite_crud->unsetDelete();
             }
 
-            if (!has_permission('export_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('export_tramite', $perms, $roles)){
                 $tramite_crud->unsetExport();
             }
 
-            if (!has_permission('print_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
             }
 
-            if (has_permission('read_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
 
-            if (!has_permission('clone_tramite', esc($session->get('user_permissions')),esc($session->get('user_roles')))){
+            if (!has_permission('clone_tramite', $perms, $roles)){
                 $tramite_crud->unsetClone();
             }
 
@@ -6625,7 +7989,7 @@ class Tramites extends BaseController
         
         // Verificar que el trámite existe
         $db = Database::connect();
-        $tramite = $db->table('tramite')->select('id, folio')->where('id', $tramiteId)->get()->getRowArray();
+        $tramite = $db->table('tramite')->select('id, folio, tra_status_id')->where('id', $tramiteId)->get()->getRowArray();
         
         if (!$tramite) {
             return redirect()->to('deskapp/tramites')->with('error', 'Trámite no encontrado');
@@ -6634,6 +7998,13 @@ class Tramites extends BaseController
         // Obtener datos de auditoría
         $auditLog = get_tramite_audit_log($tramiteId);
         
+        $db2 = $this->_getDbData();
+        $traStatusModel = new \App\Models\TraStatusModel($db2);
+        $traStatusOptions = $traStatusModel->getTraStatusOptions();
+        $traStatusSteps = $traStatusOptions['steps'] ?? [];
+        $stepActualDb = $traStatusSteps[$tramite['tra_status_id']] ?? 1;
+        $stepActualDisplay = $stepActualDb + 1;
+
         $data = [
             'session' => $session,
             'tramite_id' => $tramiteId,
@@ -6641,7 +8012,9 @@ class Tramites extends BaseController
             'audit_log' => $auditLog,
             'last_modifier' => get_tramite_last_modifier($tramiteId),
             'summary' => get_tramite_audit_summary($tramiteId),
-            'total_changes' => count($auditLog)
+            'total_changes' => count($auditLog),
+            'step_actual_db' => $stepActualDb,
+            'step_actual_display' => $stepActualDisplay,
         ];
         
         // Log temporal para debug

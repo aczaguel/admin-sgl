@@ -143,11 +143,12 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
         errorAlert.className = 'alert alert-danger alert-dismissible fade show';
         errorAlert.setAttribute('role', 'alert');
 
-        let errorList = '<strong>Error:</strong> No se pudo guardar el trámite. Por favor, revise los campos marcados.';
+                let errorList = '<strong>Error:</strong> No se pudo guardar el trámite.' +
+                    '<div class="mt-2"><ul class="mb-0 pl-3">';
         
         if (data !== "undefined" && data.success === false) {
           if (typeof data.message !== "undefined") {
-            errorList += `<li>${mapErrorMessage(data.message)}</li>`;
+                        errorList += formatErrorMessage(data.message);
           } else if (typeof data.errors !== "undefined") {
             for (let field in data.errors) {
               if (data.errors.hasOwnProperty(field)) {
@@ -158,7 +159,7 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
             errorList += `<li>Ocurrió un error desconocido.</li>`;
           }
         }
-
+                errorList += '</ul></div>';
         errorAlert.innerHTML = errorList;
         form.prepend(errorAlert);
       }
@@ -171,6 +172,30 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
       form.prepend(errorAlert);
     });
   });
+  function formatErrorMessage(message) {
+    if (message && typeof message === 'object') {
+        let items = '';
+        if (message.serie_existente) {
+            items += '<li><strong>Serie existente:</strong> ' + message.serie_existente + '</li>';
+        }
+        if (message.tipo_tramite_existente) {
+            items += '<li><strong>Tipo:</strong> ' + message.tipo_tramite_existente + '</li>';
+        }
+        if (message.nombre_usuario_existente) {
+            items += '<li><strong>Creado por:</strong> ' + message.nombre_usuario_existente + '</li>';
+        }
+        if (message.created_at_existente) {
+            items += '<li><strong>Fecha:</strong> ' + message.created_at_existente + '</li>';
+        }
+        if (message.id_existente) {
+            items += '<li><a href="/deskapp/tramites/update/' + message.id_existente + '" target="_blank">Abrir trámite existente</a></li>';
+        }
+        return items || '<li>Ocurrió un error desconocido.</li>';
+    }
+
+    return '<li>' + mapErrorMessage(message) + '</li>';
+  }
+
   function mapErrorMessage(message) {
     const errorMap = {
         'ent_municipio_id': 'Hubo un error en el campo Municipio',
@@ -182,6 +207,10 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
         'serie': 'El campo serie es requerido',
         'placas': 'El campo placas es requerido'
     };
+
+    if (typeof message !== 'string') {
+        return 'Ocurrió un error desconocido.';
+    }
 
     for (let key in errorMap) {
         if (message.includes(key)) {
@@ -242,6 +271,94 @@ function changeStatusTramite(tramiteId, status_id) {
 }
 
 function concluirTramite(tramiteId, status_id) {
+
+    function showConfirmModal(message, title, icon) {
+        var safeTitle = title || 'Aviso';
+        var safeIcon = icon || 'info';
+        if (window.Swal && typeof Swal.fire === 'function') {
+            return Swal.fire({
+                title: safeTitle,
+                text: message,
+                icon: safeIcon,
+                confirmButtonText: 'Aceptar'
+            });
+        }
+        if (window.swal && typeof window.swal === 'function') {
+            return window.swal({
+                title: safeTitle,
+                text: message,
+                icon: safeIcon,
+                buttons: {
+                    confirm: 'Aceptar'
+                }
+            });
+        }
+        return Promise.resolve(confirm(message));
+    }
+
+    function showConfirmDecision(message, title) {
+        var safeTitle = title || 'Confirmar';
+        if (window.Swal && typeof Swal.fire === 'function') {
+            return Swal.fire({
+                title: safeTitle,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Si, continuar',
+                cancelButtonText: 'Cancelar'
+            });
+        }
+        if (window.swal && typeof window.swal.fire === 'function') {
+            return window.swal.fire({
+                title: safeTitle,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Si, continuar',
+                cancelButtonText: 'Cancelar'
+            });
+        }
+        return new Promise(function (resolve) {
+            var overlay = document.createElement('div');
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.45);z-index:9999;padding:16px;';
+            var card = document.createElement('div');
+            card.style.cssText = 'max-width:520px;width:100%;background:#fff;border-radius:16px;box-shadow:0 20px 40px rgba(15,23,42,0.25);padding:20px 22px;font-family:inherit;';
+            var titleEl = document.createElement('div');
+            titleEl.style.cssText = 'font-size:1.05rem;font-weight:800;color:#0f172a;margin-bottom:8px;';
+            titleEl.textContent = safeTitle;
+            var msgEl = document.createElement('div');
+            msgEl.style.cssText = 'font-size:.95rem;color:#334155;line-height:1.45;';
+            msgEl.textContent = message;
+            var actions = document.createElement('div');
+            actions.style.cssText = 'display:flex;justify-content:flex-end;gap:10px;margin-top:18px;';
+            var cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.textContent = 'Cancelar';
+            cancelBtn.style.cssText = 'border-radius:999px;border:1px solid #cbd5f5;background:#e0e7ff;color:#1e293b;font-weight:700;padding:8px 16px;';
+            var okBtn = document.createElement('button');
+            okBtn.type = 'button';
+            okBtn.textContent = 'Continuar';
+            okBtn.style.cssText = 'border-radius:999px;border:0;background:#10b981;color:#fff;font-weight:700;padding:8px 18px;box-shadow:0 6px 14px rgba(16,185,129,0.3);';
+            cancelBtn.addEventListener('click', function () {
+                overlay.remove();
+                resolve({ isConfirmed: false });
+            });
+            okBtn.addEventListener('click', function () {
+                overlay.remove();
+                resolve({ isConfirmed: true });
+            });
+            actions.appendChild(cancelBtn);
+            actions.appendChild(okBtn);
+            card.appendChild(titleEl);
+            card.appendChild(msgEl);
+            card.appendChild(actions);
+            overlay.appendChild(card);
+            document.body.appendChild(overlay);
+        });
+    }
+
     // Realizar el AJAX previo para verificar el reembolso_status_id
     $.ajax({
         url: '/deskapp/tramites/check_reembolso_status', // Ruta para consultar el estado de reembolso
@@ -256,13 +373,16 @@ function concluirTramite(tramiteId, status_id) {
             console.log("response", response);
             // Verificar si hay reembolso pendiente
             if (response.reembolso_pendiente) {
-                mensajeConfirmacion = 'Este trámite tiene un reembolso pendiente. ¿Estás seguro de que deseas cambiar el estatus?';
+                mensajeConfirmacion = 'Este tramite tiene un reembolso pendiente. ¿Estas seguro de cambiar el estatus?';
             } else {
-                mensajeConfirmacion = '¿Estás seguro de que deseas cambiar el estatus de este trámite?';
+                mensajeConfirmacion = '¿Estas seguro de cambiar el estatus de este tramite?';
             }
 
             // Mostrar el mensaje en el confirm()
-            if (confirm(mensajeConfirmacion)) {
+            showConfirmDecision(mensajeConfirmacion, 'Confirmar cambio').then(function (result) {
+                if (!result || result.isConfirmed !== true) {
+                    return;
+                }
                 // Realizar la segunda solicitud AJAX para cambiar el estatus
                 $.ajax({
                     url: '/deskapp/tramites/change_status',
@@ -274,20 +394,23 @@ function concluirTramite(tramiteId, status_id) {
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert('Estatus del trámite actualizado correctamente.');
-                            location.reload(); // Recargar la página para actualizar la lista
+                            showConfirmModal('Estatus del trámite actualizado correctamente.', 'Listo', 'success')
+                                .then(function (result) {
+                                    if (result && result.isConfirmed === false) return;
+                                    location.reload(); // Recargar la página para actualizar la lista
+                                });
                         } else {
-                            alert('Ocurrió un error al cambiar el estatus del trámite.');
+                            showConfirmModal('Ocurrió un error al cambiar el estatus del trámite.', 'Aviso', 'error');
                         }
                     },
                     error: function() {
-                        alert('Ocurrió un error en la solicitud.');
+                        showConfirmModal('Ocurrió un error en la solicitud.', 'Aviso', 'error');
                     }
                 });
-            }
+            });
         },
         error: function() {
-            alert('Ocurrió un error al consultar el estado del trámite.');
+            showConfirmModal('Ocurrió un error al consultar el estado del trámite.', 'Aviso', 'error');
         }
     });
 }
@@ -1202,6 +1325,7 @@ $(document).ready(function() {
 
 
 let previousResponseCobroCliente = null; // Variable global para almacenar el estado anterior
+let intervalCobroClienteId = null;
 function fetchCobroClienteFiles() {
     $.ajax({
         url: `/deskapp/tramites/getCobroClienteFiles/${tramite_id}`, // Ruta del endpoint
@@ -1244,12 +1368,17 @@ function fetchCobroClienteFiles() {
             });
         },
         error: function (xhr, status, error) {
+            if (xhr && xhr.status === 403) {
+                if (intervalCobroClienteId) clearInterval(intervalCobroClienteId);
+                return;
+            }
             console.error("Error fetching files:", error);
         }
     });
 }
 
 let previousResponsePagoGestor = null; // Variable global para almacenar el estado anterior
+let intervalPagoGestorId = null;
 function fetchPagoGestorFiles() {
     $.ajax({
         url: `/deskapp/tramites/getPagoGestorFiles/${tramite_id}`, // Ruta del endpoint
@@ -1292,12 +1421,17 @@ function fetchPagoGestorFiles() {
             });
         },
         error: function (xhr, status, error) {
+            if (xhr && xhr.status === 403) {
+                if (intervalPagoGestorId) clearInterval(intervalPagoGestorId);
+                return;
+            }
             console.error("Error fetching files:", error);
         }
     });
 }
 
 let previousResponseDerechos = null; // Variable global para almacenar el estado anterior
+let intervalPagoDerechosId = null;
 function fetchPagoDerechosFiles() {
     $.ajax({
         url: `/deskapp/tramites/getPagoDerechosFiles/${tramite_id}`, // Ruta del endpoint
@@ -1340,22 +1474,38 @@ function fetchPagoDerechosFiles() {
             });
         },
         error: function (xhr, status, error) {
+            if (xhr && xhr.status === 403) {
+                if (intervalPagoDerechosId) clearInterval(intervalPagoDerechosId);
+                return;
+            }
             console.error("Error fetching files:", error);
         }
     });
 }
 
 // Ejecutar la función cada 3 segundos
-fetchPagoDerechosFiles();
-fetchPagoGestorFiles();
-fetchCobroClienteFiles();
-setInterval(fetchPagoDerechosFiles, 3000);
-setInterval(fetchPagoGestorFiles, 3000);
-setInterval(fetchCobroClienteFiles, 3000);
+if (typeof tramite_id !== 'undefined') {
+    if ($('#documentos-container').length) {
+        fetchPagoDerechosFiles();
+        intervalPagoDerechosId = setInterval(fetchPagoDerechosFiles, 3000);
+    }
+    if ($('#gestor-container').length) {
+        fetchPagoGestorFiles();
+        intervalPagoGestorId = setInterval(fetchPagoGestorFiles, 3000);
+    }
+    if ($('#cliente-container').length) {
+        fetchCobroClienteFiles();
+        intervalCobroClienteId = setInterval(fetchCobroClienteFiles, 3000);
+    }
+}
 
 $(document).ready(function () {
     var tramiteId = tramite_id; // ID del trámite cargado en la URL
     var serviceList = $("#service-list");
+
+    if (typeof tramite_id === 'undefined' || serviceList.length === 0) {
+        return;
+    }
 
     // 🔹 Cargar los tipos de servicio desde el backend y devolver una promesa
     function loadServiceTypes() {
@@ -1365,7 +1515,10 @@ $(document).ready(function () {
             dataType: "json"
         }).done(function (data) {
             window.availableServices = data; // Guardamos los datos en una variable global
-        }).fail(function () {
+        }).fail(function (xhr) {
+            if (xhr && xhr.status === 403) {
+                return;
+            }
             alert("Error al cargar los tipos de servicio.");
         });
     }
@@ -1383,7 +1536,10 @@ $(document).ready(function () {
                 addServiceRow(service.id, service.tra_tipos_id, firstId);
                 addCostRow(service.id, service.costo_tramite || 0);
             });
-        }).fail(function () {
+        }).fail(function (xhr) {
+            if (xhr && xhr.status === 403) {
+                return;
+            }
             alert("Error al cargar los servicios del trámite.");
         });
     }
@@ -1483,7 +1639,11 @@ $(document).ready(function () {
                     sumarCostos(); // Recalcular la sumatoria
                     alert(`✅ Tipo de servicio eliminado correctamente. ${asociadoId}`);
                 },
-                error: function () {
+                error: function (xhr) {
+                    if (xhr && xhr.status === 403) {
+                        alert("Acceso denegado.");
+                        return;
+                    }
                     alert("❌ Error al eliminar el servicio.");
                 }
             });
@@ -1528,7 +1688,11 @@ $(document).ready(function () {
                     window.location.reload();
                 }, 2000);
             },
-            error: function () {
+            error: function (xhr) {
+                if (xhr && xhr.status === 403) {
+                    alert("Acceso denegado.");
+                    return;
+                }
                 alert("Error al guardar los servicios.");
             }
         });
@@ -1541,6 +1705,10 @@ $(document).ready(function () {
     var costosContainer = $("#gestor_costos_tipo_servicio");
     var totalCostoInput = $("#costo_tramite");
     var totalCostoInput2 = $("#costo_tramite_total");
+
+    if (typeof tramite_id === 'undefined' || costosContainer.length === 0) {
+        return;
+    }
 
     // 🔹 Cargar los costos de los tipos de servicio asociados al trámite
     function loadServiceCosts() {
@@ -1577,7 +1745,10 @@ $(document).ready(function () {
                 // Ejecutamos la suma inicial
                 sumarCostos();
             },
-            error: function () {
+            error: function (xhr) {
+                if (xhr && xhr.status === 403) {
+                    return;
+                }
                 costosContainer.append("<p class='text-danger'>Error al cargar los costos.</p>");
             }
         });
@@ -1646,7 +1817,11 @@ $(document).ready(function () {
                 
                 sumarCostos(); // Actualizar la sumatoria después de guardar
             },
-            error: function () {
+            error: function (xhr) {
+                if (xhr && xhr.status === 403) {
+                    alert("Acceso denegado.");
+                    return;
+                }
                 alert("❌ Error al actualizar el costo.");
             }
         });

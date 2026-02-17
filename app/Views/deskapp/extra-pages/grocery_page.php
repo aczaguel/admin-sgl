@@ -9,7 +9,7 @@
 			background: #ffffff;
 			border-radius: 12px;
 			box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-			overflow: hidden;
+			overflow: visible;
 			margin-bottom: 30px;
 		}
 
@@ -43,13 +43,18 @@
 			padding: 30px;
 		}
 
+		.grocery-crud-body .table-responsive {
+			overflow-x: auto;
+			overflow-y: visible;
+		}
+
 		/* Enhanced table styling */
 		.grocery-crud-body table.table {
 			border-collapse: separate;
 			border-spacing: 0;
 			border: 1px solid #e3e8ef;
 			border-radius: 8px;
-			overflow: hidden;
+			overflow: visible;
 		}
 
 		.grocery-crud-body table.table thead th {
@@ -448,12 +453,12 @@
 					<!-- Body Section -->
 					<div class="grocery-crud-body">
 						<!-- Audit Debug Div -->
-					<div id="audit-debug" style="display: none; background: #1e293b; color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 20px; font-family: 'Courier New', monospace;">
+					<div id="audit-debug" class="debug-info-container" style="display: none; background: #1e293b; color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 20px; font-family: 'Courier New', monospace;">
 						<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid #475569; padding-bottom: 8px;">
-							<strong style="color: #60a5fa; font-size: 14px;">📋 Form POST Data</strong>
+							<strong style="color: #60a5fa; font-size: 14px;">📋 Audit Payload</strong>
 							<button onclick="$('#audit-debug').hide()" style="background: #ef4444; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">✕ Cerrar</button>
 						</div>
-						<pre id="audit-content" style="margin: 0; white-space: pre-wrap; word-wrap: break-word; font-size: 12px; line-height: 1.5; color: #ffffff;"></pre>
+						<pre id="audit-content" style="margin: 0; white-space: pre-wrap; word-wrap: break-word; font-size: 12px; line-height: 1.5; color: #ffffff;"><?php if (!empty($audit_payload)) { print_r($audit_payload); } else { echo 'Sin datos de auditoria.'; } ?></pre>
 					</div>
 
 					<?php
@@ -513,6 +518,34 @@
 			if (searchInput.attr('placeholder') === '' || !searchInput.attr('placeholder')) {
 				searchInput.attr('placeholder', 'Buscar...');
 			}
+
+			// Ensure "Mas" dropdown works after filters/redraws
+			function bindMoreDropdowns() {
+				$(document).off('click.gc-more', '.grocery-crud-body .dropdown-toggle');
+				$(document).on('click.gc-more', '.grocery-crud-body .dropdown-toggle', function(e) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					var $toggle = $(this);
+					var $dropdown = $toggle.closest('.dropdown, .btn-group');
+					var $menu = $dropdown.find('.dropdown-menu').first();
+					if (!$menu.length) {
+						return;
+					}
+					var isOpen = $menu.hasClass('show');
+					$('.grocery-crud-body .dropdown-menu.show').not($menu).removeClass('show');
+					$('.grocery-crud-body .dropdown.show').not($dropdown).removeClass('show');
+					$dropdown.toggleClass('show', !isOpen);
+					$menu.toggleClass('show', !isOpen);
+				});
+
+				$(document).off('click.gc-more-close');
+				$(document).on('click.gc-more-close', function() {
+					$('.grocery-crud-body .dropdown-menu.show').removeClass('show');
+					$('.grocery-crud-body .dropdown.show').removeClass('show');
+				});
+			}
+
+			bindMoreDropdowns();
 
 			// Convert status/boolean fields to toggle switches
 			function initStatusToggles() {
@@ -588,9 +621,9 @@
 					// Update label
 					$label.text(isActive ? 'Inactivo' : 'Activo');
 					
-					// Buscar el campo por name y actualizar su valor
+					// Buscar el campo por name y actualizar su valor (input o select)
 					var fieldName = $input.attr('name');
-					var $statusField = $form.find('input[name="' + fieldName + '"]');
+					var $statusField = $form.find('input[name="' + fieldName + '"], select[name="' + fieldName + '"]');
 					if ($statusField.length) {
 						$statusField.val(newValue);
 						$statusField.attr('value', newValue);
@@ -611,6 +644,8 @@
 							var toggleValue = $toggle.data('status');
 							$input.val(toggleValue);
 							$input.prop('disabled', false);
+							var fieldName = $input.attr('name');
+							$form.find('select[name="' + fieldName + '"]').val(toggleValue);
 							
 							console.log('Form submit - Campo:', $input.attr('name'), 'Valor final:', $input.val(), 'Disabled:', $input.prop('disabled'));
 							
@@ -650,6 +685,13 @@
 				
 				auditContent.text(output);
 			}
+
+			function showAuditPayload(payload) {
+				if (!payload) return;
+				var auditContent = $('#audit-content');
+				var output = JSON.stringify(payload, null, 2);
+				auditContent.text(output);
+			}
 			
 			// Function para actualizar visibilidad del audit div según debug mode
 			function updateAuditVisibility() {
@@ -666,6 +708,9 @@
 			// Verificar estado inicial al cargar la página
 			$(document).ready(function() {
 				updateAuditVisibility();
+				<?php if (!empty($audit_payload)) : ?>
+				showAuditPayload(<?= json_encode($audit_payload) ?>);
+				<?php endif; ?>
 			});
 			
 			// Escuchar cambios en el botón debug
@@ -706,6 +751,10 @@
 					subtree: true
 				});
 			}
+
+			$(document).ajaxComplete(function() {
+				bindMoreDropdowns();
+			});
 
 			// Convert status values in table cells to badges
 			$('.grocery-crud-body table tbody td').each(function() {

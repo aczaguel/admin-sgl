@@ -83,6 +83,53 @@ if (!function_exists('user_is_admin')) {
     }
 }
 
+if (!function_exists('user_has_global_cliente_access')) {
+    /**
+     * Determina si un admin tiene acceso global a todos los clientes.
+     * - Admin sin clientes asignados => acceso global
+     * - Admin con clientes asignados => acceso limitado
+     */
+    function user_has_global_cliente_access($userId = null)
+    {
+        $session = session();
+
+        if ($userId === null) {
+            $userId = $session->get('id');
+        }
+
+        if (!user_is_admin($userId)) {
+            return false;
+        }
+
+        if (!is_numeric($userId) || (int) $userId <= 0) {
+            return false;
+        }
+
+        if ($session->get('id') == $userId) {
+            $cached = $session->get('admin_global_client_access');
+            if ($cached !== null) {
+                return (bool) $cached;
+            }
+        }
+
+        $db = \Config\Database::connect();
+        $row = $db->table('cliente_user')
+            ->select('cliente_id')
+            ->where('user_id', (int) $userId)
+            ->limit(1)
+            ->get()
+            ->getRowArray();
+
+        $isGlobal = empty($row);
+
+        if ($session->get('id') == $userId) {
+            $session->set('admin_global_client_access', $isGlobal);
+        }
+
+        return $isGlobal;
+    }
+}
+
 if (!function_exists('get_user_cliente_ids')) {
     /**
      * Obtiene los IDs de clientes asignados al usuario actual
@@ -103,8 +150,8 @@ if (!function_exists('get_user_cliente_ids')) {
             $userId = $session->get('id');
         }
         
-        // VERIFICAR SI ES ADMINISTRADOR (acceso completo)
-        if (user_is_admin($userId)) {
+        // Admin con acceso global ve todos los clientes
+        if (user_has_global_cliente_access($userId)) {
             return null; // NULL = acceso a TODOS los clientes
         }
         
@@ -155,12 +202,11 @@ if (!function_exists('has_access_to_cliente')) {
      */
     function has_access_to_cliente($clienteId, $userId = null)
     {
-        $clienteIds = get_user_cliente_ids($userId);
-        
-        // Si es NULL, es administrador con acceso completo
-        if ($clienteIds === null) {
+        if (user_has_global_cliente_access($userId)) {
             return true;
         }
+
+        $clienteIds = get_user_cliente_ids($userId);
         
         if (!is_array($clienteIds)) {
             return false;
@@ -187,9 +233,9 @@ if (!function_exists('get_cliente_filter_sql')) {
     function get_cliente_filter_sql($userId = null, $tramiteTable = 'tramite')
     {
         $clienteIds = get_user_cliente_ids($userId);
-        
-        // Si es NULL (administrador), no aplicar filtro
-        if ($clienteIds === null) {
+
+        // Si es NULL (admin con acceso global), no aplicar filtro
+        if ($clienteIds === null || user_has_global_cliente_access($userId)) {
             return "1 = 1"; // Condición que siempre es verdadera (sin filtro)
         }
         
@@ -238,7 +284,7 @@ if (!function_exists('get_cliente_filter_sql_for_cliente_id')) {
             return '1 = 1';
         }
 
-        if (!user_is_admin($userId) && !has_access_to_cliente($clienteId, $userId)) {
+        if (!user_has_global_cliente_access($userId) && !has_access_to_cliente($clienteId, $userId)) {
             return '1 = 0';
         }
 
@@ -286,9 +332,8 @@ if (!function_exists('apply_cliente_filter')) {
      */
     function apply_cliente_filter($builder, $userId = null, $tramiteTable = 'tramite')
     {
-        // Verificar si es administrador
-        if (user_is_admin($userId)) {
-            // No aplicar filtro para administradores
+        // No aplicar filtro si tiene acceso global
+        if (user_has_global_cliente_access($userId)) {
             return $builder;
         }
         
@@ -361,9 +406,9 @@ if (!function_exists('validate_tramite_access')) {
         if (!is_numeric($tramiteId)) {
             return false;
         }
-        
-        // Si es administrador, tiene acceso a todo
-        if (user_is_admin($userId)) {
+
+        // Si tiene acceso global, permite todo
+        if (user_has_global_cliente_access($userId)) {
             return true;
         }
         
@@ -447,8 +492,8 @@ if (!function_exists('get_cliente_relation_filter')) {
      */
     function get_cliente_relation_filter($userId = null)
     {
-        // Si es administrador, no aplicar filtro
-        if (user_is_admin($userId)) {
+        // Si tiene acceso global, no aplicar filtro
+        if (user_has_global_cliente_access($userId)) {
             return null;
         }
         

@@ -9,8 +9,9 @@ class NotificationModel extends Model
     protected $table = 'notifications';
     protected $primaryKey = 'id';
     protected $allowedFields = [
-        'user_id', 'tramite_id', 'type', 'title', 'message', 
-        'icon', 'color', 'url', 'is_read', 'read_at', 'created_by'
+        'user_id', 'tramite_id', 'type', 'title', 'message',
+        'icon', 'color', 'url', 'is_read', 'read_at', 'created_by',
+        'client_id'
     ];
     protected $useTimestamps = true;
     protected $createdField = 'created_at';
@@ -35,22 +36,35 @@ class NotificationModel extends Model
         $clienteNombre = $tramite['cliente'] ?? 'Cliente no especificado';
         $tipoTramite = $tramite['tipo_tramite'] ?? 'Trámite';
         
-        // Guardar UNA sola notificación sin user_id específico
-        // En la lectura se filtrará según el rol del usuario
-        $notification = [
-            'user_id' => null, // NULL = notificación para roles específicos
-            'tramite_id' => $tramiteId,
-            'client_id' => $clientId,
-            'type' => 'tramite_creado',
-            'title' => 'Nuevo Trámite Creado',
-            'message' => "Se creó el trámite {$folioTramite} - {$tipoTramite} para {$clienteNombre}",
-            'icon' => 'fa-file-alt',
-            'color' => 'info',
-            'url' => base_url("deskapp/tramites/update/{$tramiteId}"),
-            'created_by' => $createdBy
-        ];
+        if (empty($userIds)) {
+            $userIds = array_merge(
+                [$createdBy],
+                array_column($this->getAdminUsers(), 'id')
+            );
+        }
 
-        return $this->insert($notification);
+        $userIds = array_unique(array_filter($userIds));
+        if (empty($userIds)) {
+            return true;
+        }
+
+        $notifications = [];
+        foreach ($userIds as $userId) {
+            $notifications[] = [
+                'user_id' => $userId,
+                'tramite_id' => $tramiteId,
+                'client_id' => $clientId,
+                'type' => 'tramite_creado',
+                'title' => 'Nuevo Trámite Creado',
+                'message' => "Se creó el trámite {$folioTramite} - {$tipoTramite} para {$clienteNombre}",
+                'icon' => 'fa-file-alt',
+                'color' => 'info',
+                'url' => base_url("deskapp/tramites/update/{$tramiteId}"),
+                'created_by' => $createdBy
+            ];
+        }
+
+        return $this->insertBatch($notifications);
     }
 
     /**
@@ -511,8 +525,13 @@ class NotificationModel extends Model
         $db = \Config\Database::connect();
         
         // Obtener el creador y usuario asignado del trámite
+        $selectFields = ['user_id'];
+        if ($db->fieldExists('assigned_to', 'tramite')) {
+            $selectFields[] = 'assigned_to';
+        }
+
         $tramite = $db->table('tramite')
-            ->select('user_id, assigned_to')
+            ->select($selectFields)
             ->where('id', $tramiteId)
             ->get()
             ->getRowArray();

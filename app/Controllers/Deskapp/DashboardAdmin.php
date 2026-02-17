@@ -12,9 +12,51 @@ class DashboardAdmin extends BaseController
 
     public function __construct()
     {
-        helper(['form', 'url', 'cliente_filter']);
+        helper(['form', 'url', 'cliente_filter', 'permissions']);
         $this->dashboardModel = new DashboardModel();
         $this->session = session();
+    }
+
+    /**
+     * Requiere permiso para acceder al módulo de Dashboard Admin.
+     *
+     * - Super Admin/Admin: acceso total
+     * - Otros: requiere permiso `menu_dashboard_admin`
+     */
+    private function requireDashboardAdminAccess()
+    {
+        $roles = $this->session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $this->session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (is_super_admin($roles) || is_admin($roles) || has_permission('menu_dashboard_admin', $perms, $roles)) {
+            return null;
+        }
+
+        $accept = (string) $this->request->getHeaderLine('Accept');
+        $wantsJson = $this->request->isAJAX() || (strpos($accept, 'application/json') !== false);
+        if ($wantsJson) {
+            return $this->response
+                ->setStatusCode(403)
+                ->setJSON([
+                    'status' => 403,
+                    'error' => 'forbidden',
+                    'message' => 'No tiene permisos para acceder a este módulo.',
+                ]);
+        }
+
+        $data = [
+            'session' => \Config\Services::session(),
+            'username' => $this->session->get('user_name'),
+        ];
+        return $this->response
+            ->setStatusCode(403)
+            ->setBody(view('deskapp/error-pages/403', $data));
     }
 
     /**
@@ -81,6 +123,9 @@ class DashboardAdmin extends BaseController
      */
     public function index()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
@@ -160,6 +205,9 @@ class DashboardAdmin extends BaseController
      */
     public function alertas()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
@@ -179,6 +227,9 @@ class DashboardAdmin extends BaseController
      */
     public function financiero()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
@@ -202,6 +253,9 @@ class DashboardAdmin extends BaseController
      */
     public function reportes()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
@@ -232,6 +286,9 @@ class DashboardAdmin extends BaseController
      */
     public function por_cliente()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
@@ -253,9 +310,23 @@ class DashboardAdmin extends BaseController
      */
     public function detalle_cliente($clienteId)
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $data['session'] = \Config\Services::session();
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
+
+        // Validar acceso al cliente solicitado (multi-tenant)
+        if (!has_access_to_cliente((int) $clienteId, (int) $userId)) {
+            $data403 = [
+                'session' => \Config\Services::session(),
+                'username' => $this->session->get('user_name'),
+            ];
+            return $this->response
+                ->setStatusCode(403)
+                ->setBody(view('deskapp/error-pages/403', $data403));
+        }
 
         // En detalle por cliente, forzar el filtro al cliente del path
         $this->dashboardModel->setClienteIdFilter((int) $clienteId);
@@ -291,6 +362,9 @@ class DashboardAdmin extends BaseController
      */
     public function api_metricas()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $periodo = $this->request->getGet('periodo') ?? 'hoy';
         $userId = $this->session->get('id');
 
@@ -327,6 +401,9 @@ class DashboardAdmin extends BaseController
      */
     public function api_alertas()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $tipo = $this->request->getGet('tipo') ?? 'todas';
         $userId = $this->session->get('id');
 
@@ -357,6 +434,9 @@ class DashboardAdmin extends BaseController
      */
     public function api_graficas()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $tipo = $this->request->getGet('tipo') ?? 'tramites_mes';
         $anio = $this->request->getGet('anio') ?? date('Y');
         $userId = $this->session->get('id');
@@ -394,6 +474,9 @@ class DashboardAdmin extends BaseController
      */
     public function api_kpis()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $anio = $this->request->getGet('anio') ?? null;
         $userId = $this->session->get('id');
 
@@ -409,6 +492,9 @@ class DashboardAdmin extends BaseController
      */
     public function api_comparativas()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $tipo = $this->request->getGet('tipo') ?? 'semanal';
         $userId = $this->session->get('id');
 
@@ -430,6 +516,9 @@ class DashboardAdmin extends BaseController
      */
     public function api_rankings()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $tipo = $this->request->getGet('tipo') ?? 'ejecutivos';
         $limite = $this->request->getGet('limite') ?? 5;
         $periodo = $this->request->getGet('periodo') ?? 'mes';
@@ -457,6 +546,9 @@ class DashboardAdmin extends BaseController
      */
     public function api_financiero()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $userId = $this->session->get('id');
 
         $clienteIdFiltro = $this->resolveClienteIdFilter((int) $userId);
@@ -476,6 +568,9 @@ class DashboardAdmin extends BaseController
      */
     public function exportar_excel()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $tipo = $this->request->getGet('tipo') ?? 'metricas';
         
         // Aquí se puede implementar la exportación a Excel
@@ -489,6 +584,9 @@ class DashboardAdmin extends BaseController
      */
     public function exportar_pdf()
     {
+        if ($resp = $this->requireDashboardAdminAccess()) {
+            return $resp;
+        }
         $tipo = $this->request->getGet('tipo') ?? 'metricas';
         
         // Aquí se puede implementar la exportación a PDF

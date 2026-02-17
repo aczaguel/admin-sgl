@@ -165,6 +165,10 @@
 							<div class="audit-stat-number"><?= count($summary) ?></div>
 							<div class="audit-stat-label">Tipos de Cambios</div>
 						</div>
+						<div class="col-md-3 audit-stat">
+							<div class="audit-stat-number"><?= (int) ($step_actual_display ?? 1) ?></div>
+							<div class="audit-stat-label">Paso Actual</div>
+						</div>
 					</div>
 				</div>
 

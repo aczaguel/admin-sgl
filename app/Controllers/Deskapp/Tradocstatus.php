@@ -9,8 +9,45 @@ use GroceryCrud\Core\GroceryCrud;
 
 class Tradocstatus extends BaseController
 {
+    private function guardDocStatusAccess()
+    {
+        helper(['permissions']);
+
+        $session = session();
+        $userId = $session->get('id');
+        $isGroceryApi = $this->request->getGet('gc_state') !== null;
+
+        if (!$userId) {
+            if ($this->request->isAJAX() || $isGroceryApi) {
+                return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+            }
+            return redirect()->to('/deskapp/auth/login');
+        }
+
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('menu_documentos', $perms, $roles)) {
+            if ($this->request->isAJAX() || $isGroceryApi) {
+                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+            }
+            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para acceder a Documentos.');
+        }
+
+        return null;
+    }
+
     public function index()
     {
+        if ($resp = $this->guardDocStatusAccess()) {
+            return $resp;
+        }
+
         $output = (object)[
             'js_files' => [],
             'output' => ''
@@ -21,6 +58,10 @@ class Tradocstatus extends BaseController
 
     public function documento()
     {
+        if ($resp = $this->guardDocStatusAccess()) {
+            return $resp;
+        }
+
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -68,12 +109,18 @@ class Tradocstatus extends BaseController
         });
 
         $crud->callbackBeforeInsert(function ($stateParameters) {
+            $session = session();
+            $myid = $session->get('id');
+            $stateParameters->data['user_id'] = $myid;
             $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
             $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
             return $stateParameters;
         });
 
         $crud->callbackBeforeUpdate(function ($stateParameters) {
+            $session = session();
+            $myid = $session->get('id');
+            $stateParameters->data['user_id'] = $myid;
             $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
             return $stateParameters;
         });

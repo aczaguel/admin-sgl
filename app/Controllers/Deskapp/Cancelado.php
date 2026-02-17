@@ -76,6 +76,21 @@ class Cancelado extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        // Permiso mínimo para visualizar trámites (evita bypass por URL)
+        if (!has_permission('read_tramite', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
         $db = \Config\Database::connect();
         $builder = $db->table('tramite');
         $db2 = $this->_getDbData();
@@ -179,7 +194,6 @@ class Cancelado extends BaseController
         $form->js_files = $crudOutput->js_files;
         
         // Load the view with the fields and current data
-        // if (!is_read_only(esc($session->get('user_roles')))){
         $cruddocstatus = $this->_getGroceryCrudEnterprise();
         $cruddocstatus->setApiUrlPath('/deskapp/cancelado/cancelado_documentostatus/'.$id);
         $output = $cruddocstatus->render();
@@ -216,6 +230,19 @@ class Cancelado extends BaseController
         $db = Database::connect();
         $db2 = $this->_getDbData();
         $self = $this;
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_tramite', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
 
         $request = \Config\Services::request();
         $uri = $request->getUri();
@@ -375,6 +402,19 @@ class Cancelado extends BaseController
         $db2 = $this->_getDbData();
         $self = $this;
         $request = \Config\Services::request();
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_tramite', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
 
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
@@ -557,6 +597,19 @@ class Cancelado extends BaseController
         $self = $this;
         $request = \Config\Services::request();
 
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_tramite', $perms, $roles) || !has_permission('section_pago_derechos', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
+
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
@@ -714,6 +767,19 @@ class Cancelado extends BaseController
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
+
+        $roles = $session->get('user_roles') ?? [];
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+        $perms = $session->get('user_permissions') ?? [];
+        if (!is_array($perms)) {
+            $perms = [$perms];
+        }
+
+        if (!has_permission('read_tramite', $perms, $roles) || !has_permission('section_final_costos', $perms, $roles)) {
+            throw new \Exception('Acceso denegado');
+        }
 
         $db = Database::connect();
         $myid = $session->get('id');

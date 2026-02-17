@@ -24,7 +24,7 @@
 	$clientes_lista = $clientes_lista ?? get_clientes_lista_for_user($userId);
 
 	$clientes_count = is_array($clientes_lista) ? count($clientes_lista) : 0;
-	$solo_uno = ($clientes_count === 1) && !user_is_admin($userId);
+	$solo_uno = ($clientes_count === 1) && !user_has_global_cliente_access($userId);
 	$nombre_unico = $solo_uno ? ($clientes_lista[0]['nombre'] ?? 'Cliente') : null;
 
 	$currentUrl = function_exists('current_url') ? current_url() : '';
@@ -239,7 +239,9 @@
 						<?php endforeach; ?>
 
 						<select name="cliente_id" class="form-control" onchange="this.form.submit()" aria-label="Seleccionar cliente">
-							<option value="" <?= empty($cliente_id_filtro) ? 'selected' : '' ?>>Todos los clientes</option>
+							<?php if (user_has_global_cliente_access($userId)): ?>
+								<option value="" <?= empty($cliente_id_filtro) ? 'selected' : '' ?>>Todos los clientes</option>
+							<?php endif; ?>
 							<?php foreach ($clientes_lista as $cliente): ?>
 								<option value="<?= (int)($cliente['id'] ?? 0) ?>" <?= (!empty($cliente_id_filtro) && (int)$cliente_id_filtro === (int)($cliente['id'] ?? 0)) ? 'selected' : '' ?>>
 									<?= esc($cliente['nombre'] ?? ('Cliente #' . (int)($cliente['id'] ?? 0))) ?>
@@ -355,7 +357,7 @@
 						</div>
 					</div>
 					<div class="dropdown-divider"></div>
-					<?php if (has_permission('listar_settings', esc($session->get('user_permissions')), esc($session->get('user_roles')))): ?>
+					<?php if (has_permission('listar_settings', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-user1"></i> Profile</a>
 						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/profile'); ?>"><i class="dw dw-settings2"></i> Setting</a>
 						<a class="dropdown-item" href="<?php echo base_url('deskapp/extrapages/faq'); ?>"><i class="dw dw-help"></i> Help</a>

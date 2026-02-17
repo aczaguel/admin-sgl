@@ -154,7 +154,9 @@ if (isset($tra_status_id)) {
 			</div>
 				<div class="header_wizard-bottom">
 					<div>
-						<button type="button" class="btn btn-lg btn-success" id="" onclick="changeStatusTramite(<?php echo $id;?>, 11)">Reactivar Como trámite</button>
+						<?php if (has_permission('important_cancelar_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+							<button type="button" class="btn btn-lg btn-success" id="" onclick="changeStatusTramite(<?php echo $id;?>, 11)">Reactivar Como trámite</button>
+						<?php endif; ?>
 					</div>
 				</div>
 			
@@ -178,7 +180,7 @@ if (isset($tra_status_id)) {
 					<div class="pd-20">
 						<div id="wizard">
 							<!-- Step 1: Datos principales -->
-							<?php if (has_permission('section_inicial_datos', esc($session->get('user_permissions')),esc($session->get('user_roles')))): ?>
+							<?php if (has_permission('section_inicial_datos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 
 								<h3>Información</h3>
 								<section>
