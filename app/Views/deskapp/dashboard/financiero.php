@@ -1,6 +1,47 @@
 <?= $this->extend('layout/main') ?>
 
 <?php $assets = base_url('/public/assets'); ?>
+<?php
+    $qs = $_GET ?? [];
+    $baseFinancieroUrl = base_url('/deskapp/dashboardadmin/financiero');
+    $perPage = (int) ($per_page ?? 50);
+    $pageAging = (int) ($page_aging ?? 1);
+    $totalAging = (int) ($total_aging_report ?? 0);
+
+    $renderPagination = function ($pageKey, $currentPage, $total, $perPage) use ($baseFinancieroUrl, $qs) {
+        $totalPages = (int) ceil($total / max(1, $perPage));
+        if ($totalPages <= 1) {
+            return '';
+        }
+
+        $currentPage = max(1, min((int) $currentPage, $totalPages));
+        $prev = max(1, $currentPage - 1);
+        $next = min($totalPages, $currentPage + 1);
+
+        $qsPrev = $qs;
+        $qsPrev[$pageKey] = $prev;
+        $qsNext = $qs;
+        $qsNext[$pageKey] = $next;
+
+        $prevUrl = $baseFinancieroUrl . '?' . http_build_query($qsPrev);
+        $nextUrl = $baseFinancieroUrl . '?' . http_build_query($qsNext);
+
+        $disabledPrev = $currentPage <= 1 ? ' disabled' : '';
+        $disabledNext = $currentPage >= $totalPages ? ' disabled' : '';
+
+        return '<nav class="mt-3 d-flex align-items-center justify-content-between">'
+            . '<span class="text-muted">Pagina ' . $currentPage . ' de ' . $totalPages . '</span>'
+            . '<ul class="pagination pagination-sm mb-0">'
+            . '<li class="page-item' . $disabledPrev . '">'
+                . '<a class="page-link" href="' . esc($disabledPrev ? '#' : $prevUrl) . '">Anterior</a>'
+            . '</li>'
+            . '<li class="page-item' . $disabledNext . '">' 
+                . '<a class="page-link" href="' . esc($disabledNext ? '#' : $nextUrl) . '">Siguiente</a>'
+            . '</li>'
+            . '</ul>'
+            . '</nav>';
+    };
+?>
 
 <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/responsive.bootstrap4.min.css">
@@ -244,6 +285,7 @@
                                     <?php endif; ?>
                                 </tbody>
                             </table>
+                            <?= $renderPagination('page_aging', $pageAging, $totalAging, $perPage) ?>
                         </div>
                     </div>
                 </div>

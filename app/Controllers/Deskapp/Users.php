@@ -141,6 +141,9 @@ class Users extends BaseController
             $users_crud->fields(['username', 'firstname', 'midname', 'lastname', 'email', 'phone', 'avatar', 'password', 'roles', 'clientes', 'status']);
             $users_crud->fieldType('password', 'password'); // Indica que el campo password es de tipo password
             $users_crud->unsetDeleteMultiple();
+            $users_crud->setActionButton('Clonar', 'fas fa-clone', function ($row) {
+                return '/users/users/clone/' . $row->id;
+            }, false);
             $users_crud->displayAs('username','Username');
             $users_crud->displayAs('firstname','Nombre');
             $users_crud->displayAs('midname','Apellido Paterno');

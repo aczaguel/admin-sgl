@@ -24,6 +24,7 @@
 	$clientes_lista = $clientes_lista ?? get_clientes_lista_for_user($userId);
 
 	$clientes_count = is_array($clientes_lista) ? count($clientes_lista) : 0;
+	$isAdmin = user_is_admin($userId);
 	$solo_uno = ($clientes_count === 1) && !user_has_global_cliente_access($userId);
 	$nombre_unico = $solo_uno ? ($clientes_lista[0]['nombre'] ?? 'Cliente') : null;
 
@@ -239,7 +240,7 @@
 						<?php endforeach; ?>
 
 						<select name="cliente_id" class="form-control" onchange="this.form.submit()" aria-label="Seleccionar cliente">
-							<?php if (user_has_global_cliente_access($userId)): ?>
+							<?php if (user_has_global_cliente_access($userId) || ($isAdmin && $clientes_count > 1)): ?>
 								<option value="" <?= empty($cliente_id_filtro) ? 'selected' : '' ?>>Todos los clientes</option>
 							<?php endif; ?>
 							<?php foreach ($clientes_lista as $cliente): ?>
