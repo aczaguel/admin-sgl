@@ -208,9 +208,15 @@ if (isset($tra_status_id)) {
 		<!-- Header Moderno del Trámite -->
 		<div class="tramite-header-modern">
 			<div class="header-top-row">
-				<div class="folio-badge">
-					<i class="fas fa-file-alt"></i>
-					<?php echo (isset($folio) ? $folio : "TR-0000-000"); ?>
+				<div class="d-flex align-items-center" style="gap:8px;flex-wrap:wrap;">
+					<div class="folio-badge">
+						<i class="fas fa-file-alt"></i>
+						Folio: <?= isset($folio) ? esc($folio) : 'TR-0000-000' ?>
+					</div>
+					<div class="folio-badge">
+						<i class="fas fa-file-signature"></i>
+						Contrato: <?= isset($contrato) ? esc($contrato) : '--' ?>
+					</div>
 				</div>
 				<div class="status-badge status-<?php 
 					$statusClass = 'en-proceso';

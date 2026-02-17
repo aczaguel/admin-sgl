@@ -1498,7 +1498,7 @@ class Tramites extends BaseController
                     // Obtiene la serie existente
 
                     // Obtener el Nombre del usuario que creó el trámite existente
-                    $userModel = new UserModel(\Config\Database::connect());
+                    $userModel = new UserModel($db);
                     // Obtener el nombre completo del usuario por su ID
                     $user_id_existente = (int)$user_id_existente;
 
@@ -1550,20 +1550,6 @@ class Tramites extends BaseController
                 unset($data["accion"]);
                 $builder->insert($data);
 
-                $db2 = $this->_getDbData();
-                $bitacoraModel = new BitacoraModel($db2);
-                $data_bitacora = $data;
-                $diferencias = $this->encontrarDiferencias($data_bitacora, []);
-                $insert_bitacora = [
-                    'id' => null,
-                    'tipo' => 'insert',
-                    'origen' => 'tramite',
-                    'tramite_id' => (int) $tramiteId,
-                    'cambios' => json_encode($diferencias),
-                    'user_id' => (int) $userId
-                ];
-                $bitacoraModel->insert($insert_bitacora, 'bitacora');
-                // Get the last insert ID
                 $lastInsertID = $db->insertID();
 
                 # Insertar relación en tra_tramite_asociado
@@ -1611,7 +1597,7 @@ class Tramites extends BaseController
 
                 $bitacoraModel = new BitacoraModel($db2);
                 $data_bitacora = $data;
-                $diferencias = $this->encontrarDiferencias($data_bitacora, []);
+                $diferencias = $this->encontrarDiferencias([], $data_bitacora);
                 $insert_bitacora = [
                     "id"=>null,
                     "tipo"=>"insert",
@@ -1656,13 +1642,15 @@ class Tramites extends BaseController
                     return $this->response->setJSON([
                         'from' => 'insert',
                         'success' => true,
-                        'redirect' => '/deskapp/tramites/update/'.$lastInsertID
+                        'redirect' => '/deskapp/tramitesn/update/'.$lastInsertID
                     ]);
                 } else {
                     // Si no es una solicitud AJAX, redirige a la página de lista
                     return redirect()->to('/deskapp/tramites/update/'.$lastInsertID);
                 }
             } catch (\Exception $e) {
+                log_message('error', 'Error en Tramites::insert: ' . $e->getMessage());
+                log_message('error', 'Trace Tramites::insert: ' . $e->getTraceAsString());
                 // Manejo de excepciones de la base de datos
                 if ($this->request->isAJAX()) {
                     return $this->response->setJSON([
@@ -4044,7 +4032,13 @@ class Tramites extends BaseController
             
             // Bitácora
             $bitacoraModel = new BitacoraModel($db2);
-            $diferencias = $this->encontrarDiferencias($data, $existingData);
+            $diferencias = [];
+            foreach ($changes as $field => $values) {
+                $diferencias[$field] = [
+                    'valor_original' => $values['old'] ?? null,
+                    'valor_nuevo' => $values['new'] ?? null,
+                ];
+            }
             
             if (!empty($diferencias)) {
                 $bitacoraModel->insert([
@@ -4145,6 +4139,7 @@ class Tramites extends BaseController
             "numero_factura" => "required",
             "numero_refactura" => "permit_empty",
             "cobro_status_id" => "required|integer",
+            "evidencia_cobro_txt" => "permit_empty|max_length[100]",
             "costo_pago_cliente" => "required|decimal",
             "comision_derechos" => "required|decimal",
             "costo_total" => "permit_empty|decimal"
@@ -4173,6 +4168,7 @@ class Tramites extends BaseController
                 "numero_factura",
                 "numero_refactura",
                 "cobro_status_id",
+                "evidencia_cobro_txt",
                 "costo_pago_cliente",
                 "comision_derechos",
                 "costo_gestoria",
@@ -4219,8 +4215,13 @@ class Tramites extends BaseController
 
             // Agregar registro en bitácora
             $bitacoraModel = new BitacoraModel($db2);
-            $data_bitacora = $data;
-            $diferencias = $this->encontrarDiferencias($data_bitacora, []);
+            $diferencias = [];
+            foreach ($changes as $field => $values) {
+                $diferencias[$field] = [
+                    'valor_original' => $values['old'] ?? null,
+                    'valor_nuevo' => $values['new'] ?? null,
+                ];
+            }
             $insert_bitacora = [
                 "id" => null,
                 "tipo" => "update",
@@ -4926,6 +4927,15 @@ class Tramites extends BaseController
 
     public function encontrarDiferencias($datos1, $datos2) {
         $diferencias = [];
+        if (empty($datos1) && !empty($datos2)) {
+            foreach ($datos2 as $clave => $valor) {
+                $diferencias[$clave] = [
+                    'valor_original' => '',
+                    'valor_nuevo' => $valor
+                ];
+            }
+            return $diferencias;
+        }
         foreach ($datos1 as $clave => $valor) {
             // Verificar si la clave existe en el segundo conjunto de datos y si los valores son diferentes
             if (array_key_exists($clave, $datos2) && $datos2[$clave] !== $valor) {
@@ -5388,7 +5398,7 @@ class Tramites extends BaseController
             'folio_tramite' => $folio_tramite
         ]);   
 
-        $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
+        $crud->callbackAfterInsert(function ($stateParameters)  use ($self, $crud) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
                 $parameters = $stateParameters;
                 $db = Database::connect();
@@ -6783,7 +6793,7 @@ class Tramites extends BaseController
             'costo', 'created_at'
         ]); 
 
-        $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
+        $crud->callbackAfterInsert(function ($stateParameters)  use ($self, $crud) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
                 $session = session();
                 $parameters = $stateParameters;
@@ -7979,7 +7989,7 @@ class Tramites extends BaseController
         
         // Verificar que el trámite existe
         $db = Database::connect();
-        $tramite = $db->table('tramite')->select('id, folio')->where('id', $tramiteId)->get()->getRowArray();
+        $tramite = $db->table('tramite')->select('id, folio, tra_status_id')->where('id', $tramiteId)->get()->getRowArray();
         
         if (!$tramite) {
             return redirect()->to('deskapp/tramites')->with('error', 'Trámite no encontrado');
@@ -7988,6 +7998,13 @@ class Tramites extends BaseController
         // Obtener datos de auditoría
         $auditLog = get_tramite_audit_log($tramiteId);
         
+        $db2 = $this->_getDbData();
+        $traStatusModel = new \App\Models\TraStatusModel($db2);
+        $traStatusOptions = $traStatusModel->getTraStatusOptions();
+        $traStatusSteps = $traStatusOptions['steps'] ?? [];
+        $stepActualDb = $traStatusSteps[$tramite['tra_status_id']] ?? 1;
+        $stepActualDisplay = $stepActualDb + 1;
+
         $data = [
             'session' => $session,
             'tramite_id' => $tramiteId,
@@ -7995,7 +8012,9 @@ class Tramites extends BaseController
             'audit_log' => $auditLog,
             'last_modifier' => get_tramite_last_modifier($tramiteId),
             'summary' => get_tramite_audit_summary($tramiteId),
-            'total_changes' => count($auditLog)
+            'total_changes' => count($auditLog),
+            'step_actual_db' => $stepActualDb,
+            'step_actual_display' => $stepActualDisplay,
         ];
         
         // Log temporal para debug

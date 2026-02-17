@@ -99,6 +99,11 @@
 									<i class="fas fa-receipt text-success"></i> Cobro a Cliente
 								</a></li>
 							<?php endif; ?>
+							<?php if (has_permission('menu_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+								<li><a href="<?php echo base_url('deskapp/flotillas/import'); ?>">
+									<i class="fas fa-layer-group text-info"></i> Flotillas (Importar)
+								</a></li>
+							<?php endif; ?>
 							<?php if (has_permission('listar_solicitudes_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramites/solicitudes'); ?>">
 									<i class="fas fa-clock"></i> Solicitudes Recientes

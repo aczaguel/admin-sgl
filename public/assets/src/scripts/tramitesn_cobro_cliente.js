@@ -165,6 +165,111 @@
         });
     }
 
+    function showConfirm(message, title, icon) {
+        var safeTitle = title || 'Aviso';
+        var safeIcon = icon || 'info';
+        if (window.Swal && typeof Swal.fire === 'function') {
+            return Swal.fire({
+                title: safeTitle,
+                text: message,
+                icon: safeIcon,
+                confirmButtonText: 'Aceptar'
+            });
+        }
+        if (window.swal && typeof window.swal === 'function') {
+            return window.swal({
+                title: safeTitle,
+                text: message,
+                icon: safeIcon,
+                buttons: {
+                    confirm: 'Aceptar'
+                }
+            });
+        }
+        return Promise.resolve(confirm(message));
+    }
+
+    function showConfirmDecision(message, title) {
+        var safeTitle = title || 'Confirmar';
+        if (window.Swal && typeof Swal.fire === 'function') {
+            return Swal.fire({
+                title: safeTitle,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Si, continuar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'sgl-swal-confirm',
+                    title: 'sgl-swal-title',
+                    confirmButton: 'sgl-swal-confirm-btn',
+                    cancelButton: 'sgl-swal-cancel-btn'
+                }
+            });
+        }
+        if (window.swal && typeof window.swal.fire === 'function') {
+            return window.swal.fire({
+                title: safeTitle,
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Si, continuar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'sgl-swal-confirm',
+                    title: 'sgl-swal-title',
+                    confirmButton: 'sgl-swal-confirm-btn',
+                    cancelButton: 'sgl-swal-cancel-btn'
+                }
+            });
+        }
+        return new Promise(function (resolve) {
+            var overlay = document.createElement('div');
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.45);z-index:9999;padding:16px;';
+            var card = document.createElement('div');
+            card.style.cssText = 'max-width:520px;width:100%;background:#fff;border-radius:16px;box-shadow:0 20px 40px rgba(15,23,42,0.25);padding:20px 22px;font-family:inherit;';
+            var titleEl = document.createElement('div');
+            titleEl.style.cssText = 'font-size:1.05rem;font-weight:800;color:#0f172a;margin-bottom:8px;';
+            titleEl.textContent = safeTitle;
+            var msgEl = document.createElement('div');
+            msgEl.style.cssText = 'font-size:.95rem;color:#334155;line-height:1.45;';
+            msgEl.textContent = message;
+            var actions = document.createElement('div');
+            actions.style.cssText = 'display:flex;justify-content:flex-end;gap:10px;margin-top:18px;';
+            var cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.textContent = 'Cancelar';
+            cancelBtn.style.cssText = 'border-radius:999px;border:1px solid #cbd5f5;background:#e0e7ff;color:#1e293b;font-weight:700;padding:8px 16px;';
+            var okBtn = document.createElement('button');
+            okBtn.type = 'button';
+            okBtn.textContent = 'Continuar';
+            okBtn.style.cssText = 'border-radius:999px;border:0;background:#10b981;color:#fff;font-weight:700;padding:8px 18px;box-shadow:0 6px 14px rgba(16,185,129,0.3);';
+            cancelBtn.addEventListener('click', function () {
+                overlay.remove();
+                resolve({ isConfirmed: false });
+            });
+            okBtn.addEventListener('click', function () {
+                overlay.remove();
+                resolve({ isConfirmed: true });
+            });
+            actions.appendChild(cancelBtn);
+            actions.appendChild(okBtn);
+            card.appendChild(titleEl);
+            card.appendChild(msgEl);
+            card.appendChild(actions);
+            overlay.appendChild(card);
+            document.body.appendChild(overlay);
+        });
+    }
+
     function parseMoney(value) {
         if (value === null || value === undefined) {
             return 0;
@@ -182,9 +287,9 @@
         var sumatoria = parseMoney($('#costo_gestoria').val());
         var honorarios = parseMoney($('#costo_pago_cliente').val());
         var comision = parseMoney($('#comision_derechos').val());
-        var base = sumatoria + honorarios + comision;
-        var iva = base * 0.16;
-        var total = base + iva;
+        var baseIva = honorarios + comision;
+        var iva = baseIva * 0.16;
+        var total = sumatoria + baseIva + iva;
 
         if ($('#iva').length) {
             $('#iva').val(formatMoney(iva));
@@ -223,6 +328,20 @@
             intervalId = setInterval(fetchFiles, 3000);
         }
         initDropzone();
+
+        var $evidenciaTxt = $('#evidencia_cobro_txt');
+        if ($evidenciaTxt.length) {
+            $evidenciaTxt.attr('maxlength', '100');
+            if (!$evidenciaTxt.next('.sgl-limit-note').length) {
+                $evidenciaTxt.after('<small class="text-muted sgl-limit-note">Limite: 100 caracteres.</small>');
+            }
+            $evidenciaTxt.on('input', function () {
+                var current = String($evidenciaTxt.val() || '');
+                if (current.length > 100) {
+                    $evidenciaTxt.val(current.slice(0, 100));
+                }
+            });
+        }
 
         groupMoneyFields();
         updateCobroTotals();
@@ -289,10 +408,13 @@
             },
             success: function (response) {
                 var mensajeConfirmacion = response && response.reembolso_pendiente
-                    ? 'Este tramite tiene un reembolso pendiente. Estas seguro de cambiar el estatus?'
-                    : 'Estas seguro de cambiar el estatus de este tramite?';
+                    ? 'Este tramite tiene un reembolso pendiente. ¿Estás seguro de cambiar el estatus?'
+                    : '¿Estás seguro de cambiar el estatus de este tramite?';
 
-                if (confirm(mensajeConfirmacion)) {
+                showConfirmDecision(mensajeConfirmacion, 'Confirmar cambio').then(function (result) {
+                    if (!result || result.isConfirmed !== true) {
+                        return;
+                    }
                     $.ajax({
                         url: '/deskapp/tramites/change_status',
                         type: 'POST',
@@ -303,20 +425,23 @@
                         },
                         success: function (res) {
                             if (res && res.success) {
-                                alert('Estatus del tramite actualizado correctamente.');
-                                location.reload();
+                                showConfirm('Estatus del tramite actualizado correctamente.', 'Listo', 'success')
+                                    .then(function (result) {
+                                        if (result && result.isConfirmed === false) return;
+                                        location.reload();
+                                    });
                             } else {
-                                alert('Ocurrio un error al cambiar el estatus del tramite.');
+                                showConfirm('Ocurrio un error al cambiar el estatus del tramite.', 'Aviso', 'error');
                             }
                         },
                         error: function () {
-                            alert('Ocurrio un error en la solicitud.');
+                            showConfirm('Ocurrio un error en la solicitud.', 'Aviso', 'error');
                         }
                     });
-                }
+                });
             },
             error: function () {
-                alert('Ocurrio un error en la solicitud.');
+                showConfirm('Ocurrio un error en la solicitud.', 'Aviso', 'error');
             }
         });
     };

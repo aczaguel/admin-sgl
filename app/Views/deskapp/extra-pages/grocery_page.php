@@ -9,7 +9,7 @@
 			background: #ffffff;
 			border-radius: 12px;
 			box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-			overflow: hidden;
+			overflow: visible;
 			margin-bottom: 30px;
 		}
 
@@ -43,13 +43,18 @@
 			padding: 30px;
 		}
 
+		.grocery-crud-body .table-responsive {
+			overflow-x: auto;
+			overflow-y: visible;
+		}
+
 		/* Enhanced table styling */
 		.grocery-crud-body table.table {
 			border-collapse: separate;
 			border-spacing: 0;
 			border: 1px solid #e3e8ef;
 			border-radius: 8px;
-			overflow: hidden;
+			overflow: visible;
 		}
 
 		.grocery-crud-body table.table thead th {
@@ -514,6 +519,34 @@
 				searchInput.attr('placeholder', 'Buscar...');
 			}
 
+			// Ensure "Mas" dropdown works after filters/redraws
+			function bindMoreDropdowns() {
+				$(document).off('click.gc-more', '.grocery-crud-body .dropdown-toggle');
+				$(document).on('click.gc-more', '.grocery-crud-body .dropdown-toggle', function(e) {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					var $toggle = $(this);
+					var $dropdown = $toggle.closest('.dropdown, .btn-group');
+					var $menu = $dropdown.find('.dropdown-menu').first();
+					if (!$menu.length) {
+						return;
+					}
+					var isOpen = $menu.hasClass('show');
+					$('.grocery-crud-body .dropdown-menu.show').not($menu).removeClass('show');
+					$('.grocery-crud-body .dropdown.show').not($dropdown).removeClass('show');
+					$dropdown.toggleClass('show', !isOpen);
+					$menu.toggleClass('show', !isOpen);
+				});
+
+				$(document).off('click.gc-more-close');
+				$(document).on('click.gc-more-close', function() {
+					$('.grocery-crud-body .dropdown-menu.show').removeClass('show');
+					$('.grocery-crud-body .dropdown.show').removeClass('show');
+				});
+			}
+
+			bindMoreDropdowns();
+
 			// Convert status/boolean fields to toggle switches
 			function initStatusToggles() {
 				// Find status/boolean input fields that haven't been converted yet
@@ -588,9 +621,9 @@
 					// Update label
 					$label.text(isActive ? 'Inactivo' : 'Activo');
 					
-					// Buscar el campo por name y actualizar su valor
+					// Buscar el campo por name y actualizar su valor (input o select)
 					var fieldName = $input.attr('name');
-					var $statusField = $form.find('input[name="' + fieldName + '"]');
+					var $statusField = $form.find('input[name="' + fieldName + '"], select[name="' + fieldName + '"]');
 					if ($statusField.length) {
 						$statusField.val(newValue);
 						$statusField.attr('value', newValue);
@@ -611,6 +644,8 @@
 							var toggleValue = $toggle.data('status');
 							$input.val(toggleValue);
 							$input.prop('disabled', false);
+							var fieldName = $input.attr('name');
+							$form.find('select[name="' + fieldName + '"]').val(toggleValue);
 							
 							console.log('Form submit - Campo:', $input.attr('name'), 'Valor final:', $input.val(), 'Disabled:', $input.prop('disabled'));
 							
@@ -706,6 +741,10 @@
 					subtree: true
 				});
 			}
+
+			$(document).ajaxComplete(function() {
+				bindMoreDropdowns();
+			});
 
 			// Convert status values in table cells to badges
 			$('.grocery-crud-body table tbody td').each(function() {

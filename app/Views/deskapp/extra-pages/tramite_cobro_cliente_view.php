@@ -48,6 +48,10 @@
 	.sgl-status-row{display:flex;flex-wrap:wrap;gap:6px}
 	.sgl-status-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.7rem;font-weight:800;background:#ecfdf5;border:1px solid #86efac;color:#166534}
 	.sgl-status-chip.is-muted{background:#f1f5f9;border-color:#e2e8f0;color:#64748b}
+	.sgl-swal-confirm{border-radius:16px;padding:10px 0}
+	.sgl-swal-title{font-size:1.05rem;font-weight:800;color:#0f172a}
+	.sgl-swal-confirm-btn{border-radius:999px !important;padding:8px 16px !important;font-weight:700}
+	.sgl-swal-cancel-btn{border-radius:999px !important;padding:8px 16px !important;font-weight:700}
 </style>
 
 <?= $this->endSection() ?>
@@ -425,6 +429,8 @@
 <script>
 	const tramite_id = <?= (int) ($id ?? 0) ?>;
 </script>
+<link rel="stylesheet" href="<?php echo base_url(); ?>/public/assets/src/plugins/sweetalert2/sweetalert2.css">
+<script src="<?php echo base_url(); ?>/public/assets/src/plugins/sweetalert2/sweetalert2.all.js"></script>
 <script src="<?= $assets ?>/src/scripts/dropzone.js"></script>
 <script src="<?= $assets ?>/src/scripts/tramitesn_cobro_cliente.js?v=<?= time(); ?>"></script>
 <?= $this->endSection() ?>

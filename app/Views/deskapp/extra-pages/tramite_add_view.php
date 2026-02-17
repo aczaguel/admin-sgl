@@ -55,6 +55,15 @@
 		}
     </style>
 	<style>
+	.tramite-add-compact .page-header { margin-bottom: 16px !important; }
+	.tramite-add-compact .card-header { padding: 12px 18px !important; }
+	.tramite-add-compact .card-body { padding: 18px !important; }
+	.tramite-add-compact .title h4 { font-size: 22px !important; margin-bottom: 4px !important; }
+	.tramite-add-compact .title p { font-size: 13px !important; }
+	.tramite-add-compact .form-group { padding: 6px !important; margin-bottom: 14px !important; }
+	.tramite-add-compact .form-group label { margin-bottom: 4px !important; font-size: 13px !important; }
+	.tramite-add-compact #boton_autorizar { padding: 16px 0 !important; margin-top: 10px !important; }
+	.tramite-add-compact #boton_autorizar .btn { padding: 8px 20px !important; font-size: 14px !important; }
         .header_wizard {
 			display: flex;
 			flex-direction: column;
@@ -162,7 +171,7 @@
 
 <?= $this->section('content') ?>
 
-	<div class="main-container">
+	<div class="main-container tramite-add-compact">
 		<div class="pd-ltr-20 xs-pd-20-10">
 			<div class="min-height-200px">
 				<div class="page-header" style="margin-bottom: 30px;">

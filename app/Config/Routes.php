@@ -190,6 +190,8 @@ $routes->post('/tradocstatus/documento', 'Deskapp/Tradocstatus::documento',['fil
 
 $routes->get('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora:index',['filter' => 'auth']);
 $routes->post('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora::index',['filter' => 'auth']);
+$routes->get('/bitacora/search', 'Deskapp/Bitacora::search',['filter' => 'auth']);
+$routes->get('/bitacora/timeline', 'Deskapp/Bitacora::timeline',['filter' => 'auth']);
 
 $routes->get('/proceso/final', 'Deskapp/Proceso::final',['filter' => 'auth']);
 $routes->post('/proceso/final', 'Deskapp/Proceso::final',['filter' => 'auth']);
@@ -238,12 +240,17 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 	$routes->post('tramitesn/tramite', 'Tramitesn::tramite');
 	$routes->get('tramitesn/cobro_cliente', 'Tramitesn::cobro_cliente');
 	$routes->get('tramitesn/cobro_cliente/(:num)', 'Tramitesn::cobro_cliente_ver/$1');
+	$routes->get('flotillas/import', 'Flotillas::import');
+	$routes->post('flotillas/preview', 'Flotillas::preview');
+	$routes->post('flotillas/import', 'Flotillas::store');
 
 	$routes->get('tramitesn/update/(:num)', 'Tramitesn::update/$1');
 	$routes->post('tramitesn/update/(:num)', 'Tramitesn::update/$1');
 
 	// Guardado (reutiliza lógica heredada de Tramites::update_save)
 	$routes->post('tramitesn/update_save/(:num)', 'Tramitesn::update_save');
+	$routes->post('tramitesn/update_gestor_save/(:num)', 'Tramitesn::update_gestor_save');
+	$routes->post('tramitesn/update_derechos_save/(:num)', 'Tramitesn::update_derechos_save');
 
 	// Tipos de trámite asociados (tra_tramite_asociado)
 	$routes->get('tramitesn/services/(:num)', 'Tramitesn::services/$1');

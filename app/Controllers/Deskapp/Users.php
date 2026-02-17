@@ -254,16 +254,28 @@ class Users extends BaseController
 
             // Encriptar la contraseña antes de guardarla en la base de datos al actualizar un registro existente
             $users_crud->callbackBeforeUpdate(function ($stateParameters) {
-                // Leer directamente del POST el campo status
+                // Leer directamente el campo status (POST o JSON)
                 $request = \Config\Services::request();
                 $postStatus = $request->getPost('status');
+                $hasStatus = $postStatus !== null;
+                if (!$hasStatus) {
+                    $postStatus = $request->getVar('status');
+                    $hasStatus = $postStatus !== null;
+                }
+                if (!$hasStatus) {
+                    $jsonBody = $request->getJSON(true);
+                    if (is_array($jsonBody) && array_key_exists('status', $jsonBody)) {
+                        $postStatus = $jsonBody['status'];
+                        $hasStatus = true;
+                    }
+                }
                 
                 log_message('error', '========== CALLBACK BEFORE UPDATE ==========');
                 log_message('error', 'POST status directo: ' . ($postStatus ?? 'NULL'));
                 log_message('error', 'Data status de Grocery CRUD: ' . ($stateParameters->data['status'] ?? 'NULL'));
                 
                 // Si existe status en el POST, usarlo (tiene prioridad)
-                if ($postStatus !== null) {
+                if ($hasStatus) {
                     $stateParameters->data['status'] = (int)$postStatus;
                     log_message('error', '✅ Status actualizado desde POST: ' . $stateParameters->data['status']);
                 } else {

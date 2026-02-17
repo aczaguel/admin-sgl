@@ -8,10 +8,14 @@ console.log('tramitesn_update_v2 loaded');
 		return window.SGL_TRAMITESN_UPDATE_V2 || null;
 	}
 
+
 	function init() {
 		var cfg = getConfig();
 		console.log('tramitesn_update_v2 init', !!cfg);
 		if (!cfg) return;
+		if (!(window.Swal && typeof window.Swal.fire === 'function') && typeof window.Sweetalert2 !== 'function') {
+			console.warn('SweetAlert2 not available on init', cfg.swalSrc || '(no swalSrc)');
+		}
 
 		var maxStep = parseInt(cfg.maxStep || 3, 10);
 		var csrfName = cfg.csrfName;
@@ -28,6 +32,7 @@ console.log('tramitesn_update_v2 loaded');
 
 		// El gusanito es fijo al estatus (no se mueve al navegar en el wizard)
 		var TRA_STATUS_ID = parseInt(cfg.statusId || 0, 10);
+		var STEP_ACTUAL = parseInt(cfg.stepActual || 0, 10);
 		function statusToStep(statusId) {
 			var map = {
 				11: 1,
@@ -43,13 +48,71 @@ console.log('tramitesn_update_v2 loaded');
 			};
 			return (typeof map[statusId] !== 'undefined') ? map[statusId] : 1;
 		}
-		var statusStep = statusToStep(TRA_STATUS_ID);
+		var statusStep = STEP_ACTUAL > 0
+			? Math.min(STEP_ACTUAL, maxStep)
+			: statusToStep(TRA_STATUS_ID);
 
 		function updateCsrf(newHash) {
 			if (!newHash) return;
 			csrfHash = newHash;
 			var input = document.querySelector('input[name="' + csrfName + '"]');
 			if (input) input.value = newHash;
+		}
+
+		function getSweetAlertApi() {
+			if (window.Swal && typeof window.Swal.fire === 'function') {
+				return { kind: 'fire', api: window.Swal };
+			}
+			if (typeof window.Sweetalert2 === 'function') {
+				return { kind: 'sw2', api: window.Sweetalert2 };
+			}
+			if (typeof window.swal === 'function') {
+				return { kind: 'sw1', api: window.swal };
+			}
+			return null;
+		}
+
+		function confirmWithSweetAlert(options, onConfirm) {
+			var swalApi = getSweetAlertApi();
+			if (!swalApi) return false;
+			if (swalApi.kind === 'fire') {
+				swalApi.api.fire({
+					title: options.title,
+					text: options.text,
+					icon: options.icon || 'warning',
+					showCancelButton: true,
+					confirmButtonText: options.confirmText || 'Si, continuar',
+					cancelButtonText: options.cancelText || 'Cancelar'
+				}).then(function (result) {
+					if (result && result.isConfirmed) onConfirm();
+				});
+				return true;
+			}
+			if (swalApi.kind === 'sw2') {
+				swalApi.api({
+					title: options.title,
+					text: options.text,
+					type: options.icon || 'warning',
+					showCancelButton: true,
+					confirmButtonText: options.confirmText || 'Si, continuar',
+					cancelButtonText: options.cancelText || 'Cancelar'
+				}).then(function (result) {
+					if (result && (result.value || result.isConfirmed)) onConfirm();
+				});
+				return true;
+			}
+			swalApi.api({
+				title: options.title,
+				text: options.text,
+				icon: options.icon || 'warning',
+				buttons: {
+					cancel: options.cancelText || 'Cancelar',
+					confirm: options.confirmText || 'Si, continuar'
+				}
+			}).then(function (ok) {
+				if (ok) onConfirm();
+			});
+			return true;
 		}
 
 		function renderStepperFixed() {
@@ -122,6 +185,19 @@ console.log('tramitesn_update_v2 loaded');
 				more.className = 'badge badge-secondary badge-pill sgl-pill';
 				more.textContent = '+' + (ids.length - 3);
 				header.appendChild(more);
+			}
+		}
+
+		function syncTiposExistentesFromDom() {
+			var list = document.getElementById('tiposAsociadosList');
+			if (!list) return;
+			TIPOS_EXISTENTES.clear();
+			list.querySelectorAll('[data-tipo-id]').forEach(function (card) {
+				var id = parseInt(card.getAttribute('data-tipo-id') || '0', 10);
+				if (id) TIPOS_EXISTENTES.add(id);
+			});
+			if (PRINCIPAL_TIPO_ID) {
+				TIPOS_EXISTENTES.add(PRINCIPAL_TIPO_ID);
 			}
 		}
 
@@ -304,6 +380,7 @@ console.log('tramitesn_update_v2 loaded');
 					setTiposMsg('Selecciona un tipo para cambiar el principal.', true);
 					return;
 				}
+				var oldPrincipalId = PRINCIPAL_TIPO_ID;
 				var fd = new FormData();
 				fd.append('tramite_id', String(TRAMITE_ID));
 				fd.append('tra_tipos_id', String(tipoId));
@@ -324,8 +401,49 @@ console.log('tramitesn_update_v2 loaded');
 							}
 							var mainSelect = document.querySelector('[name="tra_tipos_id"]');
 							if (mainSelect) { mainSelect.value = String(tipoId); }
+							if (oldPrincipalId && oldPrincipalId !== tipoId) {
+								TIPOS_EXISTENTES.delete(oldPrincipalId);
+							}
 							TIPOS_EXISTENTES.add(tipoId);
+
+							var list = document.getElementById('tiposAsociadosList');
+							if (list) {
+								var oldId = (json && json.old_tipo_id) ? parseInt(json.old_tipo_id, 10) : oldPrincipalId;
+								var cardOld = oldId ? list.querySelector('[data-tipo-id="' + oldId + '"]') : null;
+								var cardNew = list.querySelector('[data-tipo-id="' + tipoId + '"]');
+								if (cardOld && cardNew && cardOld !== cardNew) {
+									cardOld.remove();
+								} else if (cardOld) {
+									cardOld.setAttribute('data-tipo-id', String(tipoId));
+									if (json && json.asociado_id) {
+										cardOld.setAttribute('data-asociado-id', String(json.asociado_id));
+									}
+									var lbl = cardOld.querySelector('.tipo-label');
+									if (lbl) {
+										lbl.textContent = json.label || (TIPOS_OPTIONS && TIPOS_OPTIONS[tipoId]) || lbl.textContent;
+									}
+								} else if (!cardNew && json && json.asociado_id) {
+									var empty = list.querySelector('.text-muted');
+									if (empty) empty.remove();
+									var card = document.createElement('div');
+									card.className = 'card mb-2';
+									card.setAttribute('data-asociado-id', String(json.asociado_id));
+									card.setAttribute('data-tipo-id', String(tipoId));
+									card.innerHTML =
+										'<div class="card-body py-2 sgl-associated-row">' +
+											'<div>' +
+												'<strong class="tipo-label">' + (json.label || (TIPOS_OPTIONS && TIPOS_OPTIONS[tipoId]) || 'Tipo #' + tipoId) + '</strong>' +
+												'<small class="text-muted d-block">Asociado</small>' +
+											'</div>' +
+											'<div class="actions">' +
+												'<span class="badge badge-success badge-pill sgl-pill" title="Ligado">✓</span>' +
+											'</div>' +
+										'</div>';
+									list.prepend(card);
+								}
+							}
 							refreshBadgesBar();
+							syncTiposExistentesFromDom();
 							refreshHeaderBadges();
 							setTiposMsg(json.message || 'Actualizado', false);
 							try { window.jQuery && jQuery('#modalEditPrincipalTipo').modal('hide'); } catch (e) { /* noop */ }
@@ -453,16 +571,141 @@ console.log('tramitesn_update_v2 loaded');
 			return valid;
 		}
 
+		function getFieldValue(fieldId) {
+			var el = document.getElementById(fieldId);
+			if (!el) return '';
+			var value = (el.value || '').toString().trim();
+			return value === 'null' ? '' : value;
+		}
+
+		function updateApprovalBlock() {
+			var wrap = document.getElementById('approvalWrap');
+			if (!wrap) return;
+			var ready = document.getElementById('approvalReady');
+			var pending = document.getElementById('approvalPending');
+			var missingList = document.getElementById('approvalMissingList');
+			var missing = [];
+
+			if (!getFieldValue('derechos_tramite')) {
+				missing.push('Monto pago de derechos');
+			}
+			if (!getFieldValue('derechos_revol_cliente')) {
+				missing.push('Forma de Pago');
+			}
+			if (!getFieldValue('derechos_refer_banc')) {
+				missing.push('Referencia Bancaria');
+			}
+
+			if (missing.length === 0) {
+				if (ready) ready.style.display = 'flex';
+				if (pending) pending.style.display = 'none';
+			} else {
+				if (ready) ready.style.display = 'none';
+				if (pending) pending.style.display = 'flex';
+				if (missingList) {
+					missingList.innerHTML = '';
+					missing.forEach(function (label) {
+						var li = document.createElement('li');
+						li.innerHTML = '<strong>' + label + '</strong>';
+						missingList.appendChild(li);
+					});
+				}
+			}
+		}
+
+		function confirmAprobarTramite(tramiteId) {
+			var title = 'Aprobar tramite';
+			var text = 'Esta accion cambiara el estado del tramite. ¿Deseas continuar?';
+			var used = confirmWithSweetAlert({
+				title: title,
+				text: text,
+				icon: 'warning',
+				confirmText: 'Si, aprobar',
+				cancelText: 'Cancelar'
+			}, function () {
+				changeStatusTramite(tramiteId, 23);
+			});
+			if (used) return;
+			if (confirm('¿Estas seguro de aprobar este tramite? Esta accion cambiara el estado del tramite.')) {
+				changeStatusTramite(tramiteId, 23);
+			}
+		}
+
+		window.confirmAprobarTramite = confirmAprobarTramite;
+
+		function getEndpointForStep(step, form) {
+			if (cfg.urls && cfg.urls.updateSave && step === 1) {
+				return cfg.urls.updateSave;
+			}
+			if (cfg.urls && cfg.urls.updateGestorSave && step === 2) {
+				return cfg.urls.updateGestorSave;
+			}
+			if (cfg.urls && cfg.urls.updateDerechosSave && step === 3) {
+				return cfg.urls.updateDerechosSave;
+			}
+			return form ? form.action : '';
+		}
+
+		function buildStepFormData(step, form) {
+			var fd = new FormData();
+			if (csrfName && csrfHash) {
+				fd.set(csrfName, csrfHash);
+			}
+			fd.set('current_step', String(step));
+			var container = document.querySelector('.wizard-section[data-step="' + step + '"]');
+			var fields = container ? container.querySelectorAll('input[name], select[name], textarea[name]') : [];
+			if (!fields.length && form) {
+				fields = form.querySelectorAll('input[name], select[name], textarea[name]');
+			}
+			fields.forEach(function (el) {
+				if (!el.name || el.disabled) return;
+				if (el.type === 'radio') {
+					if (el.checked) fd.append(el.name, el.value);
+					return;
+				}
+				if (el.type === 'checkbox') {
+					if (el.checked) fd.append(el.name, el.value || '1');
+					return;
+				}
+				if (el.type === 'file') {
+					Array.prototype.forEach.call(el.files || [], function (file) {
+						fd.append(el.name, file);
+					});
+					return;
+				}
+				fd.append(el.name, el.value);
+			});
+			return fd;
+		}
+
 		var isSaving = false;
 		async function submitFormAjax() {
 			if (isSaving) return false;
 			isSaving = true;
 			var form = document.getElementById('tramiteNuevoForm');
 			if (!form) return false;
-			var formData = new FormData(form);
-			formData.set(csrfName, csrfHash);
+			var stepInput = document.getElementById('current_step');
+			if (stepInput) {
+				var currentStep = 1;
+				if (window.jQuery && jQuery.fn && jQuery.fn.steps) {
+					var $wizard = jQuery('#wizard');
+					if ($wizard.length) {
+						currentStep = ($wizard.steps('getCurrentIndex') || 0) + 1;
+					}
+				}
+				stepInput.value = String(currentStep);
+			}
+			var msg = document.getElementById('tramiteNuevoMessage');
+			if (msg) {
+				msg.style.display = 'none';
+				msg.className = 'alert';
+				msg.textContent = '';
+			}
+			var currentStepValue = stepInput ? parseInt(stepInput.value || '1', 10) : 1;
+			var endpoint = getEndpointForStep(currentStepValue, form);
+			var formData = buildStepFormData(currentStepValue, form);
 			try {
-				var resp = await fetch(form.action, {
+				var resp = await fetch(endpoint, {
 					method: 'POST',
 					body: formData,
 					headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -470,10 +713,32 @@ console.log('tramitesn_update_v2 loaded');
 				var data = await resp.json();
 				if (data && data.csrfHash) updateCsrf(data.csrfHash);
 				if (data && data.success) {
+					if (msg) {
+						msg.className = 'alert alert-success';
+						msg.textContent = data.message || 'Guardado correctamente.';
+						msg.style.display = 'block';
+						setTimeout(function () {
+							msg.style.display = 'none';
+						}, 4000);
+					}
+					validateStep(currentStepValue);
+					if (currentStepValue === 3) {
+						updateApprovalBlock();
+					}
 					return true;
+				}
+				if (msg) {
+					msg.className = 'alert alert-danger';
+					msg.textContent = (data && data.message) ? data.message : 'No se pudo guardar.';
+					msg.style.display = 'block';
 				}
 				return false;
 			} catch (err) {
+				if (msg) {
+					msg.className = 'alert alert-danger';
+					msg.textContent = 'Error de red al guardar.';
+					msg.style.display = 'block';
+				}
 				return false;
 			} finally {
 				isSaving = false;
@@ -1038,57 +1303,120 @@ console.log('tramitesn_update_v2 loaded');
 			var submitBtn = form.querySelector('[data-submit="pago-gestor"]');
 			var inFlight = false;
 
+			function ensureSweetAlert() {
+				return new Promise(function (resolve) {
+					if (window.Swal && typeof window.Swal.fire === 'function') {
+						resolve(true);
+						return;
+					}
+					if (typeof window.Sweetalert2 === 'function' || typeof window.swal === 'function') {
+						resolve(true);
+						return;
+					}
+					var existing = document.querySelector('script[data-sgl-swal="1"]');
+					if (existing) {
+						existing.addEventListener('load', function () { resolve(true); });
+						existing.addEventListener('error', function () { resolve(false); });
+						return;
+					}
+					var script = document.createElement('script');
+					var swalSrc = (cfg && cfg.swalSrc) ? cfg.swalSrc : '/public/assets/src/plugins/sweetalert2/sweetalert2.all.js';
+					script.src = swalSrc;
+					script.async = true;
+					script.setAttribute('data-sgl-swal', '1');
+					script.onload = function () { resolve(true); };
+					script.onerror = function () { resolve(false); };
+					document.head.appendChild(script);
+				});
+			}
+
 			form.addEventListener('submit', function (e) {
 				e.preventDefault();
 				if (inFlight) return;
-				inFlight = true;
-				if (submitBtn) submitBtn.disabled = true;
-				if (msg) {
-					msg.style.display = 'none';
-					msg.className = 'alert';
-					msg.textContent = '';
-				}
-				var formData = new FormData(form);
-				fetch(cfg.urls.updatePagoGestor, {
-					method: 'POST',
-					body: formData,
-					headers: { 'X-Requested-With': 'XMLHttpRequest' }
-				})
-					.then(function (resp) { return resp.json(); })
-					.then(function (data) {
-						if (data && data.csrfHash) updateCsrf(data.csrfHash);
-						if (data && data.success) {
+				function proceedSubmit() {
+					inFlight = true;
+					if (submitBtn) submitBtn.disabled = true;
+					if (msg) {
+						msg.style.display = 'none';
+						msg.className = 'alert';
+						msg.textContent = '';
+					}
+					var formData = new FormData(form);
+					fetch(cfg.urls.updatePagoGestor, {
+						method: 'POST',
+						body: formData,
+						headers: { 'X-Requested-With': 'XMLHttpRequest' }
+					})
+						.then(function (resp) { return resp.json(); })
+						.then(function (data) {
+							if (data && data.csrfHash) updateCsrf(data.csrfHash);
+							if (data && data.success) {
+								if (msg) {
+									msg.className = 'alert alert-success';
+									msg.textContent = data.message || 'Guardado correctamente.';
+									msg.style.display = 'block';
+								}
+								if (data.redirect) {
+									var url = data.redirect;
+									if (url.indexOf('/deskapp/tramites/update/') !== -1) {
+										url = url.replace('/deskapp/tramites/update/', '/deskapp/tramitesn/update/');
+									}
+									window.location.href = url;
+								}
+								return;
+							}
 							if (msg) {
-								msg.className = 'alert alert-success';
-								msg.textContent = data.message || 'Guardado correctamente.';
+								msg.className = 'alert alert-danger';
+								msg.textContent = (data && data.message) ? data.message : 'No se pudo guardar.';
 								msg.style.display = 'block';
 							}
-							if (data.redirect) {
-								var url = data.redirect;
-								if (url.indexOf('/deskapp/tramites/update/') !== -1) {
-									url = url.replace('/deskapp/tramites/update/', '/deskapp/tramitesn/update/');
-								}
-								window.location.href = url;
+						})
+						.catch(function () {
+							if (msg) {
+								msg.className = 'alert alert-danger';
+								msg.textContent = 'Error de red al guardar.';
+								msg.style.display = 'block';
 							}
-							return;
+						})
+						.finally(function () {
+							inFlight = false;
+							if (submitBtn) submitBtn.disabled = false;
+						});
+				}
+
+				var totalEl = document.getElementById('costo_tramite_total');
+				var totalInput = document.getElementById('costo_tramite');
+				var totalRaw = '';
+				if (totalInput && totalInput.value !== '') {
+					totalRaw = totalInput.value;
+				} else if (totalEl) {
+					totalRaw = totalEl.textContent || '';
+				}
+				var totalNum = parseFloat(String(totalRaw).replace(/[^0-9.-]/g, '')) || 0;
+				if (Math.abs(totalNum) < 0.0001) {
+					ensureSweetAlert().then(function (loaded) {
+						var used = false;
+						if (loaded) {
+							used = confirmWithSweetAlert({
+								title: 'Sumatoria en cero',
+								text: 'La sumatoria de costos esta en $0.00. Falta guardar un monto. ¿Deseas continuar?',
+								icon: 'warning',
+								confirmText: 'Si, continuar',
+								cancelText: 'Cancelar'
+							}, function () {
+								proceedSubmit();
+							});
 						}
-						if (msg) {
-							msg.className = 'alert alert-danger';
-							msg.textContent = (data && data.message) ? data.message : 'No se pudo guardar.';
-							msg.style.display = 'block';
+						if (!used) {
+							var proceed = window.confirm('La sumatoria de costos esta en $0.00. Falta guardar un monto. ¿Deseas continuar?');
+							if (proceed) {
+								proceedSubmit();
+							}
 						}
-					})
-					.catch(function () {
-						if (msg) {
-							msg.className = 'alert alert-danger';
-							msg.textContent = 'Error de red al guardar.';
-							msg.style.display = 'block';
-						}
-					})
-					.finally(function () {
-						inFlight = false;
-						if (submitBtn) submitBtn.disabled = false;
 					});
+					return;
+				}
+				proceedSubmit();
 			});
 		}
 
@@ -1214,15 +1542,43 @@ console.log('tramitesn_update_v2 loaded');
 					}
 					row.classList.remove('is-error');
 					row.classList.add('is-saved');
-					setTimeout(function () {
-						row.classList.remove('is-saved');
-						if (rowStatus) {
-							rowStatus.textContent = '';
-						}
-						if (rowIcon) {
-							rowIcon.textContent = '';
-						}
-					}, 1400);
+				}
+			}
+
+			function markSavedRow(row) {
+				if (!row) return;
+				var rowStatus = ensureRowStatus(row);
+				var rowIcon = ensureRowIcon(row);
+				if (rowStatus) {
+					rowStatus.textContent = 'Guardado';
+				}
+				if (rowIcon) {
+					rowIcon.innerHTML = '<i class="fas fa-check"></i>';
+				}
+				row.classList.remove('is-error');
+				row.classList.add('is-saved');
+			}
+
+			function applySavedFromInputs() {
+				list.querySelectorAll('input[data-cost-id]').forEach(function (input) {
+					var row = input.closest('.sgl-cost-item');
+					var val = parseFloat(input.value) || 0;
+					if (val > 0) {
+						markSavedRow(row);
+					}
+				});
+			}
+
+			function clearSaved(row) {
+				if (!row) return;
+				var rowStatus = ensureRowStatus(row);
+				var rowIcon = ensureRowIcon(row);
+				row.classList.remove('is-saved');
+				if (rowStatus) {
+					rowStatus.textContent = '';
+				}
+				if (rowIcon) {
+					rowIcon.textContent = '';
 				}
 			}
 
@@ -1251,7 +1607,11 @@ console.log('tramitesn_update_v2 loaded');
 
 			function bindInputs() {
 				list.querySelectorAll('input[data-cost-id]').forEach(function (input) {
-					input.addEventListener('input', updateTotal);
+					input.addEventListener('input', function () {
+						var row = input.closest('.sgl-cost-item');
+						clearSaved(row);
+						updateTotal();
+					});
 					input.addEventListener('keyup', function (e) {
 						console.log('keyup costo_tramite', e.target && e.target.value);
 						updateTotal();
@@ -1324,6 +1684,9 @@ console.log('tramitesn_update_v2 loaded');
 								'<span class="sgl-cost-icon" aria-hidden="true"></span>' +
 								'<span class="sgl-cost-row-status">Guardado</span>';
 							list.appendChild(item);
+							if (parseFloat(val) > 0) {
+								markSavedRow(item);
+							}
 						});
 						bindInputs();
 						updateTotal();
@@ -1331,6 +1694,7 @@ console.log('tramitesn_update_v2 loaded');
 					.catch(function () {
 						if (list.querySelector('.sgl-cost-item')) {
 							bindInputs();
+							applySavedFromInputs();
 							updateTotal();
 							return;
 						}

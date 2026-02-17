@@ -64,6 +64,70 @@ class Bitacora extends BaseController
         return $this->_example_output($salida2);
     }
 
+    public function timeline()
+    {
+        $session = session();
+        $folio = trim((string) $this->request->getGet('folio'));
+        $tramiteId = trim((string) $this->request->getGet('tramite_id'));
+
+        if ($folio === '' && $tramiteId === '') {
+            return redirect()->to('bitacora/search')->with('error', 'Selecciona un tramite para ver la bitacora.');
+        }
+
+        $model = new \CodeIgniter\Model();
+        $model->setTable('bitacora');
+        $builder = $model
+            ->select('bitacora.*, users.firstname, users.lastname, users.username, users.email')
+            ->join('users', 'users.id = bitacora.user_id', 'left')
+            ->orderBy('bitacora.created_at', 'DESC');
+
+        if ($folio !== '') {
+            $builder->where('bitacora.folio_tramite', $folio);
+        }
+
+        if ($tramiteId !== '') {
+            $builder->where('bitacora.tramite_id', $tramiteId);
+        }
+
+        $bitacoras = $builder->findAll();
+        $bitacoras = $this->decodeCambiosRows($bitacoras);
+
+        $data = [
+            'session' => $session,
+            'bitacora_log' => $bitacoras,
+            'summary' => $this->buildSummary($bitacoras),
+            'total_changes' => count($bitacoras),
+            'last_modifier' => $this->getLastModifier($bitacoras),
+            'filters' => [
+                'folio' => $folio,
+                'tramite_id' => $tramiteId,
+            ],
+        ];
+
+        return view('deskapp/bitacora/bitacora_timeline', $data);
+    }
+
+    public function search()
+    {
+        $session = session();
+        $model = new \CodeIgniter\Model();
+        $model->setTable('bitacora');
+
+        $bitacoraList = $model
+            ->select('tramite_id, folio_tramite, MAX(created_at) AS last_change, COUNT(*) AS total_changes')
+            ->groupBy('tramite_id, folio_tramite')
+            ->orderBy('last_change', 'DESC')
+            ->limit(100)
+            ->findAll();
+
+        $data = [
+            'session' => $session,
+            'bitacora_list' => $bitacoraList,
+        ];
+
+        return view('deskapp/bitacora/bitacora_search', $data);
+    }
+
     private function _example_output($salida = null) {
     //   $salida = (object)esc($salida, 'raw');
     //   if ($salida->isJSONResponse) {
@@ -87,6 +151,75 @@ class Bitacora extends BaseController
             $asociativo[$elemento['id']] = $elemento['cobro_status'];
         }
         return $asociativo;
+    }
+
+    private function decodeCambiosRows(array $rows)
+    {
+        foreach ($rows as &$row) {
+            $row['cambios'] = $this->decodeCambios($row['cambios'] ?? '');
+        }
+        unset($row);
+        return $rows;
+    }
+
+    private function decodeCambios($cambios)
+    {
+        if ($cambios === null || $cambios === '') {
+            return [];
+        }
+
+        $decoded = json_decode($cambios, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+            return [];
+        }
+
+        return $decoded;
+    }
+
+    private function buildSummary(array $bitacoras)
+    {
+        $summary = [];
+        foreach ($bitacoras as $item) {
+            $action = $item['tipo'] ?? 'unknown';
+            if (!isset($summary[$action])) {
+                $summary[$action] = [
+                    'action' => $action,
+                    'count' => 0,
+                    'last_occurrence' => $item['created_at'] ?? null,
+                ];
+            }
+
+            $summary[$action]['count']++;
+            $currentLast = $summary[$action]['last_occurrence'];
+            if (!$currentLast || strtotime($item['created_at'] ?? '') > strtotime($currentLast)) {
+                $summary[$action]['last_occurrence'] = $item['created_at'] ?? null;
+            }
+        }
+
+        return array_values($summary);
+    }
+
+    private function getLastModifier(array $bitacoras)
+    {
+        if (empty($bitacoras)) {
+            return null;
+        }
+
+        $last = $bitacoras[0];
+        $nameParts = array_filter([
+            $last['firstname'] ?? '',
+            $last['lastname'] ?? '',
+        ]);
+
+        $displayName = trim(implode(' ', $nameParts));
+        if ($displayName === '') {
+            $displayName = $last['username'] ?? 'N/A';
+        }
+
+        return [
+            'username' => $displayName,
+            'modified_at' => $last['created_at'] ?? null,
+        ];
     }
   
 

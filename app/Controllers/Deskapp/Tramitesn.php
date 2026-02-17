@@ -18,6 +18,8 @@ use App\Models\TraTramiteAsociadoModel;
 use App\Models\TraCobroClienteModel;
 use App\Models\TraEvidenciasFinalesModel;
 use App\Models\ClienteDirectoEjecutivoModel;
+use App\Models\BitacoraModel;
+use App\Models\TraUserLogModel;
 use App\Controllers\Deskapp\Tramites;
 
 class Tramitesn extends Tramites
@@ -332,6 +334,7 @@ class Tramitesn extends Tramites
                 'status' => 'success',
                 'message' => 'Sin cambios.',
                 'tra_tipos_id' => $nuevoTipoId,
+                'old_tipo_id' => $currentTipoId,
                 'label' => $tipoLabelRow['tipo_tramite'] ?? null,
                 'csrfHash' => csrf_hash(),
             ]);
@@ -341,11 +344,52 @@ class Tramitesn extends Tramites
             'tra_tipos_id' => $nuevoTipoId,
         ]);
 
+        $principalAssoc = null;
+        if ($currentTipoId > 0) {
+            $principalAssoc = $db->table('tra_tramite_asociado')
+                ->select('id')
+                ->where('tramite_id', $tramiteId)
+                ->where('tra_tipos_id', $currentTipoId)
+                ->get()
+                ->getRowArray();
+        }
+
+        $nuevoAssoc = $db->table('tra_tramite_asociado')
+            ->select('id')
+            ->where('tramite_id', $tramiteId)
+            ->where('tra_tipos_id', $nuevoTipoId)
+            ->get()
+            ->getRowArray();
+
+        $assocAction = 'none';
+        $principalAssocId = !empty($nuevoAssoc) ? (int) $nuevoAssoc['id'] : null;
+
+        if (!empty($nuevoAssoc) && !empty($principalAssoc) && (int) $nuevoAssoc['id'] !== (int) $principalAssoc['id']) {
+            $db->table('tra_tramite_asociado')->where('id', (int) $principalAssoc['id'])->delete();
+            $assocAction = 'deleted_old';
+        } elseif (!empty($principalAssoc) && empty($nuevoAssoc)) {
+            $db->table('tra_tramite_asociado')->where('id', (int) $principalAssoc['id'])->update([
+                'tra_tipos_id' => $nuevoTipoId,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+            $principalAssocId = (int) $principalAssoc['id'];
+            $assocAction = 'updated';
+        } elseif (empty($principalAssoc) && empty($nuevoAssoc)) {
+            $tramiteAsociadoModel = new TraTramiteAsociadoModel();
+            $principalAssocId = $tramiteAsociadoModel->saveService($tramiteId, $nuevoTipoId);
+            $assocAction = 'inserted';
+        } else {
+            $assocAction = 'kept_existing';
+        }
+
         $tipoLabelRow = $db->table('tra_tipos')->select('tipo_tramite')->where('id', $nuevoTipoId)->get()->getRowArray();
         return $this->response->setJSON([
             'status' => 'success',
             'message' => 'Tipo principal actualizado.',
             'tra_tipos_id' => $nuevoTipoId,
+            'old_tipo_id' => $currentTipoId,
+            'asociado_id' => $principalAssocId,
+            'assoc_action' => $assocAction,
             'label' => $tipoLabelRow['tipo_tramite'] ?? null,
             'csrfHash' => csrf_hash(),
         ]);
@@ -539,7 +583,30 @@ class Tramitesn extends Tramites
             }
             $data['user_id'] = $myid;
 
-            $changes = compare_tramite_data($existingTramite, $data);
+            $currentStep = isset($data['current_step']) ? (int) $data['current_step'] : 0;
+            unset($data['current_step']);
+
+            if (array_key_exists('gestor_id', $data) && ($data['gestor_id'] === '' || $data['gestor_id'] === 'null')) {
+                unset($data['gestor_id']);
+            }
+            if (array_key_exists('empresa_gestora_id', $data) && ($data['empresa_gestora_id'] === '' || $data['empresa_gestora_id'] === 'null')) {
+                unset($data['empresa_gestora_id']);
+            }
+
+            if ($currentStep > 0 && $currentStep < 3) {
+                foreach (['derechos_tramite', 'derechos_pago_sitio', 'derechos_vigencia', 'derechos_revol_cliente', 'derechos_refer_banc'] as $field) {
+                    if (array_key_exists($field, $data)) {
+                        unset($data[$field]);
+                    }
+                }
+            }
+
+            $changes = [];
+            try {
+                $changes = compare_tramite_data($existingTramite, $data);
+            } catch (\Throwable $e) {
+                log_message('error', 'Error en compare_tramite_data (Tramitesn::update_save): ' . $e->getMessage());
+            }
 
             $logFile = WRITEPATH . 'logs/audit_debug.log';
             $logData = [
@@ -557,6 +624,32 @@ class Tramitesn extends Tramites
             $updateResult = $builder->update($data);
             if (!$updateResult) {
                 throw new \Exception('No se pudo actualizar el trámite.');
+            }
+
+            $targetStatus = null;
+            $hasGestor = !empty($data['empresa_gestora_id']) && !empty($data['gestor_id']);
+            $hasDerechosBase = !empty($data['derechos_tramite'])
+                && !empty($data['derechos_pago_sitio'])
+                && !empty($data['derechos_vigencia']);
+            $hasDerechosBanc = !empty($data['derechos_revol_cliente'])
+                && !empty($data['derechos_refer_banc']);
+
+            if ($hasGestor) {
+                $targetStatus = 25;
+            }
+            if ($hasDerechosBase) {
+                $targetStatus = 26;
+            }
+            if ($hasDerechosBanc) {
+                $targetStatus = 27;
+            }
+
+            $statusUpdatedTo = (int) ($existingTramite['tra_status_id'] ?? 0);
+            if ($targetStatus !== null) {
+                $statusResult = $this->updateTramiteStatus($id, $targetStatus);
+                if (!empty($statusResult['success'])) {
+                    $statusUpdatedTo = $targetStatus;
+                }
             }
 
             $principalTipoId = (int) ($existingTramite['tra_tipos_id'] ?? 0);
@@ -587,7 +680,12 @@ class Tramitesn extends Tramites
             $db2 = $this->_getDbData();
 
             $bitacoraModel = new BitacoraModel($db2);
-            $diferencias = $this->encontrarDiferencias($data, []);
+            $diferencias = [];
+            try {
+                $diferencias = $this->buildBitacoraChanges($changes);
+            } catch (\Throwable $e) {
+                log_message('error', 'Error en buildBitacoraChanges (Tramitesn::update_save): ' . $e->getMessage());
+            }
             $insert_bitacora = [
                 'id' => null,
                 'tipo' => 'update',
@@ -603,20 +701,28 @@ class Tramitesn extends Tramites
             $log = [
                 'tramite_id' => (int) $id,
                 'user_id' => (int) $myid,
-                'tra_status_id' => 11,
+                'tra_status_id' => $statusUpdatedTo > 0 ? $statusUpdatedTo : 11,
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
             if (!empty($changes)) {
-                $changeCount = log_tramite_bulk_changes($id, $changes, 'tramite', [
-                    'form_name' => 'Datos Generales',
-                    'form_step' => 1,
-                    'form_section' => 'update_save',
-                ]);
-                log_message('info', "[Tramitesn::update_save] Registrados {$changeCount} cambios para trámite ID: {$id}");
+                try {
+                    $changeCount = log_tramite_bulk_changes($id, $changes, 'tramite', [
+                        'form_name' => 'Datos Generales',
+                        'form_step' => 1,
+                        'form_section' => 'update_save',
+                    ]);
+                    log_message('info', "[Tramitesn::update_save] Registrados {$changeCount} cambios para trámite ID: {$id}");
+                } catch (\Throwable $e) {
+                    log_message('error', 'Error en log_tramite_bulk_changes (Tramitesn::update_save): ' . $e->getMessage());
+                }
 
-                $cambiosTexto = implode(', ', array_keys($changes));
-                notify_tramite_actualizado($id, $folio ?? "Trámite #{$id}", $cambiosTexto, $myid);
+                try {
+                    $cambiosTexto = implode(', ', array_keys($changes));
+                    notify_tramite_actualizado($id, $folio ?? "Trámite #{$id}", $cambiosTexto, $myid);
+                } catch (\Throwable $e) {
+                    log_message('error', 'Error en notify_tramite_actualizado (Tramitesn::update_save): ' . $e->getMessage());
+                }
             }
 
             return $this->response->setJSON([
@@ -627,9 +733,295 @@ class Tramitesn extends Tramites
             ]);
         } catch (\Exception $e) {
             log_message('error', 'Error en Tramitesn::update_save: ' . $e->getMessage());
+            log_message('error', 'Trace Tramitesn::update_save: ' . $e->getTraceAsString());
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'Error al actualizar: ' . $e->getMessage(),
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+    }
+
+    public function update_gestor_save()
+    {
+        $session = session();
+        $myid = $session->get('id');
+        $id = $this->request->uri->getSegment(4);
+
+        if (!$id || !is_numeric($id)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'ID de trámite inválido.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'empresa_gestora_id' => 'required',
+            'gestor_id' => 'required',
+        ]);
+
+        if ($validation->withRequest($this->request)->run() === false) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $validation->getErrors(),
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        try {
+            $db = \Config\Database::connect();
+            $builder = $db->table('tramite');
+
+            $tramiteBase = $builder->where('id', $id)->get()->getRowArray();
+            if (!$tramiteBase) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite no existe.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+            }
+
+            $this->updateTramiteStatus($id, 25);
+
+            $data = $this->request->getPost();
+            $csrfName = csrf_token();
+            if (isset($data[$csrfName])) {
+                unset($data[$csrfName]);
+            }
+            if (isset($data['current_step'])) {
+                unset($data['current_step']);
+            }
+
+            if (empty($tramiteBase['started_at'])) {
+                $data['started_at'] = date('Y-m-d H:i:s');
+            }
+
+            if (isset($data['gestor_name'])) {
+                unset($data['gestor_name']);
+            }
+
+            $changes = [];
+            try {
+                $changes = compare_tramite_data($tramiteBase, $data);
+            } catch (\Throwable $e) {
+                log_message('error', 'Error en compare_tramite_data (Tramitesn::update_gestor_save): ' . $e->getMessage());
+            }
+
+            $builder->where('id', $id);
+            $updateResult = $builder->update($data);
+
+            if (!$updateResult) {
+                throw new \Exception('No se pudo asignar el gestor.');
+            }
+
+            $db2 = $this->_getDbData();
+            $bitacoraModel = new BitacoraModel($db2);
+            $diferencias = $this->buildBitacoraChanges($changes);
+            $insert_bitacora = [
+                'id' => null,
+                'tipo' => 'update',
+                'origen' => 'tramite',
+                'tramite_id' => (int) $id,
+                'cambios' => json_encode($diferencias),
+                'user_id' => (int) $myid,
+            ];
+            $bitacoraModel->insert($insert_bitacora, 'bitacora');
+
+            $tra_user_log = new TraUserLogModel($db2);
+            $log = [
+                'tramite_id' => (int) $id,
+                'user_id' => (int) $myid,
+                'tra_status_id' => 22,
+            ];
+            $tra_user_log->insert($log, 'tra_user_log');
+
+            if (!empty($changes)) {
+                log_tramite_bulk_changes($id, $changes, 'tramite', [
+                    'form_name' => 'Asignacion de Gestor',
+                    'form_step' => 2,
+                    'form_section' => 'update_gestor_save',
+                ]);
+
+                if (isset($changes['gestor_id'])) {
+                    $db = \Config\Database::connect();
+                    $tramiteData = $db->table('tramite')->select('folio')->where('id', $id)->get()->getRowArray();
+                    $gestor = $db->table('ges_gestor')->select('nombre')->where('id', $data['gestor_id'] ?? 0)->get()->getRowArray();
+
+                    $folio = $tramiteData['folio'] ?? "Trámite #{$id}";
+                    $gestorNombre = $gestor['nombre'] ?? 'Gestor';
+                    notify_gestor_asignado($id, $folio, $gestorNombre, $myid);
+                }
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'El Gestor se asigno correctamente.',
+                'redirect' => '/deskapp/tramitesn/update/' . $id,
+                'csrfHash' => csrf_hash(),
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Tramitesn::update_gestor_save: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al asignar gestor: ' . $e->getMessage(),
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+    }
+
+    public function update_derechos_save()
+    {
+        $session = session();
+        $myid = $session->get('id');
+        $id = $this->request->uri->getSegment(4);
+
+        if (!$id || !is_numeric($id)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'ID de trámite inválido.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'derechos_tramite' => 'required',
+            'derechos_pago_sitio' => 'required',
+            'derechos_vigencia' => 'required',
+        ]);
+
+        if ($validation->withRequest($this->request)->run() === false) {
+            return $this->response->setJSON([
+                'success' => false,
+                'errors' => $validation->getErrors(),
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        try {
+            $db = \Config\Database::connect();
+            $builder = $db->table('tramite');
+
+            $existingTramite = $builder->where('id', $id)->get()->getRowArray();
+            if (!$existingTramite) {
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite no existe.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+            }
+
+            $data = $this->request->getPost();
+            $csrfName = csrf_token();
+            if (isset($data[$csrfName])) {
+                unset($data[$csrfName]);
+            }
+
+            $changes = [];
+
+            if (isset($data['current_step'])) {
+                unset($data['current_step']);
+            }
+
+            try {
+                $changes = compare_tramite_data($existingTramite, $data);
+            } catch (\Throwable $e) {
+                log_message('error', 'Error en compare_tramite_data (Tramitesn::update_derechos_save): ' . $e->getMessage());
+            }
+
+            $builder->where('id', $id);
+            $updateResult = $builder->update($data);
+
+            if (!$updateResult) {
+                throw new \Exception('No se pudo guardar los derechos.');
+            }
+
+            $hasDerechosBase = !empty($data['derechos_tramite'])
+                && !empty($data['derechos_pago_sitio'])
+                && !empty($data['derechos_vigencia']);
+            $hasDerechosBanc = !empty($data['derechos_revol_cliente'])
+                && !empty($data['derechos_refer_banc']);
+
+            if ($hasDerechosBase) {
+                $this->updateTramiteStatus($id, 26);
+            }
+            if ($hasDerechosBanc) {
+                $this->updateTramiteStatus($id, 27);
+            }
+
+            $principalTipoId = (int) ($existingTramite['tra_tipos_id'] ?? 0);
+            $asociadoFields = [
+                'derechos_tramite',
+                'derechos_pago_sitio',
+                'derechos_vigencia',
+                'derechos_revol_cliente',
+                'derechos_refer_banc',
+            ];
+            $asociadoData = [];
+            foreach ($asociadoFields as $field) {
+                if (array_key_exists($field, $data)) {
+                    $asociadoData[$field] = $data[$field];
+                }
+            }
+            if (!empty($asociadoData)) {
+                $asociadoData['updated_at'] = date('Y-m-d H:i:s');
+                $asociadoBuilder = $db->table('tra_tramite_asociado');
+                $asociadoBuilder->where('tramite_id', (int) $id);
+                if ($principalTipoId > 0) {
+                    $asociadoBuilder->where('tra_tipos_id !=', $principalTipoId);
+                }
+                $asociadoBuilder->update($asociadoData);
+            }
+
+            $db2 = $this->_getDbData();
+            $bitacoraModel = new BitacoraModel($db2);
+            $diferencias = $this->buildBitacoraChanges($changes);
+            $insert_bitacora = [
+                'id' => null,
+                'tipo' => 'update',
+                'origen' => 'tramite',
+                'tramite_id' => (int) $id,
+                'cambios' => json_encode($diferencias),
+                'user_id' => (int) $myid,
+            ];
+            $bitacoraModel->insert($insert_bitacora, 'bitacora');
+
+            $tra_user_log = new TraUserLogModel($db2);
+            $log = [
+                'tramite_id' => (int) $id,
+                'user_id' => (int) $myid,
+                'tra_status_id' => 22,
+            ];
+            $tra_user_log->insert($log, 'tra_user_log');
+
+            if (!empty($changes)) {
+                log_tramite_bulk_changes($id, $changes, 'tramite', [
+                    'form_name' => 'Pago de Derechos',
+                    'form_step' => 3,
+                    'form_section' => 'update_derechos_save',
+                ]);
+
+                $db = \Config\Database::connect();
+                $tramiteData = $db->table('tramite')->select('folio')->where('id', $id)->get()->getRowArray();
+                $folio = $tramiteData['folio'] ?? "Trámite #{$id}";
+                notify_tramite_actualizado($id, $folio, 'Pago de Derechos actualizado', $myid);
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'El trámite se guardo correctamente.',
+                'redirect' => '/deskapp/tramitesn/update/' . $id,
+                'csrfHash' => csrf_hash(),
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Tramitesn::update_derechos_save: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al guardar derechos: ' . $e->getMessage(),
                 'csrfHash' => csrf_hash(),
             ]);
         }
@@ -881,9 +1273,9 @@ class Tramitesn extends Tramites
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
 
-            $filterSql = get_tramite_filter_sql($myid);
-            $tramite_crud->where($filterSql);
-            $tramite_crud->where('tra_status_id', 28);
+            // $filterSql = get_tramite_filter_sql($myid);
+            // $tramite_crud->where($filterSql);
+            $tramite_crud->where('tra_status_id = 28');
 
             // El listado muestra todos los tramites en estatus 28; la columna indica si ya puede cobrarse.
 
@@ -1430,11 +1822,11 @@ class Tramitesn extends Tramites
             ],
         ];
 
-        $baseCobro = $sumDerechos;
-        $baseCobro += is_numeric($tramite['costo_pago_cliente']) ? (float) $tramite['costo_pago_cliente'] : 0.0;
-        $baseCobro += is_numeric($tramite['comision_derechos']) ? (float) $tramite['comision_derechos'] : 0.0;
-        $ivaCalc = round($baseCobro * 0.16, 2);
-        $costoTotalCalc = round($baseCobro + $ivaCalc, 2);
+        $baseIva = 0.0;
+        $baseIva += is_numeric($tramite['costo_pago_cliente']) ? (float) $tramite['costo_pago_cliente'] : 0.0;
+        $baseIva += is_numeric($tramite['comision_derechos']) ? (float) $tramite['comision_derechos'] : 0.0;
+        $ivaCalc = round($baseIva * 0.16, 2);
+        $costoTotalCalc = round($sumDerechos + $baseIva + $ivaCalc, 2);
 
         $tramite['iva'] = number_format($ivaCalc, 2, '.', '');
         $tramite['costo_total'] = number_format($costoTotalCalc, 2, '.', '');
@@ -1465,6 +1857,12 @@ class Tramitesn extends Tramites
                 'type' => 'select',
                 'options' => $cobro_status_options,
                 'value' => $tramite['cobro_status_id'],
+            ],
+            'evidencia_cobro_txt' => [
+                'label' => 'Evidencia de cobro',
+                'type' => 'textarea',
+                'value' => $tramite['evidencia_cobro_txt'] ?? '',
+                'maxlength' => 100,
             ],
             'separador_costos2' => [
                 'type' => 'hr',
@@ -1543,9 +1941,59 @@ class Tramitesn extends Tramites
 
         $form->id = $id;
 
+        $crud = $this->_getGroceryCrudEnterprise();
+        $crudOutput = $crud->render();
+
+        $form->css_files = $crudOutput->css_files;
+        $form->js_files = $crudOutput->js_files;
+
+        $cruddocstatus = $this->_getGroceryCrudEnterprise();
+        $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/' . $id);
+        $output_docs = $cruddocstatus->render();
+
+        $crudevidencias = $this->_getGroceryCrudEnterprise();
+        $crudevidencias->setApiUrlPath('/deskapp/tramites/single_evidencias/' . $id);
+        $outputevidencias = $crudevidencias->render();
+
+        $crud_derechos = $this->_getGroceryCrudEnterprise();
+        $crud_derechos->setApiUrlPath('/deskapp/tramites/single_pago_derechos/' . $id);
+        $output_derechos = $crud_derechos->render();
+
+        $crud_pago_gestor = $this->_getGroceryCrudEnterprise();
+        if (puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_gestor', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
+            $crud_pago_gestor->setApiUrlPath('/deskapp/tramites/single_pago_gestor/' . $id);
+        } else {
+            $crud_pago_gestor->setApiUrlPath('/deskapp/concluido/single_pago_gestor/' . $id);
+        }
+        $output_pago_gestor = $crud_pago_gestor->render();
+
+        $crud_cobro_cliente = $this->_getGroceryCrudEnterprise();
+        if (puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_cliente', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
+            $crud_cobro_cliente->setApiUrlPath('/deskapp/tramites/single_cobro_cliente/' . $id);
+        } else {
+            $crud_cobro_cliente->setApiUrlPath('/deskapp/concluido/single_cobro_cliente/' . $id);
+        }
+        $output_cobro_cliente = $crud_cobro_cliente->render();
+
+        $crudevidencias_finales = $this->_getGroceryCrudEnterprise();
+        if (puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_cliente', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
+            $crudevidencias_finales->setApiUrlPath('/deskapp/tramites/single_evidencias_finales/' . $id);
+        } else {
+            $crudevidencias_finales->setApiUrlPath('/deskapp/concluido/single_evidencias_finales/' . $id);
+        }
+        $outputevidencias_finales = $crudevidencias_finales->render();
+
+        $form->output_docs = $output_docs->output;
+        $form->output_bitacora = $outputevidencias->output;
+        $form->outputevidencias_finales = $outputevidencias_finales->output;
+        $form->output_derechos = $output_derechos->output;
+        $form->output_pago_gestor = $output_pago_gestor->output;
+        $form->output_cobro_cliente = $output_cobro_cliente->output;
+
         // Fusionar datos para la vista nueva (sin Grocery CRUD)
         $viewData = array_merge((array) $form, $data);
         $viewData['tra_tipos_options'] = $tra_tipos_options;
+        $viewData['principal_tipo_id'] = (int) ($tramite['tra_tipos_id'] ?? 0);
         $viewData['servicios_asociados'] = $servicios_asociados;
         $viewData['servicios_tipos_ids'] = array_values(array_unique($servicios_tipos_ids));
 		$viewData['can_edit_principal'] = $canEditPrincipal;
@@ -1811,5 +2259,36 @@ class Tramitesn extends Tramites
             log_message('error', 'Error en delete_final_doc: ' . $e->getMessage());
             return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Error al eliminar documento.']);
         }
+    }
+
+    public function encontrarDiferencias($datos1, $datos2)
+    {
+        $diferencias = [];
+        foreach ($datos1 as $clave => $valor) {
+            if (array_key_exists($clave, $datos2) && $datos2[$clave] !== $valor) {
+                $diferencias[$clave] = [
+                    'valor_original' => $valor,
+                    'valor_nuevo' => $datos2[$clave]
+                ];
+            } else {
+                $diferencias[$clave] = [
+                    'valor_original' => $valor,
+                    'valor_nuevo' => ''
+                ];
+            }
+        }
+        return $diferencias;
+    }
+
+    private function buildBitacoraChanges(array $changes)
+    {
+        $diferencias = [];
+        foreach ($changes as $field => $values) {
+            $diferencias[$field] = [
+                'valor_original' => $values['old'] ?? null,
+                'valor_nuevo' => $values['new'] ?? null,
+            ];
+        }
+        return $diferencias;
     }
 }
