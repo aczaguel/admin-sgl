@@ -1,6 +1,51 @@
 <?= $this->extend('layout/main') ?>
 
 <?php $assets = base_url('/public/assets'); ?>
+<?php
+    $qs = $_GET ?? [];
+    $baseAlertasUrl = base_url('/deskapp/dashboardadmin/alertas');
+    $perPage = (int) ($per_page ?? 50);
+    $pageRetrasados = (int) ($page_retrasados ?? 1);
+    $pagePendientes = (int) ($page_pendientes ?? 1);
+    $pageEstancados = (int) ($page_estancados ?? 1);
+    $totalRetrasados = (int) ($total_tramites_retrasados ?? 0);
+    $totalPendientes = (int) ($total_pendientes_cobro ?? 0);
+    $totalEstancados = (int) ($total_tramites_estancados ?? 0);
+
+    $renderPagination = function ($pageKey, $currentPage, $total, $perPage) use ($baseAlertasUrl, $qs) {
+        $totalPages = (int) ceil($total / max(1, $perPage));
+        if ($totalPages <= 1) {
+            return '';
+        }
+
+        $currentPage = max(1, min((int) $currentPage, $totalPages));
+        $prev = max(1, $currentPage - 1);
+        $next = min($totalPages, $currentPage + 1);
+
+        $qsPrev = $qs;
+        $qsPrev[$pageKey] = $prev;
+        $qsNext = $qs;
+        $qsNext[$pageKey] = $next;
+
+        $prevUrl = $baseAlertasUrl . '?' . http_build_query($qsPrev);
+        $nextUrl = $baseAlertasUrl . '?' . http_build_query($qsNext);
+
+        $disabledPrev = $currentPage <= 1 ? ' disabled' : '';
+        $disabledNext = $currentPage >= $totalPages ? ' disabled' : '';
+
+        return '<nav class="mt-3 d-flex align-items-center justify-content-between">'
+            . '<span class="text-muted">Pagina ' . $currentPage . ' de ' . $totalPages . '</span>'
+            . '<ul class="pagination pagination-sm mb-0">'
+            . '<li class="page-item' . $disabledPrev . '">'
+                . '<a class="page-link" href="' . esc($disabledPrev ? '#' : $prevUrl) . '">Anterior</a>'
+            . '</li>'
+            . '<li class="page-item' . $disabledNext . '">' 
+                . '<a class="page-link" href="' . esc($disabledNext ? '#' : $nextUrl) . '">Siguiente</a>'
+            . '</li>'
+            . '</ul>'
+            . '</nav>';
+    };
+?>
 
 <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/responsive.bootstrap4.min.css">
@@ -45,7 +90,7 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h4 class="font-20 weight-500 mb-10 text-capitalize">
-                                    <div class="weight-600 font-30 text-danger"><?= count($tramites_retrasados) ?></div>
+                                    <div class="weight-600 font-30 text-danger"><?= $totalRetrasados ?></div>
                                 </h4>
                                 <p class="font-18 max-width-600">Trámites Retrasados</p>
                             </div>
@@ -59,7 +104,7 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h4 class="font-20 weight-500 mb-10 text-capitalize">
-                                    <div class="weight-600 font-30 text-warning"><?= count($pendientes_cobro) ?></div>
+                                    <div class="weight-600 font-30 text-warning"><?= $totalPendientes ?></div>
                                 </h4>
                                 <p class="font-18 max-width-600">Pendientes de Cobro</p>
                             </div>
@@ -73,11 +118,136 @@
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h4 class="font-20 weight-500 mb-10 text-capitalize">
-                                    <div class="weight-600 font-30 text-secondary"><?= count($tramites_estancados) ?></div>
+                                    <div class="weight-600 font-30 text-secondary"><?= $totalEstancados ?></div>
                                 </h4>
                                 <p class="font-18 max-width-600">Trámites Estancados</p>
                             </div>
                             <div class="icon-copy fa fa-pause-circle" style="font-size: 48px; color: #6c757d;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <?php
+                $semaforo = $semaforo_atencion ?? [];
+                $atoradosTipos = $atorados_por_tipo ?? [];
+                $atoradosEstados = $atorados_por_estado ?? [];
+                $atoradosClientes = $atorados_por_cliente ?? [];
+            ?>
+
+            <!-- Semaforo de atencion -->
+            <div class="row">
+                <div class="col-md-12 mb-30">
+                    <div class="card-box pd-20">
+                        <h4 class="h4 text-blue mb-20">
+                            <i class="icon-copy fa fa-traffic-light"></i> Semaforo de atencion (local vs foraneo)
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-20">
+                                <h6 class="text-muted mb-10">Locales (CDMX + EdoMex)</h6>
+                                <div class="d-flex flex-wrap" style="gap: 10px;">
+                                    <span class="badge badge-success">Verde: <?= (int)($semaforo['local_verde'] ?? 0) ?></span>
+                                    <span class="badge badge-info">Amarillo: <?= (int)($semaforo['local_amarillo'] ?? 0) ?></span>
+                                    <span class="badge badge-danger">Rojo: <?= (int)($semaforo['local_rojo'] ?? 0) ?></span>
+                                    <span class="badge badge-dark">Violeta: <?= (int)($semaforo['local_violeta'] ?? 0) ?></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-20">
+                                <h6 class="text-muted mb-10">Foraneos</h6>
+                                <div class="d-flex flex-wrap" style="gap: 10px;">
+                                    <span class="badge badge-success">Verde: <?= (int)($semaforo['foraneo_verde'] ?? 0) ?></span>
+                                    <span class="badge badge-info">Amarillo: <?= (int)($semaforo['foraneo_amarillo'] ?? 0) ?></span>
+                                    <span class="badge badge-danger">Rojo: <?= (int)($semaforo['foraneo_rojo'] ?? 0) ?></span>
+                                    <span class="badge badge-dark">Violeta: <?= (int)($semaforo['foraneo_violeta'] ?? 0) ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- Sin movimiento mas de 7 dias por criterio -->
+            <div class="row">
+                <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
+                    <div class="card-box pd-20">
+                        <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Tipo de Servicio</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th class="text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($atoradosTipos)): ?>
+                                        <?php foreach ($atoradosTipos as $row): ?>
+                                            <tr>
+                                                <td><?= esc($row['tipo']) ?></td>
+                                                <td class="text-right"><strong><?= (int)$row['total'] ?></strong></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
+                    <div class="card-box pd-20">
+                        <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Estado</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Estado</th>
+                                        <th class="text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($atoradosEstados)): ?>
+                                        <?php foreach ($atoradosEstados as $row): ?>
+                                            <tr>
+                                                <td><?= esc($row['estado']) ?></td>
+                                                <td class="text-right"><strong><?= (int)$row['total'] ?></strong></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
+                    <div class="card-box pd-20">
+                        <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Cliente (Top 10)</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Cliente</th>
+                                        <th class="text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (!empty($atoradosClientes)): ?>
+                                        <?php foreach ($atoradosClientes as $row): ?>
+                                            <tr>
+                                                <td><?= esc($row['cliente']) ?></td>
+                                                <td class="text-right"><strong><?= (int)$row['total'] ?></strong></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -138,6 +308,7 @@
                                     <?php endif; ?>
                                 </tbody>
                             </table>
+                            <?= $renderPagination('page_retrasados', $pageRetrasados, $totalRetrasados, $perPage) ?>
                         </div>
                     </div>
                 </div>
@@ -200,6 +371,7 @@
                                     <?php endif; ?>
                                 </tbody>
                             </table>
+                            <?= $renderPagination('page_pendientes', $pagePendientes, $totalPendientes, $perPage) ?>
                         </div>
                     </div>
                 </div>
@@ -260,6 +432,7 @@
                                     <?php endif; ?>
                                 </tbody>
                             </table>
+                            <?= $renderPagination('page_estancados', $pageEstancados, $totalEstancados, $perPage) ?>
                         </div>
                     </div>
                 </div>

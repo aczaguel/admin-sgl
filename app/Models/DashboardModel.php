@@ -249,9 +249,16 @@ class DashboardModel extends Model
      * @param int|null $userId ID del usuario para filtrado (null = sin filtro)
      * @return array Lista de trámites retrasados
      */
-    public function getTramitesRetrasados($diasLimite = 30, $userId = null)
+    public function getTramitesRetrasados($diasLimite = 30, $userId = null, $limit = null, $offset = null)
     {
         $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+        $limitSql = '';
+
+        if ($limit !== null) {
+            $limit = max(1, (int) $limit);
+            $offset = max(0, (int) $offset);
+            $limitSql = " LIMIT {$limit} OFFSET {$offset}";
+        }
         
         $query = "
             SELECT 
@@ -275,9 +282,29 @@ class DashboardModel extends Model
             AND DATEDIFF(CURDATE(), COALESCE(t.started_at, t.created_at)) > ?
             AND ($filtroCliente)
             ORDER BY dias_transcurridos DESC
+            $limitSql
         ";
         
         return $this->db->query($query, [$diasLimite])->getResultArray();
+    }
+
+    /**
+     * Contar trámites con tiempos excedidos
+     */
+    public function countTramitesRetrasados($diasLimite = 30, $userId = null)
+    {
+        $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+
+        $query = "
+            SELECT COUNT(*) as total
+            FROM tramite t
+            WHERE t.tra_status_id NOT IN (20, 21)
+            AND DATEDIFF(CURDATE(), COALESCE(t.started_at, t.created_at)) > ?
+            AND ($filtroCliente)
+        ";
+
+        $row = $this->db->query($query, [$diasLimite])->getRowArray();
+        return (int) ($row['total'] ?? 0);
     }
 
     /**
@@ -287,9 +314,16 @@ class DashboardModel extends Model
      * @param int|null $userId ID del usuario para filtrado (null = sin filtro)
      * @return array Lista de trámites pendientes de cobro
      */
-    public function getTramitesPendientesCobro($diasLimite = 15, $userId = null)
+    public function getTramitesPendientesCobro($diasLimite = 15, $userId = null, $limit = null, $offset = null)
     {
         $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+        $limitSql = '';
+
+        if ($limit !== null) {
+            $limit = max(1, (int) $limit);
+            $offset = max(0, (int) $offset);
+            $limitSql = " LIMIT {$limit} OFFSET {$offset}";
+        }
         
         $query = "
             SELECT 
@@ -321,9 +355,36 @@ class DashboardModel extends Model
             AND DATEDIFF(CURDATE(), t.finished_at) > ?
             AND ($filtroCliente)
             ORDER BY dias_sin_cobrar DESC
+            $limitSql
         ";
         
         return $this->db->query($query, [$diasLimite])->getResultArray();
+    }
+
+    /**
+     * Contar trámites facturados sin cobrar
+     */
+    public function countTramitesPendientesCobro($diasLimite = 15, $userId = null)
+    {
+        $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+
+        $query = "
+            SELECT COUNT(*) as total
+            FROM tramite t
+            WHERE t.tra_status_id NOT IN (20, 21)
+            AND (
+                (t.numero_factura IS NOT NULL AND t.numero_factura != '')
+                OR
+                (t.numero_refactura IS NOT NULL AND t.numero_refactura != '')
+            )
+            AND t.cobro_status_id = 22
+            AND t.finished_at IS NOT NULL
+            AND DATEDIFF(CURDATE(), t.finished_at) > ?
+            AND ($filtroCliente)
+        ";
+
+        $row = $this->db->query($query, [$diasLimite])->getRowArray();
+        return (int) ($row['total'] ?? 0);
     }
 
     /**
@@ -333,9 +394,16 @@ class DashboardModel extends Model
      * @param int|null $userId ID del usuario para filtrado (null = sin filtro)
      * @return array Lista de trámites estancados
      */
-    public function getTramitesEstancados($diasLimite = 7, $userId = null)
+    public function getTramitesEstancados($diasLimite = 7, $userId = null, $limit = null, $offset = null)
     {
         $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+        $limitSql = '';
+
+        if ($limit !== null) {
+            $limit = max(1, (int) $limit);
+            $offset = max(0, (int) $offset);
+            $limitSql = " LIMIT {$limit} OFFSET {$offset}";
+        }
         
         $query = "
             SELECT 
@@ -359,9 +427,30 @@ class DashboardModel extends Model
             AND DATEDIFF(CURDATE(), t.created_at) > ?
             AND ($filtroCliente)
             ORDER BY dias_sin_movimiento DESC
+            $limitSql
         ";
         
         return $this->db->query($query, [$diasLimite])->getResultArray();
+    }
+
+    /**
+     * Contar trámites sin movimiento (estancados)
+     */
+    public function countTramitesEstancados($diasLimite = 7, $userId = null)
+    {
+        $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+
+        $query = "
+            SELECT COUNT(*) as total
+            FROM tramite t
+            WHERE t.tra_status_id NOT IN (20, 21)
+            AND t.started_at IS NULL
+            AND DATEDIFF(CURDATE(), t.created_at) > ?
+            AND ($filtroCliente)
+        ";
+
+        $row = $this->db->query($query, [$diasLimite])->getRowArray();
+        return (int) ($row['total'] ?? 0);
     }
 
     /**
@@ -379,6 +468,115 @@ class DashboardModel extends Model
         ];
 
         return $alertas;
+    }
+
+    /**
+     * Conteo por semaforo (local vs foraneo) basado en dias transcurridos.
+     */
+    public function getSemaforoAtencion($userId = null)
+    {
+        $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+        $dias = "DATEDIFF(CURDATE(), COALESCE(t.started_at, t.created_at))";
+        $local = "UPPER(COALESCE(e.entidad, '')) IN ('CIUDAD DE MEXICO', 'CIUDAD DE MÉXICO', 'ESTADO DE MEXICO', 'ESTADO DE MÉXICO', 'CDMX', 'EDOMEX', 'EDO MEX', 'EDO. MEX')";
+        $foraneo = "NOT ($local)";
+
+        $query = "
+            SELECT
+                SUM(CASE WHEN $local AND $dias < 5 THEN 1 ELSE 0 END) as local_verde,
+                SUM(CASE WHEN $local AND $dias BETWEEN 5 AND 7 THEN 1 ELSE 0 END) as local_amarillo,
+                SUM(CASE WHEN $local AND $dias BETWEEN 8 AND 11 THEN 1 ELSE 0 END) as local_rojo,
+                SUM(CASE WHEN $local AND $dias >= 12 THEN 1 ELSE 0 END) as local_violeta,
+                SUM(CASE WHEN $foraneo AND $dias < 10 THEN 1 ELSE 0 END) as foraneo_verde,
+                SUM(CASE WHEN $foraneo AND $dias BETWEEN 10 AND 12 THEN 1 ELSE 0 END) as foraneo_amarillo,
+                SUM(CASE WHEN $foraneo AND $dias BETWEEN 13 AND 15 THEN 1 ELSE 0 END) as foraneo_rojo,
+                SUM(CASE WHEN $foraneo AND $dias >= 16 THEN 1 ELSE 0 END) as foraneo_violeta
+            FROM tramite t
+            LEFT JOIN entidad e ON t.entidad_id = e.id
+            WHERE t.tra_status_id NOT IN (20, 21)
+            AND ($filtroCliente)
+        ";
+
+        $row = $this->db->query($query)->getRowArray();
+        return $row ?: [];
+    }
+
+    /**
+     * Tipos de servicio atorados (sin movimiento > 7 dias).
+     */
+    public function getAtoradosPorTipoServicio($limit = 10, $userId = null)
+    {
+        $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+        $limit = max(1, (int) $limit);
+        $dias = "DATEDIFF(CURDATE(), COALESCE(t.started_at, t.created_at))";
+
+        $query = "
+            SELECT
+                COALESCE(tt.tipo_tramite, 'Sin tipo') as tipo,
+                COUNT(*) as total
+            FROM tramite t
+            LEFT JOIN tra_tipos tt ON t.tra_tipos_id = tt.id
+            WHERE t.tra_status_id NOT IN (20, 21)
+            AND $dias > 7
+            AND ($filtroCliente)
+            GROUP BY tt.id, tt.tipo_tramite
+            ORDER BY total DESC
+            LIMIT $limit
+        ";
+
+        return $this->db->query($query)->getResultArray();
+    }
+
+    /**
+     * Estados con mayor atraso (sin movimiento > 7 dias).
+     */
+    public function getAtoradosPorEstado($limit = 10, $userId = null)
+    {
+        $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+        $limit = max(1, (int) $limit);
+        $dias = "DATEDIFF(CURDATE(), COALESCE(t.started_at, t.created_at))";
+
+        $query = "
+            SELECT
+                COALESCE(e.entidad, 'Sin entidad') as estado,
+                COUNT(*) as total
+            FROM tramite t
+            LEFT JOIN entidad e ON t.entidad_id = e.id
+            WHERE t.tra_status_id NOT IN (20, 21)
+            AND $dias > 7
+            AND ($filtroCliente)
+            GROUP BY e.id, e.entidad
+            ORDER BY total DESC
+            LIMIT $limit
+        ";
+
+        return $this->db->query($query)->getResultArray();
+    }
+
+    /**
+     * Clientes con mayor atraso (sin movimiento > 7 dias).
+     */
+    public function getAtoradosPorCliente($limit = 10, $userId = null)
+    {
+        $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+        $limit = max(1, (int) $limit);
+        $dias = "DATEDIFF(CURDATE(), COALESCE(t.started_at, t.created_at))";
+
+        $query = "
+            SELECT
+                COALESCE(NULLIF(c.razon_social, ''), NULLIF(c.nombre, ''), NULLIF(cd.razon_social, ''), CONCAT('Cliente #', c.id)) as cliente,
+                COUNT(*) as total
+            FROM tramite t
+            INNER JOIN cli_directo cd ON t.cli_directo_id = cd.id
+            INNER JOIN cliente c ON cd.cliente_id = c.id
+            WHERE t.tra_status_id NOT IN (20, 21)
+            AND $dias > 7
+            AND ($filtroCliente)
+            GROUP BY c.id, cliente
+            ORDER BY total DESC
+            LIMIT $limit
+        ";
+
+        return $this->db->query($query)->getResultArray();
     }
 
     /**
@@ -530,9 +728,16 @@ class DashboardModel extends Model
      * @param int|null $userId ID del usuario para filtrado (null = sin filtro)
      * @return array Reporte de cuentas por cobrar
      */
-    public function getAgingReport($userId = null)
+    public function getAgingReport($userId = null, $limit = null, $offset = null)
     {
         $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+        $limitSql = '';
+
+        if ($limit !== null) {
+            $limit = max(1, (int) $limit);
+            $offset = max(0, (int) $offset);
+            $limitSql = " LIMIT {$limit} OFFSET {$offset}";
+        }
         
         $query = "
             SELECT 
@@ -562,9 +767,31 @@ class DashboardModel extends Model
             AND t.finished_at IS NOT NULL
             AND ($filtroCliente)
             ORDER BY dias_vencidos DESC
+            $limitSql
         ";
         
         return $this->db->query($query)->getResultArray();
+    }
+
+    /**
+     * Contar registros del aging report
+     */
+    public function countAgingReport($userId = null)
+    {
+        $filtroCliente = $this->getClienteFilterSQL($userId, 't');
+
+        $query = "
+            SELECT COUNT(*) as total
+            FROM tramite t
+            WHERE (t.numero_factura IS NOT NULL AND t.numero_factura != ''
+                OR t.numero_refactura IS NOT NULL AND t.numero_refactura != '')
+            AND t.cobro_status_id = 22
+            AND t.finished_at IS NOT NULL
+            AND ($filtroCliente)
+        ";
+
+        $row = $this->db->query($query)->getRowArray();
+        return (int) ($row['total'] ?? 0);
     }
 
     /**

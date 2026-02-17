@@ -778,6 +778,7 @@
 												<?php foreach ($pago_derechos_db as $doc): ?>
 													<?php
 														$fileName = (string) ($doc['file'] ?? '');
+														$docType = (string) ($doc['doc_type'] ?? ($doc['comprobante_final'] ?? ''));
 														$fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 														$isImage = in_array($fileExt, ['jpg','jpeg','png','gif','webp'], true);
 														$fileUrl = base_url('/assets/uploads/pago_derechos/' . $id . '/' . $fileName);

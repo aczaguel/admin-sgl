@@ -105,13 +105,6 @@ if (!function_exists('user_has_global_cliente_access')) {
             return false;
         }
 
-        if ($session->get('id') == $userId) {
-            $cached = $session->get('admin_global_client_access');
-            if ($cached !== null) {
-                return (bool) $cached;
-            }
-        }
-
         $db = \Config\Database::connect();
         $row = $db->table('cliente_user')
             ->select('cliente_id')

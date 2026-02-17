@@ -15,11 +15,15 @@
 		<div class="sidebar-menu">
 			<ul id="accordion-menu">
 				<?php 
+					helper(['cliente_filter']);
 					// Determinar si el usuario es Admin o Super Admin por rol
 					$userRole = $session->get('user_roles');
 					$userRoleStr = is_array($userRole) ? implode(',', $userRole) : (string)$userRole;
 					$userRoleLower = strtolower(str_replace(' ', '', $userRoleStr)); // Remover espacios y convertir a minúsculas
 					$isAdmin = (strpos($userRoleLower, 'admin') !== false || strpos($userRoleLower, 'superadmin') !== false);
+					$hasGlobalClienteAccess = user_has_global_cliente_access($session->get('id'));
+					$isSuperAdmin = is_super_admin($userRole);
+					$isLimitedAdmin = $isAdmin && !$isSuperAdmin && !$hasGlobalClienteAccess;
 				?>
 
 				<?php if ($isAdmin || has_permission('menu_dashboard_admin', $session->get('user_permissions'), $session->get('user_roles'))): ?>
@@ -150,7 +154,7 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: GESTORES -->
-				<?php if (has_permission('menu_gestores', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+				<?php if (has_permission('menu_gestores', $session->get('user_permissions'), $session->get('user_roles')) && !$isLimitedAdmin): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-handshake me-2"></i> Gestión de Gestores</span>
 					</li>
@@ -171,7 +175,7 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: CLIENTES -->
-				<?php if (has_permission('menu_clientes', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+				<?php if (has_permission('menu_clientes', $session->get('user_permissions'), $session->get('user_roles')) && !$isLimitedAdmin): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-users me-2"></i> Gestión de Clientes</span>
 					</li>
@@ -198,7 +202,7 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: CONFIGURACIÓN -->
-				<?php if (has_permission('menu_configuracion', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+				<?php if (has_permission('menu_configuracion', $session->get('user_permissions'), $session->get('user_roles')) && !$isLimitedAdmin): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-cog me-2"></i> Configuración del Sistema</span>
 					</li>
@@ -219,7 +223,7 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: DOCUMENTOS -->
-				<?php if (has_permission('menu_documentos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+				<?php if (has_permission('menu_documentos', $session->get('user_permissions'), $session->get('user_roles')) && !$isLimitedAdmin): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-folder me-2"></i> Gestión Documental</span>
 					</li>
@@ -240,7 +244,7 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: PERMISOS Y USUARIOS -->
-				<?php if (has_permission('menu_roles', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+				<?php if (has_permission('menu_roles', $session->get('user_permissions'), $session->get('user_roles')) && !$isLimitedAdmin): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-shield-alt me-2"></i> Seguridad y Accesos</span>
 					</li>

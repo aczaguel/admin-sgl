@@ -167,6 +167,11 @@ class DashboardAdmin extends BaseController
             $data['count_retrasados'] = count($this->dashboardModel->getTramitesRetrasados(30, $userId));
             $data['count_pendientes_cobro'] = count($this->dashboardModel->getTramitesPendientesCobro(15, $userId));
             $data['count_estancados'] = count($this->dashboardModel->getTramitesEstancados(7, $userId));
+
+            $data['semaforo_atencion'] = $this->dashboardModel->getSemaforoAtencion($userId);
+            $data['atorados_por_tipo'] = $this->dashboardModel->getAtoradosPorTipoServicio(10, $userId);
+            $data['atorados_por_estado'] = $this->dashboardModel->getAtoradosPorEstado(10, $userId);
+            $data['atorados_por_cliente'] = $this->dashboardModel->getAtoradosPorCliente(10, $userId);
         } else {
             // Sin alertas para años anteriores
             $data['tramites_retrasados'] = [];
@@ -175,6 +180,11 @@ class DashboardAdmin extends BaseController
             $data['count_retrasados'] = 0;
             $data['count_pendientes_cobro'] = 0;
             $data['count_estancados'] = 0;
+
+            $data['semaforo_atencion'] = [];
+            $data['atorados_por_tipo'] = [];
+            $data['atorados_por_estado'] = [];
+            $data['atorados_por_cliente'] = [];
         }
         
         // Top rankings
@@ -213,11 +223,44 @@ class DashboardAdmin extends BaseController
         $userId = $this->session->get('id');
 
         $this->applyClienteFilterToModelAndData($data, (int) $userId);
-        
-        // Obtener todas las alertas sin límite
-        $data['tramites_retrasados'] = $this->dashboardModel->getTramitesRetrasados(30, $userId);
-        $data['pendientes_cobro'] = $this->dashboardModel->getTramitesPendientesCobro(15, $userId);
-        $data['tramites_estancados'] = $this->dashboardModel->getTramitesEstancados(7, $userId);
+
+        $perPage = 50;
+        $pageRetrasados = max(1, (int) $this->request->getGet('page_retrasados'));
+        $pagePendientes = max(1, (int) $this->request->getGet('page_pendientes'));
+        $pageEstancados = max(1, (int) $this->request->getGet('page_estancados'));
+
+        $data['per_page'] = $perPage;
+        $data['page_retrasados'] = $pageRetrasados;
+        $data['page_pendientes'] = $pagePendientes;
+        $data['page_estancados'] = $pageEstancados;
+
+        $data['total_tramites_retrasados'] = $this->dashboardModel->countTramitesRetrasados(30, $userId);
+        $data['total_pendientes_cobro'] = $this->dashboardModel->countTramitesPendientesCobro(15, $userId);
+        $data['total_tramites_estancados'] = $this->dashboardModel->countTramitesEstancados(7, $userId);
+
+        $data['tramites_retrasados'] = $this->dashboardModel->getTramitesRetrasados(
+            30,
+            $userId,
+            $perPage,
+            ($pageRetrasados - 1) * $perPage
+        );
+        $data['pendientes_cobro'] = $this->dashboardModel->getTramitesPendientesCobro(
+            15,
+            $userId,
+            $perPage,
+            ($pagePendientes - 1) * $perPage
+        );
+        $data['tramites_estancados'] = $this->dashboardModel->getTramitesEstancados(
+            7,
+            $userId,
+            $perPage,
+            ($pageEstancados - 1) * $perPage
+        );
+
+        $data['semaforo_atencion'] = $this->dashboardModel->getSemaforoAtencion($userId);
+        $data['atorados_por_tipo'] = $this->dashboardModel->getAtoradosPorTipoServicio(10, $userId);
+        $data['atorados_por_estado'] = $this->dashboardModel->getAtoradosPorEstado(10, $userId);
+        $data['atorados_por_cliente'] = $this->dashboardModel->getAtoradosPorCliente(10, $userId);
         
         return view('deskapp/dashboard/alertas', $data);
     }
@@ -236,8 +279,19 @@ class DashboardAdmin extends BaseController
 
         $this->applyClienteFilterToModelAndData($data, (int) $userId);
         
+        $perPage = 50;
+        $pageAging = max(1, (int) $this->request->getGet('page_aging'));
+
+        $data['per_page'] = $perPage;
+        $data['page_aging'] = $pageAging;
+        $data['total_aging_report'] = $this->dashboardModel->countAgingReport($userId);
+
         // Aging report
-        $data['aging_report'] = $this->dashboardModel->getAgingReport($userId);
+        $data['aging_report'] = $this->dashboardModel->getAgingReport(
+            $userId,
+            $perPage,
+            ($pageAging - 1) * $perPage
+        );
         $data['resumen_rangos'] = $this->dashboardModel->getResumenFinancieroPorRangos($userId);
         $data['proyeccion'] = $this->dashboardModel->getProyeccionIngresos($userId);
         

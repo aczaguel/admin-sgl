@@ -45,6 +45,8 @@ $routes->post('/deskapp/dashboard','Deskapp/Dashboard::index',['filter' => 'auth
 
 $routes->get('/users/users', 'Deskapp/Users::users',['filter' => 'auth']);
 $routes->post('/users/users', 'Deskapp/Users::users',['filter' => 'auth']);
+$routes->add('/users/users/(:any)', 'Deskapp/Users::users',['filter' => 'auth']);
+$routes->add('/users/users/(:any)/(:any)', 'Deskapp/Users::users',['filter' => 'auth']);
 
 $routes->get('/roles/roles', 'Deskapp/Roles::roles',['filter' => 'auth']);
 $routes->post('/roles/roles', 'Deskapp/Roles::roles',['filter' => 'auth']);

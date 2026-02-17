@@ -6,6 +6,151 @@
 <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" href="<?= $assets ?>/vendors/styles/style.css">
 
+<style>
+    /* Dashboard Admin visual refresh (no functional changes) */
+    :root {
+        --da-ink: #1f2933;
+        --da-muted: #637381;
+        --da-surface: #ffffff;
+        --da-panel: #f7f5f0;
+        --da-accent: #0f766e;
+        --da-accent-2: #f59e0b;
+        --da-accent-3: #2563eb;
+        --da-border: #e6e2d9;
+        --da-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+    }
+
+    .main-container {
+        background: radial-gradient(circle at top left, #f5efe6 0%, #f9fafb 55%, #ffffff 100%);
+    }
+
+    .page-header .title h4 {
+        font-family: "Poppins", "Montserrat", sans-serif;
+        color: var(--da-ink);
+        letter-spacing: 0.2px;
+    }
+
+    .breadcrumb a,
+    .breadcrumb-item {
+        color: var(--da-muted);
+    }
+
+    .card-box,
+    .widget-style3 {
+        border: 1px solid var(--da-border);
+        border-radius: 14px;
+        box-shadow: var(--da-shadow);
+        background: var(--da-surface);
+    }
+
+    .card-box.pd-20 {
+        background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
+    }
+
+    .card-box .h4,
+    .card-box .h5 {
+        font-family: "Poppins", "Montserrat", sans-serif;
+        color: var(--da-ink);
+    }
+
+    .text-blue {
+        color: var(--da-accent) !important;
+    }
+
+    .widget-style3 {
+        background: linear-gradient(135deg, #ffffff 0%, #f7f7f2 100%);
+    }
+
+    .widget-style3 .widget-data .weight-700 {
+        color: var(--da-ink);
+    }
+
+    .widget-style3 .widget-icon .icon-copy {
+        filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.12));
+    }
+
+    .alert {
+        border-radius: 12px;
+        box-shadow: var(--da-shadow);
+    }
+
+    .alert .alert-link {
+        color: inherit;
+        text-decoration: underline;
+    }
+
+    .table thead th {
+        background: var(--da-panel);
+        color: var(--da-ink);
+        border-bottom: 1px solid var(--da-border);
+    }
+
+    .table {
+        color: var(--da-ink);
+    }
+
+    .table td,
+    .table th {
+        border-top: 1px solid var(--da-border);
+    }
+
+    .table tbody tr:hover {
+        background: rgba(15, 118, 110, 0.05);
+    }
+
+    .badge {
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+    }
+
+    .badge.badge-dark {
+        background: #4b5563;
+    }
+
+    .badge.badge-info {
+        background: #38bdf8;
+    }
+
+    .badge.badge-danger {
+        background: #ef4444;
+    }
+
+    .badge.badge-success {
+        background: #22c55e;
+    }
+
+    .btn.btn-primary {
+        background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+        border: none;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn.btn-primary:hover {
+        filter: brightness(0.95);
+    }
+
+    .dropdown-menu {
+        border-radius: 12px;
+        box-shadow: var(--da-shadow);
+    }
+
+    .page-header {
+        background: #ffffff;
+        border: 1px solid var(--da-border);
+        border-radius: 16px;
+        padding: 18px 20px;
+        box-shadow: var(--da-shadow);
+    }
+
+    .page-header .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 0;
+    }
+</style>
+
 <?= $this->section('content') ?>
 
 <div class="main-container">
@@ -69,6 +214,133 @@
             </div>
             <?php endif; ?>
             <?php endif; // Fin de es_anio_actual ?>
+
+            <?php if (isset($es_anio_actual) && $es_anio_actual): ?>
+                <?php
+                    $semaforo = $semaforo_atencion ?? [];
+                    $atoradosTipos = $atorados_por_tipo ?? [];
+                    $atoradosEstados = $atorados_por_estado ?? [];
+                    $atoradosClientes = $atorados_por_cliente ?? [];
+                ?>
+
+                <!-- Semaforo de atencion -->
+                <div class="row">
+                    <div class="col-md-12 mb-30">
+                        <div class="card-box pd-20">
+                            <h4 class="h4 text-blue mb-20">
+                                <i class="icon-copy fa fa-traffic-light"></i> Semaforo de atencion (local vs foraneo)
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6 mb-20">
+                                    <h6 class="text-muted mb-10">Locales (CDMX + EdoMex)</h6>
+                                    <div class="d-flex flex-wrap" style="gap: 10px;">
+                                        <span class="badge badge-success">Verde: <?= (int)($semaforo['local_verde'] ?? 0) ?></span>
+                                        <span class="badge badge-info">Amarillo: <?= (int)($semaforo['local_amarillo'] ?? 0) ?></span>
+                                        <span class="badge badge-danger">Rojo: <?= (int)($semaforo['local_rojo'] ?? 0) ?></span>
+                                        <span class="badge badge-dark">Violeta: <?= (int)($semaforo['local_violeta'] ?? 0) ?></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-20">
+                                    <h6 class="text-muted mb-10">Foraneos</h6>
+                                    <div class="d-flex flex-wrap" style="gap: 10px;">
+                                        <span class="badge badge-success">Verde: <?= (int)($semaforo['foraneo_verde'] ?? 0) ?></span>
+                                        <span class="badge badge-info">Amarillo: <?= (int)($semaforo['foraneo_amarillo'] ?? 0) ?></span>
+                                        <span class="badge badge-danger">Rojo: <?= (int)($semaforo['foraneo_rojo'] ?? 0) ?></span>
+                                        <span class="badge badge-dark">Violeta: <?= (int)($semaforo['foraneo_violeta'] ?? 0) ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sin movimiento mas de 7 dias por criterio -->
+                <div class="row">
+                    <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
+                        <div class="card-box pd-20">
+                            <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Tipo de Servicio</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Tipo</th>
+                                            <th class="text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if (!empty($atoradosTipos)): ?>
+                                            <?php foreach ($atoradosTipos as $row): ?>
+                                                <tr>
+                                                    <td><?= esc($row['tipo']) ?></td>
+                                                    <td class="text-right"><strong><?= (int)$row['total'] ?></strong></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
+                        <div class="card-box pd-20">
+                            <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Estado</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Estado</th>
+                                            <th class="text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if (!empty($atoradosEstados)): ?>
+                                            <?php foreach ($atoradosEstados as $row): ?>
+                                                <tr>
+                                                    <td><?= esc($row['estado']) ?></td>
+                                                    <td class="text-right"><strong><?= (int)$row['total'] ?></strong></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
+                        <div class="card-box pd-20">
+                            <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Cliente (Top 10)</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Cliente</th>
+                                            <th class="text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if (!empty($atoradosClientes)): ?>
+                                            <?php foreach ($atoradosClientes as $row): ?>
+                                                <tr>
+                                                    <td><?= esc($row['cliente']) ?></td>
+                                                    <td class="text-right"><strong><?= (int)$row['total'] ?></strong></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <!-- KPIs Principales -->
             <div class="row">
