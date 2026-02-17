@@ -1062,9 +1062,13 @@ class Tramitesn extends Tramites
             // Filtro multi-tenancy
             $filterSql = get_tramite_filter_sql($myid);
             $tramite_crud->where($filterSql);
+            $data['audit_payload'] = [
+                'source' => 'Tramitesn::tramite',
+                'user_id' => (int) $myid,
+                'filterSql' => $filterSql,
+            ];
 
-            // Excluir cancelados/finalizados especiales
-            $tramite_crud->where('tra_status_id', 28);
+            // Mostrar todos los estatus en el listado
 
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -1241,6 +1245,7 @@ class Tramitesn extends Tramites
             $tramite_salida = $tramite_crud->render();
 
             $salida_total = array_merge((array)$tramite_salida, $data);
+            $salida_total['audit_payload'] = $data['audit_payload'] ?? null;
             // El botón de "Nuevo" seguirá usando el alta tradicional si se requiere
             $salida_total['insert_button_url'] = '/public/deskapp/tramites/add';
 

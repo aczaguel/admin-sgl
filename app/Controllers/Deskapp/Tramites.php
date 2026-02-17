@@ -1384,7 +1384,7 @@ class Tramites extends BaseController
         }
 
         // Validación de acceso: si no es admin, el cli_directo debe pertenecer a un cliente asignado
-        if (!user_is_admin($myid)) {
+        if (!user_has_global_cliente_access($myid)) {
             $clienteIds = get_user_cliente_ids($myid);
             if (empty($clienteIds)) {
                 log_unauthorized_access_attempt('cli_directo', $clienteDirectoId, $myid);
@@ -1448,7 +1448,7 @@ class Tramites extends BaseController
                     return $this->add();
                 }
 
-                if (!user_is_admin($myid)) {
+                if (!user_has_global_cliente_access($myid)) {
                     $clienteIds = get_user_cliente_ids($myid);
                     $row = $db->table('cli_directo')->select('cliente_id')->where('id', $cliDirectoId)->get(1)->getRowArray();
                     $tenantId = $row['cliente_id'] ?? null;

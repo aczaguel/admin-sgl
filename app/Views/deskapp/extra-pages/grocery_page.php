@@ -453,12 +453,12 @@
 					<!-- Body Section -->
 					<div class="grocery-crud-body">
 						<!-- Audit Debug Div -->
-					<div id="audit-debug" style="display: none; background: #1e293b; color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 20px; font-family: 'Courier New', monospace;">
+					<div id="audit-debug" class="debug-info-container" style="display: none; background: #1e293b; color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 20px; font-family: 'Courier New', monospace;">
 						<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid #475569; padding-bottom: 8px;">
-							<strong style="color: #60a5fa; font-size: 14px;">📋 Form POST Data</strong>
+							<strong style="color: #60a5fa; font-size: 14px;">📋 Audit Payload</strong>
 							<button onclick="$('#audit-debug').hide()" style="background: #ef4444; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">✕ Cerrar</button>
 						</div>
-						<pre id="audit-content" style="margin: 0; white-space: pre-wrap; word-wrap: break-word; font-size: 12px; line-height: 1.5; color: #ffffff;"></pre>
+						<pre id="audit-content" style="margin: 0; white-space: pre-wrap; word-wrap: break-word; font-size: 12px; line-height: 1.5; color: #ffffff;"><?php if (!empty($audit_payload)) { print_r($audit_payload); } else { echo 'Sin datos de auditoria.'; } ?></pre>
 					</div>
 
 					<?php
@@ -685,6 +685,13 @@
 				
 				auditContent.text(output);
 			}
+
+			function showAuditPayload(payload) {
+				if (!payload) return;
+				var auditContent = $('#audit-content');
+				var output = JSON.stringify(payload, null, 2);
+				auditContent.text(output);
+			}
 			
 			// Function para actualizar visibilidad del audit div según debug mode
 			function updateAuditVisibility() {
@@ -701,6 +708,9 @@
 			// Verificar estado inicial al cargar la página
 			$(document).ready(function() {
 				updateAuditVisibility();
+				<?php if (!empty($audit_payload)) : ?>
+				showAuditPayload(<?= json_encode($audit_payload) ?>);
+				<?php endif; ?>
 			});
 			
 			// Escuchar cambios en el botón debug

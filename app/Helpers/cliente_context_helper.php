@@ -80,8 +80,8 @@ if (!function_exists('resolve_active_cliente_id')) {
                 return null;
             }
 
-            // Admin siempre puede escoger; usuarios normales solo si tienen acceso
-            if (user_is_admin($userId) || has_access_to_cliente($clienteId, $userId)) {
+            // Admin con acceso global puede escoger; usuarios normales solo si tienen acceso
+            if (user_has_global_cliente_access($userId) || has_access_to_cliente($clienteId, $userId)) {
                 $session->set('active_cliente_id', $clienteId);
                 return $clienteId;
             }
@@ -102,7 +102,7 @@ if (!function_exists('resolve_active_cliente_id')) {
             return null;
         }
 
-        if (!user_is_admin($userId) && !has_access_to_cliente($active, $userId)) {
+        if (!user_has_global_cliente_access($userId) && !has_access_to_cliente($active, $userId)) {
             $session->remove('active_cliente_id');
             return null;
         }

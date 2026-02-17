@@ -120,7 +120,7 @@ class TramiteWizard extends BaseController
         // Filtro multi-tenancy + cliente activo
         if (!empty($clienteIdFiltro)) {
             $builder->where('cd.cliente_id', (int) $clienteIdFiltro);
-        } elseif (!user_is_admin($userId)) {
+        } elseif (!user_has_global_cliente_access($userId)) {
             $clienteIds = get_user_cliente_ids($userId);
             if (empty($clienteIds)) {
                 $builder->where('1 = 0'); // Usuario sin clientes asignados
@@ -416,7 +416,7 @@ class TramiteWizard extends BaseController
         $builder->join('cli_directo_ejecutivo cde', 'cde.id = t.cli_directo_ejecutivo_id', 'left');
         $builder->join('ges_empresa_gestora eg', 'eg.id = t.empresa_gestora_id', 'left');
         $builder->join('ges_gestor g', 'g.id = t.gestor_id', 'left');
-        $builder->join('tra_status ts', 'ts.id = t.tra_status_id', 'left');
+            if (!user_has_global_cliente_access($userId)) {
         $builder->join('users u', 'u.id = t.user_id', 'left');
 
         $builder->where('t.created_at >=', $fechaInicio);
@@ -427,7 +427,7 @@ class TramiteWizard extends BaseController
         }
 
         // Filtro multi-tenancy
-        if (!user_is_admin($userId)) {
+        if (!user_has_global_cliente_access($userId)) {
             $clienteIds = get_user_cliente_ids($userId);
             if (empty($clienteIds)) {
                 $builder->where('1 = 0');
@@ -586,7 +586,7 @@ class TramiteWizard extends BaseController
         }
 
         // Validar multi-tenancy: el usuario debe tener acceso al cliente dueño del cli_directo
-        if (!user_is_admin($userId)) {
+        if (!user_has_global_cliente_access($userId)) {
             $row = $this->db->table('cli_directo')
                 ->select('cliente_id')
                 ->where('id', (int) $clienteId)
@@ -683,7 +683,7 @@ class TramiteWizard extends BaseController
         }
         
         // Aplicar filtro multi-tenancy
-        if (!user_is_admin($userId)) {
+        if (!user_has_global_cliente_access($userId)) {
             $clienteIds = get_user_cliente_ids($userId);
             if (empty($clienteIds)) {
                 $builder->where('1 = 0');
@@ -746,7 +746,7 @@ class TramiteWizard extends BaseController
 
     private function validarAccesoCliente($userId, $clienteId)
     {
-        if (user_is_admin($userId)) {
+        if (user_has_global_cliente_access($userId)) {
             return true;
         }
 

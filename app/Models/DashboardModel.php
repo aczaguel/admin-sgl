@@ -44,8 +44,8 @@ class DashboardModel extends Model
 
             helper('cliente_filter');
 
-            // Defensa en profundidad: si no es admin y no tiene acceso, no retornar datos
-            if ($userId !== null && !user_is_admin($userId) && !has_access_to_cliente($clienteId, $userId)) {
+            // Defensa en profundidad: si no tiene acceso global y no tiene acceso, no retornar datos
+            if ($userId !== null && !user_has_global_cliente_access($userId) && !has_access_to_cliente($clienteId, $userId)) {
                 return '1 = 0';
             }
 
@@ -63,9 +63,9 @@ class DashboardModel extends Model
         
         helper('cliente_filter');
         
-        // Verificar si es admin (sin restricciones)
-        if (user_is_admin($userId)) {
-            return '1 = 1'; // Admin ve todo
+        // Verificar si tiene acceso global (sin restricciones)
+        if (user_has_global_cliente_access($userId)) {
+            return '1 = 1'; // Admin global ve todo
         }
         
         // Obtener clientes del usuario

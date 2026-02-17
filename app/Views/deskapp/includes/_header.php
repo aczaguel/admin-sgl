@@ -24,7 +24,7 @@
 	$clientes_lista = $clientes_lista ?? get_clientes_lista_for_user($userId);
 
 	$clientes_count = is_array($clientes_lista) ? count($clientes_lista) : 0;
-	$solo_uno = ($clientes_count === 1) && !user_is_admin($userId);
+	$solo_uno = ($clientes_count === 1) && !user_has_global_cliente_access($userId);
 	$nombre_unico = $solo_uno ? ($clientes_lista[0]['nombre'] ?? 'Cliente') : null;
 
 	$currentUrl = function_exists('current_url') ? current_url() : '';
@@ -377,7 +377,9 @@
 						<?php endforeach; ?>
 
 						<select name="cliente_id" class="form-control" onchange="this.form.submit()" aria-label="Seleccionar cliente">
-							<option value="" <?= empty($cliente_id_filtro) ? 'selected' : '' ?>>Todos los clientes</option>
+							<?php if (user_has_global_cliente_access($userId)): ?>
+								<option value="" <?= empty($cliente_id_filtro) ? 'selected' : '' ?>>Todos los clientes</option>
+							<?php endif; ?>
 							<?php foreach ($clientes_lista as $cliente): ?>
 								<option value="<?= (int)($cliente['id'] ?? 0) ?>" <?= (!empty($cliente_id_filtro) && (int)$cliente_id_filtro === (int)($cliente['id'] ?? 0)) ? 'selected' : '' ?>>
 									<?= esc($cliente['nombre'] ?? ('Cliente #' . (int)($cliente['id'] ?? 0))) ?>
@@ -393,10 +395,10 @@
 			<!-- Botones con iconos modernos -->
 			<?php if (has_permission('header_buttons', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 				<div class="d-flex align-items-center" style="gap: 8px; margin-right: 15px;">
-					<a href="/deskapp/tramites/tenencias/" class="btn btn-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(245, 87, 108, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(245, 87, 108, 0.3)';">
+					<!-- <a href="/deskapp/tramites/tenencias/" class="btn btn-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(245, 87, 108, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(245, 87, 108, 0.3)';">
 						<i class="fas fa-car"></i> Tenencias
-					</a>
-					<a href="/deskapp/tramites/tramite_2024" class="btn btn-sm" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(67, 233, 123, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(67, 233, 123, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(67, 233, 123, 0.3)';">
+					</a> -->
+					<!-- <a href="/deskapp/tramites/tramite_2024" class="btn btn-sm" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(67, 233, 123, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(67, 233, 123, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(67, 233, 123, 0.3)';">
 						<i class="fas fa-calendar"></i> 2024
 					</a>
 					<a href="/deskapp/tramites/tramite_2025" class="btn btn-sm" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(79, 172, 254, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(79, 172, 254, 0.3)';">
@@ -404,7 +406,7 @@
 					</a>
 					<a href="/deskapp/tramites/tramite" class="btn btn-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(102, 126, 234, 0.3)';">
 						<i class="fas fa-list-alt"></i> Consolidado
-					</a>
+					</a> -->
 					<!-- Botón Nuevo DESTACADO -->
 					<a href="/deskapp/tramites/add" class="btn btn-sm" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5); white-space: nowrap; animation: pulse 2s infinite;" onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(255, 107, 107, 0.6)';" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(255, 107, 107, 0.5)';">
 						<i class="fas fa-plus-circle"></i> NUEVO TRÁMITE
