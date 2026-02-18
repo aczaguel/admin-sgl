@@ -246,6 +246,9 @@ class CorrecionTramites extends BaseController
             $crud->setSubject('Trámite', 'Trámites para Corrección');
             $crud->defaultOrdering('tramite.id', 'desc');
 
+            $filterSql = get_tramite_filter_sql($session->get('id'));
+            $crud->where($filterSql);
+
             $crud->columns([
                 'id', 'folio', 'created_at', 'contrato', 'unidad', 'serie', 'placas',
                 'tra_tipos_id', 'tra_status_id', 'cli_directo_id', 'cli_directo_ejecutivo_id', 'user_id'
@@ -514,6 +517,9 @@ class CorrecionTramites extends BaseController
         $builder->join('tra_tipos tt', 't.tra_tipos_id = tt.id', 'left');
         $builder->join('tra_status ts', 't.tra_status_id = ts.id', 'left');
         $builder->join('cli_directo cd', 't.cli_directo_id = cd.id', 'left');
+
+        $filterSql = get_tramite_filter_sql($session->get('id'), 't');
+        $builder->where($filterSql, null, false);
         
         if ($search) {
             $builder->groupStart()

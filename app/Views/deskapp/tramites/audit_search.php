@@ -14,6 +14,21 @@
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/core.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/icon-font.min.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/style.css">
+    <style>
+        .sgl-liston{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:10px 12px;
+            border-radius:10px;
+            font-weight:600;
+            margin:10px 0 20px;
+            border:1px solid #fecaca;
+            background:#fff1f2;
+            color:#991b1b;
+        }
+        .sgl-liston i{font-size:14px;}
+    </style>
 </head>
 <body class="sidebar-shrink">
     <?= view('deskapp/includes/_header') ?>
@@ -36,6 +51,13 @@
                     </div>
                 </div>
             </div>
+
+            <?php $flashError = session()->getFlashdata('error'); ?>
+            <?php if ($flashError): ?>
+                <div class="sgl-liston" id="auditFlash"><i class="fas fa-exclamation-triangle"></i> <?= esc($flashError) ?></div>
+            <?php else: ?>
+                <div class="sgl-liston" id="auditFlash" style="display:none;"></div>
+            <?php endif; ?>
 
             <!-- Formulario de búsqueda -->
             <div class="row">
@@ -132,13 +154,13 @@
             
             // Validar que al menos uno esté lleno
             if (!tramiteId && !folio) {
-                alert('Por favor ingresa el ID del trámite o el folio');
+                showAuditError('Por favor ingresa el ID del trámite o el folio');
                 return;
             }
             
             // Si tiene ID, ir directo al timeline
             if (tramiteId) {
-                window.location.href = '<?= base_url('deskapp/tramites/audit_timeline') ?>/' + tramiteId;
+                window.location.href = '<?= site_url('/deskapp/tramites/audit_timeline') ?>/' + tramiteId;
                 return;
             }
             
@@ -150,26 +172,36 @@
                 btn.html('<i class="fas fa-spinner fa-spin"></i> Buscando...').prop('disabled', true);
                 
                 $.ajax({
-                    url: '<?= base_url('deskapp/tramites/buscar_por_folio') ?>',
+                    url: '<?= site_url('/deskapp/tramites/buscar_por_folio') ?>',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({ folio: folio }),
                     success: function(response) {
                         if (response.success && response.tramite_id) {
-                            window.location.href = '<?= base_url('deskapp/tramites/audit_timeline') ?>/' + response.tramite_id;
+                            window.location.href = '<?= site_url('/deskapp/tramites/audit_timeline') ?>/' + response.tramite_id;
                         } else {
-                            alert(response.message || 'No se encontró el trámite');
+                            showAuditError(response.message || 'No se encontró el trámite');
                             btn.html(originalText).prop('disabled', false);
                         }
                     },
                     error: function(xhr) {
                         const response = xhr.responseJSON;
-                        alert(response?.message || 'Error al buscar el trámite');
+                        showAuditError(response?.message || 'Error al buscar el trámite');
                         btn.html(originalText).prop('disabled', false);
                     }
                 });
             }
         });
+
+        function showAuditError(message) {
+            const box = document.getElementById('auditFlash');
+            if (!box) {
+                return;
+            }
+            box.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + message;
+            box.style.display = 'flex';
+            box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     });
     </script>
 </body>

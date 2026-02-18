@@ -11,6 +11,11 @@
 error_reporting(-1);
 ini_set('display_errors', '1');
 helper(['permissions']);
+
+$appConfig = config('App');
+if ($appConfig && !empty($appConfig->appTimezone)) {
+	date_default_timezone_set($appConfig->appTimezone);
+}
 /*
  |--------------------------------------------------------------------------
  | DEBUG BACKTRACES

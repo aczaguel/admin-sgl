@@ -20,7 +20,7 @@
 					$userRole = $session->get('user_roles');
 					$userRoleStr = is_array($userRole) ? implode(',', $userRole) : (string)$userRole;
 					$userRoleLower = strtolower(str_replace(' ', '', $userRoleStr)); // Remover espacios y convertir a minúsculas
-					$isAdmin = (strpos($userRoleLower, 'admin') !== false || strpos($userRoleLower, 'superadmin') !== false);
+					$isAdmin = user_is_admin($session->get('id'));
 					$hasGlobalClienteAccess = user_has_global_cliente_access($session->get('id'));
 					$isSuperAdmin = is_super_admin($userRole);
 					$isLimitedAdmin = $isAdmin && !$isSuperAdmin && !$hasGlobalClienteAccess;
@@ -283,7 +283,7 @@
 						<span class="mtext">Monitoreo de Actividad</span>
 					</a>
 					<ul class="submenu">
-						<li><a href="<?php echo base_url('bitacora/search'); ?>">
+						<li><a href="<?php echo site_url('/bitacora/search'); ?>">
 							<i class="fas fa-history text-primary"></i> Bitacora Search
 						</a></li>
 						<li><a href="<?php echo base_url('correccion-tramites'); ?>">
