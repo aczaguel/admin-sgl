@@ -32,6 +32,8 @@
 	<?= view('deskapp/includes/_header') ?>
 	<?= view('deskapp/includes/_sidebar') ?>
 
+	<?php helper('datetime_es'); ?>
+
 	<div class="main-container">
 		<div class="pd-ltr-20">
 			<div class="card-box pd-20 height-100-p mb-30">
@@ -150,7 +152,7 @@
 											<td><?= esc($item['tramite_id'] ?? 'N/A') ?></td>
 											<td><?= esc($item['folio_tramite'] ?? 'N/A') ?></td>
 											<td>
-												<?= $item['last_change'] ? date('d/m/Y H:i', strtotime($item['last_change'])) : 'N/A' ?>
+												<?= esc(format_datetime_es($item['last_change'] ?? null, true, 'N/A')) ?>
 											</td>
 											<td><?= esc($item['total_changes'] ?? 0) ?></td>
 											<td>

@@ -2,6 +2,8 @@
 
 <?php $assets = base_url('/public/assets'); ?>
 
+<?php helper('datetime_es'); ?>
+
 <?= $this->section('content') ?>
 
 <div class="main-container">
@@ -90,9 +92,15 @@
                     <?php else: ?>
                         <div class="notification-timeline" id="notificationTimeline">
                             <?php foreach ($notifications as $notification): ?>
+                                <?php
+                                    $detailUrl = $notification['url'] ?? '';
+                                    if (!empty($notification['tramite_id'])) {
+                                        $detailUrl = base_url('deskapp/tramitesn/update/' . $notification['tramite_id']);
+                                    }
+                                ?>
                                 <div class="notification-card <?= $notification['is_read'] == 0 ? 'unread' : '' ?>" 
                                      data-id="<?= $notification['id'] ?>"
-                                     data-url="<?= $notification['url'] ?>">
+                                     data-url="<?= esc($detailUrl) ?>">
                                     <div class="notification-card-icon bg-<?= $notification['color'] ?>">
                                         <i class="icon-copy <?= $notification['icon'] ?>"></i>
                                     </div>
@@ -101,7 +109,7 @@
                                             <h5 class="notification-card-title"><?= esc($notification['title']) ?></h5>
                                             <span class="notification-card-time">
                                                 <i class="icon-copy fa fa-clock"></i>
-                                                <?= date('d/m/Y H:i', strtotime($notification['created_at'])) ?>
+                                                <?= esc(format_datetime_es($notification['created_at'] ?? null, true, 'N/A')) ?>
                                             </span>
                                         </div>
                                         <p class="notification-card-message"><?= esc($notification['message']) ?></p>
@@ -117,8 +125,8 @@
                                                     <i class="icon-copy fa fa-check"></i> Marcar como leída
                                                 </button>
                                             <?php endif; ?>
-                                            <?php if ($notification['url']): ?>
-                                                <a href="<?= $notification['url'] ?>" class="btn btn-sm btn-outline-info">
+                                            <?php if (!empty($detailUrl)): ?>
+                                                <a href="<?= esc($detailUrl) ?>" class="btn btn-sm btn-outline-info">
                                                     <i class="icon-copy fa fa-external-link-alt"></i> Ver Detalles
                                                 </a>
                                             <?php endif; ?>
@@ -140,6 +148,32 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmar eliminación -->
+<div class="modal fade" id="deleteNotificationModal" tabindex="-1" role="dialog" aria-labelledby="deleteNotificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteNotificationModalLabel">
+                    <i class="icon-copy fa fa-trash-alt text-danger mr-2"></i> Eliminar notificación
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">¿Seguro que deseas eliminar esta notificación?</p>
+                <small class="text-muted">Esta acción no se puede deshacer.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteNotificationBtn">
+                    <i class="icon-copy fa fa-trash"></i> Eliminar
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -283,31 +317,54 @@ $(document).ready(function() {
         }.bind(this));
     });
 
-    // Eliminar notificación
+    let pendingDeleteId = null;
+    let $pendingDeleteCard = null;
+
+    // Eliminar notificación (modal bonito)
     $('.delete-btn').click(function() {
-        if (confirm('¿Eliminar esta notificación?')) {
-            const id = $(this).data('id');
-            const card = $(this).closest('.notification-card');
-            
-            $.ajax({
-                url: `<?= site_url('deskapp/notifications/api_delete') ?>/${id}`,
-                method: 'DELETE',
-                success: function(response) {
-                    if (response.success) {
-                        const wasUnread = card.hasClass('unread');
-                        card.fadeOut(300, function() {
-                            $(this).remove();
-                            updateCounts({
-                                totalDelta: -1,
-                                unreadDelta: wasUnread ? -1 : 0,
-                                readDelta: wasUnread ? 0 : -1
-                            });
-                            showEmptyStateIfNeeded();
-                        });
-                    }
-                }
-            });
+        pendingDeleteId = $(this).data('id');
+        $pendingDeleteCard = $(this).closest('.notification-card');
+        $('#deleteNotificationModal').modal('show');
+    });
+
+    $('#confirmDeleteNotificationBtn').click(function() {
+        const id = pendingDeleteId;
+        const card = $pendingDeleteCard;
+        if (!id || !card || !card.length) {
+            $('#deleteNotificationModal').modal('hide');
+            return;
         }
+
+        $(this).prop('disabled', true);
+
+        $.ajax({
+            url: `<?= site_url('deskapp/notifications/api_delete') ?>/${id}`,
+            method: 'DELETE',
+            success: function(response) {
+                if (response.success) {
+                    const wasUnread = card.hasClass('unread');
+                    $('#deleteNotificationModal').modal('hide');
+                    card.fadeOut(250, function() {
+                        $(this).remove();
+                        updateCounts({
+                            totalDelta: -1,
+                            unreadDelta: wasUnread ? -1 : 0,
+                            readDelta: wasUnread ? 0 : -1
+                        });
+                        showEmptyStateIfNeeded();
+                    });
+                }
+            },
+            complete: function() {
+                $('#confirmDeleteNotificationBtn').prop('disabled', false);
+            }
+        });
+    });
+
+    $('#deleteNotificationModal').on('hidden.bs.modal', function() {
+        pendingDeleteId = null;
+        $pendingDeleteCard = null;
+        $('#confirmDeleteNotificationBtn').prop('disabled', false);
     });
 
     // Click en la card para ir al detalle

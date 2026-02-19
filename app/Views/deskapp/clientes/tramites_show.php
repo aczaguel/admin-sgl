@@ -989,25 +989,30 @@
 <?= $this->section('content') ?>
 
 <?php
-    $formatDate = static function ($value) {
+    $formatDateEs = static function ($value, bool $withTime = true): string {
         if (empty($value)) {
             return 'Pendiente';
         }
-        $ts = strtotime($value);
+        $ts = strtotime((string) $value);
         if (!$ts) {
             return (string) $value;
         }
-        return date('d/m/Y H:i', $ts);
+
+        $months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        $mIndex = (int) date('n', $ts);
+        $mon = $months[max(1, min(12, $mIndex)) - 1];
+        $datePart = date('j', $ts) . ' ' . $mon . ' ' . date('Y', $ts);
+        if (!$withTime) {
+            return $datePart;
+        }
+        return $datePart . ', ' . date('H:i', $ts);
     };
-    $formatDateShort = static function ($value) {
-        if (empty($value)) {
-            return 'Pendiente';
-        }
-        $ts = strtotime($value);
-        if (!$ts) {
-            return (string) $value;
-        }
-        return date('d/m/Y H:i', $ts);
+
+    $formatDate = static function ($value) use ($formatDateEs) {
+        return $formatDateEs($value, true);
+    };
+    $formatDateShort = static function ($value) use ($formatDateEs) {
+        return $formatDateEs($value, true);
     };
     $formatTimeSeconds = static function ($value) {
         if (empty($value)) {
@@ -1046,7 +1051,7 @@
         }
         return $map[$field] ?? ucwords(str_replace('_', ' ', $field));
     };
-    $normalizeAuditValue = static function ($value) {
+    $normalizeAuditValue = static function ($value) use ($formatDateEs) {
         $text = trim((string) ($value ?? ''));
         if ($text === '') {
             return '—';
@@ -1054,7 +1059,7 @@
         if (preg_match('/^\d{4}-\d{2}-\d{2}(?:[T\s]\d{2}:\d{2}(?::\d{2})?)?$/', $text)) {
             $ts = strtotime($text);
             if ($ts) {
-                return date('d/m/Y H:i', $ts);
+                return $formatDateEs($text, true);
             }
         }
         return $text;
@@ -1404,7 +1409,7 @@
                             $paso2 = $milestones[1] ?? ['titulo' => 'Inicio del proceso', 'fecha' => null, 'detalle' => 'Inicio del proceso'];
                             $paso3 = $milestones[2] ?? ['titulo' => 'Último movimiento', 'fecha' => null, 'detalle' => 'Último movimiento'];
                             $paso4 = [
-                                'titulo' => 'Gestion con gestor',
+                                'titulo' => 'Gestion de trámite',
                                 'fecha' => $milestones[3]['fecha'] ?? null,
                                 'detalle' => 'Se esta trabajando en el tramite por parte del gestor.',
                             ];

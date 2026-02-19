@@ -714,6 +714,21 @@
         return value !== '' ? value : null;
     }
 
+    function formatIsoDate(value) {
+        if (!value) return null;
+        const raw = String(value).trim();
+        if (!raw) return null;
+        // Espera YYYY-MM-DD (inputs type=date)
+        const date = new Date(`${raw}T00:00:00`);
+        if (Number.isNaN(date.getTime())) return raw;
+        return date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function formatNow() {
+        const now = new Date();
+        return now.toLocaleString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
     function renderFilterChips() {
         if (!activeFilters) return;
         const chips = [];
@@ -734,7 +749,7 @@
         const fi = getFieldValue('fecha_inicio');
         const ff = getFieldValue('fecha_fin');
         if (fi || ff) {
-            const rango = `${fi || '...'} → ${ff || '...'}`;
+            const rango = `${formatIsoDate(fi) || '...'} → ${formatIsoDate(ff) || '...'}`;
             chips.push({ icon: 'fa-calendar-alt', label: `Fechas: ${rango}` });
         }
 
@@ -898,10 +913,8 @@
         updateTable('tablaEstados', 'emptyEstados', data.atorados_por_estado || [], 'estado');
         updateTable('tablaClientes', 'emptyClientes', data.atorados_por_cliente || [], 'cliente');
 
-        const now = new Date();
-        const time = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
         setChipState('ok');
-        lastUpdate.innerHTML = `<i class="fas fa-sync"></i> Actualizado ${time}`;
+        lastUpdate.innerHTML = `<i class="fas fa-sync"></i> Actualizado ${formatNow()}`;
     }
 
     function fetchDashboard() {

@@ -234,6 +234,7 @@
 (function() {
     let notificationCheckInterval;
     const REFRESH_INTERVAL = 60000; // 1 minuto
+    const TRAMITE_UPDATE_BASE = '<?= base_url('deskapp/tramitesn/update') ?>';
 
     // Cargar notificaciones al iniciar
     function loadNotifications() {
@@ -276,7 +277,7 @@
         container.innerHTML = notifications.map(n => `
             <div class="notification-item ${n.is_read ? '' : 'unread'}" 
                  data-id="${n.id}" 
-                 data-url="${n.url || '#'}"
+                 data-url="${n.url || (n.tramite_id ? (TRAMITE_UPDATE_BASE + '/' + n.tramite_id) : '#')}"
                  title="${escapeHtml(n.message)}">
                 <div class="notification-icon bg-${n.color}">
                     <i class="icon-copy ${n.icon}"></i>
@@ -345,18 +346,55 @@
         .catch(error => console.error('Error marking all as read:', error));
     });
 
+    function parseDbDateTime(value) {
+        if (!value) return null;
+        if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
+
+        if (typeof value === 'number') {
+            const d = new Date(value);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (!trimmed) return null;
+
+            // MySQL DATETIME: "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DDTHH:MM:SS"
+            const isoLike = trimmed.includes(' ') ? trimmed.replace(' ', 'T') : trimmed;
+            const d = new Date(isoLike);
+            if (!isNaN(d.getTime())) return d;
+
+            const d2 = new Date(trimmed);
+            return isNaN(d2.getTime()) ? null : d2;
+        }
+
+        return null;
+    }
+
+    function formatAbsoluteEs(date) {
+        const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        const day = date.getDate();
+        const mon = months[date.getMonth()] || '';
+        const year = date.getFullYear();
+        const hh = String(date.getHours()).padStart(2, '0');
+        const mm = String(date.getMinutes()).padStart(2, '0');
+        return `${day} ${mon} ${year}, ${hh}:${mm}`;
+    }
+
     // Formatear tiempo relativo
     function formatTime(datetime) {
-        const date = new Date(datetime);
+        const date = parseDbDateTime(datetime);
+        if (!date) return 'N/A';
+
         const now = new Date();
-        const diff = Math.floor((now - date) / 1000); // diferencia en segundos
+        const diff = Math.max(0, Math.floor((now - date) / 1000)); // diferencia en segundos
 
         if (diff < 60) return 'Justo ahora';
         if (diff < 3600) return `Hace ${Math.floor(diff / 60)} min`;
         if (diff < 86400) return `Hace ${Math.floor(diff / 3600)} h`;
         if (diff < 604800) return `Hace ${Math.floor(diff / 86400)} días`;
-        
-        return date.toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+
+        return formatAbsoluteEs(date);
     }
 
     // Escape HTML para prevenir XSS
