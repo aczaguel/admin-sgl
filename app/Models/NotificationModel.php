@@ -59,12 +59,47 @@ class NotificationModel extends Model
                 'message' => "Se creó el trámite {$folioTramite} - {$tipoTramite} para {$clienteNombre}",
                 'icon' => 'fa-file-alt',
                 'color' => 'info',
-                'url' => base_url("deskapp/tramites/update/{$tramiteId}"),
+                'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
                 'created_by' => $createdBy
             ];
         }
 
         return $this->insertBatch($notifications);
+    }
+
+    private function normalizeNotification(array $row): array
+    {
+        $tramiteId = $row['tramite_id'] ?? null;
+        if (empty($tramiteId)) {
+            return $row;
+        }
+
+        $targetUrl = base_url('deskapp/tramitesn/update/' . $tramiteId);
+        $currentUrl = (string) ($row['url'] ?? '');
+
+        if ($currentUrl === '') {
+            $row['url'] = $targetUrl;
+            return $row;
+        }
+
+        $normalized = strtolower($currentUrl);
+        $looksWrong = (strpos($normalized, 'tramite/view') !== false)
+            || (strpos($normalized, 'tramites/view') !== false)
+            || (strpos($normalized, '/tramite/view') !== false)
+            || (strpos($normalized, '/tramites/view') !== false)
+            || (strpos($normalized, 'deskapp/tramites/update') !== false)
+            || (strpos($normalized, '/tramites/update') !== false);
+
+        // Si trae tramitesn/update pero sin el prefijo /deskapp, también se corrige.
+        if (!$looksWrong && (strpos($normalized, 'tramitesn/update') !== false) && (strpos($normalized, 'deskapp/tramitesn/update') === false)) {
+            $looksWrong = true;
+        }
+
+        if ($looksWrong) {
+            $row['url'] = $targetUrl;
+        }
+
+        return $row;
     }
 
     /**
@@ -87,7 +122,7 @@ class NotificationModel extends Model
                     'message' => "El trámite {$folioTramite} fue actualizado: {$cambios}",
                     'icon' => 'fa-edit',
                     'color' => 'warning',
-                    'url' => base_url("deskapp/tramites/view/{$tramiteId}"),
+                    'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
                     'created_by' => $createdBy
                 ];
             }
@@ -117,7 +152,7 @@ class NotificationModel extends Model
                 'message' => "Se asignó a {$gestorNombre} para el trámite {$folioTramite}",
                 'icon' => 'fa-user-tie',
                 'color' => 'primary',
-                'url' => base_url("deskapp/tramites/view/{$tramiteId}"),
+                'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
                 'created_by' => $createdBy
             ];
         }
@@ -149,7 +184,7 @@ class NotificationModel extends Model
                 'message' => "Se registró pago de $" . number_format($monto, 2) . " para el trámite {$folioTramite}",
                 'icon' => 'fa-money-bill-wave',
                 'color' => 'success',
-                'url' => base_url("deskapp/tramites/view/{$tramiteId}"),
+                'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
                 'created_by' => $createdBy
             ];
         }
@@ -181,7 +216,7 @@ class NotificationModel extends Model
                 'message' => "Se generó la factura {$numeroFactura} para el trámite {$folioTramite}",
                 'icon' => 'fa-file-invoice',
                 'color' => 'info',
-                'url' => base_url("deskapp/tramites/view/{$tramiteId}"),
+                'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
                 'created_by' => $createdBy
             ];
         }
@@ -213,7 +248,7 @@ class NotificationModel extends Model
                 'message' => "Se cobró $" . number_format($monto, 2) . " del trámite {$folioTramite}",
                 'icon' => 'fa-check-circle',
                 'color' => 'success',
-                'url' => base_url("deskapp/tramites/view/{$tramiteId}"),
+                'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
                 'created_by' => $createdBy
             ];
         }
@@ -296,10 +331,16 @@ class NotificationModel extends Model
             $builder->where('notifications.user_id', $userId);
         }
         
-        return $builder->orderBy('notifications.created_at', 'DESC')
+        $rows = $builder->orderBy('notifications.created_at', 'DESC')
             ->limit($limit)
             ->get()
             ->getResultArray();
+
+        foreach ($rows as $i => $row) {
+            $rows[$i] = $this->normalizeNotification($row);
+        }
+
+        return $rows;
     }
 
     /**
@@ -334,11 +375,17 @@ class NotificationModel extends Model
             $builder->where('notifications.user_id', $userId);
         }
         
-        return $builder->orderBy('is_read', 'ASC')
+        $rows = $builder->orderBy('is_read', 'ASC')
             ->orderBy('notifications.created_at', 'DESC')
             ->limit($limit, $offset)
             ->get()
             ->getResultArray();
+
+        foreach ($rows as $i => $row) {
+            $rows[$i] = $this->normalizeNotification($row);
+        }
+
+        return $rows;
     }
 
     /**

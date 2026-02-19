@@ -214,12 +214,22 @@
     const totalInfo = document.getElementById('tramitesCount');
     let currentPage = 1;
 
-    function formatDate(value) {
-        if (!value) {
-            return 'N/A';
-        }
-        const date = new Date(value.replace(' ', 'T'));
-        return date.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    function parseDbDate(value) {
+        if (!value) return null;
+        const raw = String(value).trim();
+        if (!raw) return null;
+        const iso = raw.includes('T') ? raw : raw.replace(' ', 'T');
+        const date = new Date(iso);
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function formatDbDate(value, withTime = true) {
+        const date = parseDbDate(value);
+        if (!date) return 'N/A';
+        const opts = withTime
+            ? { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }
+            : { day: '2-digit', month: 'short', year: 'numeric' };
+        return date.toLocaleString('es-MX', opts);
     }
 
     function statusClass(statusId) {
@@ -250,7 +260,7 @@
                 <td>${row.cliente_directo || 'N/A'}</td>
                 <td>${row.tipo_tramite || 'N/A'}</td>
                 <td><span class="status-pill ${statusClass(statusId)}">${statusLabel}</span></td>
-                <td>${formatDate(row.created_at)}</td>
+                <td>${formatDbDate(row.created_at, true)}</td>
                 <td>${facturas}</td>
                 <td><a class="btn btn-sm btn-primary" href="${link}">Ver</a></td>
             `;

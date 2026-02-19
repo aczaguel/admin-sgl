@@ -123,6 +123,7 @@
 	<?php
 		echo view('deskapp/includes/_header');
 		echo view('deskapp/includes/_sidebar');
+		helper('datetime_es');
 	?>
 
 	<div class="main-container">
@@ -182,7 +183,7 @@
 						</div>
 						<div class="col-md-3 audit-stat">
 							<div class="audit-stat-number">
-								<?= $last_modifier ? date('d/m/Y', strtotime($last_modifier['modified_at'])) : 'N/A' ?>
+								<?= esc(format_date_es($last_modifier['modified_at'] ?? null, 'N/A')) ?>
 							</div>
 							<div class="audit-stat-label">Ultima Modificacion</div>
 						</div>
@@ -209,7 +210,7 @@
 													<?= ucfirst($item['action']) ?>
 												</p>
 												<small class="text-muted">
-													<?= $item['last_occurrence'] ? date('d/m/Y H:i', strtotime($item['last_occurrence'])) : 'N/A' ?>
+													<?= esc(format_datetime_es($item['last_occurrence'] ?? null, true, 'N/A')) ?>
 												</small>
 											</div>
 										</div>
@@ -291,7 +292,7 @@
 													</span>
 												</div>
 												<span class="timeline-time">
-													<?= $group['timestamp'] ? date('d/m/Y H:i:s', strtotime($group['timestamp'])) : 'N/A' ?>
+															<?= esc(format_datetime_es($group['timestamp'] ?? null, true, 'N/A')) ?>
 												</span>
 											</div>
 											<div class="timeline-body">

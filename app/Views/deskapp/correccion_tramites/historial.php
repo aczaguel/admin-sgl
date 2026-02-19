@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title><?= $title ?> - Admin SGL</title>
+	<title><?= esc(is_scalar($title ?? null) ? (string) $title : 'Historial') ?> - Admin SGL</title>
 	<link rel="apple-touch-icon" sizes="180x180" href="<?= base_url() ?>/public/assets/vendors/images/apple-touch-icon.png">
 	<link rel="icon" type="image/png" sizes="32x32" href="<?= base_url() ?>/public/assets/vendors/images/favicon-32x32.png">
 	<link rel="icon" type="image/png" sizes="16x16" href="<?= base_url() ?>/public/assets/vendors/images/favicon-16x16.png">
@@ -16,6 +16,7 @@
 </head>
 <body>
 	<?php 
+		helper('datetime_es');
 		echo view('deskapp/includes/_header');
 		echo view('deskapp/includes/_sidebar');
 	?>
@@ -68,7 +69,7 @@
 									<?php if (!empty($logs)): ?>
 										<?php foreach ($logs as $log): ?>
 											<tr>
-												<td><?= date('d/m/Y H:i', strtotime($log['created_at'])) ?></td>
+												<td><?= format_datetime_es($log['created_at'] ?? null, true, 'N/A') ?></td>
 												<td>
 													<span class="badge badge-secondary">#<?= $log['tramite_id'] ?></span>
 												</td>

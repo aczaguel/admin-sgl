@@ -115,7 +115,7 @@ $message = 'El trámite TR-2026-001 requiere atención urgente';
 notify_custom($userIds, $type, $title, $message, [
     'icon' => 'fa-exclamation-triangle',
     'color' => 'danger',
-    'url' => base_url('deskapp/tramites/view/123'),
+    'url' => base_url('deskapp/tramitesn/update/123'),
     'tramite_id' => 123,
     'created_by' => $this->session->get('id')
 ]);

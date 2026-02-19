@@ -231,6 +231,24 @@ class ClienteTramites extends BaseController
 
             $tramiteCrud->displayAs('created_at', 'Creacion');
             $tramiteCrud->displayAs('started_at', 'Desde Asignacion');
+
+            $formatDateEs = static function ($value): string {
+                if (empty($value)) {
+                    return 'Pendiente';
+                }
+                $ts = strtotime((string) $value);
+                if (!$ts) {
+                    return (string) $value;
+                }
+                $months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+                $mIndex = (int) date('n', $ts);
+                $mon = $months[max(1, min(12, $mIndex)) - 1];
+                return date('j', $ts) . ' ' . $mon . ' ' . date('Y', $ts) . ', ' . date('H:i', $ts);
+            };
+
+            $tramiteCrud->callbackColumn('created_at', function ($value) use ($formatDateEs) {
+                return $formatDateEs($value);
+            });
             $tramiteCrud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
             $tramiteCrud->displayAs('user_id', 'Ejecutivo');
 
