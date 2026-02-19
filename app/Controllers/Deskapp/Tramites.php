@@ -7983,8 +7983,8 @@ class Tramites extends BaseController
     {
         $session = session();
         
-        if (!$tramiteId) {
-            return redirect()->to('deskapp/tramites')->with('error', 'ID de trámite no proporcionado');
+        if (!$tramiteId || !is_numeric($tramiteId) || (int) $tramiteId <= 0) {
+            return redirect()->to(site_url('/deskapp/tramites/audit_search'))->with('error', 'ID de trámite no proporcionado');
         }
         
         // Verificar que el trámite existe
@@ -7992,7 +7992,12 @@ class Tramites extends BaseController
         $tramite = $db->table('tramite')->select('id, folio, tra_status_id')->where('id', $tramiteId)->get()->getRowArray();
         
         if (!$tramite) {
-            return redirect()->to('deskapp/tramites')->with('error', 'Trámite no encontrado');
+            return redirect()->to(site_url('/deskapp/tramites/audit_search'))->with('error', 'Trámite no encontrado');
+        }
+
+        if (!validate_tramite_access($tramiteId)) {
+            log_unauthorized_access_attempt('tramite_audit', (int) $tramiteId);
+            return redirect()->to(site_url('/deskapp/tramites/audit_search'))->with('error', 'No tienes permisos para ver este trámite');
         }
         
         // Obtener datos de auditoría
@@ -8059,7 +8064,11 @@ class Tramites extends BaseController
         
         // Validar que sea admin o super_admin
         $userRoles = $session->get('user_roles');
-        if (!in_array($userRoles, ['admin', 'super_admin'])) {
+        $userRoleStr = is_array($userRoles) ? implode(',', $userRoles) : (string) $userRoles;
+        $userRoleLower = strtolower(str_replace(' ', '', $userRoleStr));
+        $isAdmin = (strpos($userRoleLower, 'admin') !== false || strpos($userRoleLower, 'superadmin') !== false);
+
+        if (!$isAdmin) {
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'No tienes permisos para acceder a esta función'
@@ -8072,7 +8081,7 @@ class Tramites extends BaseController
                 'message' => 'Petición inválida'
             ]);
         }
-        
+
         $json = $this->request->getJSON();
         $folio = $json->folio ?? '';
         
@@ -8095,6 +8104,14 @@ class Tramites extends BaseController
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'No se encontró ningún trámite con el folio: ' . $folio
+                ]);
+            }
+
+            if (!validate_tramite_access((int) $tramite['id'])) {
+                log_unauthorized_access_attempt('tramite_audit', (int) $tramite['id']);
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No tienes permisos para ver este trámite'
                 ]);
             }
             

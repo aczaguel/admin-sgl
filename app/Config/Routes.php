@@ -40,6 +40,16 @@ $routes->get('/deskapp','Deskapp/Dashboard::index',['filter' => 'auth']);
 $routes->get('/deskapp/dashboard','Deskapp/Dashboard::index',['filter' => 'auth']);
 $routes->post('/deskapp/dashboard','Deskapp/Dashboard::index',['filter' => 'auth']);
 
+// Dashboard Cliente
+$routes->get('/deskapp/clientes/dashboard', 'Deskapp/DashboardCliente::index',['filter' => 'auth']);
+$routes->get('/deskapp/clientes/dashboard_data', 'Deskapp/DashboardCliente::data',['filter' => 'auth']);
+
+// Tramites Cliente
+// $routes->get('/deskapp/clientes/tramites', 'Deskapp/ClienteTramites::index',['filter' => 'auth']);
+// $routes->get('/deskapp/clientes/tramites/data', 'Deskapp/ClienteTramites::data',['filter' => 'auth']);
+// $routes->get('/deskapp/clientes/ver/(:num)(/(:any))?', 'Deskapp/ClienteTramites::show/$1',['filter' => 'auth']);
+// $routes->post('/deskapp/clientes/ver/(:num)(/(:any))?', 'Deskapp/ClienteTramites::show/$1',['filter' => 'auth']);
+
 // $routes->add('/example/customers', 'Deskapp/Example::customers');
 // $routes->add('/example/customers/(:segment)(/(:segment))?', 'Deskapp/Example::customers/$1/$2');
 
@@ -236,6 +246,12 @@ $routes->post('/tramites/get_service_costs_by_tramite/(:id)', 'Deskapp/Tramites:
 // ============================================================================
 
 $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' => 'auth'], function($routes) {
+	// Clientes - listado y detalle (ruta fija para evitar AutoRoute a Clientes::tramites)
+	$routes->get('clientes/tramites', 'ClienteTramites::index');
+	$routes->post('clientes/tramites', 'ClienteTramites::index');
+	$routes->get('clientes/tramites/data', 'ClienteTramites::data');
+	$routes->get('clientes/ver/(:num)', 'ClienteTramites::show/$1');
+	$routes->post('clientes/ver/(:num)', 'ClienteTramites::show/$1');
 	// Trámites - Nuevo flujo (Tramitesn)
 	$routes->get('tramitesn', 'Tramitesn::tramite');
 	$routes->get('tramitesn/tramite', 'Tramitesn::tramite');

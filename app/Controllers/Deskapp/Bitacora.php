@@ -9,6 +9,11 @@ use CodeIgniter\Controller;
 
 class Bitacora extends BaseController
 {
+    public function __construct()
+    {
+        helper(['cliente_filter']);
+    }
+
     public function index()
     {
         $request = \Config\Services::request();
@@ -70,8 +75,32 @@ class Bitacora extends BaseController
         $folio = trim((string) $this->request->getGet('folio'));
         $tramiteId = trim((string) $this->request->getGet('tramite_id'));
 
+        $validatedTramiteId = null;
+
         if ($folio === '' && $tramiteId === '') {
-            return redirect()->to('bitacora/search')->with('error', 'Selecciona un tramite para ver la bitacora.');
+            return redirect()->to(site_url('/bitacora/search'))->with('error', 'Selecciona un tramite para ver la bitacora.');
+        }
+
+        if ($tramiteId !== '') {
+            $validatedTramiteId = (int) $tramiteId;
+        } elseif ($folio !== '') {
+            $db = ConfigDatabase::connect();
+            $tramiteRow = $db->table('tramite')
+                ->select('id')
+                ->where('folio', $folio)
+                ->get()
+                ->getRowArray();
+
+            if (!$tramiteRow) {
+                return redirect()->to(site_url('/bitacora/search'))->with('error', 'Trámite no encontrado');
+            }
+
+            $validatedTramiteId = (int) $tramiteRow['id'];
+        }
+
+        if ($validatedTramiteId && !validate_tramite_access($validatedTramiteId)) {
+            log_unauthorized_access_attempt('bitacora', $validatedTramiteId);
+            return redirect()->to(site_url('/bitacora/search'))->with('error', 'No tienes permisos para ver este trámite');
         }
 
         $model = new \CodeIgniter\Model();
@@ -87,6 +116,10 @@ class Bitacora extends BaseController
 
         if ($tramiteId !== '') {
             $builder->where('bitacora.tramite_id', $tramiteId);
+        }
+
+        if ($validatedTramiteId && $tramiteId === '') {
+            $builder->where('bitacora.tramite_id', $validatedTramiteId);
         }
 
         $bitacoras = $builder->findAll();
@@ -113,12 +146,20 @@ class Bitacora extends BaseController
         $model = new \CodeIgniter\Model();
         $model->setTable('bitacora');
 
-        $bitacoraList = $model
-            ->select('tramite_id, folio_tramite, MAX(created_at) AS last_change, COUNT(*) AS total_changes')
-            ->groupBy('tramite_id, folio_tramite')
+        $userId = $session->get('id');
+
+        $builder = $model
+            ->select('bitacora.tramite_id, bitacora.folio_tramite, MAX(bitacora.created_at) AS last_change, COUNT(*) AS total_changes')
+            ->groupBy('bitacora.tramite_id, bitacora.folio_tramite')
             ->orderBy('last_change', 'DESC')
-            ->limit(100)
-            ->findAll();
+            ->limit(100);
+
+        if (!user_has_global_cliente_access($userId)) {
+            $builder->join('tramite t', 't.id = bitacora.tramite_id', 'inner');
+            $builder->where(get_cliente_filter_sql($userId, 't'), null, false);
+        }
+
+        $bitacoraList = $builder->findAll();
 
         $data = [
             'session' => $session,

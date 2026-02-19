@@ -12,6 +12,21 @@
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/core.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/icon-font.min.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/style.css">
+	<style>
+		.sgl-liston{
+			display:flex;
+			align-items:center;
+			gap:10px;
+			padding:10px 12px;
+			border-radius:10px;
+			font-weight:600;
+			margin:10px 0 20px;
+			border:1px solid #fecaca;
+			background:#fff1f2;
+			color:#991b1b;
+		}
+		.sgl-liston i{font-size:14px;}
+	</style>
 </head>
 <body class="sidebar-shrink">
 	<?= view('deskapp/includes/_header') ?>
@@ -35,10 +50,11 @@
 				</div>
 			</div>
 
-			<?php if (session()->getFlashdata('error')): ?>
-				<div class="alert alert-danger">
-					<?= esc(session()->getFlashdata('error')) ?>
-				</div>
+			<?php $flashError = session()->getFlashdata('error'); ?>
+			<?php if ($flashError): ?>
+				<div class="sgl-liston" id="bitacoraFlash"><i class="fas fa-exclamation-triangle"></i> <?= esc($flashError) ?></div>
+			<?php else: ?>
+				<div class="sgl-liston" id="bitacoraFlash" style="display:none;"></div>
 			<?php endif; ?>
 
 			<div class="row">
@@ -139,11 +155,11 @@
 											<td><?= esc($item['total_changes'] ?? 0) ?></td>
 											<td>
 												<?php if (!empty($item['tramite_id'])): ?>
-													<a class="btn btn-sm btn-outline-primary" href="<?= base_url('bitacora/timeline?tramite_id=' . urlencode($item['tramite_id'])) ?>">
+													<a class="btn btn-sm btn-outline-primary" href="<?= site_url('/bitacora/timeline') . '?tramite_id=' . urlencode($item['tramite_id']) ?>">
 														Ver bitacora
 													</a>
 												<?php elseif (!empty($item['folio_tramite'])): ?>
-													<a class="btn btn-sm btn-outline-primary" href="<?= base_url('bitacora/timeline?folio=' . urlencode($item['folio_tramite'])) ?>">
+													<a class="btn btn-sm btn-outline-primary" href="<?= site_url('/bitacora/timeline') . '?folio=' . urlencode($item['folio_tramite']) ?>">
 														Ver bitacora
 													</a>
 												<?php else: ?>
@@ -183,17 +199,27 @@
 			const folio = $('#folio').val().trim();
 
 			if (!tramiteId && !folio) {
-				alert('Por favor ingresa el ID del tramite o el folio');
+				showBitacoraError('Por favor ingresa el ID del tramite o el folio');
 				return;
 			}
 
 			if (tramiteId) {
-				window.location.href = '<?= base_url('bitacora/timeline') ?>?tramite_id=' + encodeURIComponent(tramiteId);
+				window.location.href = '<?= site_url('/bitacora/timeline') ?>?tramite_id=' + encodeURIComponent(tramiteId);
 				return;
 			}
 
-			window.location.href = '<?= base_url('bitacora/timeline') ?>?folio=' + encodeURIComponent(folio);
+			window.location.href = '<?= site_url('/bitacora/timeline') ?>?folio=' + encodeURIComponent(folio);
 		});
+
+	function showBitacoraError(message) {
+		const box = document.getElementById('bitacoraFlash');
+		if (!box) {
+			return;
+		}
+		box.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + message;
+		box.style.display = 'flex';
+		box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
 	});
 	</script>
 </body>

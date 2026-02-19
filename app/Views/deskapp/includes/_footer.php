@@ -81,7 +81,7 @@ window.buscarAuditoria = function() {
             
             if (folio) {
                 // Buscar por folio primero
-                return fetch(`<?= base_url('deskapp/tramites/buscar_por_folio') ?>`, {
+                return fetch(`<?= site_url('/deskapp/tramites/buscar_por_folio') ?>`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ window.buscarAuditoria = function() {
             });
             
             // Redirigir al timeline
-            window.open(`<?= base_url('deskapp/tramites/audit_timeline') ?>/${tramiteId}`, '_blank');
+            window.open(`<?= site_url('/deskapp/tramites/audit_timeline') ?>/${tramiteId}`, '_blank');
             
             // Cerrar el loading después de medio segundo
             setTimeout(() => {
