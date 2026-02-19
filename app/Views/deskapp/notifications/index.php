@@ -3,6 +3,7 @@
 <?php $assets = base_url('/public/assets'); ?>
 
 <?php helper('datetime_es'); ?>
+<?php helper('permissions'); ?>
 
 <?= $this->section('content') ?>
 
@@ -94,8 +95,11 @@
                             <?php foreach ($notifications as $notification): ?>
                                 <?php
                                     $detailUrl = $notification['url'] ?? '';
-                                    if (!empty($notification['tramite_id'])) {
-                                        $detailUrl = base_url('deskapp/tramitesn/update/' . $notification['tramite_id']);
+                                    if (empty($detailUrl) && !empty($notification['tramite_id'])) {
+                                        $roles = \Config\Services::session()->get('user_roles');
+                                        $detailUrl = is_client($roles)
+                                            ? base_url('deskapp/clientes/ver/' . $notification['tramite_id'])
+                                            : base_url('deskapp/tramitesn/update/' . $notification['tramite_id']);
                                     }
                                 ?>
                                 <div class="notification-card <?= $notification['is_read'] == 0 ? 'unread' : '' ?>" 

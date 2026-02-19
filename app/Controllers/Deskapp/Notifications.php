@@ -12,7 +12,7 @@ class Notifications extends BaseController
 
     public function __construct()
     {
-        helper(['form', 'url']);
+        helper(['form', 'url', 'permissions']);
         $this->notificationModel = new NotificationModel();
         $this->session = session();
     }
@@ -30,8 +30,13 @@ class Notifications extends BaseController
             return redirect()->to('/deskapp/auth/login');
         }
 
-        $perms = esc($this->session->get('user_permissions'));
-        $roles = esc($this->session->get('user_roles'));
+        $perms = $this->session->get('user_permissions');
+        $roles = $this->session->get('user_roles');
+
+        // Clientes pueden ver sus propias notificaciones.
+        if (is_client($roles)) {
+            return null;
+        }
 
         // Permiso base: permitir a cualquier usuario que pueda ver trámites (en proceso o finalizados)
         $canRead = has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles);
@@ -48,6 +53,22 @@ class Notifications extends BaseController
         return null;
     }
 
+    private function adjustUrlsForUser(array $notifications): array
+    {
+        $roles = $this->session->get('user_roles');
+        if (!is_client($roles)) {
+            return $notifications;
+        }
+
+        foreach ($notifications as $i => $row) {
+            if (!empty($row['tramite_id'])) {
+                $notifications[$i]['url'] = base_url('deskapp/clientes/ver/' . $row['tramite_id']);
+            }
+        }
+
+        return $notifications;
+    }
+
     /**
      * Vista principal de notificaciones
      */
@@ -61,8 +82,12 @@ class Notifications extends BaseController
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
 
+        if (is_client($this->session->get('user_roles'))) {
+            $this->notificationModel->syncTramiteCreadoForClienteUser((int) $userId);
+        }
+
         // Obtener todas las notificaciones del usuario
-        $data['notifications'] = $this->notificationModel->getUserNotifications($userId, 50);
+        $data['notifications'] = $this->adjustUrlsForUser($this->notificationModel->getUserNotifications($userId, 50));
         $data['unread_count'] = $this->notificationModel->countUnread($userId);
 
         return view('deskapp/notifications/index', $data);
@@ -78,9 +103,13 @@ class Notifications extends BaseController
         }
 
         $userId = $this->session->get('id');
+
+        if (is_client($this->session->get('user_roles'))) {
+            $this->notificationModel->syncTramiteCreadoForClienteUser((int) $userId);
+        }
         
         // Obtener las últimas notificaciones (leídas y no leídas) para mostrar en el dropdown
-        $notifications = $this->notificationModel->getRecentNotifications($userId, 10);
+        $notifications = $this->adjustUrlsForUser($this->notificationModel->getRecentNotifications($userId, 10));
         $unreadCount = $this->notificationModel->countUnread($userId);
 
         return $this->response->setJSON([
@@ -100,6 +129,10 @@ class Notifications extends BaseController
         }
 
         $userId = $this->session->get('id');
+
+        if (is_client($this->session->get('user_roles'))) {
+            $this->notificationModel->syncTramiteCreadoForClienteUser((int) $userId);
+        }
         $count = $this->notificationModel->countUnread($userId);
 
         return $this->response->setJSON([
@@ -201,6 +234,10 @@ class Notifications extends BaseController
         }
 
         $userId = $this->session->get('id');
+
+        if (is_client($this->session->get('user_roles'))) {
+            $this->notificationModel->syncTramiteCreadoForClienteUser((int) $userId);
+        }
         $offset = $this->request->getGet('offset') ?? 0;
         if (!is_numeric($offset) || (int) $offset < 0) {
             return $this->response->setStatusCode(400)->setJSON([
@@ -210,7 +247,7 @@ class Notifications extends BaseController
         }
         $limit = 20;
 
-        $notifications = $this->notificationModel->getUserNotifications((int) $userId, $limit, (int) $offset);
+        $notifications = $this->adjustUrlsForUser($this->notificationModel->getUserNotifications((int) $userId, $limit, (int) $offset));
 
         return $this->response->setJSON([
             'success' => true,

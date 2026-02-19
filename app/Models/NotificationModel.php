@@ -25,14 +25,15 @@ class NotificationModel extends Model
         // Obtener datos del trámite (cliente, tipo de trámite)
         $db = \Config\Database::connect();
         $tramite = $db->table('tramite as t')
-            ->select('t.cli_directo_id, t.tra_tipos_id, c.razon_social as cliente, tt.tipo_tramite')
-            ->join('cli_directo as c', 't.cli_directo_id = c.id', 'left')
+            ->select('t.cli_directo_id, t.tra_tipos_id, cd.cliente_id, cd.razon_social as cliente, tt.tipo_tramite')
+            ->join('cli_directo as cd', 't.cli_directo_id = cd.id', 'left')
             ->join('tra_tipos as tt', 't.tra_tipos_id = tt.id', 'left')
             ->where('t.id', $tramiteId)
             ->get()
             ->getRowArray();
         
         $clientId = $tramite['cli_directo_id'] ?? null;
+        $clienteId = $tramite['cliente_id'] ?? null;
         $clienteNombre = $tramite['cliente'] ?? 'Cliente no especificado';
         $tipoTramite = $tramite['tipo_tramite'] ?? 'Trámite';
         
@@ -44,10 +45,6 @@ class NotificationModel extends Model
         }
 
         $userIds = array_unique(array_filter($userIds));
-        if (empty($userIds)) {
-            return true;
-        }
-
         $notifications = [];
         foreach ($userIds as $userId) {
             $notifications[] = [
@@ -64,7 +61,161 @@ class NotificationModel extends Model
             ];
         }
 
+        // Notificación para usuarios con rol Cliente (ver en vista cliente)
+        if (!empty($clienteId) && is_numeric($clienteId)) {
+            $clienteUserIds = $this->getClienteUsersByClienteId((int) $clienteId);
+            foreach ($clienteUserIds as $clienteUserId) {
+                $notifications[] = [
+                    'user_id' => (int) $clienteUserId,
+                    'tramite_id' => $tramiteId,
+                    'client_id' => $clientId,
+                    'type' => 'tramite_creado',
+                    'title' => 'Nuevo Trámite',
+                    'message' => "Se creó un nuevo trámite {$folioTramite} - {$tipoTramite}",
+                    'icon' => 'fa-file-alt',
+                    'color' => 'info',
+                    'url' => base_url("deskapp/clientes/ver/{$tramiteId}"),
+                    'created_by' => $createdBy,
+                ];
+            }
+        }
+
+        if (empty($notifications)) {
+            return true;
+        }
+
         return $this->insertBatch($notifications);
+    }
+
+    private function getClienteUsersByClienteId(int $clienteId): array
+    {
+        if ($clienteId <= 0) {
+            return [];
+        }
+
+        $db = \Config\Database::connect();
+        $rows = $db->table('cliente_user as cu')
+            ->select('u.id')
+            ->join('users as u', 'u.id = cu.user_id', 'inner')
+            ->join('us_user_roles as ur', 'u.id = ur.user_id', 'inner')
+            ->join('us_roles as r', 'ur.role_id = r.id', 'inner')
+            ->where('cu.cliente_id', $clienteId)
+            ->where('u.status', 1)
+            ->where('r.role_name', 'Cliente')
+            ->get()
+            ->getResultArray();
+
+        $ids = [];
+        foreach ($rows as $row) {
+            if (isset($row['id']) && is_numeric($row['id'])) {
+                $ids[] = (int) $row['id'];
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    public function syncTramiteCreadoForClienteUser(int $userId, int $limit = 25): void
+    {
+        if ($userId <= 0) {
+            return;
+        }
+
+        $db = \Config\Database::connect();
+        $clienteRows = $db->table('cliente_user')
+            ->select('cliente_id')
+            ->where('user_id', $userId)
+            ->get()
+            ->getResultArray();
+
+        $clienteIds = [];
+        foreach ($clienteRows as $row) {
+            if (isset($row['cliente_id']) && is_numeric($row['cliente_id'])) {
+                $clienteIds[] = (int) $row['cliente_id'];
+            }
+        }
+        $clienteIds = array_values(array_unique(array_filter($clienteIds)));
+        if (empty($clienteIds)) {
+            return;
+        }
+
+        $limit = max(1, min(100, (int) $limit));
+
+        $tramites = $db->table('tramite as t')
+            ->select('t.id as tramite_id, t.folio, t.created_at, tt.tipo_tramite')
+            ->join('cli_directo as cd', 'cd.id = t.cli_directo_id', 'left')
+            ->join('tra_tipos as tt', 'tt.id = t.tra_tipos_id', 'left')
+            ->whereIn('cd.cliente_id', $clienteIds)
+            ->orderBy('t.created_at', 'DESC')
+            ->limit($limit)
+            ->get()
+            ->getResultArray();
+
+        if (empty($tramites)) {
+            return;
+        }
+
+        $tramiteIds = [];
+        foreach ($tramites as $t) {
+            if (!empty($t['tramite_id']) && is_numeric($t['tramite_id'])) {
+                $tramiteIds[] = (int) $t['tramite_id'];
+            }
+        }
+        $tramiteIds = array_values(array_unique($tramiteIds));
+        if (empty($tramiteIds)) {
+            return;
+        }
+
+        $existing = $db->table('notifications')
+            ->select('tramite_id')
+            ->where('user_id', $userId)
+            ->where('type', 'tramite_creado')
+            ->whereIn('tramite_id', $tramiteIds)
+            ->get()
+            ->getResultArray();
+
+        $existingMap = array_flip(array_map('intval', array_column($existing, 'tramite_id')));
+
+        $toInsert = [];
+        foreach ($tramites as $t) {
+            $tramiteId = (int) ($t['tramite_id'] ?? 0);
+            if ($tramiteId <= 0 || isset($existingMap[$tramiteId])) {
+                continue;
+            }
+
+            $folio = trim((string) ($t['folio'] ?? ''));
+            $tipo = trim((string) ($t['tipo_tramite'] ?? ''));
+            $label = $folio !== '' ? $folio : ('#' . $tramiteId);
+            $message = $tipo !== ''
+                ? "Se creó un nuevo trámite {$label} - {$tipo}"
+                : "Se creó un nuevo trámite {$label}";
+
+            $row = [
+                'user_id' => $userId,
+                'tramite_id' => $tramiteId,
+                'type' => 'tramite_creado',
+                'title' => 'Nuevo Trámite',
+                'message' => $message,
+                'icon' => 'fa-file-alt',
+                'color' => 'info',
+                'url' => base_url('deskapp/clientes/ver/' . $tramiteId),
+                'is_read' => 0,
+                'read_at' => null,
+                'created_by' => null,
+            ];
+
+            $createdAt = $t['created_at'] ?? null;
+            if (!empty($createdAt)) {
+                $row['created_at'] = $createdAt;
+            }
+
+            $toInsert[] = $row;
+        }
+
+        if (!empty($toInsert)) {
+            // Insert directo a la tabla para poder fijar created_at.
+            $db->table('notifications')->insertBatch($toInsert);
+        }
     }
 
     private function normalizeNotification(array $row): array
