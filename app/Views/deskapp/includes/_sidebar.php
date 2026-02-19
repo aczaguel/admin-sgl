@@ -1,3 +1,12 @@
+<?php
+	helper(['permissions']);
+	$session = session();
+	$userRolesForSidebar = $session->get('user_roles') ?? [];
+	if (is_client($userRolesForSidebar) && !is_super_admin($userRolesForSidebar)) {
+		echo view('deskapp/includes/_sidebar_cliente', ['session' => $session]);
+		return;
+	}
+?>
 <div class="left-side-bar">
 	<div class="brand-logo">
 		<div class="sgl-sidebar-collapse-btn sgl-sidebar-collapse-btn--sidebar" role="button" tabindex="0" aria-label="Contraer/expandir menú" title="Contraer/expandir menú">
@@ -66,7 +75,6 @@
 				</li>
 				<?php endif; ?>
 
-				
 
 
 				<!-- SECCIÓN: TRÁMITES -->

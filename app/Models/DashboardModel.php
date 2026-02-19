@@ -501,6 +501,317 @@ class DashboardModel extends Model
     }
 
     /**
+     * Construye filtro SQL para el dashboard cliente con parametros.
+     */
+    private function buildClienteDashboardFilter(array $filters, $userId = null, $alias = 't'): array
+    {
+        $conditions = [];
+        $params = [];
+
+        $conditions[] = '(' . $this->getClienteFilterSQL($userId, $alias) . ')';
+
+        if (!empty($filters['cli_directo_id'])) {
+            $conditions[] = "{$alias}.cli_directo_id = ?";
+            $params[] = (int) $filters['cli_directo_id'];
+        }
+
+        if (!empty($filters['tra_tipos_id'])) {
+            $conditions[] = "{$alias}.tra_tipos_id = ?";
+            $params[] = (int) $filters['tra_tipos_id'];
+        }
+
+        if (!empty($filters['tra_status_id'])) {
+            $conditions[] = "{$alias}.tra_status_id = ?";
+            $params[] = (int) $filters['tra_status_id'];
+        }
+
+        if (!empty($filters['fecha_inicio'])) {
+            $conditions[] = "{$alias}.created_at >= ?";
+            $params[] = $filters['fecha_inicio'] . ' 00:00:00';
+        }
+
+        if (!empty($filters['fecha_fin'])) {
+            $conditions[] = "{$alias}.created_at <= ?";
+            $params[] = $filters['fecha_fin'] . ' 23:59:59';
+        }
+
+        if (isset($filters['pendiente_pago'])) {
+            $pendienteSql = "(({$alias}.numero_factura IS NOT NULL AND {$alias}.numero_factura != '') OR ({$alias}.numero_refactura IS NOT NULL AND {$alias}.numero_refactura != '')) AND {$alias}.cobro_status_id = 22";
+            if ($filters['pendiente_pago'] === '1') {
+                $conditions[] = $pendienteSql;
+            } elseif ($filters['pendiente_pago'] === '0') {
+                $conditions[] = "NOT ($pendienteSql)";
+            }
+        }
+
+        $where = implode(' AND ', $conditions);
+        return [$where !== '' ? $where : '1 = 1', $params];
+    }
+
+    /**
+     * Semaforo cliente con filtros adicionales.
+     */
+    public function getClienteSemaforoAtencion(array $filters, $userId = null)
+    {
+        [$where, $params] = $this->buildClienteDashboardFilter($filters, $userId, 't');
+        $dias = "DATEDIFF(CURDATE(), COALESCE(t.started_at, t.created_at))";
+        $local = "UPPER(COALESCE(e.entidad, '')) IN ('CIUDAD DE MEXICO', 'CIUDAD DE MÉXICO', 'ESTADO DE MEXICO', 'ESTADO DE MÉXICO', 'CDMX', 'EDOMEX', 'EDO MEX', 'EDO. MEX')";
+        $foraneo = "NOT ($local)";
+
+        $query = "
+            SELECT
+                SUM(CASE WHEN $local AND $dias < 5 THEN 1 ELSE 0 END) as local_verde,
+                SUM(CASE WHEN $local AND $dias BETWEEN 5 AND 7 THEN 1 ELSE 0 END) as local_amarillo,
+                SUM(CASE WHEN $local AND $dias BETWEEN 8 AND 11 THEN 1 ELSE 0 END) as local_rojo,
+                SUM(CASE WHEN $local AND $dias >= 12 THEN 1 ELSE 0 END) as local_violeta,
+                SUM(CASE WHEN $foraneo AND $dias < 10 THEN 1 ELSE 0 END) as foraneo_verde,
+                SUM(CASE WHEN $foraneo AND $dias BETWEEN 10 AND 12 THEN 1 ELSE 0 END) as foraneo_amarillo,
+                SUM(CASE WHEN $foraneo AND $dias BETWEEN 13 AND 15 THEN 1 ELSE 0 END) as foraneo_rojo,
+                SUM(CASE WHEN $foraneo AND $dias >= 16 THEN 1 ELSE 0 END) as foraneo_violeta
+            FROM tramite t
+            LEFT JOIN entidad e ON t.entidad_id = e.id
+            WHERE $where
+            AND t.tra_status_id NOT IN (20, 21)
+        ";
+
+        $row = $this->db->query($query, $params)->getRowArray();
+        return $row ?: [];
+    }
+
+    /**
+     * Facturas entregadas y pendientes de pago.
+     */
+    public function getClienteFacturasPendientes(array $filters, $userId = null)
+    {
+        [$where, $params] = $this->buildClienteDashboardFilter($filters, $userId, 't');
+        $pendienteSql = "((t.numero_factura IS NOT NULL AND t.numero_factura != '') OR (t.numero_refactura IS NOT NULL AND t.numero_refactura != '')) AND t.cobro_status_id = 22";
+
+        $query = "
+            SELECT
+                COUNT(*) as total,
+                SUM(t.costo_total) as monto_total
+            FROM tramite t
+            WHERE $where
+            AND $pendienteSql
+        ";
+
+        $row = $this->db->query($query, $params)->getRowArray();
+        return $row ?: ['total' => 0, 'monto_total' => 0];
+    }
+
+    /**
+     * Resumen de tramites para cliente.
+     */
+    public function getClienteResumen(array $filters, $userId = null)
+    {
+        [$where, $params] = $this->buildClienteDashboardFilter($filters, $userId, 't');
+
+        $query = "
+            SELECT
+                COUNT(*) as total_tramites,
+                SUM(CASE WHEN t.tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END) as en_proceso,
+                SUM(CASE WHEN t.tra_status_id = 20 THEN 1 ELSE 0 END) as concluidos,
+                SUM(CASE WHEN t.tra_status_id = 21 THEN 1 ELSE 0 END) as cancelados
+            FROM tramite t
+            WHERE $where
+        ";
+
+        $row = $this->db->query($query, $params)->getRowArray();
+        return $row ?: [];
+    }
+
+    /**
+     * Conteo de trámites concluidos por período para dashboard cliente.
+     *
+     * Importante:
+     * - Se basa en la fecha de cierre (t.finished_at) para reflejar "cuántos se concluyeron".
+     * - Aplica filtros de contexto (cliente directo / tipo) y multi-tenancy por usuario.
+     * - No aplica filtros por estatus (siempre concluidos) ni rango de fechas (el período define la ventana).
+     */
+    public function getClienteConcluidosPorPeriodos(array $filters, $userId = null): array
+    {
+        $conditions = [];
+        $params = [];
+
+        $conditions[] = '(' . $this->getClienteFilterSQL($userId, 't') . ')';
+
+        if (!empty($filters['cli_directo_id'])) {
+            $conditions[] = 't.cli_directo_id = ?';
+            $params[] = (int) $filters['cli_directo_id'];
+        }
+
+        if (!empty($filters['tra_tipos_id'])) {
+            $conditions[] = 't.tra_tipos_id = ?';
+            $params[] = (int) $filters['tra_tipos_id'];
+        }
+
+        $where = implode(' AND ', $conditions);
+        if ($where === '') {
+            $where = '1 = 1';
+        }
+
+        $query = "
+            SELECT
+                SUM(CASE WHEN DATE(t.finished_at) = CURDATE() THEN 1 ELSE 0 END) as hoy,
+                SUM(CASE WHEN YEARWEEK(t.finished_at, 1) = YEARWEEK(CURDATE(), 1) THEN 1 ELSE 0 END) as semana,
+                SUM(CASE WHEN YEAR(t.finished_at) = YEAR(CURDATE()) AND MONTH(t.finished_at) = MONTH(CURDATE()) THEN 1 ELSE 0 END) as mes,
+                SUM(CASE WHEN YEAR(t.finished_at) = YEAR(CURDATE()) THEN 1 ELSE 0 END) as anio
+            FROM tramite t
+            WHERE $where
+            AND t.tra_status_id = 20
+            AND t.finished_at IS NOT NULL
+        ";
+
+        $row = $this->db->query($query, $params)->getRowArray();
+        return $row ?: ['hoy' => 0, 'semana' => 0, 'mes' => 0, 'anio' => 0];
+    }
+
+    /**
+     * Trámites por tipo con separación en proceso vs concluidos (para gráficas de dashboard cliente).
+     *
+     * Respeta filtros del dashboard (cliente directo, tipo, rango de fechas, pendiente de pago) y multi-tenancy.
+     * No respeta filtro de estatus para poder comparar en proceso vs concluidos en la misma gráfica.
+     */
+    public function getClienteTramitesPorTipoProcesoVsConcluido($limit = 10, array $filters = [], $userId = null): array
+    {
+        $limit = max(1, (int) $limit);
+
+        $conditions = [];
+        $params = [];
+
+        $conditions[] = '(' . $this->getClienteFilterSQL($userId, 't') . ')';
+
+        if (!empty($filters['cli_directo_id'])) {
+            $conditions[] = 't.cli_directo_id = ?';
+            $params[] = (int) $filters['cli_directo_id'];
+        }
+
+        if (!empty($filters['tra_tipos_id'])) {
+            $conditions[] = 't.tra_tipos_id = ?';
+            $params[] = (int) $filters['tra_tipos_id'];
+        }
+
+        if (!empty($filters['fecha_inicio'])) {
+            $conditions[] = 't.created_at >= ?';
+            $params[] = $filters['fecha_inicio'] . ' 00:00:00';
+        }
+
+        if (!empty($filters['fecha_fin'])) {
+            $conditions[] = 't.created_at <= ?';
+            $params[] = $filters['fecha_fin'] . ' 23:59:59';
+        }
+
+        if (isset($filters['pendiente_pago'])) {
+            $pendienteSql = "((t.numero_factura IS NOT NULL AND t.numero_factura != '') OR (t.numero_refactura IS NOT NULL AND t.numero_refactura != '')) AND t.cobro_status_id = 22";
+            if ($filters['pendiente_pago'] === '1') {
+                $conditions[] = $pendienteSql;
+            } elseif ($filters['pendiente_pago'] === '0') {
+                $conditions[] = "NOT ($pendienteSql)";
+            }
+        }
+
+        $where = implode(' AND ', $conditions);
+        if ($where === '') {
+            $where = '1 = 1';
+        }
+
+        $query = "
+            SELECT
+                COALESCE(tt.tipo_tramite, 'Sin tipo') as tipo,
+                SUM(CASE WHEN t.tra_status_id NOT IN (20, 21) THEN 1 ELSE 0 END) as en_proceso,
+                SUM(CASE WHEN t.tra_status_id = 20 THEN 1 ELSE 0 END) as concluidos,
+                COUNT(*) as total
+            FROM tramite t
+            LEFT JOIN tra_tipos tt ON t.tra_tipos_id = tt.id
+            WHERE $where
+            GROUP BY t.tra_tipos_id, tt.tipo_tramite
+            ORDER BY total DESC
+            LIMIT $limit
+        ";
+
+        return $this->db->query($query, $params)->getResultArray();
+    }
+
+    /**
+     * Tipos de servicio atorados (sin movimiento > 7 dias) con filtros.
+     */
+    public function getClienteAtoradosPorTipoServicio($limit = 10, array $filters = [], $userId = null)
+    {
+        [$where, $params] = $this->buildClienteDashboardFilter($filters, $userId, 't');
+        $limit = max(1, (int) $limit);
+        $dias = "DATEDIFF(CURDATE(), COALESCE(t.started_at, t.created_at))";
+
+        $query = "
+            SELECT
+                COALESCE(tt.tipo_tramite, 'Sin tipo') as tipo,
+                COUNT(*) as total
+            FROM tramite t
+            LEFT JOIN tra_tipos tt ON t.tra_tipos_id = tt.id
+            WHERE $where
+            AND t.tra_status_id NOT IN (20, 21)
+            AND $dias > 7
+            GROUP BY tt.id, tt.tipo_tramite
+            ORDER BY total DESC
+            LIMIT $limit
+        ";
+
+        return $this->db->query($query, $params)->getResultArray();
+    }
+
+    /**
+     * Estados con mayor atraso (sin movimiento > 7 dias) con filtros.
+     */
+    public function getClienteAtoradosPorEstado($limit = 10, array $filters = [], $userId = null)
+    {
+        [$where, $params] = $this->buildClienteDashboardFilter($filters, $userId, 't');
+        $limit = max(1, (int) $limit);
+        $dias = "DATEDIFF(CURDATE(), COALESCE(t.started_at, t.created_at))";
+
+        $query = "
+            SELECT
+                COALESCE(e.entidad, 'Sin entidad') as estado,
+                COUNT(*) as total
+            FROM tramite t
+            LEFT JOIN entidad e ON t.entidad_id = e.id
+            WHERE $where
+            AND t.tra_status_id NOT IN (20, 21)
+            AND $dias > 7
+            GROUP BY e.id, e.entidad
+            ORDER BY total DESC
+            LIMIT $limit
+        ";
+
+        return $this->db->query($query, $params)->getResultArray();
+    }
+
+    /**
+     * Clientes con mayor atraso (sin movimiento > 7 dias) con filtros.
+     */
+    public function getClienteAtoradosPorCliente($limit = 10, array $filters = [], $userId = null)
+    {
+        [$where, $params] = $this->buildClienteDashboardFilter($filters, $userId, 't');
+        $limit = max(1, (int) $limit);
+        $dias = "DATEDIFF(CURDATE(), COALESCE(t.started_at, t.created_at))";
+
+        $query = "
+            SELECT
+                COALESCE(NULLIF(c.razon_social, ''), NULLIF(c.nombre, ''), NULLIF(cd.razon_social, ''), CONCAT('Cliente #', c.id)) as cliente,
+                COUNT(*) as total
+            FROM tramite t
+            INNER JOIN cli_directo cd ON t.cli_directo_id = cd.id
+            INNER JOIN cliente c ON cd.cliente_id = c.id
+            WHERE $where
+            AND t.tra_status_id NOT IN (20, 21)
+            AND $dias > 7
+            GROUP BY c.id, cliente
+            ORDER BY total DESC
+            LIMIT $limit
+        ";
+
+        return $this->db->query($query, $params)->getResultArray();
+    }
+
+    /**
      * Tipos de servicio atorados (sin movimiento > 7 dias).
      */
     public function getAtoradosPorTipoServicio($limit = 10, $userId = null)
