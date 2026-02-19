@@ -1,4 +1,5 @@
 <!-- Dropdown de Notificaciones -->
+<?php helper('permissions'); ?>
 <div class="dropdown notification-dropdown">
     <a class="dropdown-toggle no-arrow notification-bell" href="javascript:;" role="button" data-toggle="dropdown" id="notificationDropdown">
         <i class="dw dw-notification"></i>
@@ -234,7 +235,7 @@
 (function() {
     let notificationCheckInterval;
     const REFRESH_INTERVAL = 60000; // 1 minuto
-    const TRAMITE_UPDATE_BASE = '<?= base_url('deskapp/tramitesn/update') ?>';
+    const TRAMITE_FALLBACK_BASE = '<?= base_url(is_client(\Config\Services::session()->get('user_roles')) ? 'deskapp/clientes/ver' : 'deskapp/tramitesn/update') ?>';
 
     // Cargar notificaciones al iniciar
     function loadNotifications() {
@@ -277,7 +278,7 @@
         container.innerHTML = notifications.map(n => `
             <div class="notification-item ${n.is_read ? '' : 'unread'}" 
                  data-id="${n.id}" 
-                 data-url="${n.url || (n.tramite_id ? (TRAMITE_UPDATE_BASE + '/' + n.tramite_id) : '#')}"
+                 data-url="${n.url || (n.tramite_id ? (TRAMITE_FALLBACK_BASE + '/' + n.tramite_id) : '#')}"
                  title="${escapeHtml(n.message)}">
                 <div class="notification-icon bg-${n.color}">
                     <i class="icon-copy ${n.icon}"></i>
