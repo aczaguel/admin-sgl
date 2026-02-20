@@ -365,7 +365,7 @@ class Tramites extends BaseController
             $tramite_crud->unsetDeleteMultiple();
             if (has_permission('editar_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
-                    return '/deskapp/tramites/update/' . $row->id;
+                    return '/deskapp/tramitesn/update/' . $row->id;
                 }, false);
             }
 
@@ -383,7 +383,7 @@ class Tramites extends BaseController
 
             if (has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramites/update/' . $row->id;
+                    return '/deskapp/tramitesn/update/' . $row->id;
                 }, false);
             }
 
@@ -570,7 +570,7 @@ class Tramites extends BaseController
             $tramite_crud->unsetDeleteMultiple();
             if (has_permission('editar_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
-                    return '/deskapp/tramites/update/' . $row->id;
+                    return '/deskapp/tramitesn/update/' . $row->id;
                 }, false);
             }
 
@@ -588,7 +588,7 @@ class Tramites extends BaseController
 
             if (has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramites/update/' . $row->id;
+                    return '/deskapp/tramitesn/update/' . $row->id;
                 }, false);
             }
 
@@ -1666,6 +1666,12 @@ class Tramites extends BaseController
     }
 
     public function update($id) {
+        // Alias/redirect del flujo legacy al flujo nuevo.
+        // Esto asegura que cualquier link viejo a /tramites/update/{id} termine usando el wizard de tramitesn.
+        if (strtolower($this->request->getMethod()) === 'get') {
+            return redirect()->to('/deskapp/tramitesn/update/' . (int) $id);
+        }
+
         // ========================================================================
         // VALIDACIÓN DE ACCESO - MULTI-TENANCY
         // ========================================================================
@@ -2723,6 +2729,13 @@ class Tramites extends BaseController
             return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }
 
+        $db = \Config\Database::connect();
+        $tramiteStatusRow = $db->table('tramite')->select('tra_status_id')->where('id', (int) $tramiteId)->get(1)->getRowArray();
+        $traStatusId = (int) ($tramiteStatusRow['tra_status_id'] ?? 0);
+        if (in_array($traStatusId, [20, 21], true)) {
+            return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está concluido o cancelado.']);
+        }
+
         // Eliminar archivos queda reservado a Admin/Super Admin
         if (!(is_super_admin($roles) || is_admin($roles))) {
             return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
@@ -2843,6 +2856,10 @@ class Tramites extends BaseController
         $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
         $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
         $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+
+        if (in_array($traStatusId, [20, 21], true)) {
+            return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está concluido o cancelado.']);
+        }
         if (!puede_editar_modulo($roles, $traStatusId, 'step3_upload', $reembolsoStatusId, $cobroStatusId, 3)) {
             return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }
@@ -2926,6 +2943,13 @@ class Tramites extends BaseController
         $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
         if (!$hasTenantAccess) {
             return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        }
+
+        $db = \Config\Database::connect();
+        $tramiteStatusRow = $db->table('tramite')->select('tra_status_id')->where('id', (int) $tramiteId)->get(1)->getRowArray();
+        $traStatusId = (int) ($tramiteStatusRow['tra_status_id'] ?? 0);
+        if (in_array($traStatusId, [20, 21], true)) {
+            return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está concluido o cancelado.']);
         }
 
         // Eliminar archivos queda reservado a Admin/Super Admin
@@ -3032,6 +3056,10 @@ class Tramites extends BaseController
         $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
         $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
         $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+
+        if (in_array($traStatusId, [20, 21], true)) {
+            return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está concluido o cancelado.']);
+        }
         if (!puede_editar_modulo($roles, $traStatusId, 'upload_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4)) {
             return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }
@@ -3950,6 +3978,14 @@ class Tramites extends BaseController
             return $this->response->setJSON([
                 'success' => false,
                 'message' => 'El trámite no existe.'
+            ]);
+        }
+
+        $traStatusId = (int) ($existingData['tra_status_id'] ?? 0);
+        if (in_array($traStatusId, [20, 21], true)) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'El trámite está concluido o cancelado.'
             ]);
         }
     
@@ -5215,6 +5251,17 @@ class Tramites extends BaseController
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
 
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $isLocked = in_array($statusId, [20, 21], true);
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
+            }
+            return redirect()->to('deskapp/tramites/single_documentostatus/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
+
         // Verificar si se encontró un folio
         if (!$folio_tramite) {
             throw new \Exception('No existe el folio');
@@ -5226,6 +5273,12 @@ class Tramites extends BaseController
         $crud->setTable('tra_doc_status');
         $crud->setSubject('Documento', 'Documentos');
         $crud->defaultOrdering('tra_doc_status.created_at', 'desc');
+
+        if ($isLocked) {
+            $crud->unsetAdd();
+            $crud->unsetEdit();
+            $crud->unsetDelete();
+        }
 
         $crud->fields([
             "tramite_id", "folio_tramite", "documento_id", "file", "comentario", "status_documento_id"
@@ -5585,6 +5638,17 @@ class Tramites extends BaseController
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
 
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $isLocked = in_array($statusId, [20, 21], true);
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
+            }
+            return redirect()->to('deskapp/tramites/single_evidencias/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
+
         // Verificar si se encontró un folio
         if (!$folio_tramite) {
             throw new \Exception('No existe el folio');
@@ -5599,6 +5663,12 @@ class Tramites extends BaseController
         $crud->setTable('tra_evidencias');
         $crud->setSubject('Bitacora', 'Bitacora');
         $crud->defaultOrdering('tra_evidencias.created_at', 'desc');
+
+        if ($isLocked) {
+            $crud->unsetAdd();
+            $crud->unsetEdit();
+            $crud->unsetDelete();
+        }
 
         $crud->fields([
             "folio_tramite", "tramite_id", "comentario", "user_id"
@@ -5802,6 +5872,18 @@ class Tramites extends BaseController
             }
             return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
         }
+
+        $tramiteModel = new TramitesModel($db2);
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $isLocked = in_array($statusId, [20, 21], true);
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
+            }
+            return redirect()->to('deskapp/tramites/single_pago_derechos/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
     
         // Paso 1: Definir directorios
         $sourceDir = FCPATH . 'assets/uploads/pago_derechos/';
@@ -5870,6 +5952,12 @@ class Tramites extends BaseController
         $crud->setTable('tra_pago_derechos');
         $crud->setSubject('Pago', 'Pagos de Derechos');
         $crud->defaultOrdering('tra_pago_derechos.created_at', 'desc');
+
+        if ($isLocked) {
+            $crud->unsetAdd();
+            $crud->unsetEdit();
+            $crud->unsetDelete();
+        }
 
         $crud->fields([
             "file", "costo", "comentario", "tramite_id", "user_id"
@@ -6203,6 +6291,18 @@ class Tramites extends BaseController
             }
             return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
         }
+
+        $tramiteModel = new TramitesModel($db2);
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $isLocked = in_array($statusId, [20, 21], true);
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
+            }
+            return redirect()->to('deskapp/tramites/single_pago_gestor/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
     
         // Paso 1: Definir directorios
         $sourceDir = FCPATH . 'assets/uploads/pago_gestor/';
@@ -6267,6 +6367,12 @@ class Tramites extends BaseController
         $crud->setTable('tra_pago_gestor');
         $crud->setSubject('Pago', 'Pagos de Gestor');
         $crud->defaultOrdering('tra_pago_gestor.created_at', 'desc');
+
+        if ($isLocked) {
+            $crud->unsetAdd();
+            $crud->unsetEdit();
+            $crud->unsetDelete();
+        }
     
         $crud->fields([
             "file", "costo", "comentario", "tramite_id", "user_id"
@@ -6483,6 +6589,18 @@ class Tramites extends BaseController
             return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
         }
 
+        $tramiteModel = new TramitesModel($db2);
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $isLocked = in_array($statusId, [20, 21], true);
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
+            }
+            return redirect()->to('deskapp/tramites/single_cobro_cliente/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
+
         // Paso 1: Definir directorios
         $sourceDir = FCPATH . 'assets/uploads/cobro_cliente/';
         $targetDir = FCPATH . 'assets/uploads/cobro_cliente/' . $tramite_id . '/';
@@ -6546,6 +6664,12 @@ class Tramites extends BaseController
         $crud->setTable('tra_cobro_cliente');
         $crud->setSubject('Cobro', 'Cobros a Cliente');
         $crud->defaultOrdering('tra_cobro_cliente.created_at', 'desc');
+
+        if ($isLocked) {
+            $crud->unsetAdd();
+            $crud->unsetEdit();
+            $crud->unsetDelete();
+        }
 
         $crud->fields([
             "file", "costo", "comentario", "tramite_id", "user_id"
@@ -6771,6 +6895,18 @@ class Tramites extends BaseController
             }
             return redirect()->to('deskapp/dashboard')->with('error', 'Acceso denegado.');
         }
+
+        $tramiteModel = new TramitesModel($this->_getDbData());
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $isLocked = in_array($statusId, [20, 21], true);
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
+            }
+            return redirect()->to('deskapp/tramites/single_evidencias_finales/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
     
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());
@@ -6778,6 +6914,12 @@ class Tramites extends BaseController
 
         $crud->setTable('tra_evidencias_finales');
         $crud->setSubject('Evidencia Final', 'Evidencias Finales');
+
+        if ($isLocked) {
+            $crud->unsetAdd();
+            $crud->unsetEdit();
+            $crud->unsetDelete();
+        }
 
         $crud->where([
             'tramite_id' => $tramite_id

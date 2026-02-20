@@ -409,6 +409,11 @@
 						<i class="fas fa-list-alt"></i> Consolidado
 					</a> -->
 					<!-- Botón Nuevo DESTACADO -->
+					<?php if ($isAdmin || has_permission('read_tramite', $session->get('user_permissions'), $session->get('user_roles')) || has_permission('read_final_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+						<a href="/deskapp/tramitesn/search" class="btn btn-sm" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(79, 172, 254, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(79, 172, 254, 0.3)';">
+							<i class="fas fa-search"></i> Busca un trámite
+						</a>
+					<?php endif; ?>
 					<a href="/deskapp/tramites/add" class="btn btn-sm" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5); white-space: nowrap; animation: pulse 2s infinite;" onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(255, 107, 107, 0.6)';" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(255, 107, 107, 0.5)';">
 						<i class="fas fa-plus-circle"></i> NUEVO TRÁMITE
 					</a>

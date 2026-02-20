@@ -92,6 +92,9 @@
 								<li><a href="<?php echo base_url('deskapp/tramitesn/tramite'); ?>">
 									<i class="fas fa-magic text-primary"></i> Trámites (nuevo flujo)
 								</a></li>
+								<li><a href="<?php echo base_url('deskapp/tramitesn/search'); ?>">
+									<i class="fas fa-search text-info"></i> Busca un trámite
+								</a></li>
 							<?php endif; ?>
 							<?php if (has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramitesn/cobro_cliente'); ?>">

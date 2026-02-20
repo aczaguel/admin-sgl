@@ -256,6 +256,8 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 	$routes->get('tramitesn', 'Tramitesn::tramite');
 	$routes->get('tramitesn/tramite', 'Tramitesn::tramite');
 	$routes->post('tramitesn/tramite', 'Tramitesn::tramite');
+	$routes->get('tramitesn/search', 'Tramitesn::search');
+	$routes->post('tramitesn/search', 'Tramitesn::search');
 	$routes->get('tramitesn/cobro_cliente', 'Tramitesn::cobro_cliente');
 	$routes->get('tramitesn/cobro_cliente/(:num)', 'Tramitesn::cobro_cliente_ver/$1');
 	$routes->get('flotillas/import', 'Flotillas::import');

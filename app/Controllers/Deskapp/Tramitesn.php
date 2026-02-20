@@ -24,6 +24,23 @@ use App\Controllers\Deskapp\Tramites;
 
 class Tramitesn extends Tramites
 {
+    private function isLockedStatusId(int $statusId): bool
+    {
+        return in_array($statusId, [20, 21], true);
+    }
+
+    private function isTramiteLocked(int $tramiteId): bool
+    {
+        $tramiteId = (int) $tramiteId;
+        if ($tramiteId <= 0) {
+            return false;
+        }
+        $db = \Config\Database::connect();
+        $row = $db->table('tramite')->select('tra_status_id')->where('id', $tramiteId)->get()->getRowArray();
+        $statusId = (int) ($row['tra_status_id'] ?? 0);
+        return $this->isLockedStatusId($statusId);
+    }
+
     private function normalizeRolesPermsFromSession(): array
     {
         $session = session();
@@ -45,6 +62,60 @@ class Tramitesn extends Tramites
             'message' => $message,
             'csrfHash' => csrf_hash(),
         ]);
+    }
+
+    public function search()
+    {
+        helper(['permissions', 'cliente_filter']);
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
+        if ($userId <= 0) {
+            return redirect()->to('/')->with('error', 'Sesión expirada.');
+        }
+
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+        $canRead = (is_super_admin($roles) || is_admin($roles) || has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles));
+        if (!$canRead) {
+            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para buscar trámites.');
+        }
+
+        if (strtolower((string) $this->request->getMethod()) !== 'post') {
+            return view('deskapp/tramitesn/search', [
+                'session' => $session,
+                'title' => 'Buscar Trámite',
+            ]);
+        }
+
+        $tramiteId = (int) ($this->request->getPost('tramite_id') ?? 0);
+        $folio = trim((string) ($this->request->getPost('folio') ?? ''));
+        $folio = strtoupper($folio);
+
+        if ($tramiteId <= 0 && $folio === '') {
+            return redirect()->to('/deskapp/tramitesn/search')->with('error', 'Ingresa el ID del trámite o el folio.');
+        }
+
+        $db = \Config\Database::connect();
+        $tramiteRow = null;
+
+        if ($tramiteId > 0) {
+            $tramiteRow = $db->table('tramite')->select('id, folio')->where('id', $tramiteId)->get()->getRowArray();
+        } else {
+            $tramiteRow = $db->table('tramite')->select('id, folio')->where('folio', $folio)->get()->getRowArray();
+        }
+
+        $resolvedId = (int) ($tramiteRow['id'] ?? 0);
+        if ($resolvedId <= 0) {
+            return redirect()->to('/deskapp/tramitesn/search')->with('error', 'Trámite no encontrado.');
+        }
+
+        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($resolvedId, $userId);
+        if (!$hasTenantAccess) {
+            log_unauthorized_access_attempt('tramite_search', $resolvedId);
+            return redirect()->to('/deskapp/tramitesn/search')->with('error', 'No tienes permisos para ver este trámite.');
+        }
+
+        return redirect()->to('/deskapp/tramitesn/update/' . $resolvedId);
     }
 
     public function services($tramiteId)
@@ -146,13 +217,17 @@ class Tramitesn extends Tramites
 
         // No permitir ligar el tipo principal como asociado
         $db = \Config\Database::connect();
-        $tramiteRow = $db->table('tramite')->select('id, tra_tipos_id')->where('id', $tramiteId)->get()->getRowArray();
+        $tramiteRow = $db->table('tramite')->select('id, tra_tipos_id, tra_status_id')->where('id', $tramiteId)->get()->getRowArray();
         if (!$tramiteRow) {
             return $this->response->setStatusCode(404)->setJSON([
                 'status' => 'error',
                 'message' => 'Trámite no encontrado.',
                 'csrfHash' => csrf_hash(),
             ]);
+        }
+
+        if ($this->isLockedStatusId((int) ($tramiteRow['tra_status_id'] ?? 0))) {
+            return $this->denyJson(409, 'El trámite está concluido o cancelado.');
         }
         if ((int) ($tramiteRow['tra_tipos_id'] ?? 0) === $traTiposId) {
             return $this->response->setJSON([
@@ -209,9 +284,13 @@ class Tramitesn extends Tramites
         $db = \Config\Database::connect();
 
         // No permitir cambiar un asociado al tipo principal actual
-        $tramiteRow = $db->table('tramite')->select('id, tra_tipos_id')->where('id', $tramiteId)->get()->getRowArray();
+        $tramiteRow = $db->table('tramite')->select('id, tra_tipos_id, tra_status_id')->where('id', $tramiteId)->get()->getRowArray();
         if (!$tramiteRow) {
             return $this->denyJson(404, 'Trámite no encontrado.');
+        }
+
+        if ($this->isLockedStatusId((int) ($tramiteRow['tra_status_id'] ?? 0))) {
+            return $this->denyJson(409, 'El trámite está concluido o cancelado.');
         }
         if ((int) ($tramiteRow['tra_tipos_id'] ?? 0) === $nuevoTipoId) {
             return $this->denyJson(400, 'No puedes asignar el tipo principal como tipo asociado.');
@@ -278,6 +357,10 @@ class Tramitesn extends Tramites
             return $this->denyJson(403, 'No tienes permisos para eliminar tipos asociados.');
         }
 
+        if ($this->isTramiteLocked($tramiteId)) {
+            return $this->denyJson(409, 'El trámite está concluido o cancelado.');
+        }
+
         $db = \Config\Database::connect();
         $row = $db->table('tra_tramite_asociado')
             ->select('id, tramite_id')
@@ -322,9 +405,13 @@ class Tramitesn extends Tramites
         }
 
         $db = \Config\Database::connect();
-        $tramiteRow = $db->table('tramite')->select('id, tra_tipos_id')->where('id', $tramiteId)->get()->getRowArray();
+        $tramiteRow = $db->table('tramite')->select('id, tra_tipos_id, tra_status_id')->where('id', $tramiteId)->get()->getRowArray();
         if (!$tramiteRow) {
             return $this->denyJson(404, 'Trámite no encontrado.');
+        }
+
+        if ($this->isLockedStatusId((int) ($tramiteRow['tra_status_id'] ?? 0))) {
+            return $this->denyJson(409, 'El trámite está concluido o cancelado.');
         }
 
         $currentTipoId = (int) ($tramiteRow['tra_tipos_id'] ?? 0);
@@ -510,6 +597,13 @@ class Tramitesn extends Tramites
                 ]);
             }
 
+            if ($this->isTramiteLocked($tramiteId)) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'status' => 'error',
+                    'message' => 'El trámite está concluido o cancelado.'
+                ]);
+            }
+
             $data = [
                 'costo_tramite' => $costo_tramite,
                 'updated_at' => date('Y-m-d H:i:s')
@@ -572,6 +666,14 @@ class Tramitesn extends Tramites
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'El trámite no existe.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+            }
+
+            if ($this->isLockedStatusId((int) ($existingTramite['tra_status_id'] ?? 0))) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite está concluido o cancelado.',
                     'csrfHash' => csrf_hash(),
                 ]);
             }
@@ -783,6 +885,14 @@ class Tramitesn extends Tramites
                 ]);
             }
 
+            if ($this->isLockedStatusId((int) ($tramiteBase['tra_status_id'] ?? 0))) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite está concluido o cancelado.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+            }
+
             $this->updateTramiteStatus($id, 25);
 
             $data = $this->request->getPost();
@@ -910,6 +1020,14 @@ class Tramitesn extends Tramites
                 return $this->response->setJSON([
                     'success' => false,
                     'message' => 'El trámite no existe.',
+                    'csrfHash' => csrf_hash(),
+                ]);
+            }
+
+            if ($this->isLockedStatusId((int) ($existingTramite['tra_status_id'] ?? 0))) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite está concluido o cancelado.',
                     'csrfHash' => csrf_hash(),
                 ]);
             }
@@ -1430,6 +1548,14 @@ class Tramitesn extends Tramites
                 ->with('error', 'No tienes permisos para acceder a Cobro a Cliente');
         }
 
+        // Asegurar que solo se muestre esta vista cuando el trámite está en Cobro a Cliente (28)
+        $db = \Config\Database::connect();
+        $tramite = $db->table('tramite')->select('tra_status_id')->where('id', (int) $id)->get()->getRowArray();
+        $statusId = (int) ($tramite['tra_status_id'] ?? 0);
+        if ($statusId !== 28) {
+            return redirect()->to('/deskapp/tramitesn/update/' . (int) $id);
+        }
+
         return $this->update($id, 'deskapp/extra-pages/tramite_cobro_cliente_view');
     }
 
@@ -1480,6 +1606,12 @@ class Tramitesn extends Tramites
         if (!$tramite) {
             return redirect()->to('/deskapp/tramitesn/tramite')
                 ->with('error', 'No se encontró el trámite solicitado');
+        }
+
+        // Si el trámite está en Cobro a Cliente (28), enviarlo al flujo dedicado.
+        // Evita loop cuando ya se invoca update() desde cobro_cliente_ver().
+        if (((int) ($tramite['tra_status_id'] ?? 0)) === 28 && $viewName !== 'deskapp/extra-pages/tramite_cobro_cliente_view') {
+            return redirect()->to('/deskapp/tramitesn/cobro_cliente/' . $id);
         }
 
         // Sumatoria de derechos desde costos del tramite (principal + asociados)
@@ -1952,20 +2084,22 @@ class Tramitesn extends Tramites
         $form->css_files = $crudOutput->css_files;
         $form->js_files = $crudOutput->js_files;
 
+        $isLocked = in_array((int) ($tramite['tra_status_id'] ?? 0), [20, 21], true);
+
         $cruddocstatus = $this->_getGroceryCrudEnterprise();
-        $cruddocstatus->setApiUrlPath('/deskapp/tramites/single_documentostatus/' . $id);
+		$cruddocstatus->setApiUrlPath(($isLocked ? '/deskapp/concluido' : '/deskapp/tramites') . '/single_documentostatus/' . $id);
         $output_docs = $cruddocstatus->render();
 
         $crudevidencias = $this->_getGroceryCrudEnterprise();
-        $crudevidencias->setApiUrlPath('/deskapp/tramites/single_evidencias/' . $id);
+		$crudevidencias->setApiUrlPath(($isLocked ? '/deskapp/concluido' : '/deskapp/tramites') . '/single_evidencias/' . $id);
         $outputevidencias = $crudevidencias->render();
 
         $crud_derechos = $this->_getGroceryCrudEnterprise();
-        $crud_derechos->setApiUrlPath('/deskapp/tramites/single_pago_derechos/' . $id);
+		$crud_derechos->setApiUrlPath(($isLocked ? '/deskapp/concluido' : '/deskapp/tramites') . '/single_pago_derechos/' . $id);
         $output_derechos = $crud_derechos->render();
 
         $crud_pago_gestor = $this->_getGroceryCrudEnterprise();
-        if (puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_gestor', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
+		if (!$isLocked && puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_gestor', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
             $crud_pago_gestor->setApiUrlPath('/deskapp/tramites/single_pago_gestor/' . $id);
         } else {
             $crud_pago_gestor->setApiUrlPath('/deskapp/concluido/single_pago_gestor/' . $id);
@@ -1973,7 +2107,7 @@ class Tramitesn extends Tramites
         $output_pago_gestor = $crud_pago_gestor->render();
 
         $crud_cobro_cliente = $this->_getGroceryCrudEnterprise();
-        if (puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_cliente', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
+		if (!$isLocked && puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_cliente', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
             $crud_cobro_cliente->setApiUrlPath('/deskapp/tramites/single_cobro_cliente/' . $id);
         } else {
             $crud_cobro_cliente->setApiUrlPath('/deskapp/concluido/single_cobro_cliente/' . $id);
@@ -1981,7 +2115,7 @@ class Tramitesn extends Tramites
         $output_cobro_cliente = $crud_cobro_cliente->render();
 
         $crudevidencias_finales = $this->_getGroceryCrudEnterprise();
-        if (puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_cliente', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
+		if (!$isLocked && puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_cliente', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
             $crudevidencias_finales->setApiUrlPath('/deskapp/tramites/single_evidencias_finales/' . $id);
         } else {
             $crudevidencias_finales->setApiUrlPath('/deskapp/concluido/single_evidencias_finales/' . $id);
@@ -2078,6 +2212,10 @@ class Tramitesn extends Tramites
         $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
         $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
         $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+
+        if ($this->isLockedStatusId($traStatusId)) {
+            return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está concluido o cancelado.']);
+        }
         if (!puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5)) {
             return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }
@@ -2218,6 +2356,10 @@ class Tramitesn extends Tramites
         $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
         $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
         $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+
+        if ($this->isLockedStatusId($traStatusId)) {
+            return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está concluido o cancelado.']);
+        }
         if (!puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5)) {
             return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
         }

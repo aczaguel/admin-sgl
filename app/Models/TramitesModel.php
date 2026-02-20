@@ -43,25 +43,81 @@ class TramitesModel extends Model
     // Función para obtener todos los trámites
     public function getAllTramites()
     {
-        return $this->findAll();
+        $sql = new Sql($this->adapter);
+        $select = $sql->select();
+        $select->from('tramite');
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $results = $statement->execute();
+
+        $tramites = [];
+        foreach ($results as $row) {
+            $tramites[] = $row;
+        }
+        return $tramites;
     }
 
     // Función para obtener un trámite específico
     public function getTramiteById($id)
     {
-        return $this->find($id);
+        if (!is_numeric($id)) {
+            return false;
+        }
+
+        $sql = new Sql($this->adapter);
+        $select = $sql->select();
+        $select->from('tramite');
+        $select->where(['id' => (int) $id]);
+
+        $statement = $sql->prepareStatementForSqlObject($select);
+        $result = $statement->execute()->current();
+        return $result ?: false;
     }
 
     // Función para actualizar un trámite
     public function updateTramite($id, $data)
     {
-        return $this->update($id, $data);
+        if (!is_numeric($id)) {
+            return false;
+        }
+        if (!is_array($data) || empty($data)) {
+            return false;
+        }
+
+        $filtered = [];
+        foreach ($data as $key => $value) {
+            if (in_array($key, $this->allowedFields, true)) {
+                $filtered[$key] = $value;
+            }
+        }
+        if (empty($filtered)) {
+            return false;
+        }
+
+        $sql = new Sql($this->adapter);
+        $update = $sql->update('tramite');
+        $update->set($filtered);
+        $update->where(['id' => (int) $id]);
+
+        $statement = $sql->prepareStatementForSqlObject($update);
+        $result = $statement->execute();
+        return $result ? true : false;
     }
 
     // Función para eliminar un trámite
     public function deleteTramite($id)
     {
-        return $this->delete($id);
+        if (!is_numeric($id)) {
+            return false;
+        }
+
+        $sql = new Sql($this->adapter);
+        $delete = $sql->delete('tramite');
+        $delete->where(['id' => (int) $id]);
+
+        $statement = $sql->prepareStatementForSqlObject($delete);
+        $result = $statement->execute();
+        return $result ? true : false;
     }
 
 
