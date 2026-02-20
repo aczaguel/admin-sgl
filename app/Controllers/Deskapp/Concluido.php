@@ -1233,6 +1233,17 @@ class Concluido extends BaseController
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
 
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $isLocked = in_array($statusId, [20, 21], true);
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
+            }
+            return redirect()->to('/deskapp/concluido/single_documentostatus/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
+
         // Verificar si se encontró un folio
         if (!$folio_tramite) {
             throw new \Exception('No existe el folio');
@@ -1244,6 +1255,12 @@ class Concluido extends BaseController
         $crud->setTable('tra_doc_status');
         $crud->setSubject('Documento', 'Documentos');
         $crud->defaultOrdering('tra_doc_status.created_at', 'desc');
+
+        if ($isLocked) {
+            $crud->unsetAdd();
+            $crud->unsetEdit();
+            $crud->unsetDelete();
+        }
         $crud->unsetAdd();
         $crud->unsetDelete();
         $crud->unsetEdit();
@@ -1675,6 +1692,9 @@ class Concluido extends BaseController
                 "user_id" => (int)$myid
             ];
             $result = $bitacoraModel->insert($insert_bitacora, 'bitacora');
+
+            // GroceryCrud solo conserva UN callback por evento; consolidamos Bitácora + ApiLog.
+            return logOperation($stateParameters, $crud->getTable());
         });
 
         $uploadValidations = [
@@ -1685,8 +1705,6 @@ class Concluido extends BaseController
             ]
         ];
 
-            // GroceryCrud solo conserva UN callback por evento; consolidamos Bitácora + ApiLog.
-            return logOperation($stateParameters, $crud->getTable());
         $crud->setFieldUploadMultiple(
             'file', 
             'assets/uploads/evidencias/', 

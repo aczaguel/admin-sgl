@@ -33,6 +33,12 @@ console.log('tramitesn_update_v2 loaded');
 		// El gusanito es fijo al estatus (no se mueve al navegar en el wizard)
 		var TRA_STATUS_ID = parseInt(cfg.statusId || 0, 10);
 		var STEP_ACTUAL = parseInt(cfg.stepActual || 0, 10);
+		var IS_LOCKED = !!cfg.isLocked || TRA_STATUS_ID === 20 || TRA_STATUS_ID === 21;
+		if (IS_LOCKED) {
+			cfg.canEditAsociado = false;
+			cfg.canDeleteAsociado = false;
+			cfg.canEditPagoGestor = false;
+		}
 		function statusToStep(statusId) {
 			var map = {
 				11: 1,
@@ -51,6 +57,48 @@ console.log('tramitesn_update_v2 loaded');
 		var statusStep = STEP_ACTUAL > 0
 			? Math.min(STEP_ACTUAL, maxStep)
 			: statusToStep(TRA_STATUS_ID);
+
+		function applyLockedUi() {
+			if (!IS_LOCKED) return;
+			try {
+				if (document.body) document.body.setAttribute('data-sgl-locked', '1');
+			} catch (e) { /* noop */ }
+
+			document.querySelectorAll('input, select, textarea').forEach(function (el) {
+				if (!el) return;
+				if (el.tagName === 'INPUT' && String(el.type || '').toLowerCase() === 'hidden') return;
+				el.setAttribute('disabled', 'disabled');
+			});
+
+			var toHide = [
+				'#btnAgregarTipo',
+				'.btnGuardarTipo',
+				'.btnCambiarAsociado',
+				'.btnEliminarAsociado',
+				'#btnGuardarPrincipalTipo',
+				'#btnGuardarAsociadoTipo',
+				'#btnConfirmDeleteAsociado',
+				'#btnSubirDocumentos',
+				'#btnSubirGestor',
+				'#btnSubirFinalDoc16',
+				'#btnSubirFinalDoc17',
+				'.btn-delete-final-doc',
+				'.sgl-cost-save',
+				'[data-submit="pago-gestor"]'
+			];
+			toHide.forEach(function (sel) {
+				document.querySelectorAll(sel).forEach(function (node) {
+					if (!node) return;
+					node.style.display = 'none';
+				});
+			});
+
+			document.querySelectorAll('.dropzone-documentos, #miDropzone, .dropzone-gestor, #miDropzoneGestor').forEach(function (node) {
+				if (!node) return;
+				node.style.pointerEvents = 'none';
+				node.style.opacity = '0.6';
+			});
+		}
 
 		function updateCsrf(newHash) {
 			if (!newHash) return;
@@ -245,6 +293,7 @@ console.log('tramitesn_update_v2 loaded');
 		document.addEventListener('click', function (e) {
 			var btn = e.target.closest('.btnGuardarTipo');
 			if (!btn) return;
+			if (IS_LOCKED) return;
 			var row = btn.closest('[data-tipo-id]');
 			if (!row) return;
 			var tipoId = parseInt(row.getAttribute('data-tipo-id') || '0', 10);
@@ -344,6 +393,7 @@ console.log('tramitesn_update_v2 loaded');
 			var btn = e.target.closest('#btnAgregarTipo');
 			if (!btn) return;
 			e.preventDefault();
+			if (IS_LOCKED) return;
 			handleAgregarTipo();
 		});
 
@@ -351,6 +401,7 @@ console.log('tramitesn_update_v2 loaded');
 		document.addEventListener('click', function (e) {
 			var btn = e.target.closest('.btnCambiarAsociado');
 			if (!btn) return;
+			if (IS_LOCKED) return;
 			var card = btn.closest('[data-asociado-id]');
 			if (!card) return;
 			var asociadoId = parseInt(card.getAttribute('data-asociado-id') || '0', 10);
@@ -364,6 +415,7 @@ console.log('tramitesn_update_v2 loaded');
 		document.addEventListener('click', function (e) {
 			var btn = e.target.closest('.btnEliminarAsociado');
 			if (!btn) return;
+			if (IS_LOCKED) return;
 			var card = btn.closest('[data-asociado-id]');
 			if (!card) return;
 			var asociadoId = parseInt(card.getAttribute('data-asociado-id') || '0', 10);
@@ -374,6 +426,7 @@ console.log('tramitesn_update_v2 loaded');
 		var btnGuardarPrincipalTipo = document.getElementById('btnGuardarPrincipalTipo');
 		if (btnGuardarPrincipalTipo) {
 			btnGuardarPrincipalTipo.addEventListener('click', function () {
+				if (IS_LOCKED) return;
 				var sel = document.getElementById('principalTipoSelect');
 				var tipoId = parseInt((sel && sel.value) ? sel.value : '0', 10);
 				if (!tipoId) {
@@ -458,6 +511,7 @@ console.log('tramitesn_update_v2 loaded');
 		var btnGuardarAsociadoTipo = document.getElementById('btnGuardarAsociadoTipo');
 		if (btnGuardarAsociadoTipo) {
 			btnGuardarAsociadoTipo.addEventListener('click', function () {
+				if (IS_LOCKED) return;
 				var asociadoId = parseInt((document.getElementById('asociadoIdInput') || {}).value || '0', 10);
 				var sel = document.getElementById('asociadoTipoSelect');
 				var tipoId = parseInt((sel && sel.value) ? sel.value : '0', 10);
@@ -508,6 +562,7 @@ console.log('tramitesn_update_v2 loaded');
 		var btnConfirmDeleteAsociado = document.getElementById('btnConfirmDeleteAsociado');
 		if (btnConfirmDeleteAsociado) {
 			btnConfirmDeleteAsociado.addEventListener('click', function () {
+				if (IS_LOCKED) return;
 				var asociadoId = parseInt((document.getElementById('deleteAsociadoIdInput') || {}).value || '0', 10);
 				if (!asociadoId) return;
 				var fd = new FormData();
@@ -680,6 +735,10 @@ console.log('tramitesn_update_v2 loaded');
 
 		var isSaving = false;
 		async function submitFormAjax() {
+			if (IS_LOCKED) {
+				console.warn('[tramitesn_update_v2] submit bloqueado: trámite locked');
+				return false;
+			}
 			if (isSaving) return false;
 			isSaving = true;
 			var form = document.getElementById('tramiteNuevoForm');
@@ -746,6 +805,7 @@ console.log('tramitesn_update_v2 loaded');
 		}
 
 		function initWizard() {
+			if (IS_LOCKED) return;
 			if (!(window.jQuery && jQuery.fn && jQuery.fn.steps)) return;
 			var $wizard = jQuery('#wizard');
 			if (!$wizard.length) return;
@@ -960,6 +1020,7 @@ console.log('tramitesn_update_v2 loaded');
 
 
 		function initDropzoneDerechos() {
+			if (IS_LOCKED) return;
 			if (typeof Dropzone === 'undefined') return;
 			if (!cfg.urls || !cfg.urls.uploadComprobante || !cfg.urls.deleteComprobante) return;
 			var el = document.querySelector('.dropzone-documentos, #miDropzone');
@@ -1060,6 +1121,7 @@ console.log('tramitesn_update_v2 loaded');
 		}
 
 		function initDropzoneGestor() {
+			if (IS_LOCKED) return;
 			if (typeof Dropzone === 'undefined') return;
 			if (!cfg.urls || !cfg.urls.uploadPagoGestor || !cfg.urls.deletePagoGestor) return;
 			var el = document.querySelector('.dropzone-gestor, #miDropzoneGestor');
@@ -1193,11 +1255,12 @@ console.log('tramitesn_update_v2 loaded');
 						: '<i class="far fa-file" style="font-size:32px;color:#6b7280;"></i>') +
 				'</a>' +
 				'<p style="font-size:10px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + fileName + '</p>' +
-				'<button type="button" class="btn btn-sm btn-danger btn-delete-final-doc mt-1" data-doc-id="' + docId + '" data-file="' + fileName + '">X</button>';
+				(IS_LOCKED ? '' : '<button type="button" class="btn btn-sm btn-danger btn-delete-final-doc mt-1" data-doc-id="' + docId + '" data-file="' + fileName + '">X</button>');
 			container.appendChild(wrapper);
 		}
 
 		function initFinalDocs() {
+			if (IS_LOCKED) return;
 			if (!cfg.urls || !cfg.urls.uploadFinalDocBase || !cfg.urls.deleteFinalDoc) return;
 
 			function setFinalButtonLabel(docId, hasFile) {
@@ -1269,6 +1332,7 @@ console.log('tramitesn_update_v2 loaded');
 			document.addEventListener('click', function (e) {
 				var btnDelete = e.target.closest('.btn-delete-final-doc');
 				if (!btnDelete) return;
+				if (IS_LOCKED) return;
 				var docId = parseInt(btnDelete.getAttribute('data-doc-id') || '0', 10);
 				var fileName = btnDelete.getAttribute('data-file') || '';
 				if (!docId || !fileName) return;
@@ -1297,6 +1361,7 @@ console.log('tramitesn_update_v2 loaded');
 		}
 
 		function initPagoGestorForm() {
+			if (IS_LOCKED) return;
 			var form = document.getElementById('pagoGestorFormCustom');
 			if (!form) return;
 			var msg = document.getElementById('pagoGestorMessage');
@@ -1421,6 +1486,7 @@ console.log('tramitesn_update_v2 loaded');
 		}
 
 		function initServiceCosts() {
+			if (IS_LOCKED) return;
 			var list = document.getElementById('gestor_costos_tipo_servicio');
 			var totalEl = document.getElementById('costo_tramite_total');
 			var totalInput = document.getElementById('costo_tramite');
@@ -1744,6 +1810,7 @@ console.log('tramitesn_update_v2 loaded');
 		}
 
 		function initChangeStatus() {
+			if (IS_LOCKED) return;
 			window.changeStatusTramite = function (tramiteId, statusId) {
 				var id = parseInt(tramiteId || 0, 10);
 				var st = parseInt(statusId || 0, 10);
@@ -1771,6 +1838,7 @@ console.log('tramitesn_update_v2 loaded');
 		}
 
 		function initCancelTramite() {
+			if (IS_LOCKED) return;
 			var btn = document.getElementById('saveCancelBtn');
 			var motivoEl = document.getElementById('motivo');
 			var err = document.getElementById('cancelError');
@@ -1869,7 +1937,7 @@ console.log('tramitesn_update_v2 loaded');
 		}
 
 		var form = document.getElementById('tramiteNuevoForm');
-		if (form) {
+		if (form && !IS_LOCKED) {
 			form.addEventListener('submit', function (e) {
 				e.preventDefault();
 				submitFormAjax();
@@ -1885,6 +1953,8 @@ console.log('tramitesn_update_v2 loaded');
 				console.error('[tramitesn_update_v2] error en ' + name, error);
 			}
 		}
+
+		applyLockedUi();
 
 		safeInit('initWizard', initWizard);
 		safeInit('initDropzoneDerechos', initDropzoneDerechos);
