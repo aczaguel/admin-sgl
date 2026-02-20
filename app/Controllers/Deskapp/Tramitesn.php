@@ -106,16 +106,16 @@ class Tramitesn extends Tramites
 
         $resolvedId = (int) ($tramiteRow['id'] ?? 0);
         if ($resolvedId <= 0) {
-            return redirect()->to('/deskapp/tramitesn/search')->with('error', 'Trámite no encontrado.');
+            return redirect()->to('/deskapp/tramitesn/search')->with('error', 'El trámite no existe.');
         }
 
         $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($resolvedId, $userId);
         if (!$hasTenantAccess) {
             log_unauthorized_access_attempt('tramite_search', $resolvedId);
-            return redirect()->to('/deskapp/tramitesn/search')->with('error', 'No tienes permisos para ver este trámite.');
+            return redirect()->to('/deskapp/tramitesn/search')->with('error', 'El ejecutivo no tiene acceso a ese recurso.');
         }
 
-        return redirect()->to('/deskapp/tramitesn/update/' . $resolvedId);
+        return redirect()->to('/deskapp/tramitesn/update/' . $resolvedId . '?from=search');
     }
 
     public function services($tramiteId)
@@ -1570,6 +1570,12 @@ class Tramitesn extends Tramites
         // ========================================================================
         if (!validate_tramite_access($id)) {
             log_unauthorized_access_attempt('tramite', $id);
+            $from = strtolower((string) $this->request->getGet('from'));
+            if ($from === 'search') {
+                return redirect()->to('/deskapp/tramitesn/search')
+                    ->with('error', 'El ejecutivo no tiene acceso a ese recurso.');
+            }
+
             return redirect()->to('/deskapp/tramitesn/tramite')
                 ->with('error', '⛔ No tienes permiso para editar este trámite');
         }
