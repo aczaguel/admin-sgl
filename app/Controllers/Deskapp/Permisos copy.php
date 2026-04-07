@@ -35,6 +35,8 @@ class Permisos extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+
+            helper('acl_version');
             
             $permissions_crud = $this->_getGroceryCrudEnterprise();
             $permissions_crud->setTable('us_permissions');
@@ -44,6 +46,28 @@ class Permisos extends BaseController
             $permissions_crud->columns(['id', 'permission_name', 'description']);
             $permissions_crud->fields(['permission_name', 'description', 'created_at', 'updated_at']);
             $permissions_crud->unsetDeleteMultiple();
+
+            $permissions_crud->callbackAfterInsert(function ($stateParameters) use ($permissions_crud) {
+                if (function_exists('acl_bump_version')) {
+                    acl_bump_version();
+                }
+                $tableName = $permissions_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $permissions_crud->callbackAfterUpdate(function ($stateParameters) use ($permissions_crud) {
+                if (function_exists('acl_bump_version')) {
+                    acl_bump_version();
+                }
+                $tableName = $permissions_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
+            $permissions_crud->callbackAfterDelete(function ($stateParameters) use ($permissions_crud) {
+                if (function_exists('acl_bump_version')) {
+                    acl_bump_version();
+                }
+                $tableName = $permissions_crud->getTable();
+                return logOperation($stateParameters, $tableName);
+            });
 
             $permissions_output = $permissions_crud->render();
             $final_output = array_merge((array)$permissions_output, $data);

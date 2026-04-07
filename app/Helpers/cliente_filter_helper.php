@@ -56,7 +56,8 @@ if (!function_exists('user_is_admin')) {
                 return in_array('admin', $userRoles) || 
                        in_array('superadmin', $userRoles) ||
                        in_array('Admin', $userRoles) ||
-                       in_array('SuperAdmin', $userRoles);
+                       in_array('SuperAdmin', $userRoles) ||
+                       in_array('Super Admin', $userRoles);
             }
         }
         

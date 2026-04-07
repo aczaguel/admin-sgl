@@ -78,7 +78,7 @@
         }
 
         $.ajax({
-            url: '/deskapp/tramites/getCobroClienteFiles/' + tramite_id,
+            url: '/deskapp/tramitesn/getCobroClienteFiles/' + tramite_id,
             method: 'GET',
             success: function (response) {
                 var currentResponse = JSON.stringify(response);
@@ -107,7 +107,7 @@
 
         var renamedFilesCliente = {};
         var dropzoneCliente = new Dropzone('.dropzone-cliente', {
-            url: '/deskapp/tramites/upload_cobro_cliente/' + tramite_id,
+            url: '/deskapp/tramitesn/upload_cobro_cliente/' + tramite_id,
             autoProcessQueue: false,
             maxFilesize: 10,
             acceptedFiles: '.xml,.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx',
@@ -139,7 +139,7 @@
             }
 
             $.ajax({
-                url: '/deskapp/tramites/delete_cobro_cliente',
+                url: '/deskapp/tramitesn/delete_cobro_cliente',
                 type: 'POST',
                 data: { tramite_id: tramite_id, file: renamedName },
                 success: function (response) {

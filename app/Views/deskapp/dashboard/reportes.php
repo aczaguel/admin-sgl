@@ -29,11 +29,8 @@
                     <div class="col-md-6 col-sm-12 text-right">
                         <?php $cliente_qs = !empty($cliente_id_filtro) ? ('cliente_id=' . (int)$cliente_id_filtro) : ''; ?>
                         <?php
-                            $roles = $session->get('user_roles') ?? [];
-                            if (!is_array($roles)) { $roles = [$roles]; }
-                            $perms = $session->get('user_permissions') ?? [];
-                            if (!is_array($perms)) { $perms = [$perms]; }
-                            $canExport = is_super_admin($roles) || is_admin($roles) || has_permission('menu_dashboard_admin', $perms, $roles);
+                            [$roles, $perms] = session_roles_perms($session);
+                            $canExport = has_permission('menu_dashboard_admin', $perms, $roles);
                         ?>
 
                         <div class="dropdown d-inline-block mr-2">

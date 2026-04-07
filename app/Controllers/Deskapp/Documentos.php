@@ -11,6 +11,8 @@ class Documentos extends BaseController
 {
     private function guardDocumentosAccess()
     {
+        helper(['permissions', 'acl_guard']);
+
         $session = session();
         $userId = $session->get('id');
 
@@ -18,7 +20,7 @@ class Documentos extends BaseController
 
         if (!$userId) {
             if ($this->request->isAJAX() || $isGroceryApi) {
-                return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+                return acl_deny('Sesión expirada', 401, null, true);
             }
             return redirect()->to('/deskapp/auth/login');
         }
@@ -26,9 +28,9 @@ class Documentos extends BaseController
         $perms = $session->get('user_permissions');
         $roles = $session->get('user_roles');
 
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('menu_documentos', $perms, $roles)) {
+        if (!has_permission('menu_documentos', $perms, $roles)) {
             if ($this->request->isAJAX() || $isGroceryApi) {
-                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+                return acl_deny('Acceso denegado', 403, null, true);
             }
             return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para acceder a Documentos.');
         }

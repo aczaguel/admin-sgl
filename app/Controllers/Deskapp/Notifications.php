@@ -12,9 +12,16 @@ class Notifications extends BaseController
 
     public function __construct()
     {
-        helper(['form', 'url', 'permissions']);
+        helper(['form', 'url', 'permissions', 'acl_guard']);
         $this->notificationModel = new NotificationModel();
         $this->session = session();
+    }
+
+    private function isClienteUi(): bool
+    {
+        // No dependemos del rol "Cliente"; usamos un permiso explícito.
+        $perms = normalize_permission_list($this->session->get('user_permissions') ?? []);
+        return in_array('ui_sidebar_cliente', $perms, true) || in_array('menu_tramites_cliente', $perms, true);
     }
 
     private function guardAccess(bool $json = true)
@@ -22,32 +29,14 @@ class Notifications extends BaseController
         $userId = $this->session->get('id');
         if (!$userId) {
             if ($json) {
-                return $this->response->setStatusCode(401)->setJSON([
-                    'success' => false,
-                    'message' => 'Sesión expirada'
-                ]);
+                return acl_deny('Sesión expirada', 401, null, true);
             }
             return redirect()->to('/deskapp/auth/login');
         }
 
-        $perms = $this->session->get('user_permissions');
-        $roles = $this->session->get('user_roles');
-
-        // Clientes pueden ver sus propias notificaciones.
-        if (is_client($roles)) {
-            return null;
-        }
-
-        // Permiso base: permitir a cualquier usuario que pueda ver trámites (en proceso o finalizados)
-        $canRead = has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles);
-        if (!(is_super_admin($roles) || is_admin($roles)) && !$canRead) {
-            if ($json) {
-                return $this->response->setStatusCode(403)->setJSON([
-                    'success' => false,
-                    'message' => 'Acceso denegado'
-                ]);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para ver notificaciones.');
+        [$roles, $perms] = session_roles_perms($this->session);
+        if ($resp = acl_require_permission('menu_notifications', $roles, $perms, 'No tienes permisos para ver notificaciones.', '/deskapp/dashboard', 403, $json)) {
+            return $resp;
         }
 
         return null;
@@ -55,8 +44,7 @@ class Notifications extends BaseController
 
     private function adjustUrlsForUser(array $notifications): array
     {
-        $roles = $this->session->get('user_roles');
-        if (!is_client($roles)) {
+        if (!$this->isClienteUi()) {
             return $notifications;
         }
 
@@ -82,7 +70,7 @@ class Notifications extends BaseController
         $data['username'] = $this->session->get('user_name');
         $userId = $this->session->get('id');
 
-        if (is_client($this->session->get('user_roles'))) {
+        if ($this->isClienteUi()) {
             $this->notificationModel->syncTramiteCreadoForClienteUser((int) $userId);
         }
 
@@ -104,7 +92,7 @@ class Notifications extends BaseController
 
         $userId = $this->session->get('id');
 
-        if (is_client($this->session->get('user_roles'))) {
+        if ($this->isClienteUi()) {
             $this->notificationModel->syncTramiteCreadoForClienteUser((int) $userId);
         }
         
@@ -130,7 +118,7 @@ class Notifications extends BaseController
 
         $userId = $this->session->get('id');
 
-        if (is_client($this->session->get('user_roles'))) {
+        if ($this->isClienteUi()) {
             $this->notificationModel->syncTramiteCreadoForClienteUser((int) $userId);
         }
         $count = $this->notificationModel->countUnread($userId);
@@ -235,7 +223,7 @@ class Notifications extends BaseController
 
         $userId = $this->session->get('id');
 
-        if (is_client($this->session->get('user_roles'))) {
+        if ($this->isClienteUi()) {
             $this->notificationModel->syncTramiteCreadoForClienteUser((int) $userId);
         }
         $offset = $this->request->getGet('offset') ?? 0;

@@ -13,7 +13,7 @@
  -->
 
 <?php
-	helper(['cliente_filter', 'cliente_context']);
+	helper(['cliente_filter', 'cliente_context', 'permissions']);
 
 	$session = $session ?? session();
 	$userId = $session->get('id');
@@ -394,8 +394,13 @@
 	</div>
 	<div class="header-right">
 			<!-- Botones con iconos modernos -->
-			<?php if (has_permission('header_buttons', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+			<?php
+				$canHeaderButtons = has_permission('header_buttons', $session->get('user_permissions'), $session->get('user_roles'));
+				$canSearchTramite = has_permission('search_tramite', $session->get('user_permissions'), $session->get('user_roles'));
+			?>
+			<?php if ($canHeaderButtons): ?>
 				<div class="d-flex align-items-center" style="gap: 8px; margin-right: 15px;">
+					<?= perm_audit_tag('header_buttons', $session) ?>
 					<!-- <a href="/deskapp/tramites/tenencias/" class="btn btn-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(245, 87, 108, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(245, 87, 108, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(245, 87, 108, 0.3)';">
 						<i class="fas fa-car"></i> Tenencias
 					</a> -->
@@ -408,20 +413,30 @@
 					<!-- <a href="/deskapp/tramites/tramite" class="btn btn-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(102, 126, 234, 0.3)';">
 						<i class="fas fa-list-alt"></i> Consolidado
 					</a> -->
-					<!-- Botón Nuevo DESTACADO -->
-					<?php if ($isAdmin || has_permission('read_tramite', $session->get('user_permissions'), $session->get('user_roles')) || has_permission('read_final_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-						<a href="/deskapp/tramitesn/search" class="btn btn-sm" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(79, 172, 254, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(79, 172, 254, 0.3)';">
-							<i class="fas fa-search"></i> Busca un trámite
+					<?php if ($isAdmin || has_permission('create_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+						<a href="/deskapp/tramites/add" class="btn btn-sm" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5); white-space: nowrap; animation: pulse 2s infinite;" onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(255, 107, 107, 0.6)';" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(255, 107, 107, 0.5)';">
+							<i class="fas fa-plus-circle"></i> NUEVO TRÁMITE
 						</a>
+						<?= perm_audit_tag('create_tramite', $session) ?>
 					<?php endif; ?>
-					<a href="/deskapp/tramites/add" class="btn btn-sm" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5); white-space: nowrap; animation: pulse 2s infinite;" onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(255, 107, 107, 0.6)';" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(255, 107, 107, 0.5)';">
-						<i class="fas fa-plus-circle"></i> NUEVO TRÁMITE
+				</div>
+			<?php endif; ?>
+
+			<?php if ($canSearchTramite): ?>
+				<div class="d-flex align-items-center" style="gap: 8px; margin-right: 15px;">
+					<a href="/deskapp/tramitesn/search" class="btn btn-sm" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 11px; font-weight: 600; transition: all 0.3s; box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3); white-space: nowrap;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(79, 172, 254, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(79, 172, 254, 0.3)';">
+						<i class="fas fa-search"></i> Busca un trámite
 					</a>
+					<?= perm_audit_tag('search_tramite', $session) ?>
 				</div>
 			<?php endif; ?>
 		
 		<!-- Botón Debug Toggle - Solo Super Admin -->
-		<?php if (is_array($session->get('user_roles')) && in_array('Super Admin', $session->get('user_roles'))): ?>
+		<?php
+			helper(['permissions']);
+			$canDebugAudit = has_permission('debug_perm_audit_tags', $session->get('user_permissions'), $session->get('user_roles'));
+		?>
+		<?php if ($canDebugAudit): ?>
 			<div class="dropdown" style="margin-right: 15px;">
 				<button id="debugToggleBtn" class="btn btn-sm" style="background: #667eea; color: white; border: none; border-radius: 5px; padding: 8px 12px; font-size: 11px; transition: all 0.3s; white-space: nowrap;" title="Activar/Desactivar modo debug">
 					<i class="fas fa-bug"></i> <span id="debugToggleText">Debug OFF</span>
@@ -431,7 +446,9 @@
 
 		<div class="dashboard-setting user-notification">
 			<!-- Notificaciones -->
-			<?php echo view('deskapp/includes/_notifications_dropdown'); ?>
+			<?php if (has_permission('menu_notifications', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+				<?php echo view('deskapp/includes/_notifications_dropdown'); ?>
+			<?php endif; ?>
 		</div>
 		
 		<div class="user-info-dropdown">
@@ -453,6 +470,18 @@
 						$sessionEmail = $session->get('email') ?? null;
 						$sessionMetaLabel = $sessionUser ? 'Usuario' : ($sessionEmail ? 'Email' : null);
 						$sessionMetaValue = $sessionUser ?? $sessionEmail;
+						$sessionRolesRaw = $session->get('user_roles');
+						$sessionRoles = [];
+						if (is_array($sessionRolesRaw)) {
+							$sessionRoles = $sessionRolesRaw;
+						} elseif (is_string($sessionRolesRaw) && trim($sessionRolesRaw) !== '') {
+							$sessionRoles = preg_split('/\s*,\s*/', $sessionRolesRaw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+						}
+						$sessionRoles = array_values(array_unique(array_filter(array_map(static function ($r) {
+							return is_string($r) ? trim($r) : '';
+						}, $sessionRoles), static function ($r) {
+							return $r !== '';
+						})));
 						if ($fullName === '') {
 							$fullName = $session->get('user_name') ?? ($session->get('username') ?? ($session->get('email') ?? 'Usuario'));
 						}
@@ -465,6 +494,16 @@
 								<div class="sgl-session-name" title="<?= esc($fullName) ?>"><?= esc($fullName) ?></div>
 								<?php if ($sessionMetaLabel && $sessionMetaValue): ?>
 									<div class="sgl-session-meta" title="<?= esc($sessionMetaLabel . ': ' . $sessionMetaValue) ?>"><?= esc($sessionMetaLabel) ?>: <?= esc($sessionMetaValue) ?></div>
+								<?php endif; ?>
+								<?php if (!empty($sessionRoles)): ?>
+									<div class="sgl-session-meta" style="font-size: 11px; opacity: .85;">Roles</div>
+									<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;">
+										<?php foreach ($sessionRoles as $roleName): ?>
+											<span class="badge badge-pill badge-light" style="border:1px solid rgba(0,0,0,.08);font-size:11px;">
+												<?= esc($roleName) ?>
+											</span>
+										<?php endforeach; ?>
+									</div>
 								<?php endif; ?>
 							</div>
 						</div>
@@ -483,6 +522,24 @@
 		</div>
 	</div>
 </div>
+
+<?php if (!empty($canDebugAudit)): ?>
+	<?php
+		// Lista de permisos en sesión (para marcar "pendiente" cuando no estén asignados).
+		$sessionPermsForAudit = normalize_permission_list($session->get('user_permissions') ?? []);
+	?>
+	<div id="perm-audit-panel" class="debug-info-container alert alert-warning" style="display:none;margin:12px 18px 0 18px;">
+		<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+			<div>
+				<strong>Permisos detectados en pantalla</strong>
+				<div id="perm-audit-summary" style="font-size:12px;opacity:.9;margin-top:2px;"></div>
+			</div>
+			<button type="button" class="btn btn-sm btn-outline-dark" onclick="document.getElementById('perm-audit-panel').style.display='none'">Cerrar</button>
+		</div>
+		<hr style="margin:10px 0;" />
+		<div id="perm-audit-items" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+	</div>
+<?php endif; ?>
 
 <script>
 	(function () {
@@ -665,6 +722,21 @@
 <!-- Script para Debug Toggle -->
 <script>
 (function() {
+	const CAN_DEBUG = <?= !empty($canDebugAudit) ? 'true' : 'false' ?>;
+	const USER_PERMS = <?= json_encode(array_values(array_unique(array_filter(array_map('strval', $sessionPermsForAudit ?? []))))) ?>;
+	if (!CAN_DEBUG) {
+		// Si el browser trae debugMode=true de una sesión previa, no permitir que un usuario sin permiso vea debug.
+		try { localStorage.setItem('debugMode', 'false'); } catch (e) {}
+		// Asegurar que no haya divs/tags visibles aunque existan en el DOM.
+		document.addEventListener('DOMContentLoaded', function() {
+			const debugDivs = document.querySelectorAll('.debug-info-container');
+			debugDivs.forEach(div => { div.style.display = 'none'; });
+			const permTags = document.querySelectorAll('.sgl-perm-audit');
+			permTags.forEach(tag => { tag.style.display = 'none'; });
+		});
+		return;
+	}
+
 	// Verificar estado del debug mode en localStorage
 	const debugMode = localStorage.getItem('debugMode') === 'true';
 	
@@ -689,6 +761,68 @@
 		debugDivs.forEach(div => {
 			div.style.display = isDebugOn ? 'block' : 'none';
 		});
+
+		// Mostrar/ocultar etiquetas de permisos (inline)
+		const permTags = document.querySelectorAll('.sgl-perm-audit');
+		permTags.forEach(tag => {
+			tag.style.display = isDebugOn ? 'inline' : 'none';
+		});
+
+		// Render de panel (en debug ON)
+		if (isDebugOn) {
+			updatePermAuditPanel();
+		}
+	}
+
+	function escapeHtml(value) {
+		return String(value)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	function collectPermsFromTags() {
+		const tags = document.querySelectorAll('.sgl-perm-audit[data-perm]');
+		const set = new Set();
+		tags.forEach((tag) => {
+			const p = (tag.getAttribute('data-perm') || '').trim();
+			if (p) set.add(p);
+		});
+		return Array.from(set).sort((a, b) => a.localeCompare(b));
+	}
+
+	function updatePermAuditPanel() {
+		const panel = document.getElementById('perm-audit-panel');
+		if (!panel) return;
+		const summary = document.getElementById('perm-audit-summary');
+		const items = document.getElementById('perm-audit-items');
+		if (!summary || !items) return;
+
+		const perms = collectPermsFromTags();
+		const userPermSet = new Set((USER_PERMS || []).map((p) => String(p)));
+		let pendingCount = 0;
+
+		summary.textContent = perms.length
+			? `Encontrados: ${perms.length}. Pendientes (no están en tu sesión): calculando...`
+			: 'No se detectaron etiquetas de permisos en esta vista.';
+
+		if (!perms.length) {
+			items.innerHTML = '';
+			return;
+		}
+
+		const html = perms.map((perm) => {
+			const isAssigned = userPermSet.has(perm);
+			if (!isAssigned) pendingCount++;
+			const cls = isAssigned ? 'badge badge-pill badge-light' : 'badge badge-pill badge-danger';
+			const title = isAssigned ? 'En sesión' : 'Pendiente (no está en user_permissions en sesión)';
+			return `<span class="${cls}" title="${escapeHtml(title)}" style="border:1px solid rgba(0,0,0,.08);font-size:11px;">${escapeHtml(perm)}</span>`;
+		}).join('');
+
+		items.innerHTML = html;
+		summary.textContent = `Encontrados: ${perms.length}. Pendientes (no están en tu sesión): ${pendingCount}.`;
 	}
 	
 	// Evento click en el botón

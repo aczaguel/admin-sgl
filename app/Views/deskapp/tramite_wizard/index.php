@@ -688,9 +688,25 @@
                 document.getElementById('wizardForm').addEventListener('submit', (e) => this.submitForm(e));
 
                 // Dependientes
-                document.getElementById('entidad_id').addEventListener('change', (e) => this.loadMunicipios(e.target.value));
-                document.getElementById('cli_directo_id').addEventListener('change', (e) => this.loadEjecutivos(e.target.value));
-                document.getElementById('empresa_gestora_id').addEventListener('change', (e) => this.loadGestores(e.target.value));
+                const onDependentChange = (selector, callback) => {
+                    const element = document.getElementById(selector);
+                    if (!element) {
+                        return;
+                    }
+
+                    if (window.jQuery) {
+                        window.jQuery(element).off('change.sglDependent').on('change.sglDependent', function () {
+                            callback(this.value || '');
+                        });
+                        return;
+                    }
+
+                    element.addEventListener('change', (e) => callback(e.target.value || ''));
+                };
+
+                onDependentChange('entidad_id', (value) => this.loadMunicipios(value));
+                onDependentChange('cli_directo_id', (value) => this.loadEjecutivos(value));
+                onDependentChange('empresa_gestora_id', (value) => this.loadGestores(value));
 
                 // File upload
                 const fileUploadArea = document.getElementById('fileUploadArea');
@@ -877,6 +893,9 @@
                 const municipioSelect = document.getElementById('ent_municipio_id');
                 municipioSelect.disabled = true;
                 municipioSelect.innerHTML = '<option value="">Cargando...</option>';
+                if (window.SglSelectEnhancer) {
+                    window.SglSelectEnhancer.refresh(municipioSelect);
+                }
 
                 try {
                     const formData = new FormData();
@@ -894,8 +913,14 @@
                         municipioSelect.innerHTML += `<option value="${mun.id}">${mun.municipio}</option>`;
                     });
                     municipioSelect.disabled = false;
+                    if (window.SglSelectEnhancer) {
+                        window.SglSelectEnhancer.refresh(municipioSelect);
+                    }
                 } catch (error) {
                     municipioSelect.innerHTML = '<option value="">Error al cargar</option>';
+                    if (window.SglSelectEnhancer) {
+                        window.SglSelectEnhancer.refresh(municipioSelect);
+                    }
                 }
             },
 
@@ -903,6 +928,9 @@
                 const ejecutivoSelect = document.getElementById('cli_directo_ejecutivo_id');
                 ejecutivoSelect.disabled = true;
                 ejecutivoSelect.innerHTML = '<option value="">Cargando...</option>';
+                if (window.SglSelectEnhancer) {
+                    window.SglSelectEnhancer.refresh(ejecutivoSelect);
+                }
 
                 try {
                     const formData = new FormData();
@@ -920,8 +948,14 @@
                         ejecutivoSelect.innerHTML += `<option value="${ej.id}">${ej.nombre}</option>`;
                     });
                     ejecutivoSelect.disabled = false;
+                    if (window.SglSelectEnhancer) {
+                        window.SglSelectEnhancer.refresh(ejecutivoSelect);
+                    }
                 } catch (error) {
                     ejecutivoSelect.innerHTML = '<option value="">Error al cargar</option>';
+                    if (window.SglSelectEnhancer) {
+                        window.SglSelectEnhancer.refresh(ejecutivoSelect);
+                    }
                 }
             },
 
@@ -929,6 +963,9 @@
                 const gestorSelect = document.getElementById('gestor_id');
                 gestorSelect.disabled = true;
                 gestorSelect.innerHTML = '<option value="">Cargando...</option>';
+                if (window.SglSelectEnhancer) {
+                    window.SglSelectEnhancer.refresh(gestorSelect);
+                }
 
                 try {
                     const formData = new FormData();
@@ -946,8 +983,14 @@
                         gestorSelect.innerHTML += `<option value="${ges.id}">${ges.nombre}</option>`;
                     });
                     gestorSelect.disabled = false;
+                    if (window.SglSelectEnhancer) {
+                        window.SglSelectEnhancer.refresh(gestorSelect);
+                    }
                 } catch (error) {
                     gestorSelect.innerHTML = '<option value="">Error al cargar</option>';
+                    if (window.SglSelectEnhancer) {
+                        window.SglSelectEnhancer.refresh(gestorSelect);
+                    }
                 }
             },
 

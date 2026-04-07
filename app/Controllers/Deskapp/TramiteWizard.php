@@ -27,7 +27,7 @@ class TramiteWizard extends BaseController
     
     public function __construct()
     {
-        helper(['form', 'url', 'cliente_filter', 'cliente_context']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context', 'permissions', 'acl_guard']);
         $this->db = \Config\Database::connect();
     }
 
@@ -43,16 +43,9 @@ class TramiteWizard extends BaseController
             return redirect()->to('/deskapp/auth/login');
         }
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
-            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para acceder al wizard.');
+        [$roles, $perms] = session_roles_perms($session);
+        if (!has_permission('create_tramite', $perms, $roles)) {
+            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para crear trámites.');
         }
 
         $requested = $this->request->getGet('cliente_id');
@@ -85,15 +78,8 @@ class TramiteWizard extends BaseController
             return redirect()->to('/deskapp/auth/login');
         }
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
+        [$roles, $perms] = session_roles_perms($session);
+        if (!(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
             return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para ver trámites.');
         }
 
@@ -116,6 +102,11 @@ class TramiteWizard extends BaseController
         $builder->join('ges_gestor g', 'g.id = t.gestor_id', 'left');
         $builder->join('tra_status ts', 'ts.id = t.tra_status_id', 'left');
         $builder->join('users u', 'u.id = t.user_id', 'left');
+
+        // Restricción opcional por permisos: ver únicamente lo que el usuario generó.
+        if (has_permission('wizard_list_only_own', $perms, $roles)) {
+            $builder->where('t.user_id', (int) $userId);
+        }
 
         // Filtro multi-tenancy + cliente activo
         if (!empty($clienteIdFiltro)) {
@@ -152,25 +143,13 @@ class TramiteWizard extends BaseController
         $userId = $session->get('id');
 
         if (!$userId) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Sesión expirada'
-            ]);
+            // Mantener mensaje; forzar JSON para fetch.
+            return acl_deny('Sesión expirada', 200, null, true);
         }
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('editar_tramite', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON([
-                'success' => false,
-                'message' => 'Acceso denegado'
-            ]);
+        [$roles, $perms] = session_roles_perms($session);
+        if (!can_create_tramite($roles, $perms)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
 
         // Validar datos del trámite
@@ -203,10 +182,8 @@ class TramiteWizard extends BaseController
 
             // Validar multi-tenancy
             if (!$this->validarAccesoCliente($userId, $datosTramite['cli_directo_id'])) {
-                return $this->response->setJSON([
-                    'success' => false,
-                    'message' => 'No tiene permisos para crear trámites para este cliente'
-                ]);
+                // Mantener status 200 como antes; forzar JSON.
+                return acl_deny('No tiene permisos para crear trámites para este cliente', 200, null, true);
             }
 
             // Iniciar transacción
@@ -260,25 +237,13 @@ class TramiteWizard extends BaseController
         $userId = $session->get('id');
 
         if (!$userId) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Sesión expirada'
-            ]);
+            // Mantener mensaje; forzar JSON para fetch.
+            return acl_deny('Sesión expirada', 200, null, true);
         }
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('editar_tramite', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON([
-                'success' => false,
-                'message' => 'Acceso denegado'
-            ]);
+        [$roles, $perms] = session_roles_perms($session);
+        if (!can_create_tramite($roles, $perms)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
 
         try {
@@ -328,25 +293,13 @@ class TramiteWizard extends BaseController
         $userId = $session->get('id');
 
         if (!$userId) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Sesión expirada'
-            ]);
+            // Mantener mensaje; forzar JSON para fetch.
+            return acl_deny('Sesión expirada', 200, null, true);
         }
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON([
-                'success' => false,
-                'message' => 'Acceso denegado'
-            ]);
+        [$roles, $perms] = session_roles_perms($session);
+        if (!(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
 
         $builder = $this->db->table('tramite_borrador');
@@ -379,17 +332,10 @@ class TramiteWizard extends BaseController
             return redirect()->to('/deskapp/auth/login');
         }
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
         $canExport = has_permission('export_tramite', $perms, $roles) || has_permission('export_final_tramite', $perms, $roles);
-        if (!(is_super_admin($roles) || is_admin($roles)) && !$canExport) {
-            return $this->response->setStatusCode(403)->setBody('Acceso denegado');
+        if (!$canExport) {
+            return acl_deny_text('Acceso denegado', 403);
         }
 
         // Obtener filtros
@@ -416,8 +362,7 @@ class TramiteWizard extends BaseController
         $builder->join('cli_directo_ejecutivo cde', 'cde.id = t.cli_directo_ejecutivo_id', 'left');
         $builder->join('ges_empresa_gestora eg', 'eg.id = t.empresa_gestora_id', 'left');
         $builder->join('ges_gestor g', 'g.id = t.gestor_id', 'left');
-            if (!user_has_global_cliente_access($userId)) {
-        $builder->join('users u', 'u.id = t.user_id', 'left');
+		$builder->join('users u', 'u.id = t.user_id', 'left');
 
         $builder->where('t.created_at >=', $fechaInicio);
         $builder->where('t.created_at <=', $fechaFin . ' 23:59:59');
@@ -520,22 +465,17 @@ class TramiteWizard extends BaseController
      */
     public function get_municipios()
     {
+        helper(['acl_guard', 'permissions']);
         $session = session();
-        $userId = $session->get('id');
-        if (!$userId) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+        if ($resp = acl_require_login(null, 'Sesión expirada', true)) {
+            return $resp;
         }
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        $userId = (int) ($session->get('id') ?? 0);
+
+        [$roles, $perms] = session_roles_perms($session);
+        if (!has_permission('read_tramite', $perms, $roles)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
 
         $entidadId = $this->request->getPost('entidad_id');
@@ -561,22 +501,17 @@ class TramiteWizard extends BaseController
      */
     public function get_ejecutivos_cliente()
     {
+        helper(['acl_guard', 'permissions']);
         $session = session();
-        $userId = $session->get('id');
-        if (!$userId) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+        if ($resp = acl_require_login(null, 'Sesión expirada', true)) {
+            return $resp;
         }
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        $userId = (int) ($session->get('id') ?? 0);
+
+        [$roles, $perms] = session_roles_perms($session);
+        if (!has_permission('read_tramite', $perms, $roles)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
 
         $clienteId = $this->request->getPost('cliente_id');
@@ -594,7 +529,7 @@ class TramiteWizard extends BaseController
                 ->getRowArray();
 
             if (empty($row['cliente_id']) || !has_access_to_cliente((int) $row['cliente_id'], $userId)) {
-                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+                return acl_deny('Acceso denegado', 403, null, true);
             }
         }
         
@@ -616,22 +551,17 @@ class TramiteWizard extends BaseController
      */
     public function get_gestores()
     {
+        helper(['acl_guard', 'permissions']);
         $session = session();
-        $userId = $session->get('id');
-        if (!$userId) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+        if ($resp = acl_require_login(null, 'Sesión expirada', true)) {
+            return $resp;
         }
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_tramite', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        $userId = (int) ($session->get('id') ?? 0);
+
+        [$roles, $perms] = session_roles_perms($session);
+        if (!has_permission('read_tramite', $perms, $roles)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
 
         $empresaId = $this->request->getPost('empresa_id');

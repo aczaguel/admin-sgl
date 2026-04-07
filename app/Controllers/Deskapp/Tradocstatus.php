@@ -11,7 +11,7 @@ class Tradocstatus extends BaseController
 {
     private function guardDocStatusAccess()
     {
-        helper(['permissions']);
+        helper(['permissions', 'acl_guard']);
 
         $session = session();
         $userId = $session->get('id');
@@ -19,22 +19,15 @@ class Tradocstatus extends BaseController
 
         if (!$userId) {
             if ($this->request->isAJAX() || $isGroceryApi) {
-                return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+                return acl_deny('Sesión expirada', 401, null, true);
             }
             return redirect()->to('/deskapp/auth/login');
         }
 
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('menu_documentos', $perms, $roles)) {
+        [$roles, $perms] = session_roles_perms($session);
+        if (!has_permission('menu_documentos', $perms, $roles)) {
             if ($this->request->isAJAX() || $isGroceryApi) {
-                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+                return acl_deny('Acceso denegado', 403, null, true);
             }
             return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para acceder a Documentos.');
         }

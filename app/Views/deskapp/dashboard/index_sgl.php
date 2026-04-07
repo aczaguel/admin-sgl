@@ -272,7 +272,11 @@
 		<!-- Filtros -->
 		<div class="filter-card">
 			<!-- DEBUG INFO - Solo visible con toggle activo -->
-			<?php if (is_array($session->get('user_roles')) && in_array('Super Admin', $session->get('user_roles'))): ?>
+			<?php
+				helper(['permissions']);
+				$canDebugAudit = has_permission('debug_perm_audit_tags', $session->get('user_permissions'), $session->get('user_roles'));
+			?>
+			<?php if (!empty($canDebugAudit)): ?>
 				<div class="debug-info-container" style="display: none;">
 					<div class="alert" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
 						<h5 class="text-white mb-3"><i class="fas fa-bug"></i> <strong>Debug Info - Dashboard</strong></h5>

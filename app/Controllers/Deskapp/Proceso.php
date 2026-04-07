@@ -29,7 +29,7 @@ class Proceso extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url', 'cliente_filter', 'cliente_context', 'permissions']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context', 'permissions', 'acl_guard']);
 
         $session = session();
         $userId = $session->get('id');
@@ -79,14 +79,11 @@ class Proceso extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        // Catálogos: restringir a Admin/Super Admin
-        if (!(is_super_admin($roles) || is_admin($roles))) {
-            return $this->response->setStatusCode(403)->setBody('Acceso denegado');
+        // Catálogos: restringir por permisos (no por rol)
+        if (!has_permission('listar_settings', $perms, $roles)) {
+            return acl_deny_text('Acceso denegado', 403);
         }
     
         $crud = $this->_getGroceryCrudEnterprise();
@@ -127,14 +124,11 @@ class Proceso extends BaseController
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        // Catálogos: restringir a Admin/Super Admin
-        if (!(is_super_admin($roles) || is_admin($roles))) {
-            return $this->response->setStatusCode(403)->setBody('Acceso denegado');
+        // Catálogos: restringir por permisos (no por rol)
+        if (!has_permission('listar_settings', $perms, $roles)) {
+            return acl_deny_text('Acceso denegado', 403);
         }
     
         $crud = $this->_getGroceryCrudEnterprise();
@@ -152,6 +146,7 @@ class Proceso extends BaseController
 
     public function documentostatus()
     {
+        helper(['acl_guard']);
         $self = $this;
         $request = \Config\Services::request();
         $uri = $request->getUri();
@@ -164,21 +159,14 @@ class Proceso extends BaseController
         $data['username'] = $session->get('user_name');
 
         $myid = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if (!has_permission('read_tramite', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 
         // Multi-tenancy: el trámite debe pertenecer a los clientes del usuario
-        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+        if ($tramite_id <= 0 || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
             throw new \Exception('Trámite no autorizado');
         }
     
@@ -317,14 +305,7 @@ class Proceso extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             # fin del manejo de session
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
@@ -517,7 +498,9 @@ class Proceso extends BaseController
             $tramite_salida = $tramite_crud->render();
             
             $salida_total = array_merge((array)$tramite_salida, $data);
-            $salida_total['insert_button_url'] = '/public/deskapp/tramites/add';
+            helper(['permissions']);
+            [$rolesAcl, $permsAcl] = session_roles_perms($session ?? session());
+            $salida_total['insert_button_url'] = can_create_tramite($rolesAcl, $permsAcl) ? '/public/deskapp/tramites/add' : '';
 
             echo $this->_example_output($salida_total);
 
@@ -534,17 +517,19 @@ class Proceso extends BaseController
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
+            [$roles, $perms] = session_roles_perms($session);
+
+            if (!$myid) {
+                return redirect()->to('/deskapp/auth/login');
             }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
+
+            if (!has_permission('menu_proceso_final', $perms, $roles) || !has_permission('read_final_tramite', $perms, $roles)) {
+                return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
             }
+
             $crud = $this->_getGroceryCrudEnterprise();
             $crud->where([
-                'tra_status_id' => 23                                                                                                                                                                                                                                                                                                                                  
+                'tra_status_id' => 20,
             ]);
             
             $crud->unsetAdd();
@@ -674,6 +659,7 @@ class Proceso extends BaseController
 
     public function final_documentostatus()
     {
+        helper(['acl_guard']);
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -682,16 +668,9 @@ class Proceso extends BaseController
         $self = $this;
 
         $myid = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        if (!has_permission('read_final_tramite', $perms, $roles)) {
+        if (!has_permission('menu_proceso_final', $perms, $roles) || !has_permission('read_final_tramite', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 
@@ -699,7 +678,7 @@ class Proceso extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+        if ($tramite_id <= 0 || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
             throw new \Exception('Trámite no autorizado');
         }
         $tramiteModel = new TramitesModel($db2);
@@ -839,6 +818,7 @@ class Proceso extends BaseController
     }
 
     public function final_evidencias(){
+        helper(['acl_guard']);
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -847,25 +827,20 @@ class Proceso extends BaseController
         $request = \Config\Services::request();
 
         $myid = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        if (!has_permission('read_final_tramite', $perms, $roles)) {
+        if (!has_permission('menu_proceso_final', $perms, $roles) || !has_permission('read_final_tramite', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+        if ($tramite_id <= 0 || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
             throw new \Exception('Trámite no autorizado');
         }
+
+
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
@@ -1028,6 +1003,7 @@ class Proceso extends BaseController
     }
 
     public function final_pago_derechos(){
+        helper(['acl_guard']);
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -1036,25 +1012,20 @@ class Proceso extends BaseController
         $request = \Config\Services::request();
 
         $myid = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        if (!has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_pago_derechos', $perms, $roles)) {
+        if (!has_permission('menu_proceso_final', $perms, $roles) || !has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_pago_derechos', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+        if ($tramite_id <= 0 || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
             throw new \Exception('Trámite no autorizado');
         }
+
+
     
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());
@@ -1191,6 +1162,7 @@ class Proceso extends BaseController
     }
 
     public function final_evidencias_finales(){
+        helper(['acl_guard']);
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -1200,20 +1172,13 @@ class Proceso extends BaseController
         $tramite_id = (int) $uri->getSegment(4);
 
         $myid = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        if (!has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_final_costos', $perms, $roles)) {
+        if (!has_permission('menu_proceso_final', $perms, $roles) || !has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_final_costos', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 
-        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+        if ($tramite_id <= 0 || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
             throw new \Exception('Trámite no autorizado');
         }
     
@@ -1335,6 +1300,7 @@ class Proceso extends BaseController
     }
 
     public function concluido($id) {
+        helper(['acl_guard']);
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -1343,20 +1309,13 @@ class Proceso extends BaseController
         $builder = $db->table('tramite');
         $db2 = $this->_getDbData();
         // Retrieve the record
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if (!has_permission('read_tramite', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 
-        if ((int) $id <= 0 || !validate_tramite_access((int) $id, (int) $myid)) {
+        if ((int) $id <= 0 || !acl_has_tramite_tenant_access((int) $id, (int) $myid, $roles)) {
             throw new \Exception('Trámite no autorizado');
         }
 
@@ -1488,6 +1447,7 @@ class Proceso extends BaseController
 
     public function concluido_documentostatus()
     {
+        helper(['acl_guard']);
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -1496,14 +1456,7 @@ class Proceso extends BaseController
         $self = $this;
 
         $myid = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if (!has_permission('read_tramite', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
@@ -1513,7 +1466,7 @@ class Proceso extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+        if ($tramite_id <= 0 || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
             throw new \Exception('Trámite no autorizado');
         }
         $tramiteModel = new TramitesModel($db2);
@@ -1653,6 +1606,7 @@ class Proceso extends BaseController
     }
 
     public function concluido_evidencias(){
+        helper(['acl_guard']);
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -1661,14 +1615,7 @@ class Proceso extends BaseController
         $request = \Config\Services::request();
 
         $myid = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if (!has_permission('read_tramite', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
@@ -1677,7 +1624,7 @@ class Proceso extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+        if ($tramite_id <= 0 || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
             throw new \Exception('Trámite no autorizado');
         }
         $tramiteModel = new TramitesModel($db2);
@@ -1842,6 +1789,7 @@ class Proceso extends BaseController
     }
 
     public function concluido_pago_derechos(){
+        helper(['acl_guard']);
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -1850,14 +1798,7 @@ class Proceso extends BaseController
         $request = \Config\Services::request();
 
         $myid = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if (!has_permission('read_tramite', $perms, $roles) || !has_permission('section_pago_derechos', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
@@ -1866,7 +1807,7 @@ class Proceso extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+        if ($tramite_id <= 0 || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
             throw new \Exception('Trámite no autorizado');
         }
     
@@ -2005,6 +1946,7 @@ class Proceso extends BaseController
     }
 
     public function concluido_evidencias_finales(){
+        helper(['acl_guard']);
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
@@ -2014,20 +1956,13 @@ class Proceso extends BaseController
         $tramite_id = (int) $uri->getSegment(4);
 
         $myid = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if (!has_permission('read_tramite', $perms, $roles) || !has_permission('section_final_costos', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 
-        if ($tramite_id <= 0 || !validate_tramite_access($tramite_id, $myid)) {
+        if ($tramite_id <= 0 || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
             throw new \Exception('Trámite no autorizado');
         }
     

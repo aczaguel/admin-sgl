@@ -19,6 +19,7 @@
 	    {
 	        $session = session();
 	        $model = new UserModel();
+	        helper('acl_version');
 	        $username = $this->request->getPost('username');
 	        $password = $this->request->getPost('password');
 	        $data = $model->where('username', $username)->where('status', 1)->first();
@@ -42,6 +43,10 @@
 					// var_dump($session->get('user_permissions'));
 					$user_roles = $model->getUserRoles($data['id']);
 					$session->set('user_roles', $user_roles);
+					$aclVer = function_exists('acl_get_version') ? acl_get_version() : null;
+					if ($aclVer !== null) {
+						$session->set('acl_version', (int)$aclVer);
+					}
 					$user_client = $model->isUserClient($data['id']);
 					if($user_client["is_client"]){
 						$session->set('user_client', $user_client);

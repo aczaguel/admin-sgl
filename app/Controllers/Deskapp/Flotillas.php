@@ -31,22 +31,12 @@ class Flotillas extends BaseController
     }
     private function guardImportAccess(bool $json = true)
     {
-        helper(['permissions']);
+        helper(['permissions', 'acl_guard']);
         $session = session();
-        $roles = $session->get('user_roles') ?? [];
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-        if (!(is_super_admin($roles) || is_admin($roles) || has_permission('menu_tramites', $perms, $roles))) {
+        [$roles, $perms] = session_roles_perms($session);
+        if (!has_permission('menu_tramites', $perms, $roles)) {
             if ($json) {
-                return $this->response->setStatusCode(403)->setJSON([
-                    'success' => false,
-                    'message' => 'Acceso denegado.'
-                ]);
+                return acl_deny('Acceso denegado.', 403, null, true);
             }
             return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
         }
@@ -450,5 +440,24 @@ class Flotillas extends BaseController
             $row[$col] = $data[$idx] ?? '';
         }
         return $row;
+    }
+
+    private function encontrarDiferencias($datos1, $datos2)
+    {
+        $diferencias = [];
+        foreach ($datos1 as $clave => $valor) {
+            if (array_key_exists($clave, $datos2) && $datos2[$clave] !== $valor) {
+                $diferencias[$clave] = [
+                    'valor_original' => $valor,
+                    'valor_nuevo' => $datos2[$clave]
+                ];
+            } else {
+                $diferencias[$clave] = [
+                    'valor_original' => $valor,
+                    'valor_nuevo' => ''
+                ];
+            }
+        }
+        return $diferencias;
     }
 }

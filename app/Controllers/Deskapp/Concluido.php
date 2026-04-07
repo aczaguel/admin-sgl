@@ -56,6 +56,8 @@ class Concluido extends BaseController
     public function final()
     {
         try {
+            helper(['permissions']);
+
             # Manejo de session de action
             $self = $this;
             $session = session();
@@ -68,16 +70,9 @@ class Concluido extends BaseController
                 return redirect()->to('/deskapp/auth/login');
             }
 
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $canRead = has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles);
-            if (!(is_super_admin($roles) || is_admin($roles)) && !$canRead) {
+            if (!$canRead) {
                 return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
             }
 
@@ -93,11 +88,11 @@ class Concluido extends BaseController
             $tramite_crud->unsetDelete();
             $tramite_crud->unsetDeleteMultiple();
 
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('export_tramite', $perms, $roles)){
+            if (!has_permission('export_tramite', $perms, $roles)){
                 $tramite_crud->unsetExport();
             }
 
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('print_tramite', $perms, $roles)){
+            if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
             }
 
@@ -107,7 +102,7 @@ class Concluido extends BaseController
                 }, false);
             }
 
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('clone_tramite', $perms, $roles)){
+            if (!has_permission('clone_tramite', $perms, $roles)){
                 $tramite_crud->unsetClone();
             }
 
@@ -221,7 +216,9 @@ class Concluido extends BaseController
             $tramite_salida = $tramite_crud->render();
             
             $salida_total = array_merge((array)$tramite_salida, $data);
-            $salida_total['insert_button_url'] = '/public/deskapp/tramites/add';
+            helper(['permissions']);
+            [$rolesAcl, $permsAcl] = session_roles_perms($session ?? session());
+            $salida_total['insert_button_url'] = can_create_tramite($rolesAcl, $permsAcl) ? '/public/deskapp/tramites/add' : '';
 
             echo $this->_example_output($salida_total);
 
@@ -278,9 +275,6 @@ class Concluido extends BaseController
         // Fields to be displayed in the add form
 
         $puede_modificar = ["disabled"=>"disabled"];
-        // if(is_admin($session->get('user_roles'))){
-        //     $puede_modificar = [];
-        // }
         $form->fields = [
             "folio" => array_merge(["label" => "Folio", "type" => "hidden", "value" => $tramite['folio']], $puede_modificar),
             "contrato" => array_merge(["label" => "Contrato", "type" => "text", "value" => $tramite['contrato'], "required" => "required"], $puede_modificar),
@@ -404,36 +398,28 @@ class Concluido extends BaseController
     }
 
     public function update_gestor_costos() {
-        helper(['permissions', 'cliente_filter']);
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
 
         $session = session();
         $myid = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        if ($myid <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
         }
 
         $id = (int) $this->request->uri->getSegment(4);  // Obtener el ID del trámite desde la URL
 
         if ($id <= 0) {
-            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+            return acl_deny('ID de trámite inválido.', 400, null, true);
         }
 
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('editar_pago_gestor', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if (!has_permission('editar_pago_gestor', $perms, $roles)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($id, $myid);
-        if (!$hasTenantAccess) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
     
         // Validación de los campos
@@ -531,31 +517,30 @@ class Concluido extends BaseController
     }
 
     public function getEjecutivosByClienteId($clienteDirectoId) {
-        helper(['permissions', 'cliente_filter']);
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
 
         $session = session();
         $userId = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+            if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+                return $resp;
+            }
         }
 
         $clienteDirectoId = (int) $clienteDirectoId;
         if ($clienteDirectoId <= 0) {
-            return $this->response->setStatusCode(400)->setJSON([]);
+            return acl_json_empty(400);
         }
 
-        // Validación de acceso: si no es admin, el cli_directo debe pertenecer a un cliente asignado
-        if (!(is_super_admin($roles) || is_admin($roles))) {
+        // Validación de acceso: si no es Super Admin, el cli_directo debe pertenecer a un cliente asignado
+        if (!has_permission('bypass_cliente_filter', $perms, $roles)) {
             $db = \Config\Database::connect();
             $cliRow = $db->table('cli_directo')->select('cliente_id')->where('id', $clienteDirectoId)->get(1)->getRowArray();
             $clienteId = (int) ($cliRow['cliente_id'] ?? 0);
             if ($clienteId <= 0 || !has_access_to_cliente($clienteId, $userId)) {
-                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+                return acl_deny('Acceso denegado.', 403, null, true);
             }
         }
 
@@ -567,34 +552,27 @@ class Concluido extends BaseController
 
     public function getPagoGestorFiles($id)
     {
-        helper(['permissions', 'cliente_filter']);
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
 
         $session = session();
-        $userId = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
+        [$roles, $perms] = session_roles_perms($session);
+
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
         }
 
-        if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
-        }
+        $userId = (int) ($session->get('id') ?? 0);
 
         $id = (int) $id;
         if ($id <= 0) {
-            return $this->response->setStatusCode(400)->setJSON([]);
+            return acl_json_empty(400);
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($id, $userId);
-        if (!$hasTenantAccess) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if ($resp = acl_require_tramite_tenant_access($id, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_gestor', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if ($resp = acl_require_permission('section_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
         $db = \Config\Database::connect(); // Conexión a la base de datos
@@ -659,33 +637,28 @@ class Concluido extends BaseController
     public function getPagoDerechosFiles($id)
     {
         helper(['permissions', 'cliente_filter']);
+        helper(['acl_guard']);
 
         $session = session();
         $userId = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+            if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+                return $resp;
+            }
         }
 
         $id = (int) $id;
         if ($id <= 0) {
-            return $this->response->setStatusCode(400)->setJSON([]);
+            return acl_json_empty(400);
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($id, $userId);
-        if (!$hasTenantAccess) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if ($resp = acl_require_tramite_tenant_access($id, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_derechos', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if ($resp = acl_require_permission('section_pago_derechos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
         $db = \Config\Database::connect(); // Conexión a la base de datos
@@ -751,33 +724,28 @@ class Concluido extends BaseController
     public function getCobroClienteFiles($id)
     {
         helper(['permissions', 'cliente_filter']);
+        helper(['acl_guard']);
 
         $session = session();
         $userId = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+            if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+                return $resp;
+            }
         }
 
         $id = (int) $id;
         if ($id <= 0) {
-            return $this->response->setStatusCode(400)->setJSON([]);
+            return acl_json_empty(400);
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($id, $userId);
-        if (!$hasTenantAccess) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if ($resp = acl_require_tramite_tenant_access($id, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_final_costos', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if ($resp = acl_require_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
         $db = \Config\Database::connect(); // Conexión a la base de datos
@@ -841,26 +809,21 @@ class Concluido extends BaseController
     }
 
     public function getDependentData($type, $parentId) {
-        helper(['permissions', 'cliente_filter']);
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
 
         $session = session();
         $userId = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+            if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+                return $resp;
+            }
         }
 
         $canRead = has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles);
-        if (!(is_super_admin($roles) || is_admin($roles)) && !$canRead) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if (!$canRead) {
+            return acl_deny('Acceso denegado.', 403, null, true);
         }
 
         $db = \Config\Database::connect();
@@ -869,7 +832,7 @@ class Concluido extends BaseController
             case 'gestor':
                 $builder = $db->table('ges_gestor');
                 if (!is_numeric($parentId)) {
-                    return $this->response->setStatusCode(400)->setJSON([]);
+                    return acl_json_empty(400);
                 }
                 $builder->where('empresa_gestora_id', (int) $parentId);
                 $result = $builder->get()->getResultArray();
@@ -877,15 +840,15 @@ class Concluido extends BaseController
             case 'ejecutivo':
                 $parentId = (int) $parentId;
                 if ($parentId <= 0) {
-                    return $this->response->setStatusCode(400)->setJSON([]);
+                    return acl_json_empty(400);
                 }
 
-                // Validación de acceso: si no es admin, el cli_directo debe pertenecer a un cliente asignado
-                if (!(is_super_admin($roles) || is_admin($roles))) {
+                // Validación de acceso: si no es Super Admin, el cli_directo debe pertenecer a un cliente asignado
+                if (!has_permission('bypass_cliente_filter', $perms, $roles)) {
                     $cliRow = $db->table('cli_directo')->select('cliente_id')->where('id', $parentId)->get(1)->getRowArray();
                     $clienteId = (int) ($cliRow['cliente_id'] ?? 0);
                     if ($clienteId <= 0 || !has_access_to_cliente($clienteId, $userId)) {
-                        return $this->response->setStatusCode(403)->setJSON([]);
+                        return acl_json_empty(403);
                     }
                 }
 
@@ -907,30 +870,25 @@ class Concluido extends BaseController
 
     public function getGestoresByEmpresaId($empresaGestoraId)
     {
-        helper(['permissions']);
+        helper(['permissions', 'acl_guard']);
 
         $session = session();
         $userId = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+            if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+                return $resp;
+            }
         }
 
         $canRead = has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles);
-        if (!(is_super_admin($roles) || is_admin($roles)) && !$canRead) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if (!$canRead) {
+            return acl_deny('Acceso denegado.', 403, null, true);
         }
 
         if (!is_numeric($empresaGestoraId) || (int) $empresaGestoraId <= 0) {
-            return $this->response->setStatusCode(400)->setJSON([]);
+            return acl_json_empty(400);
         }
 
         try {
@@ -1180,6 +1138,7 @@ class Concluido extends BaseController
     public function single_documentostatus()
     {
         helper(['permissions', 'cliente_filter']);
+        helper(['acl_guard']);
 
         $session = session();
         $data['session'] = \Config\Services::session();
@@ -1192,42 +1151,24 @@ class Concluido extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        $userId = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-
         $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
-        if ($userId <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
-            }
-            return redirect()->to('/deskapp/auth/login');
-        }
-        if ($tramite_id <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'ID de trámite inválido.');
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', $isApi)) {
+            return $resp;
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-        if (!$hasTenantAccess) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = session_roles_perms($session);
+
+        if ($tramite_id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, '/deskapp/dashboard', $isApi);
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+
+        if ($resp = acl_require_tramite_tenant_access($tramite_id, $userId, $roles, 'Acceso denegado.', '/deskapp/dashboard', 403, $isApi)) {
+            return $resp;
+        }
+
+        if (!(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/dashboard', $isApi);
         }
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
@@ -1235,6 +1176,14 @@ class Concluido extends BaseController
 
         $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
         $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+
+        // Importante: estas quick actions pueden ser independientes de `editar_tramite`.
+        $canQuickAction = has_permission('quick_action_documentos', $perms, $roles);
+        $canAdd = $canQuickAction && has_permission('quick_action_documentos_add', $perms, $roles);
+        $canEdit = $canQuickAction && has_permission('quick_action_documentos_edit', $perms, $roles);
+        $canDelete = $canQuickAction && has_permission('quick_action_documentos_delete', $perms, $roles);
+
+        // En concluidos/cancelados, el bloqueo es por estatus.
         $isLocked = in_array($statusId, [20, 21], true);
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
@@ -1242,6 +1191,16 @@ class Concluido extends BaseController
                 return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
             }
             return redirect()->to('/deskapp/concluido/single_documentostatus/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
+
+        if (in_array($gcState, ['add', 'insert', 'ajax_insert'], true) && !$canAdd) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_documentostatus/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['edit', 'update', 'ajax_update'], true) && !$canEdit) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_documentostatus/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['delete', 'ajax_delete'], true) && !$canDelete) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_documentostatus/' . $tramite_id, $isApi);
         }
 
         // Verificar si se encontró un folio
@@ -1256,14 +1215,15 @@ class Concluido extends BaseController
         $crud->setSubject('Documento', 'Documentos');
         $crud->defaultOrdering('tra_doc_status.created_at', 'desc');
 
-        if ($isLocked) {
+        if ($isLocked || !$canAdd) {
             $crud->unsetAdd();
+        }
+        if ($isLocked || !$canEdit) {
             $crud->unsetEdit();
+        }
+        if ($isLocked || !$canDelete) {
             $crud->unsetDelete();
         }
-        $crud->unsetAdd();
-        $crud->unsetDelete();
-        $crud->unsetEdit();
         $crud->fields([
             "tramite_id", "folio_tramite", "documento_id", "file", "comentario", "status_documento_id"
         ]); 
@@ -1532,6 +1492,7 @@ class Concluido extends BaseController
 
     public function single_evidencias(){
         helper(['permissions', 'cliente_filter']);
+        helper(['acl_guard']);
 
         $session = session();
         $data['session'] = \Config\Services::session();
@@ -1543,46 +1504,57 @@ class Concluido extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        $userId = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-
         $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
-        if ($userId <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
-            }
-            return redirect()->to('/deskapp/auth/login');
-        }
-        if ($tramite_id <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'ID de trámite inválido.');
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', $isApi)) {
+            return $resp;
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-        if (!$hasTenantAccess) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = session_roles_perms($session);
+
+        if ($tramite_id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, '/deskapp/dashboard', $isApi);
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+
+        if ($resp = acl_require_tramite_tenant_access($tramite_id, $userId, $roles, 'Acceso denegado.', '/deskapp/dashboard', 403, $isApi)) {
+            return $resp;
+        }
+
+        if (!(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/dashboard', $isApi);
         }
         $tramiteModel = new TramitesModel($db2);
         $folio_tramite = $tramiteModel->getFolioById($tramite_id);
         $session->set('folio_tramite_id',  $folio_tramite);
+
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+
+        // Importante: Bitácora puede ser independiente de `editar_tramite`.
+        $canQuickAction = has_permission('quick_action_bitacora', $perms, $roles);
+        $canAdd = $canQuickAction && has_permission('quick_action_bitacora_add', $perms, $roles);
+        $canEdit = $canQuickAction && has_permission('quick_action_bitacora_edit', $perms, $roles);
+        $canDelete = $canQuickAction && has_permission('quick_action_bitacora_delete', $perms, $roles);
+
+        // En concluidos/cancelados, el bloqueo es por estatus.
+        $isLocked = in_array($statusId, [20, 21], true);
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
+            }
+            return redirect()->to('/deskapp/concluido/single_evidencias/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
+
+        if (in_array($gcState, ['add', 'insert', 'ajax_insert'], true) && !$canAdd) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_evidencias/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['edit', 'update', 'ajax_update'], true) && !$canEdit) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_evidencias/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['delete', 'ajax_delete'], true) && !$canDelete) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_evidencias/' . $tramite_id, $isApi);
+        }
 
         // Verificar si se encontró un folio
         if (!$folio_tramite) {
@@ -1598,9 +1570,16 @@ class Concluido extends BaseController
         $crud->setTable('tra_evidencias');
         $crud->setSubject('Bitacora', 'Bitacora');
         $crud->defaultOrdering('tra_evidencias.created_at', 'desc');
-        $crud->unsetAdd();
-        $crud->unsetDelete();
-        $crud->unsetEdit();
+
+        if ($isLocked || !$canAdd) {
+            $crud->unsetAdd();
+        }
+        if ($isLocked || !$canEdit) {
+            $crud->unsetEdit();
+        }
+        if ($isLocked || !$canDelete) {
+            $crud->unsetDelete();
+        }
         $crud->fields([
             "folio_tramite", "tramite_id", "comentario", "user_id"
         ]); 
@@ -1765,6 +1744,7 @@ class Concluido extends BaseController
 
     public function single_pago_derechos(){
         helper(['permissions', 'cliente_filter']);
+        helper(['acl_guard']);
 
         $session = session();
         $data['session'] = \Config\Services::session();
@@ -1776,42 +1756,61 @@ class Concluido extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        $userId = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-
         $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
-        if ($userId <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
-            }
-            return redirect()->to('/deskapp/auth/login');
-        }
-        if ($tramite_id <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'ID de trámite inválido.');
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', $isApi)) {
+            return $resp;
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-        if (!$hasTenantAccess) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = session_roles_perms($session);
+
+        if ($tramite_id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, '/deskapp/dashboard', $isApi);
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_derechos', $perms, $roles)) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+
+        if ($resp = acl_require_tramite_tenant_access($tramite_id, $userId, $roles, 'Acceso denegado.', '/deskapp/dashboard', 403, $isApi)) {
+            return $resp;
+        }
+
+        if (!(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/dashboard', $isApi);
+        }
+
+        $tramiteModel = new TramitesModel($db2);
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+
+        $canWrite = has_permission('write_tramite_pago_derechos', $perms, $roles);
+
+        $canQuickAction = has_permission('quick_action_pagos_derecho', $perms, $roles);
+        $canAdd = $canWrite
+            && $canQuickAction
+            && has_permission('quick_action_pagos_derecho_add', $perms, $roles)
+            && has_permission('can_upload_dropzone_pago_derechos', $perms, $roles);
+        $canEdit = $canWrite && $canQuickAction && has_permission('quick_action_pagos_derecho_edit', $perms, $roles);
+        $canDelete = $canWrite
+            && $canQuickAction
+            && has_permission('quick_action_pagos_derecho_delete', $perms, $roles)
+            && has_permission('can_upload_dropzone_pago_derechos', $perms, $roles);
+
+        $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
+        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
             }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+            return redirect()->to('/deskapp/concluido/single_pago_derechos/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
+
+        if (in_array($gcState, ['add', 'insert', 'ajax_insert'], true) && !$canAdd) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_pago_derechos/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['edit', 'update', 'ajax_update'], true) && !$canEdit) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_pago_derechos/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['delete', 'ajax_delete'], true) && !$canDelete) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_pago_derechos/' . $tramite_id, $isApi);
         }
     
         // Paso 1: Definir directorios
@@ -1871,9 +1870,6 @@ class Concluido extends BaseController
 
         // $tramite_crud->setTheme('bootstrap-v5');
         $crud->unsetDeleteMultiple();
-        $crud->unsetAdd();
-        $crud->unsetDelete();
-        $crud->unsetEdit();
         $crud->unsetExport();
         $crud->unsetPrint();
         // $crud->unsetFilters();
@@ -1881,6 +1877,16 @@ class Concluido extends BaseController
         $crud->setTable('tra_pago_derechos');
         $crud->setSubject('Pago', 'Pagos de Derechos');
         $crud->defaultOrdering('tra_pago_derechos.created_at', 'desc');
+
+        if ($isLocked || !$canAdd) {
+            $crud->unsetAdd();
+        }
+        if ($isLocked || !$canEdit) {
+            $crud->unsetEdit();
+        }
+        if ($isLocked || !$canDelete) {
+            $crud->unsetDelete();
+        }
 
         $crud->fields([
             "file", "costo", "comentario", "tramite_id", "user_id"
@@ -1899,25 +1905,13 @@ class Concluido extends BaseController
         $crud->callbackBeforeInsert(function ($stateParameters) use ($tramite_id) {
             helper(['permissions', 'cliente_filter']);
             $session = session();
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $userId = (int) ($session->get('id') ?? 0);
             if ($userId <= 0) {
-                throw new \RuntimeException('Sesión expirada.');
+                acl_throw_if_not_logged_in($session, 'Sesión expirada.', \RuntimeException::class);
             }
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-            if (!$hasTenantAccess) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_derechos', $perms, $roles)) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_no_tramite_tenant_access((int) $tramite_id, (int) $userId, $roles, 'Acceso denegado.', \RuntimeException::class);
+            acl_throw_if_no_permission('section_pago_derechos', $roles, $perms, 'Acceso denegado.', \RuntimeException::class);
             $stateParameters->data['tramite_id'] = $tramite_id;
             $stateParameters->data['user_id'] = $userId;
             return $stateParameters;
@@ -1926,34 +1920,20 @@ class Concluido extends BaseController
         $crud->callbackBeforeUpdate(function ($stateParameters) use ($tramite_id) {
             helper(['permissions', 'cliente_filter']);
             $session = session();
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $userId = (int) ($session->get('id') ?? 0);
             if ($userId <= 0) {
-                throw new \RuntimeException('Sesión expirada.');
+                acl_throw_if_not_logged_in($session, 'Sesión expirada.', \RuntimeException::class);
             }
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-            if (!$hasTenantAccess) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_derechos', $perms, $roles)) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_no_tramite_tenant_access((int) $tramite_id, (int) $userId, $roles, 'Acceso denegado.', \RuntimeException::class);
+            acl_throw_if_no_permission('section_pago_derechos', $roles, $perms, 'Acceso denegado.', \RuntimeException::class);
 
             $primaryKeyValue = (int) ($stateParameters->primaryKeyValue ?? 0);
             if ($primaryKeyValue > 0) {
                 $db = \Config\Database::connect();
                 $row = $db->table('tra_pago_derechos')->select('tramite_id')->where('id', $primaryKeyValue)->get()->getRowArray();
                 $rowTramiteId = (int) ($row['tramite_id'] ?? 0);
-                if ($rowTramiteId !== (int) $tramite_id) {
-                    throw new \RuntimeException('Acceso denegado.');
-                }
+                acl_throw_if_tramite_id_mismatch((int) $rowTramiteId, (int) $tramite_id, 'Acceso denegado.', \RuntimeException::class);
             }
 
             $stateParameters->data['tramite_id'] = $tramite_id;
@@ -2075,25 +2055,13 @@ class Concluido extends BaseController
         $crud->callbackBeforeDelete(function ($stateParameters) use ($tramite_id) {
             helper(['permissions', 'cliente_filter']);
             $session = session();
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $userId = (int) ($session->get('id') ?? 0);
             if ($userId <= 0) {
-                throw new \RuntimeException('Sesión expirada.');
+                acl_throw_if_not_logged_in($session, 'Sesión expirada.', \RuntimeException::class);
             }
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-            if (!$hasTenantAccess) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_derechos', $perms, $roles)) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_no_tramite_tenant_access((int) $tramite_id, (int) $userId, $roles, 'Acceso denegado.', \RuntimeException::class);
+            acl_throw_if_no_permission('section_pago_derechos', $roles, $perms, 'Acceso denegado.', \RuntimeException::class);
 
             $primaryKeyValue = (int) ($stateParameters->primaryKeyValue ?? 0);
             if ($primaryKeyValue <= 0) {
@@ -2103,12 +2071,10 @@ class Concluido extends BaseController
             $db = \Config\Database::connect();
             $row = $db->table('tra_pago_derechos')->select('file, tramite_id')->where('id', $primaryKeyValue)->get()->getRowArray();
             $rowTramiteId = (int) ($row['tramite_id'] ?? 0);
-            if ($rowTramiteId !== (int) $tramite_id) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_tramite_id_mismatch((int) $rowTramiteId, (int) $tramite_id, 'Acceso denegado.', \RuntimeException::class);
 
-            // Borrado físico de archivo: solo Admin / Super Admin
-            if (!(is_super_admin($roles) || is_admin($roles))) {
+            // Borrado físico de archivo: solo con permiso de gestión de uploads
+            if (!has_permission('can_upload_dropzone_pago_derechos', $perms, $roles)) {
                 return $stateParameters;
             }
 
@@ -2162,6 +2128,7 @@ class Concluido extends BaseController
 
     public function single_pago_gestor(){
         helper(['permissions', 'cliente_filter']);
+        helper(['acl_guard']);
 
         $session = session();
         $data['session'] = \Config\Services::session();
@@ -2173,42 +2140,65 @@ class Concluido extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        $userId = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-
         $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
-        if ($userId <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
-            }
-            return redirect()->to('/deskapp/auth/login');
-        }
-        if ($tramite_id <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'ID de trámite inválido.');
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', $isApi)) {
+            return $resp;
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-        if (!$hasTenantAccess) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = session_roles_perms($session);
+
+        if ($tramite_id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, '/deskapp/dashboard', $isApi);
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_gestor', $perms, $roles)) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+
+        if ($resp = acl_require_tramite_tenant_access($tramite_id, $userId, $roles, 'Acceso denegado.', '/deskapp/dashboard', 403, $isApi)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('section_pago_gestor', $roles, $perms, 'Acceso denegado.', '/deskapp/dashboard', 403, $isApi)) {
+            return $resp;
+        }
+
+        $tramiteModel = new TramitesModel($db2);
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
+        $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+
+        $canWrite = has_permission('section_pago_gestor', $perms, $roles)
+            && has_permission('editar_pago_gestor', $perms, $roles)
+            && puede_editar_modulo($roles, $statusId, 'upload_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4);
+
+        $canQuickAction = has_permission('quick_action_pago_gestor', $perms, $roles);
+        $canAdd = $canWrite
+            && $canQuickAction
+            && has_permission('quick_action_pago_gestor_add', $perms, $roles)
+            && has_permission('can_upload_dropzone_pago_gestor', $perms, $roles);
+        $canEdit = $canWrite && $canQuickAction && has_permission('quick_action_pago_gestor_edit', $perms, $roles);
+        $canDelete = $canWrite
+            && $canQuickAction
+            && has_permission('quick_action_pago_gestor_delete', $perms, $roles)
+            && has_permission('can_upload_dropzone_pago_gestor', $perms, $roles);
+
+        $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
+        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
             }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+            return redirect()->to('/deskapp/concluido/single_pago_gestor/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
+
+        if (in_array($gcState, ['add', 'insert', 'ajax_insert'], true) && !$canAdd) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_pago_gestor/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['edit', 'update', 'ajax_update'], true) && !$canEdit) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_pago_gestor/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['delete', 'ajax_delete'], true) && !$canDelete) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_pago_gestor/' . $tramite_id, $isApi);
         }
     
         // Paso 1: Definir directorios
@@ -2266,15 +2256,22 @@ class Concluido extends BaseController
         $crud->unsetRead();
     
         $crud->unsetDeleteMultiple();
-        $crud->unsetAdd();
-        $crud->unsetDelete();
-        $crud->unsetEdit();
         $crud->unsetExport();
         $crud->unsetPrint();
         $crud->unsetClone();
         $crud->setTable('tra_pago_gestor');
         $crud->setSubject('Pago', 'Pagos de Gestor');
         $crud->defaultOrdering('tra_pago_gestor.created_at', 'desc');
+
+        if ($isLocked || !$canAdd) {
+            $crud->unsetAdd();
+        }
+        if ($isLocked || !$canEdit) {
+            $crud->unsetEdit();
+        }
+        if ($isLocked || !$canDelete) {
+            $crud->unsetDelete();
+        }
     
         $crud->fields([
             "file", "costo", "comentario", "tramite_id", "user_id"
@@ -2293,25 +2290,13 @@ class Concluido extends BaseController
         $crud->callbackBeforeInsert(function ($stateParameters) use ($tramite_id) {
             helper(['permissions', 'cliente_filter']);
             $session = session();
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $userId = (int) ($session->get('id') ?? 0);
             if ($userId <= 0) {
-                throw new \RuntimeException('Sesión expirada.');
+                acl_throw_if_not_logged_in($session, 'Sesión expirada.', \RuntimeException::class);
             }
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-            if (!$hasTenantAccess) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_gestor', $perms, $roles)) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_no_tramite_tenant_access((int) $tramite_id, (int) $userId, $roles, 'Acceso denegado.', \RuntimeException::class);
+            acl_throw_if_no_permission('section_pago_gestor', $roles, $perms, 'Acceso denegado.', \RuntimeException::class);
             $stateParameters->data['tramite_id'] = $tramite_id;
             $stateParameters->data['user_id'] = $userId;
             return $stateParameters;
@@ -2320,34 +2305,20 @@ class Concluido extends BaseController
         $crud->callbackBeforeUpdate(function ($stateParameters) use ($tramite_id) {
             helper(['permissions', 'cliente_filter']);
             $session = session();
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $userId = (int) ($session->get('id') ?? 0);
             if ($userId <= 0) {
-                throw new \RuntimeException('Sesión expirada.');
+                acl_throw_if_not_logged_in($session, 'Sesión expirada.', \RuntimeException::class);
             }
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-            if (!$hasTenantAccess) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_gestor', $perms, $roles)) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_no_tramite_tenant_access((int) $tramite_id, (int) $userId, $roles, 'Acceso denegado.', \RuntimeException::class);
+            acl_throw_if_no_permission('section_pago_gestor', $roles, $perms, 'Acceso denegado.', \RuntimeException::class);
 
             $primaryKeyValue = (int) ($stateParameters->primaryKeyValue ?? 0);
             if ($primaryKeyValue > 0) {
                 $db = \Config\Database::connect();
                 $row = $db->table('tra_pago_gestor')->select('tramite_id')->where('id', $primaryKeyValue)->get()->getRowArray();
                 $rowTramiteId = (int) ($row['tramite_id'] ?? 0);
-                if ($rowTramiteId !== (int) $tramite_id) {
-                    throw new \RuntimeException('Acceso denegado.');
-                }
+                acl_throw_if_tramite_id_mismatch((int) $rowTramiteId, (int) $tramite_id, 'Acceso denegado.', \RuntimeException::class);
             }
 
             $stateParameters->data['tramite_id'] = $tramite_id;
@@ -2411,25 +2382,13 @@ class Concluido extends BaseController
         $crud->callbackBeforeDelete(function ($stateParameters) use ($tramite_id) {
             helper(['permissions', 'cliente_filter']);
             $session = session();
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $userId = (int) ($session->get('id') ?? 0);
             if ($userId <= 0) {
-                throw new \RuntimeException('Sesión expirada.');
+                acl_throw_if_not_logged_in($session, 'Sesión expirada.', \RuntimeException::class);
             }
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-            if (!$hasTenantAccess) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_pago_gestor', $perms, $roles)) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_no_tramite_tenant_access((int) $tramite_id, (int) $userId, $roles, 'Acceso denegado.', \RuntimeException::class);
+            acl_throw_if_no_permission('section_pago_gestor', $roles, $perms, 'Acceso denegado.', \RuntimeException::class);
 
             $primaryKeyValue = (int) ($stateParameters->primaryKeyValue ?? 0);
             if ($primaryKeyValue <= 0) {
@@ -2439,12 +2398,10 @@ class Concluido extends BaseController
             $db = \Config\Database::connect();
             $row = $db->table('tra_pago_gestor')->select('file, tramite_id')->where('id', $primaryKeyValue)->get()->getRowArray();
             $rowTramiteId = (int) ($row['tramite_id'] ?? 0);
-            if ($rowTramiteId !== (int) $tramite_id) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_tramite_id_mismatch((int) $rowTramiteId, (int) $tramite_id, 'Acceso denegado.', \RuntimeException::class);
 
-            // Borrado físico de archivo: solo Admin / Super Admin
-            if (!(is_super_admin($roles) || is_admin($roles))) {
+            // Borrado físico de archivo: solo con permiso de gestión de uploads
+            if (!has_permission('can_upload_dropzone_pago_gestor', $perms, $roles)) {
                 return $stateParameters;
             }
 
@@ -2471,6 +2428,7 @@ class Concluido extends BaseController
     public function single_cobro_cliente()
     {
         helper(['permissions', 'cliente_filter']);
+        helper(['acl_guard']);
 
         $session = session();
         $data['session'] = \Config\Services::session();
@@ -2482,42 +2440,64 @@ class Concluido extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        $userId = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-
         $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
-        if ($userId <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
-            }
-            return redirect()->to('/deskapp/auth/login');
-        }
-        if ($tramite_id <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'ID de trámite inválido.');
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', $isApi)) {
+            return $resp;
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-        if (!$hasTenantAccess) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = session_roles_perms($session);
+
+        if ($tramite_id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, '/deskapp/dashboard', $isApi);
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_final_costos', $perms, $roles)) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+
+        if ($resp = acl_require_tramite_tenant_access($tramite_id, $userId, $roles, 'Acceso denegado.', '/deskapp/dashboard', 403, $isApi)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', '/deskapp/dashboard', 403, $isApi)) {
+            return $resp;
+        }
+
+        $tramiteModel = new TramitesModel($db2);
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
+        $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+
+        $canWrite = has_permission('section_final_costos', $perms, $roles)
+            && puede_editar_modulo($roles, $statusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5);
+
+        $canQuickAction = has_permission('quick_action_cobros_cliente', $perms, $roles);
+        $canAdd = $canWrite
+            && $canQuickAction
+            && has_permission('quick_action_cobros_cliente_add', $perms, $roles)
+            && has_permission('can_upload_dropzone_cobro_cliente', $perms, $roles);
+        $canEdit = $canWrite && $canQuickAction && has_permission('quick_action_cobros_cliente_edit', $perms, $roles);
+        $canDelete = $canWrite
+            && $canQuickAction
+            && has_permission('quick_action_cobros_cliente_delete', $perms, $roles)
+            && has_permission('can_upload_dropzone_cobro_cliente', $perms, $roles);
+
+        $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
+        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
             }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+            return redirect()->to('/deskapp/concluido/single_cobro_cliente/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
+
+        if (in_array($gcState, ['add', 'insert', 'ajax_insert'], true) && !$canAdd) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_cobro_cliente/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['edit', 'update', 'ajax_update'], true) && !$canEdit) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_cobro_cliente/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['delete', 'ajax_delete'], true) && !$canDelete) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_cobro_cliente/' . $tramite_id, $isApi);
         }
 
         // Paso 1: Definir directorios
@@ -2574,15 +2554,22 @@ class Concluido extends BaseController
         $crud->setCsrfTokenValue(csrf_hash());
         $crud->unsetRead();
         $crud->unsetDeleteMultiple();
-        $crud->unsetAdd();
-        $crud->unsetDelete();
-        $crud->unsetEdit();
         $crud->unsetExport();
         $crud->unsetPrint();
         $crud->unsetClone();
         $crud->setTable('tra_cobro_cliente');
         $crud->setSubject('Cobro', 'Cobros a Cliente');
         $crud->defaultOrdering('tra_cobro_cliente.created_at', 'desc');
+
+        if ($isLocked || !$canAdd) {
+            $crud->unsetAdd();
+        }
+        if ($isLocked || !$canEdit) {
+            $crud->unsetEdit();
+        }
+        if ($isLocked || !$canDelete) {
+            $crud->unsetDelete();
+        }
 
         $crud->fields([
             "file", "costo", "comentario", "tramite_id", "user_id"
@@ -2601,25 +2588,13 @@ class Concluido extends BaseController
         $crud->callbackBeforeInsert(function ($stateParameters) use ($tramite_id) {
             helper(['permissions', 'cliente_filter']);
             $session = session();
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $userId = (int) ($session->get('id') ?? 0);
             if ($userId <= 0) {
-                throw new \RuntimeException('Sesión expirada.');
+                acl_throw_if_not_logged_in($session, 'Sesión expirada.', \RuntimeException::class);
             }
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-            if (!$hasTenantAccess) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_final_costos', $perms, $roles)) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_no_tramite_tenant_access((int) $tramite_id, (int) $userId, $roles, 'Acceso denegado.', \RuntimeException::class);
+            acl_throw_if_no_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', \RuntimeException::class);
             $stateParameters->data['tramite_id'] = $tramite_id;
             $stateParameters->data['user_id'] = $userId;
             return $stateParameters;
@@ -2628,34 +2603,20 @@ class Concluido extends BaseController
         $crud->callbackBeforeUpdate(function ($stateParameters) use ($tramite_id) {
             helper(['permissions', 'cliente_filter']);
             $session = session();
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $userId = (int) ($session->get('id') ?? 0);
             if ($userId <= 0) {
-                throw new \RuntimeException('Sesión expirada.');
+                acl_throw_if_not_logged_in($session, 'Sesión expirada.', \RuntimeException::class);
             }
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-            if (!$hasTenantAccess) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_final_costos', $perms, $roles)) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_no_tramite_tenant_access((int) $tramite_id, (int) $userId, $roles, 'Acceso denegado.', \RuntimeException::class);
+            acl_throw_if_no_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', \RuntimeException::class);
 
             $primaryKeyValue = (int) ($stateParameters->primaryKeyValue ?? 0);
             if ($primaryKeyValue > 0) {
                 $db = \Config\Database::connect();
                 $row = $db->table('tra_cobro_cliente')->select('tramite_id')->where('id', $primaryKeyValue)->get()->getRowArray();
                 $rowTramiteId = (int) ($row['tramite_id'] ?? 0);
-                if ($rowTramiteId !== (int) $tramite_id) {
-                    throw new \RuntimeException('Acceso denegado.');
-                }
+                acl_throw_if_tramite_id_mismatch((int) $rowTramiteId, (int) $tramite_id, 'Acceso denegado.', \RuntimeException::class);
             }
 
             $stateParameters->data['tramite_id'] = $tramite_id;
@@ -2719,25 +2680,13 @@ class Concluido extends BaseController
         $crud->callbackBeforeDelete(function ($stateParameters) use ($tramite_id) {
             helper(['permissions', 'cliente_filter']);
             $session = session();
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $userId = (int) ($session->get('id') ?? 0);
             if ($userId <= 0) {
-                throw new \RuntimeException('Sesión expirada.');
+                acl_throw_if_not_logged_in($session, 'Sesión expirada.', \RuntimeException::class);
             }
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-            if (!$hasTenantAccess) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_final_costos', $perms, $roles)) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_no_tramite_tenant_access((int) $tramite_id, (int) $userId, $roles, 'Acceso denegado.', \RuntimeException::class);
+            acl_throw_if_no_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', \RuntimeException::class);
 
             $primaryKeyValue = (int) ($stateParameters->primaryKeyValue ?? 0);
             if ($primaryKeyValue <= 0) {
@@ -2747,12 +2696,10 @@ class Concluido extends BaseController
             $db = \Config\Database::connect();
             $row = $db->table('tra_cobro_cliente')->select('file, tramite_id')->where('id', $primaryKeyValue)->get()->getRowArray();
             $rowTramiteId = (int) ($row['tramite_id'] ?? 0);
-            if ($rowTramiteId !== (int) $tramite_id) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_tramite_id_mismatch((int) $rowTramiteId, (int) $tramite_id, 'Acceso denegado.', \RuntimeException::class);
 
-            // Borrado físico de archivo: solo Admin / Super Admin
-            if (!(is_super_admin($roles) || is_admin($roles))) {
+            // Borrado físico de archivo: solo con permiso de gestión de uploads
+            if (!has_permission('can_upload_dropzone_cobro_cliente', $perms, $roles)) {
                 return $stateParameters;
             }
 
@@ -2794,6 +2741,7 @@ class Concluido extends BaseController
     }
     public function single_evidencias_finales(){
         helper(['permissions', 'cliente_filter']);
+        helper(['acl_guard']);
 
         $session = session();
         $data['session'] = \Config\Services::session();
@@ -2803,42 +2751,58 @@ class Concluido extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        $userId = (int) ($session->get('id') ?? 0);
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-
         $isApi = ($request->isAJAX() || $request->getGet('gc_state') !== null);
-        if ($userId <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Sesión expirada.']);
-            }
-            return redirect()->to('/deskapp/auth/login');
-        }
-        if ($tramite_id <= 0) {
-            if ($isApi) {
-                return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'ID de trámite inválido.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'ID de trámite inválido.');
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', $isApi)) {
+            return $resp;
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-        if (!$hasTenantAccess) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
-            }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = session_roles_perms($session);
+
+        if ($tramite_id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, '/deskapp/dashboard', $isApi);
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
-            if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['status' => 'error', 'message' => 'Acceso denegado.']);
+
+        if ($resp = acl_require_tramite_tenant_access($tramite_id, $userId, $roles, 'Acceso denegado.', '/deskapp/dashboard', 403, $isApi)) {
+            return $resp;
+        }
+
+        if (!(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/dashboard', $isApi);
+        }
+
+        $tramiteModel = new TramitesModel($this->_getDbData());
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
+        $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+
+        $canWrite = has_permission('section_final_costos', $perms, $roles)
+            && puede_editar_modulo($roles, $statusId, 'evidencias_finales_gestor', $reembolsoStatusId, $cobroStatusId, 4);
+
+        $canQuickAction = has_permission('quick_action_evidencias_finales', $perms, $roles);
+        $canAdd = $canWrite && $canQuickAction && has_permission('quick_action_evidencias_finales_add', $perms, $roles);
+        $canEdit = $canWrite && $canQuickAction && has_permission('quick_action_evidencias_finales_edit', $perms, $roles);
+        $canDelete = $canWrite && $canQuickAction && has_permission('quick_action_evidencias_finales_delete', $perms, $roles);
+
+        $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
+        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($request->isAJAX()) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'El trámite está Concluido/Cancelado y es de solo lectura.']);
             }
-            return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
+            return redirect()->to('/deskapp/concluido/single_evidencias_finales/' . $tramite_id)->with('error', 'El trámite está Concluido/Cancelado y es de solo lectura.');
+        }
+
+        if (in_array($gcState, ['add', 'insert', 'ajax_insert'], true) && !$canAdd) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_evidencias_finales/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['edit', 'update', 'ajax_update'], true) && !$canEdit) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_evidencias_finales/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['delete', 'ajax_delete'], true) && !$canDelete) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/concluido/single_evidencias_finales/' . $tramite_id, $isApi);
         }
     
         $crud = $this->_getGroceryCrudEnterprise();
@@ -2847,9 +2811,16 @@ class Concluido extends BaseController
 
         $crud->setTable('tra_evidencias_finales');
         $crud->setSubject('Evidencia Final', 'Evidencias Finales');
-        $crud->unsetAdd();
-        $crud->unsetDelete();
-        $crud->unsetEdit();
+
+        if ($isLocked || !$canAdd) {
+            $crud->unsetAdd();
+        }
+        if ($isLocked || !$canEdit) {
+            $crud->unsetEdit();
+        }
+        if ($isLocked || !$canDelete) {
+            $crud->unsetDelete();
+        }
         $crud->where([
             'tramite_id' => $tramite_id
         ]);   
@@ -2857,25 +2828,13 @@ class Concluido extends BaseController
         $crud->callbackBeforeInsert(function ($stateParameters) use ($tramite_id) {
             helper(['permissions', 'cliente_filter']);
             $session = session();
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $userId = (int) ($session->get('id') ?? 0);
             if ($userId <= 0) {
-                throw new \RuntimeException('Sesión expirada.');
+                acl_throw_if_not_logged_in($session, 'Sesión expirada.', \RuntimeException::class);
             }
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-            if (!$hasTenantAccess) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
-            if (!(is_super_admin($roles) || is_admin($roles)) && !(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_no_tramite_tenant_access((int) $tramite_id, (int) $userId, $roles, 'Acceso denegado.', \RuntimeException::class);
+            acl_throw_if_no_any_permission(['read_tramite', 'read_final_tramite'], $roles, $perms, 'Acceso denegado.', \RuntimeException::class);
             $stateParameters->data['tramite_id'] = $tramite_id;
             $stateParameters->data['user_id'] = $userId;
             return $stateParameters;
@@ -2884,34 +2843,20 @@ class Concluido extends BaseController
         $crud->callbackBeforeUpdate(function ($stateParameters) use ($tramite_id) {
             helper(['permissions', 'cliente_filter']);
             $session = session();
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($session);
             $userId = (int) ($session->get('id') ?? 0);
             if ($userId <= 0) {
-                throw new \RuntimeException('Sesión expirada.');
+                acl_throw_if_not_logged_in($session, 'Sesión expirada.', \RuntimeException::class);
             }
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramite_id, $userId);
-            if (!$hasTenantAccess) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
-            if (!(is_super_admin($roles) || is_admin($roles)) && !(has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles))) {
-                throw new \RuntimeException('Acceso denegado.');
-            }
+            acl_throw_if_no_tramite_tenant_access((int) $tramite_id, (int) $userId, $roles, 'Acceso denegado.', \RuntimeException::class);
+            acl_throw_if_no_any_permission(['read_tramite', 'read_final_tramite'], $roles, $perms, 'Acceso denegado.', \RuntimeException::class);
 
             $primaryKeyValue = (int) ($stateParameters->primaryKeyValue ?? 0);
             if ($primaryKeyValue > 0) {
                 $db = \Config\Database::connect();
                 $row = $db->table('tra_evidencias_finales')->select('tramite_id')->where('id', $primaryKeyValue)->get()->getRowArray();
                 $rowTramiteId = (int) ($row['tramite_id'] ?? 0);
-                if ($rowTramiteId !== (int) $tramite_id) {
-                    throw new \RuntimeException('Acceso denegado.');
-                }
+                acl_throw_if_tramite_id_mismatch((int) $rowTramiteId, (int) $tramite_id, 'Acceso denegado.', \RuntimeException::class);
             }
 
             $stateParameters->data['tramite_id'] = $tramite_id;
@@ -3038,20 +2983,16 @@ class Concluido extends BaseController
 
     public function autorizar(){
         helper(['permissions', 'cliente_filter']);
+        helper(['acl_guard']);
 
         $session = session();
         $userId = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+            if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+                return $resp;
+            }
         }
 
         $tramiteId = (int) $this->request->getPost('tramite_id');
@@ -3082,13 +3023,12 @@ class Concluido extends BaseController
                     break;
             }
 
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission($requiredPermission, $perms, $roles)) {
-                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            if (!has_permission($requiredPermission, $perms, $roles)) {
+                return acl_deny('Acceso denegado.', 403, null, true);
             }
 
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-            if (!$hasTenantAccess) {
-                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
             }
 
             // Actualizar el estatus del trámite
@@ -3114,20 +3054,16 @@ class Concluido extends BaseController
 
     public function change_status(){
         helper(['permissions', 'cliente_filter']);
+        helper(['acl_guard']);
 
         $session = session();
         $userId = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+            if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+                return $resp;
+            }
         }
 
         $tramiteId = (int) $this->request->getPost('tramite_id');
@@ -3158,13 +3094,12 @@ class Concluido extends BaseController
                     break;
             }
 
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission($requiredPermission, $perms, $roles)) {
-                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            if (!has_permission($requiredPermission, $perms, $roles)) {
+                return acl_deny('Acceso denegado.', 403, null, true);
             }
 
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-            if (!$hasTenantAccess) {
-                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
             }
 
             // Actualizar el estatus del trámite
@@ -3202,20 +3137,16 @@ class Concluido extends BaseController
 
     public function cancelar_tramite(){
         helper(['permissions', 'cliente_filter']);
+        helper(['acl_guard']);
 
         $session = session();
         $userId = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
         if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
+            if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+                return $resp;
+            }
         }
 
         $tramiteId = (int) $this->request->getPost('tramite_id');
@@ -3245,13 +3176,12 @@ class Concluido extends BaseController
                     break;
             }
 
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission($requiredPermission, $perms, $roles)) {
-                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            if (!has_permission($requiredPermission, $perms, $roles)) {
+                return acl_deny('Acceso denegado.', 403, null, true);
             }
 
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-            if (!$hasTenantAccess) {
-                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
             }
 
             // Actualizar el estatus del trámite

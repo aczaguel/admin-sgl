@@ -1,5 +1,48 @@
 <?php
 
+/**
+ * Roles y permisos (referencia rápida)
+ *
+ * Este proyecto usa 2 fuentes:
+ * - Roles (session key: user_roles)
+ * - Permisos (session key: user_permissions)
+ *
+ * Helpers clave:
+ * - can_create_tramite($roles, $perms): alta de trámites.
+ * - can_edit_tramite($roles, $perms): edición/mutaciones (bloquea roles read-only).
+ *
+ * Permisos más comunes en UI/rutas:
+ * - Navegación/listados: menu_tramites, listar_tramite, listar_tramites_concluidos
+ * - Trámite: create_tramite, read_tramite, read_final_tramite, editar_tramite
+ * - Acciones: export_tramite, print_tramite, clone_tramite
+ * - Sub-secciones: section_pago_derechos, section_pago_gestor, section_final_costos
+ * - Mutaciones finas: editar_tramite_principal, editar_tramite_asociado, delete_tramite_asociado, editar_pago_gestor
+ *
+ * Expectativa por rol (lo que “debería” asignarse):
+ * - Super Admin:
+ *   - has_permission() devuelve true siempre; equivale a acceso total.
+ * - Admin:
+ *   - Suele tener acceso amplio por rol (legacy). Idealmente controlarlo solo por permisos.
+ *   - Si debe editar, asignar editar_tramite (y los permisos finos/sections que apliquen).
+ * - Starter (solo lectura para trámites):
+ *   - Sí: menu_tramites, listar_tramite, create_tramite, read_tramite (opcional read_final_tramite).
+ *   - No: editar_tramite (ni editar_tramite_* / delete_* / editar_* de módulos).
+ *   - Nota: aunque por error tenga editar_tramite en perms, can_edit_tramite() lo bloquea.
+ * - Executer (Rol 2):
+ *   - Puede editar pasos 1–3 solo cuando el trámite NO está aprobado (ver tramite_is_aprobado_por_status()).
+ *   - Requiere permisos como editar_tramite y los finos que apliquen.
+ * - Authorizer Editor:
+ *   - Puede autorizar (pasar a pagos / status 23) y después editar Paso 4 (Pago Gestor).
+ *   - Una vez autorizado, no debe poder editar hacia atrás (pasos 1–3) (enforced server-side en Tramitesn).
+ * - Authorizer Simple:
+ *   - Puede editar Paso 4 (Pago Gestor) pero NO puede autorizar.
+ * - Closer:
+ *   - Se enfoca en el Paso 5 (Cobro a cliente / evidencias finales) y concluir trámite.
+ *   - No requiere ver ni operar Paso 4 (Pago Gestor).
+ * - Cliente / Viewer:
+ *   - Se tratan como read-only por permisos (no asignar `editar_tramite` ni permisos de escritura).
+ */
+
 if (! function_exists('normalize_permission_list')) {
     function normalize_permission_list($value): array
     {
@@ -43,6 +86,23 @@ if (! function_exists('normalize_permission_list')) {
     }
 }
 
+if (! function_exists('normalize_role_key')) {
+    /**
+     * Normaliza nombres de rol para comparaciones tolerantes a mayúsculas/espacios.
+     * Ej: "Super Admin", "SuperAdmin", "superadmin" -> "superadmin".
+     */
+    function normalize_role_key($role): string
+    {
+        if (!is_string($role)) {
+            return '';
+        }
+
+        $role = strtolower(trim($role));
+        $role = preg_replace('/[\s_\-]+/', '', $role);
+        return is_string($role) ? $role : '';
+    }
+}
+
 if (! function_exists('has_permission')) {
     function has_permission($required_permission, $user_permissions, $roles) {
         $roles = normalize_permission_list($roles);
@@ -54,11 +114,120 @@ if (! function_exists('has_permission')) {
         return in_array($required_permission, $user_permissions, true);
     }
 }
+
+if (! function_exists('has_permission_strict')) {
+    /**
+     * Check estricto: NO aplica bypass por rol (por ejemplo Super Admin).
+     * Útil para flags de UI que deben depender solo de permisos asignados.
+     */
+    function has_permission_strict($required_permission, $user_permissions): bool
+    {
+        $user_permissions = normalize_permission_list($user_permissions);
+        return in_array($required_permission, $user_permissions, true);
+    }
+}
+
+if (! function_exists('perm_audit_tag')) {
+    /**
+     * Renderiza una etiqueta de auditoría con el nombre del permiso.
+     *
+     * - Solo se imprime para Super Admin.
+     * - La visibilidad la controla el Debug Toggle (localStorage.debugMode) vía JS.
+     */
+    function perm_audit_tag(string $permissionName, $session = null): string
+    {
+        $session = $session ?? session();
+        $roles = normalize_permission_list($session->get('user_roles') ?? []);
+        $perms = normalize_permission_list($session->get('user_permissions') ?? []);
+        if (!has_permission('debug_perm_audit_tags', $perms, $roles)) {
+            return '';
+        }
+
+        $perm = trim($permissionName);
+        if ($perm === '') {
+            return '';
+        }
+
+        $safe = esc($perm);
+        return '<span class="sgl-perm-audit" data-perm="' . $safe . '" style="display:none">&gt;&gt;permiso: ' . $safe . '&lt;&lt;</span>';
+    }
+}
+
+if (! function_exists('session_roles_perms')) {
+    /**
+     * Obtiene roles y permisos desde sesión, normalizados como arrays.
+     *
+     * @return array{0: array, 1: array} [$roles, $perms]
+     */
+    function session_roles_perms($session = null): array
+    {
+        $session = $session ?? session();
+        $roles = normalize_permission_list($session->get('user_roles') ?? []);
+        $perms = normalize_permission_list($session->get('user_permissions') ?? []);
+        return [$roles, $perms];
+    }
+}
+
+if (! function_exists('write_permission_for_tramite_step')) {
+    /**
+     * Devuelve el nombre del permiso write_* que controla escritura por paso.
+     * Pasos fuera de 1-3 regresan null.
+     */
+    function write_permission_for_tramite_step(int $step): ?string
+    {
+        switch ((int) $step) {
+            case 1:
+                return 'write_tramite_datos_tramite';
+            case 2:
+                return 'write_tramite_asigna_gestor';
+            case 3:
+                return 'write_tramite_pago_derechos';
+            default:
+                return null;
+        }
+    }
+}
+
+if (! function_exists('can_write_tramite_step')) {
+    /**
+     * Indica si el usuario puede escribir/modificar el paso indicado (1-3) del trámite.
+     * Para pasos fuera de 1-3 regresa true.
+     */
+    function can_write_tramite_step(int $step, $perms, $roles): bool
+    {
+        $permName = write_permission_for_tramite_step($step);
+        if ($permName === null) {
+            return true;
+        }
+        return has_permission($permName, $perms, $roles);
+    }
+}
+
+if (! function_exists('can_create_tramite')) {
+    function can_create_tramite($roles, $perms): bool
+    {
+        // Control 100% por permisos (Super Admin pasa vía has_permission()).
+        return has_permission('create_tramite', $perms, $roles);
+    }
+}
+
+if (! function_exists('can_edit_tramite')) {
+    function can_edit_tramite($roles, $perms): bool
+    {
+        // Para edición, el permiso manda; Super Admin pasa vía has_permission().
+        return has_permission('editar_tramite', $perms, $roles);
+    }
+}
 if (! function_exists('is_super_admin')) {
     function is_super_admin($roles)
     {
         $roles = normalize_permission_list($roles);
-        return in_array("Super Admin", $roles, true);
+        foreach ($roles as $role) {
+            if (normalize_role_key($role) === 'superadmin') {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
@@ -66,7 +235,12 @@ if (! function_exists('is_admin')) {
     function is_admin($roles)
     {
         $roles = normalize_permission_list($roles);
-        return in_array("Admin", $roles, true);
+        foreach ($roles as $role) {
+            if (normalize_role_key($role) === 'admin') {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
@@ -75,20 +249,6 @@ if (! function_exists('is_client')) {
     {
         $roles = normalize_permission_list($roles);
         return in_array("Cliente", $roles, true);
-    }
-}
-
-if (! function_exists('is_read_only')) {
-    function is_read_only($roles)
-    {
-        $roles = normalize_permission_list($roles);
-        $roRoles = ['Starter', 'Cliente', 'Viewer', 'Executer'];
-        foreach ($roRoles as $role) {
-            if (in_array($role, $roles)) {
-                return true; // Retorna true si al menos uno de los roles está presente
-            }
-        }
-        return false; // Retorna false si ninguno de los roles está presente
     }
 }
 
@@ -120,6 +280,45 @@ if (! function_exists('is_executer')) {
     }
 }
 
+if (! function_exists('is_closer')) {
+    function is_closer($roles): bool
+    {
+        $roles = normalize_permission_list($roles);
+        return in_array('Closer', $roles, true);
+    }
+}
+
+if (! function_exists('is_authorizer_editor')) {
+    function is_authorizer_editor($roles): bool
+    {
+        $roles = normalize_permission_list($roles);
+        return in_array('Authorizer Editor', $roles, true);
+    }
+}
+
+if (! function_exists('is_authorizer_simple')) {
+    function is_authorizer_simple($roles): bool
+    {
+        $roles = normalize_permission_list($roles);
+        return in_array('Authorizer Simple', $roles, true);
+    }
+}
+
+if (! function_exists('can_authorize_tramite')) {
+    /**
+     * Autorizar (pasar a pagos / status 23).
+     * - Requiere permiso important_pasar_a_pagos.
+     * - El permiso manda; Super Admin pasa vía has_permission().
+     */
+    function can_authorize_tramite($roles, $perms): bool
+    {
+        $roles = normalize_permission_list($roles);
+        $perms = normalize_permission_list($perms);
+
+        return has_permission('important_pasar_a_pagos', $perms, $roles);
+    }
+}
+
 if (! function_exists('is_upper_role')) {
     function is_upper_role($roles)
     {
@@ -136,11 +335,6 @@ if (! function_exists('is_upper_role')) {
 if (!function_exists('puede_modificar')) {
     function puede_modificar($roles, $estado, $campo, $reembolso_status_id = null, $cobro_status_id = null, $step) {
         // Falta agregar la logica para los roles que pueden visualizar botones y campos
-
-        // Si es cliente definitivamente no puede modificar
-        if(is_client($roles)){
-            return false;
-        }
             
         // Obtener los campos editables
         $editable_fields = get_editable_fields_by_step($estado, $reembolso_status_id, $cobro_status_id, $step);
@@ -220,7 +414,7 @@ if (!function_exists('get_editable_fields_by_step')) {
         //     $editable_fields[] = 'upload_pago_gestor';
         //     $editable_fields[] = 'botones';
         // }else
-        if($step == 4 && $current_step == 5) {  // Si estamos en paso 4
+        if ($step == 4 && $current_step >= 4) {  // Si estamos en paso 4 o superior
             $editable_fields[] = 'costo_tramite';
             $editable_fields[] = 'num_factura_gestor';
             $editable_fields[] = 'impuesto_gestoria';
@@ -275,13 +469,9 @@ if (!function_exists('estatus_editable')) {
 }
 
 if (!function_exists('puede_editar_modulo')) {
-    function puede_editar_modulo($roles, $estado, $campo, $reembolso_status_id = null, $cobro_status_id = null, $current_step) {
-        // Si es cliente definitivamente no puede modificar
-        if(is_client($roles)){
-            return false;
-        }
-        
-        if(is_admin($roles)){
+    function puede_editar_modulo($roles, $estado, $campo, $reembolso_status_id = null, $cobro_status_id = null, $current_step, $perms = null) {
+        // Override explícito por permisos; Super Admin pasa vía has_permission().
+        if (has_permission('override_puede_editar_modulo', $perms, $roles)) {
             return true;
         }
 

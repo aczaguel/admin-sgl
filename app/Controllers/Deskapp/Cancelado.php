@@ -27,7 +27,7 @@ class Cancelado extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url', 'cliente_filter', 'cliente_context']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context', 'permissions']);
 
         $session = session();
         $userId = $session->get('id');
@@ -77,17 +77,10 @@ class Cancelado extends BaseController
         $data['username'] = $session->get('user_name');
         $myid = $session->get('id');
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        // Permiso mínimo para visualizar trámites (evita bypass por URL)
-        if (!has_permission('read_tramite', $perms, $roles)) {
+        // Permiso mínimo para visualizar trámites cancelados (evita bypass por URL)
+        if (!has_permission('read_tramite_cancelado', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 
@@ -231,16 +224,9 @@ class Cancelado extends BaseController
         $db2 = $this->_getDbData();
         $self = $this;
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        if (!has_permission('read_tramite', $perms, $roles)) {
+        if (!has_permission('read_tramite_cancelado', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 
@@ -403,16 +389,9 @@ class Cancelado extends BaseController
         $self = $this;
         $request = \Config\Services::request();
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        if (!has_permission('read_tramite', $perms, $roles)) {
+        if (!has_permission('read_tramite_cancelado', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 
@@ -597,16 +576,9 @@ class Cancelado extends BaseController
         $self = $this;
         $request = \Config\Services::request();
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        if (!has_permission('read_tramite', $perms, $roles) || !has_permission('section_pago_derechos', $perms, $roles)) {
+        if (!has_permission('read_tramite_cancelado', $perms, $roles) || !has_permission('section_pago_derechos', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 
@@ -768,16 +740,9 @@ class Cancelado extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($session);
 
-        if (!has_permission('read_tramite', $perms, $roles) || !has_permission('section_final_costos', $perms, $roles)) {
+        if (!has_permission('read_tramite_cancelado', $perms, $roles) || !has_permission('section_final_costos', $perms, $roles)) {
             throw new \Exception('Acceso denegado');
         }
 

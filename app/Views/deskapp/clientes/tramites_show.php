@@ -85,6 +85,26 @@
         font-weight: 700;
     }
 
+    .client-tramite-show .hero-badge.hero-badge-featured {
+        background: rgba(255, 255, 255, 0.28);
+        border-color: rgba(255, 255, 255, 0.42);
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);
+        padding: 6px 14px;
+    }
+
+    .client-tramite-show .hero-badge-label {
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        opacity: 0.8;
+    }
+
+    .client-tramite-show .hero-badge-value {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+    }
+
     .client-tramite-show .hero-status {
         display: inline-flex;
         align-items: center;
@@ -1084,6 +1104,7 @@
     };
     $folioValue = $tramite['folio'] ?? 'N/A';
     $contratoValue = $tramite['contrato'] ?? 'N/A';
+    $tramiteIdValue = isset($tramite['id']) && $tramite['id'] !== '' ? (string) $tramite['id'] : 'N/A';
 
     $semaforoFromTramite = static function (array $tramite): array {
         $startedAt = $tramite['started_at'] ?? null;
@@ -1151,6 +1172,11 @@
                         <h4 class="hero-title">Resumen inteligente del trámite</h4>
                         <div class="hero-subtitle">Seguimiento operativo con línea de tiempo y bitácora real.</div>
                         <div class="hero-badges">
+                            <span class="hero-badge hero-badge-featured">
+                                <i class="fa fa-fingerprint"></i>
+                                <span class="hero-badge-label">Id del trámite</span>
+                                <span class="hero-badge-value">#<?= esc($tramiteIdValue) ?></span>
+                            </span>
                             <span class="hero-badge"><i class="fa fa-hashtag"></i> <?= esc($folioValue) ?></span>
                             <span class="hero-badge"><i class="fa fa-file-signature"></i> <?= esc($contratoValue) ?></span>
                         </div>

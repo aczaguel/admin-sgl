@@ -18,6 +18,7 @@ console.log('tramitesn_update_v2 loaded');
 		}
 
 		var maxStep = parseInt(cfg.maxStep || 3, 10);
+		var onlySectionStep = parseInt(cfg.onlySectionStep || 0, 10);
 		var csrfName = cfg.csrfName;
 		var csrfHash = cfg.csrfHash;
 
@@ -100,6 +101,28 @@ console.log('tramitesn_update_v2 loaded');
 			});
 		}
 
+		function isReadOnlyStep(step) {
+			if (IS_LOCKED) return true;
+			if (cfg.isReadOnlyMode) return true;
+			var ro = cfg.readOnlySteps || {};
+			return !!(ro[step] || ro[String(step)]);
+		}
+
+		function applyReadOnlyStepsUi() {
+			var ro = cfg.readOnlySteps || {};
+			Object.keys(ro).forEach(function (stepKey) {
+				if (!ro[stepKey]) return;
+				var section = document.querySelector('.wizard-section[data-step="' + stepKey + '"]');
+				if (!section) return;
+				section.setAttribute('data-sgl-readonly-step', String(stepKey));
+				section.querySelectorAll('input, select, textarea').forEach(function (el) {
+					if (!el) return;
+					if (el.tagName === 'INPUT' && String(el.type || '').toLowerCase() === 'hidden') return;
+					el.setAttribute('disabled', 'disabled');
+				});
+			});
+		}
+
 		function updateCsrf(newHash) {
 			if (!newHash) return;
 			csrfHash = newHash;
@@ -118,6 +141,37 @@ console.log('tramitesn_update_v2 loaded');
 				return { kind: 'sw1', api: window.swal };
 			}
 			return null;
+		}
+
+		function notifySuccess(title, text) {
+			var swalApi = getSweetAlertApi();
+			if (swalApi && swalApi.kind === 'fire') {
+				swalApi.api.fire({
+					icon: 'success',
+					title: title,
+					text: text,
+					confirmButtonText: 'Aceptar'
+				});
+				return;
+			}
+			if (swalApi && swalApi.kind === 'sw2') {
+				swalApi.api({
+					type: 'success',
+					title: title,
+					text: text,
+					confirmButtonText: 'Aceptar'
+				});
+				return;
+			}
+			if (swalApi && swalApi.kind === 'sw1') {
+				swalApi.api({
+					title: title,
+					text: text,
+					icon: 'success'
+				});
+				return;
+			}
+			window.alert(text);
 		}
 
 		function confirmWithSweetAlert(options, onConfirm) {
@@ -293,7 +347,8 @@ console.log('tramitesn_update_v2 loaded');
 		document.addEventListener('click', function (e) {
 			var btn = e.target.closest('.btnGuardarTipo');
 			if (!btn) return;
-			if (IS_LOCKED) return;
+			if (isReadOnlyStep(1)) return;
+			if (!cfg.canEditAsociado) return;
 			var row = btn.closest('[data-tipo-id]');
 			if (!row) return;
 			var tipoId = parseInt(row.getAttribute('data-tipo-id') || '0', 10);
@@ -393,7 +448,8 @@ console.log('tramitesn_update_v2 loaded');
 			var btn = e.target.closest('#btnAgregarTipo');
 			if (!btn) return;
 			e.preventDefault();
-			if (IS_LOCKED) return;
+			if (isReadOnlyStep(1)) return;
+			if (!cfg.canEditAsociado) return;
 			handleAgregarTipo();
 		});
 
@@ -401,7 +457,8 @@ console.log('tramitesn_update_v2 loaded');
 		document.addEventListener('click', function (e) {
 			var btn = e.target.closest('.btnCambiarAsociado');
 			if (!btn) return;
-			if (IS_LOCKED) return;
+			if (isReadOnlyStep(1)) return;
+			if (!cfg.canEditAsociado) return;
 			var card = btn.closest('[data-asociado-id]');
 			if (!card) return;
 			var asociadoId = parseInt(card.getAttribute('data-asociado-id') || '0', 10);
@@ -415,7 +472,8 @@ console.log('tramitesn_update_v2 loaded');
 		document.addEventListener('click', function (e) {
 			var btn = e.target.closest('.btnEliminarAsociado');
 			if (!btn) return;
-			if (IS_LOCKED) return;
+			if (isReadOnlyStep(1)) return;
+			if (!cfg.canDeleteAsociado) return;
 			var card = btn.closest('[data-asociado-id]');
 			if (!card) return;
 			var asociadoId = parseInt(card.getAttribute('data-asociado-id') || '0', 10);
@@ -426,7 +484,7 @@ console.log('tramitesn_update_v2 loaded');
 		var btnGuardarPrincipalTipo = document.getElementById('btnGuardarPrincipalTipo');
 		if (btnGuardarPrincipalTipo) {
 			btnGuardarPrincipalTipo.addEventListener('click', function () {
-				if (IS_LOCKED) return;
+				if (isReadOnlyStep(1)) return;
 				var sel = document.getElementById('principalTipoSelect');
 				var tipoId = parseInt((sel && sel.value) ? sel.value : '0', 10);
 				if (!tipoId) {
@@ -511,7 +569,8 @@ console.log('tramitesn_update_v2 loaded');
 		var btnGuardarAsociadoTipo = document.getElementById('btnGuardarAsociadoTipo');
 		if (btnGuardarAsociadoTipo) {
 			btnGuardarAsociadoTipo.addEventListener('click', function () {
-				if (IS_LOCKED) return;
+				if (isReadOnlyStep(1)) return;
+				if (!cfg.canEditAsociado) return;
 				var asociadoId = parseInt((document.getElementById('asociadoIdInput') || {}).value || '0', 10);
 				var sel = document.getElementById('asociadoTipoSelect');
 				var tipoId = parseInt((sel && sel.value) ? sel.value : '0', 10);
@@ -562,7 +621,8 @@ console.log('tramitesn_update_v2 loaded');
 		var btnConfirmDeleteAsociado = document.getElementById('btnConfirmDeleteAsociado');
 		if (btnConfirmDeleteAsociado) {
 			btnConfirmDeleteAsociado.addEventListener('click', function () {
-				if (IS_LOCKED) return;
+				if (isReadOnlyStep(1)) return;
+				if (!cfg.canDeleteAsociado) return;
 				var asociadoId = parseInt((document.getElementById('deleteAsociadoIdInput') || {}).value || '0', 10);
 				if (!asociadoId) return;
 				var fd = new FormData();
@@ -601,10 +661,16 @@ console.log('tramitesn_update_v2 loaded');
 		}
 
 		function validateStep(step) {
+			var ro = cfg.readOnlySteps || {};
+			var isReadOnlyStep = !!(ro[step] || ro[String(step)]);
+			if (isReadOnlyStep) {
+				return true;
+			}
 			var section = document.querySelector('.wizard-section[data-step="' + step + '"]');
 			if (!section) return true;
 			var valid = true;
 			section.querySelectorAll('input, select, textarea').forEach(function (el) {
+				if (el.disabled) return;
 				if (el.hasAttribute('required')) {
 					if (!el.value) {
 						el.classList.add('is-invalid');
@@ -637,6 +703,7 @@ console.log('tramitesn_update_v2 loaded');
 			var wrap = document.getElementById('approvalWrap');
 			if (!wrap) return;
 			var ready = document.getElementById('approvalReady');
+			var noPermission = document.getElementById('approvalNoPermission');
 			var pending = document.getElementById('approvalPending');
 			var missingList = document.getElementById('approvalMissingList');
 			var missing = [];
@@ -653,9 +720,11 @@ console.log('tramitesn_update_v2 loaded');
 
 			if (missing.length === 0) {
 				if (ready) ready.style.display = 'flex';
+				if (noPermission) noPermission.style.display = ready ? 'none' : 'flex';
 				if (pending) pending.style.display = 'none';
 			} else {
 				if (ready) ready.style.display = 'none';
+				if (noPermission) noPermission.style.display = 'none';
 				if (pending) pending.style.display = 'flex';
 				if (missingList) {
 					missingList.innerHTML = '';
@@ -699,6 +768,17 @@ console.log('tramitesn_update_v2 loaded');
 				return cfg.urls.updateDerechosSave;
 			}
 			return form ? form.action : '';
+		}
+
+		function isApprovedStatus(statusId) {
+			return [23, 27, 28, 20, 21].indexOf(parseInt(statusId || 0, 10)) !== -1;
+		}
+
+		function getMessageContainerForStep(step) {
+			if (parseInt(step || 0, 10) === 3) {
+				return document.getElementById('tramiteStep3Message') || document.getElementById('tramiteNuevoMessage');
+			}
+			return document.getElementById('tramiteNuevoMessage');
 		}
 
 		function buildStepFormData(step, form) {
@@ -746,7 +826,9 @@ console.log('tramitesn_update_v2 loaded');
 			var stepInput = document.getElementById('current_step');
 			if (stepInput) {
 				var currentStep = 1;
-				if (window.jQuery && jQuery.fn && jQuery.fn.steps) {
+				if (onlySectionStep > 0) {
+					currentStep = onlySectionStep;
+				} else if (window.jQuery && jQuery.fn && jQuery.fn.steps) {
 					var $wizard = jQuery('#wizard');
 					if ($wizard.length) {
 						currentStep = ($wizard.steps('getCurrentIndex') || 0) + 1;
@@ -754,13 +836,27 @@ console.log('tramitesn_update_v2 loaded');
 				}
 				stepInput.value = String(currentStep);
 			}
-			var msg = document.getElementById('tramiteNuevoMessage');
-			if (msg) {
-				msg.style.display = 'none';
-				msg.className = 'alert';
-				msg.textContent = '';
-			}
 			var currentStepValue = stepInput ? parseInt(stepInput.value || '1', 10) : 1;
+			var globalMsg = document.getElementById('tramiteNuevoMessage');
+			var step3Msg = document.getElementById('tramiteStep3Message');
+			[globalMsg, step3Msg].forEach(function (node) {
+				if (!node) return;
+				node.style.display = 'none';
+				node.className = 'alert';
+				node.textContent = '';
+			});
+			var msg = getMessageContainerForStep(currentStepValue);
+			var ro = cfg.readOnlySteps || {};
+			var isReadOnlyStep = !!(ro[currentStepValue] || ro[String(currentStepValue)]);
+			if (isReadOnlyStep) {
+				if (msg) {
+					msg.className = 'alert alert-info';
+					msg.textContent = 'Este paso es solo lectura.';
+					msg.style.display = 'block';
+				}
+				isSaving = false;
+				return false;
+			}
 			var endpoint = getEndpointForStep(currentStepValue, form);
 			var formData = buildStepFormData(currentStepValue, form);
 			try {
@@ -772,13 +868,24 @@ console.log('tramitesn_update_v2 loaded');
 				var data = await resp.json();
 				if (data && data.csrfHash) updateCsrf(data.csrfHash);
 				if (data && data.success) {
+					var successMessage = data.message || 'Guardado correctamente.';
+					var shouldPersistMessage = false;
+					if (currentStepValue === 3 && !isApprovedStatus(TRA_STATUS_ID)) {
+						successMessage = 'Tramite en espera de autorizacion.';
+						shouldPersistMessage = true;
+					}
 					if (msg) {
 						msg.className = 'alert alert-success';
-						msg.textContent = data.message || 'Guardado correctamente.';
+						msg.textContent = successMessage;
 						msg.style.display = 'block';
-						setTimeout(function () {
-							msg.style.display = 'none';
-						}, 4000);
+						if (!shouldPersistMessage) {
+							setTimeout(function () {
+								msg.style.display = 'none';
+							}, 4000);
+						}
+					}
+					if (shouldPersistMessage) {
+						notifySuccess('Guardado', successMessage);
 					}
 					validateStep(currentStepValue);
 					if (currentStepValue === 3) {
@@ -804,11 +911,37 @@ console.log('tramitesn_update_v2 loaded');
 			}
 		}
 
+		var __sglWizardInitAttempts = 0;
+		var __sglWizardMaxInitAttempts = 40;
+		var __sglWizardInitDelayMs = 50;
+
 		function initWizard() {
 			if (IS_LOCKED) return;
-			if (!(window.jQuery && jQuery.fn && jQuery.fn.steps)) return;
+			// En vistas separadas (solo una sección), no usamos jQuery Steps.
+			if (onlySectionStep > 0) return;
+			if (!window.jQuery) {
+				__sglWizardInitAttempts++;
+				if (__sglWizardInitAttempts <= __sglWizardMaxInitAttempts) {
+					setTimeout(initWizard, __sglWizardInitDelayMs);
+				} else {
+					console.warn('[tramitesn_update_v2] jQuery no disponible; wizard no inicializado');
+				}
+				return;
+			}
+
 			var $wizard = jQuery('#wizard');
 			if (!$wizard.length) return;
+			if ($wizard.data('__sglWizardInited')) return;
+
+			if (!(jQuery.fn && jQuery.fn.steps)) {
+				__sglWizardInitAttempts++;
+				if (__sglWizardInitAttempts <= __sglWizardMaxInitAttempts) {
+					setTimeout(initWizard, __sglWizardInitDelayMs);
+				} else {
+					console.warn('[tramitesn_update_v2] jQuery Steps no disponible; wizard no inicializado');
+				}
+				return;
+			}
 			var targetIndex = Math.max(statusStep - 1, 0);
 
 			function ensureStepTitles() {
@@ -873,6 +1006,8 @@ console.log('tramitesn_update_v2 loaded');
 					submitFormAjax();
 				}
 			});
+
+			$wizard.data('__sglWizardInited', true);
 
 			ensureStepTitles();
 
@@ -1021,6 +1156,9 @@ console.log('tramitesn_update_v2 loaded');
 
 		function initDropzoneDerechos() {
 			if (IS_LOCKED) return;
+			if (cfg.isReadOnlyMode) return;
+			if (typeof cfg.stepActual === 'number' && cfg.stepActual > 3) return;
+			if (cfg.permissions && (cfg.permissions.canUploadDerechos === false || cfg.permissions.canUploadDropzoneDerechos === false)) return;
 			if (typeof Dropzone === 'undefined') return;
 			if (!cfg.urls || !cfg.urls.uploadComprobante || !cfg.urls.deleteComprobante) return;
 			var el = document.querySelector('.dropzone-documentos, #miDropzone');
@@ -1122,6 +1260,7 @@ console.log('tramitesn_update_v2 loaded');
 
 		function initDropzoneGestor() {
 			if (IS_LOCKED) return;
+			if (cfg.permissions && (cfg.permissions.canUploadPagoGestor === false || cfg.permissions.canUploadDropzonePagoGestor === false)) return;
 			if (typeof Dropzone === 'undefined') return;
 			if (!cfg.urls || !cfg.urls.uploadPagoGestor || !cfg.urls.deletePagoGestor) return;
 			var el = document.querySelector('.dropzone-gestor, #miDropzoneGestor');
@@ -1261,6 +1400,7 @@ console.log('tramitesn_update_v2 loaded');
 
 		function initFinalDocs() {
 			if (IS_LOCKED) return;
+			if (cfg.permissions && cfg.permissions.canUploadFinalDocs === false) return;
 			if (!cfg.urls || !cfg.urls.uploadFinalDocBase || !cfg.urls.deleteFinalDoc) return;
 
 			function setFinalButtonLabel(docId, hasFile) {
@@ -1892,6 +2032,12 @@ console.log('tramitesn_update_v2 loaded');
 			var gestorSelect = document.getElementById('gestor_id');
 			if (!empresaSelect || !gestorSelect) return;
 
+			function refreshGestorSelect() {
+				if (window.SglSelectEnhancer && typeof window.SglSelectEnhancer.refresh === 'function') {
+					window.SglSelectEnhancer.refresh(gestorSelect);
+				}
+			}
+
 			function setGestorOptions(options, selectedId) {
 				gestorSelect.innerHTML = '';
 				var placeholder = document.createElement('option');
@@ -1907,6 +2053,7 @@ console.log('tramitesn_update_v2 loaded');
 					}
 					gestorSelect.appendChild(opt);
 				});
+				refreshGestorSelect();
 			}
 
 			function loadGestores(empresaId, selectedId) {
@@ -1927,9 +2074,17 @@ console.log('tramitesn_update_v2 loaded');
 					});
 			}
 
-			empresaSelect.addEventListener('change', function () {
-				loadGestores(empresaSelect.value || '', null);
-			});
+			if (window.jQuery) {
+				window.jQuery(empresaSelect)
+					.off('change.sglGestorDependent')
+					.on('change.sglGestorDependent', function () {
+						loadGestores(empresaSelect.value || '', null);
+					});
+			} else {
+				empresaSelect.addEventListener('change', function () {
+					loadGestores(empresaSelect.value || '', null);
+				});
+			}
 
 			if (empresaSelect.value) {
 				loadGestores(empresaSelect.value, gestorSelect.value || null);
@@ -1955,6 +2110,7 @@ console.log('tramitesn_update_v2 loaded');
 		}
 
 		applyLockedUi();
+		applyReadOnlyStepsUi();
 
 		safeInit('initWizard', initWizard);
 		safeInit('initDropzoneDerechos', initDropzoneDerechos);
