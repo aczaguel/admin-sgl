@@ -19,12 +19,9 @@ class DashboardCliente extends BaseController
 
     private function requireClienteAccess()
     {
-        $roles = $this->session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
+        [$roles, $perms] = session_roles_perms($this->session);
 
-        if (is_client($roles)) {
+        if (has_permission('menu_dashboard_cliente', $perms, $roles)) {
             return null;
         }
 

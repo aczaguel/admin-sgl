@@ -96,8 +96,11 @@
                                 <?php
                                     $detailUrl = $notification['url'] ?? '';
                                     if (empty($detailUrl) && !empty($notification['tramite_id'])) {
-                                        $roles = \Config\Services::session()->get('user_roles');
-                                        $detailUrl = is_client($roles)
+                                        $session = \Config\Services::session();
+                                        $roles = $session->get('user_roles') ?? [];
+                                        $perms = normalize_permission_list($session->get('user_permissions') ?? []);
+                                        $isClienteUi = in_array('ui_sidebar_cliente', $perms, true) || in_array('menu_tramites_cliente', $perms, true);
+                                        $detailUrl = $isClienteUi
                                             ? base_url('deskapp/clientes/ver/' . $notification['tramite_id'])
                                             : base_url('deskapp/tramitesn/update/' . $notification['tramite_id']);
                                     }

@@ -2,6 +2,11 @@
 
 <?= $this->section('additional_css') ?>
 <?php $assets = base_url('/public/assets'); ?>
+<?php if (!empty($css_files)) {
+	foreach ($css_files as $file) { ?>
+		<link type="text/css" rel="stylesheet" href="<?php echo $file; ?>" />
+	<?php }
+} ?>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 <link rel="stylesheet" href="<?= $assets ?>/src/styles/dropzone.css">
 <link rel="stylesheet" href="<?= $assets ?>/src/styles/wizard_modern.css?v=<?= time(); ?>">
@@ -59,7 +64,27 @@
 <?= $this->section('content') ?>
 
 <?php
-	$isReadOnlyMode = !($can_upload_final_docs ?? false);
+	// El paso 5 no debe depender de `editar_tramite`; usa permisos propios de cierre.
+	$isReadOnlyMode = empty($can_edit_final_form) && empty($can_upload_final_docs);
+	$detailRoles = $user_roles ?? ($session->get('user_roles') ?? []);
+	$detailPerms = $user_permissions ?? ($session->get('user_permissions') ?? []);
+	$canSectionPagoGestor = !empty($can_section_pago_gestor) || has_permission('section_pago_gestor', $detailPerms, $detailRoles);
+	$canSectionFinalCostos = !empty($can_section_final_costos) || has_permission('section_final_costos', $detailPerms, $detailRoles);
+	$canQuickDocumentos = has_permission('quick_action_documentos', $detailPerms, $detailRoles);
+	$canQuickBitacora = has_permission('quick_action_bitacora', $detailPerms, $detailRoles);
+	$canQuickPagosDerecho = has_permission('quick_action_pagos_derecho', $detailPerms, $detailRoles);
+	$canQuickPagoGestor = has_permission('quick_action_pago_gestor', $detailPerms, $detailRoles);
+	$canQuickEvidenciasFinales = has_permission('quick_action_evidencias_finales', $detailPerms, $detailRoles);
+	$canQuickCobrosCliente = has_permission('quick_action_cobros_cliente', $detailPerms, $detailRoles);
+	$canListCobroCliente = has_permission('list_cobro_cliente', $detailPerms, $detailRoles);
+	$canSeePagoGestorBtn = $canQuickPagoGestor && $canSectionPagoGestor;
+	$canSeeEvidenciasFinalesBtn = $canQuickEvidenciasFinales && $canSectionFinalCostos;
+	$canSeeCobroClienteBtn = $canSectionFinalCostos && ($canQuickCobrosCliente || $canListCobroCliente);
+	$canSeeStatusQuickActions = !empty($tra_status_id) && in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true);
+	$canSeeAnyQuickAction = $canQuickDocumentos
+		|| $canQuickBitacora
+		|| $canQuickPagosDerecho
+		|| ($canSeeStatusQuickActions && ($canSeePagoGestorBtn || $canSeeEvidenciasFinalesBtn || $canSeeCobroClienteBtn));
 ?>
 
 <div class="main-container <?= $isReadOnlyMode ? 'sgl-readonly-mode' : '' ?>">
@@ -130,6 +155,77 @@
 					</button>
 				</div>
 			<?php endif; ?>
+		<?php endif; ?>
+
+		<?php if (!empty($canSeeAnyQuickAction)): ?>
+			<div class="quick-actions-ribbon" style="margin-top:12px;">
+				<div class="ribbon-title">
+					<i class="fas fa-bolt"></i>
+					<span>Detalle rapido</span>
+				</div>
+				<div class="ribbon-buttons">
+					<?php if ($canQuickDocumentos): ?>
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-documentos">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+								<i class="fas fa-folder-open"></i>
+							</div>
+							<span class="ribbon-label">Documentos</span>
+							<?= perm_audit_tag('quick_action_documentos', $session) ?>
+						</button>
+					<?php endif; ?>
+
+					<?php if ($canQuickBitacora): ?>
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-bitacora">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+								<i class="fas fa-history"></i>
+							</div>
+							<span class="ribbon-label">Bitacora</span>
+							<?= perm_audit_tag('quick_action_bitacora', $session) ?>
+						</button>
+					<?php endif; ?>
+
+					<?php if ($canQuickPagosDerecho): ?>
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-pagos-derecho">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+								<i class="fas fa-receipt"></i>
+							</div>
+							<span class="ribbon-label">Pagos Derecho</span>
+							<?= perm_audit_tag('quick_action_pagos_derecho', $session) ?>
+						</button>
+					<?php endif; ?>
+
+					<?php if ($canSeePagoGestorBtn): ?>
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-pago-gestor">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+								<i class="fas fa-hand-holding-usd"></i>
+							</div>
+							<span class="ribbon-label">Pago Gestor</span>
+							<?= perm_audit_tag('quick_action_pago_gestor', $session) ?>
+						</button>
+					<?php endif; ?>
+
+					<?php if ($canSeeEvidenciasFinalesBtn): ?>
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-evidencias-finales">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+								<i class="fas fa-check-double"></i>
+							</div>
+							<span class="ribbon-label">Evidencias Finales</span>
+							<?= perm_audit_tag('quick_action_evidencias_finales', $session) ?>
+						</button>
+					<?php endif; ?>
+
+					<?php if ($canSeeCobroClienteBtn): ?>
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-cobro-cliente">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+								<i class="fas fa-money-check-alt"></i>
+							</div>
+							<span class="ribbon-label">Cobros Cliente</span>
+							<?= perm_audit_tag('quick_action_cobros_cliente', $session) ?>
+							<?= perm_audit_tag('list_cobro_cliente', $session) ?>
+						</button>
+					<?php endif; ?>
+				</div>
+			</div>
 		<?php endif; ?>
 
 		<div class="sgl-step-center mt-3">
@@ -370,7 +466,7 @@
 						</div>
 						<?php
 							$prefix_form = 'final';
-							$form_action = '/deskapp/tramites/update_final_save/' . $id;
+							$form_action = '/deskapp/tramitesn/update_final_save/' . $id;
 							$form_id = 'finalForm';
 							$cancel_url = '/deskapp/tramitesn/cobro_cliente';
 							$submit_permission = 'editar_final';
@@ -383,8 +479,9 @@
 						<div class="dropzone-sticky">
 							<h5 class="dropzone-title">
 								<i class="fas fa-cloud-upload-alt"></i> Documentos
+								<?= perm_audit_tag('can_upload_dropzone_cobro_cliente', $session) ?>
 							</h5>
-							<?php if (!empty($can_upload_final_docs)): ?>
+							<?php if (!$isReadOnlyMode && !empty($can_upload_final_docs) && !empty($can_upload_dropzone_cobro_cliente)): ?>
 								<div class="form-group mb-2">
 									<label for="cobro_correcto" class="mb-1" style="font-size:.78rem;font-weight:800;color:#374151;">Cobro correcto</label>
 									<select id="cobro_correcto" class="form-control form-control-sm">
@@ -423,6 +520,96 @@
 	</div>
 </div>
 
+<?php if ($canQuickDocumentos): ?>
+	<div class="modal fade" id="modal-documentos" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+					<h4 class="modal-title"><i class="fas fa-folder-open"></i> Documentos</h4>
+					<button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">x</button>
+				</div>
+				<div class="modal-body"><div class="pd-20"><?= !empty($output_docs) ? $output_docs : '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No hay documentos disponibles</div>' ?></div></div>
+				<div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button></div>
+			</div>
+		</div>
+	</div>
+<?php endif; ?>
+
+<?php if ($canQuickBitacora): ?>
+	<div class="modal fade" id="modal-bitacora" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+					<h4 class="modal-title"><i class="fas fa-history"></i> Bitacora</h4>
+					<button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">x</button>
+				</div>
+				<div class="modal-body"><div class="pd-20"><?= !empty($output_bitacora) ? $output_bitacora : '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No hay bitacora disponible</div>' ?></div></div>
+				<div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button></div>
+			</div>
+		</div>
+	</div>
+<?php endif; ?>
+
+<?php if ($canQuickPagosDerecho): ?>
+	<div class="modal fade" id="modal-pagos-derecho" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: #0f172a;">
+					<h4 class="modal-title"><i class="fas fa-receipt"></i> Pagos Derecho</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+				</div>
+				<div class="modal-body"><div class="pd-20"><?= !empty($output_derechos) ? $output_derechos : '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No hay pagos de derecho disponibles</div>' ?></div></div>
+				<div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button></div>
+			</div>
+		</div>
+	</div>
+<?php endif; ?>
+
+<?php if ($canSeeStatusQuickActions && $canSeePagoGestorBtn): ?>
+	<div class="modal fade" id="modal-pago-gestor" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #0f172a;">
+					<h4 class="modal-title"><i class="fas fa-hand-holding-usd"></i> Pago Gestor</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+				</div>
+				<div class="modal-body"><div class="pd-20"><?= !empty($output_pago_gestor) ? $output_pago_gestor : '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No hay registros de pago a gestor</div>' ?></div></div>
+				<div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button></div>
+			</div>
+		</div>
+	</div>
+<?php endif; ?>
+
+<?php if ($canSeeStatusQuickActions && $canSeeCobroClienteBtn): ?>
+	<div class="modal fade" id="modal-cobro-cliente" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+					<h4 class="modal-title"><i class="fas fa-money-check-alt"></i> Cobros al Cliente</h4>
+					<button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">x</button>
+				</div>
+				<div class="modal-body"><div class="pd-20"><?= !empty($output_cobro_cliente) ? $output_cobro_cliente : '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No hay registros de cobros al cliente</div>' ?></div></div>
+				<div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button></div>
+			</div>
+		</div>
+	</div>
+<?php endif; ?>
+
+<?php if ($canSeeStatusQuickActions && $canSeeEvidenciasFinalesBtn): ?>
+	<div class="modal fade" id="modal-evidencias-finales" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333;">
+					<h4 class="modal-title"><i class="fas fa-check-double"></i> Evidencias Finales</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+				</div>
+				<div class="modal-body"><div class="pd-20"><?= !empty($outputevidencias_finales) ? $outputevidencias_finales : '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No hay evidencias finales disponibles</div>' ?></div></div>
+				<div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button></div>
+			</div>
+		</div>
+	</div>
+<?php endif; ?>
+
 <?= $this->endSection() ?>
 
 <?= $this->section('additional_js') ?>
@@ -431,6 +618,13 @@
 </script>
 <link rel="stylesheet" href="<?php echo base_url(); ?>/public/assets/src/plugins/sweetalert2/sweetalert2.css">
 <script src="<?php echo base_url(); ?>/public/assets/src/plugins/sweetalert2/sweetalert2.all.js"></script>
+<?php
+	if (!empty($js_files)) {
+		foreach ($js_files as $file) { ?>
+			<script src="<?php echo $file . '?v=' . time(); ?>"></script>
+		<?php }
+	}
+?>
 <script src="<?= $assets ?>/src/scripts/dropzone.js"></script>
 <script src="<?= $assets ?>/src/scripts/tramitesn_cobro_cliente.js?v=<?= time(); ?>"></script>
 <?= $this->endSection() ?>

@@ -15,7 +15,32 @@ class Permisos extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url']);
+        helper(['form', 'url', 'permissions', 'acl_guard']);
+    }
+
+    private function guardManagementAccess()
+    {
+        $session = session();
+        $userId = $session->get('id');
+        $isApi = $this->request->isAJAX() || $this->request->getGet('gc_state') !== null;
+
+        if (!$userId) {
+            if ($isApi) {
+                return acl_deny('Sesión expirada', 401, null, true);
+            }
+            return redirect()->to('/deskapp/auth/login');
+        }
+
+        [$roles, $perms] = session_roles_perms($session);
+        $canManage = has_permission('menu_roles', $perms, $roles) || has_permission('menu_permisos', $perms, $roles);
+        if (!$canManage) {
+            if ($isApi) {
+                return acl_deny('Acceso denegado', 403, null, true);
+            }
+            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para administrar permisos.');
+        }
+
+        return null;
     }
 
     public function index()
@@ -31,10 +56,16 @@ class Permisos extends BaseController
     public function permisos()
     {
         try {
+            if ($resp = $this->guardManagementAccess()) {
+                return $resp;
+            }
+
             $session = session();
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+
+            helper('acl_version');
             
             $permissions_crud = $this->_getGroceryCrudEnterprise();
             $permissions_crud->setTable('us_permissions');
@@ -46,14 +77,23 @@ class Permisos extends BaseController
             $permissions_crud->unsetDeleteMultiple();
 
             $permissions_crud->callbackAfterInsert(function ($stateParameters) use ($permissions_crud) {
+                if (function_exists('acl_bump_version')) {
+                    acl_bump_version();
+                }
                 $tableName = $permissions_crud->getTable();
                 return logOperation($stateParameters, $tableName);
             });
             $permissions_crud->callbackAfterUpdate(function ($stateParameters) use ($permissions_crud) {
+                if (function_exists('acl_bump_version')) {
+                    acl_bump_version();
+                }
                 $tableName = $permissions_crud->getTable();
                 return logOperation($stateParameters, $tableName);
             });
             $permissions_crud->callbackAfterDelete(function ($stateParameters) use ($permissions_crud) {
+                if (function_exists('acl_bump_version')) {
+                    acl_bump_version();
+                }
                 $tableName = $permissions_crud->getTable();
                 return logOperation($stateParameters, $tableName);
             });

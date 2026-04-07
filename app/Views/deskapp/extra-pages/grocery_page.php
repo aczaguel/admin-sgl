@@ -452,14 +452,55 @@
 
 					<!-- Body Section -->
 					<div class="grocery-crud-body">
-						<!-- Audit Debug Div -->
-					<div id="audit-debug" class="debug-info-container" style="display: none; background: #1e293b; color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 20px; font-family: 'Courier New', monospace;">
-						<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid #475569; padding-bottom: 8px;">
-							<strong style="color: #60a5fa; font-size: 14px;">📋 Audit Payload</strong>
-							<button onclick="$('#audit-debug').hide()" style="background: #ef4444; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">✕ Cerrar</button>
-						</div>
-						<pre id="audit-content" style="margin: 0; white-space: pre-wrap; word-wrap: break-word; font-size: 12px; line-height: 1.5; color: #ffffff;"><?php if (!empty($audit_payload)) { print_r($audit_payload); } else { echo 'Sin datos de auditoria.'; } ?></pre>
-					</div>
+						<?php
+							helper(['permissions']);
+							$sessionDbg = session();
+							$canDebugAudit = has_permission('debug_perm_audit_tags', $sessionDbg->get('user_permissions'), $sessionDbg->get('user_roles'));
+						?>
+						<?php if (!empty($canDebugAudit)): ?>
+							<!-- Audit Debug Div (solo Super Admin + Debug ON) -->
+							<div id="audit-debug" class="debug-info-container" style="display: none; background: #1e293b; color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 20px; font-family: 'Courier New', monospace;">
+								<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid #475569; padding-bottom: 8px;">
+									<strong style="color: #60a5fa; font-size: 14px;">📋 Audit Payload</strong>
+									<button onclick="$('#audit-debug').hide()" style="background: #ef4444; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">✕ Cerrar</button>
+								</div>
+								<?php
+									$permAuditContext = $perm_audit_context ?? null;
+									$permAuditReqs = $perm_audit_requirements ?? null;
+									$sessionDbgRoles = normalize_permission_list($sessionDbg->get('user_roles') ?? []);
+									$sessionDbgPerms = normalize_permission_list($sessionDbg->get('user_permissions') ?? []);
+								?>
+								<?php if (is_array($permAuditReqs) && !empty($permAuditReqs)): ?>
+									<div style="margin-bottom: 12px; padding: 10px 12px; border: 1px dashed rgba(255,255,255,.25); border-radius: 6px;">
+										<div style="font-size: 12px; opacity: .9; margin-bottom: 6px;">
+											<strong>Permisos requeridos</strong><?= $permAuditContext ? ' <span style="opacity:.75">(' . esc($permAuditContext) . ')</span>' : '' ?>
+										</div>
+										<div style="display:flex;flex-direction:column;gap:4px;font-size:12px;">
+											<?php foreach ($permAuditReqs as $label => $permName): ?>
+												<?php
+													$permName = is_string($permName) ? trim($permName) : '';
+													$assignedStrict = $permName !== '' ? has_permission_strict($permName, $sessionDbgPerms) : false;
+													$canBypass = $permName !== '' ? has_permission($permName, $sessionDbgPerms, $sessionDbgRoles) : false;
+												?>
+												<div>
+													<span style="color:#e2e8f0;"><?= esc((string)$label) ?>:</span>
+													<span style="color:#93c5fd;"><?= esc($permName) ?></span>
+													<span style="opacity:.85;"> | en sesión:</span>
+													<strong style="color:<?= $assignedStrict ? '#34d399' : '#fca5a5' ?>;">
+														<?= $assignedStrict ? 'SI' : 'NO' ?>
+													</strong>
+													<span style="opacity:.85;"> | acceso efectivo:</span>
+													<strong style="color:<?= $canBypass ? '#34d399' : '#fca5a5' ?>;">
+														<?= $canBypass ? 'SI' : 'NO' ?>
+													</strong>
+												</div>
+											<?php endforeach; ?>
+										</div>
+									</div>
+								<?php endif; ?>
+								<pre id="audit-content" style="margin: 0; white-space: pre-wrap; word-wrap: break-word; font-size: 12px; line-height: 1.5; color: #ffffff;">Sin datos de auditoria.</pre>
+							</div>
+						<?php endif; ?>
 
 					<?php
 							if (!empty($output)) {
@@ -658,6 +699,8 @@
 
 			// Function to show form data in audit div
 			function showFormData($form) {
+				var auditContent = $('#audit-content');
+				if (!auditContent.length) return;
 				var formData = new FormData($form[0]);
 				var data = {};
 				var hasStatus = false;
@@ -676,8 +719,6 @@
 					}
 				});
 				
-				var auditContent = $('#audit-content');
-				
 				var output = JSON.stringify(data, null, 2);
 				if (!hasStatus) {
 					output = '⚠️ WARNING: Status field NOT found in FormData!\n\n' + output;
@@ -689,6 +730,7 @@
 			function showAuditPayload(payload) {
 				if (!payload) return;
 				var auditContent = $('#audit-content');
+				if (!auditContent.length) return;
 				var output = JSON.stringify(payload, null, 2);
 				auditContent.text(output);
 			}
@@ -705,10 +747,10 @@
 				}
 			}
 			
-			// Verificar estado inicial al cargar la página
+			// Verificar estado inicial al cargar la página (solo si existe el bloque)
 			$(document).ready(function() {
 				updateAuditVisibility();
-				<?php if (!empty($audit_payload)) : ?>
+				<?php if (!empty($canDebugAudit) && !empty($audit_payload)) : ?>
 				showAuditPayload(<?= json_encode($audit_payload) ?>);
 				<?php endif; ?>
 			});
@@ -742,6 +784,7 @@
 			// Also try on document changes (for dynamic content)
 			var statusObserver = new MutationObserver(function(mutations) {
 				initStatusToggles();
+				convertStatusBadges();
 			});
 			
 			// Observe the body for changes
@@ -754,17 +797,95 @@
 
 			$(document).ajaxComplete(function() {
 				bindMoreDropdowns();
+				convertStatusBadges();
 			});
 
-			// Convert status values in table cells to badges
-			$('.grocery-crud-body table tbody td').each(function() {
-				var text = $(this).text().trim();
-				if (text === '1' || text === 'Active' || text === 'Activo' || text === 'active') {
-					$(this).html('<span class="status-badge active"><i class="fas fa-check-circle"></i> Activo</span>');
-				} else if (text === '0' || text === 'Inactive' || text === 'Inactivo' || text === 'inactive') {
-					$(this).html('<span class="status-badge inactive"><i class="fas fa-times-circle"></i> Inactivo</span>');
-				}
-			});
+			function normalizeHeaderText(t) {
+				return (t || '').toString().trim().toLowerCase();
+			}
+
+			function findColumnIndex($table, candidates) {
+				var idx = -1;
+				$table.find('thead th').each(function(i) {
+					var txt = normalizeHeaderText($(this).text());
+					for (var c = 0; c < candidates.length; c++) {
+						if (txt === candidates[c]) {
+							idx = i;
+							return false;
+						}
+					}
+				});
+				return idx;
+			}
+
+			function escapeAttr(s) {
+				return (s || '').toString()
+					.replace(/&/g, '&amp;')
+					.replace(/"/g, '&quot;')
+					.replace(/'/g, '&#039;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;');
+			}
+
+			function convertStatusBadges() {
+				var isUsersGrid = window.location.pathname.indexOf('/users/users') !== -1;
+				$('.grocery-crud-body table').each(function() {
+					var $table = $(this);
+					var statusIdx = findColumnIndex($table, ['status']);
+					if (statusIdx < 0) return;
+
+					var idIdx = findColumnIndex($table, ['id']);
+					var usernameIdx = findColumnIndex($table, ['username']);
+
+					$table.find('tbody tr').each(function() {
+						var $tr = $(this);
+						var $tds = $tr.find('td');
+						var $cell = $tds.eq(statusIdx);
+						if (!$cell.length) return;
+
+						// Si ya tiene HTML (o ya fue convertido), no tocar.
+						if ($cell.find('a,button,input,select,textarea,.status-badge,.js-toggle-user-status').length) {
+							return;
+						}
+
+						var text = ($cell.text() || '').trim();
+						var isActive = (text === '1' || text === 'Active' || text === 'Activo' || text === 'active');
+						var isInactive = (text === '0' || text === 'Inactive' || text === 'Inactivo' || text === 'inactive');
+						if (!isActive && !isInactive) return;
+
+						if (isUsersGrid && idIdx >= 0) {
+							var userId = parseInt(($tds.eq(idIdx).text() || '').trim(), 10) || 0;
+							var username = usernameIdx >= 0 ? (($tds.eq(usernameIdx).text() || '').trim()) : '';
+							if (userId > 0) {
+								var cls = isActive ? 'status-badge active' : 'status-badge inactive';
+								var icon = isActive ? 'fas fa-check-circle' : 'fas fa-times-circle';
+								var label = isActive ? 'Activo' : 'Inactivo';
+								var st = isActive ? '1' : '0';
+								$cell.html(
+									'<a href="#" class="' + cls + ' js-toggle-user-status"'
+									+ ' data-user-id="' + userId + '"'
+									+ ' data-username="' + escapeAttr(username) + '"'
+									+ ' data-status="' + st + '"'
+									+ ' style="cursor:pointer; text-decoration:none;">'
+									+ '<i class="' + icon + '"></i> ' + label +
+									'</a>'
+								);
+								return;
+							}
+						}
+
+						// Default (no click)
+						if (isActive) {
+							$cell.html('<span class="status-badge active"><i class="fas fa-check-circle"></i> Activo</span>');
+						} else if (isInactive) {
+							$cell.html('<span class="status-badge inactive"><i class="fas fa-times-circle"></i> Inactivo</span>');
+						}
+					});
+				});
+			}
+
+			// Convert status values in table cells to badges (solo columna Status)
+			convertStatusBadges();
 		});
 	</script>
 	

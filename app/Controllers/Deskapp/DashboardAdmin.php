@@ -25,16 +25,9 @@ class DashboardAdmin extends BaseController
      */
     private function requireDashboardAdminAccess()
     {
-        $roles = $this->session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $this->session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        [$roles, $perms] = session_roles_perms($this->session);
 
-        if (is_super_admin($roles) || is_admin($roles) || has_permission('menu_dashboard_admin', $perms, $roles)) {
+        if (has_permission('menu_dashboard_admin', $perms, $roles)) {
             return null;
         }
 

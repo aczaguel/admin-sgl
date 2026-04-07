@@ -41,7 +41,7 @@ class Users extends BaseController
 {
     public function __construct() {
         // parent::__construct();
-        helper(['form', 'url', 'cliente_filter']);
+        helper(['form', 'url', 'cliente_filter', 'permissions', 'acl_guard']);
     }
 
     private function guardManagementAccess()
@@ -52,18 +52,17 @@ class Users extends BaseController
 
         if (!$userId) {
             if ($isApi) {
-                return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+                return acl_deny('Sesión expirada', 401, null, true);
             }
             return redirect()->to('/deskapp/auth/login');
         }
 
-        $perms = $session->get('user_permissions');
-        $roles = $session->get('user_roles');
+        [$roles, $perms] = session_roles_perms($session);
         $canManage = has_permission('menu_roles', $perms, $roles) || has_permission('menu_permisos', $perms, $roles);
 
-        if (!(is_super_admin($roles) || is_admin($roles)) && !$canManage) {
+        if (!$canManage) {
             if ($isApi) {
-                return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+                return acl_deny('Acceso denegado', 403, null, true);
             }
             return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para administrar usuarios.');
         }
@@ -77,7 +76,7 @@ class Users extends BaseController
         $userId = $session->get('id');
         if (!$userId) {
             if ($json) {
-                return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+                return acl_deny('Sesión expirada', 401, null, true);
             }
             return redirect()->to('/deskapp/auth/login');
         }
@@ -123,6 +122,8 @@ class Users extends BaseController
                 return $resp;
             }
 
+            helper('acl_version');
+
             $db2 = $this->_getDbData();
             $session = session();
             $session->get('user_permissions');
@@ -132,17 +133,30 @@ class Users extends BaseController
             $myid = $session->get('id');
             
             $users_crud = $this->_getGroceryCrudEnterprise();
+            // JS extra para toggle AJAX de status en el grid (click directo en Activo/Inactivo)
+            // Nota: En esta versión de GroceryCRUD hay un mismatch: GroceryCrud::setJsFile() llama Layout::setJsFile() (inexistente).
+            // Por eso lo cargamos directo desde el layout.
+            $layout = $users_crud->getLayout();
+            if (is_object($layout) && method_exists($layout, 'setJavaScriptFile')) {
+                // En este proyecto los assets se sirven como /public/assets/...
+                $layout->setJavaScriptFile(base_url('/public/assets/js/users_status_grid_ajax.js'));
+            }
             $users_crud->setTable('users');
             $users_crud->setSubject('Usuario', 'Usuarios');
             $users_crud->defaultOrdering('users.id', 'desc');
             
             // Callback para cifrar la contraseña antes de insertar
             $users_crud->columns(['id', 'username', 'firstname', 'midname', 'lastname', 'email', 'avatar', 'roles', 'clientes', 'status']);
-            $users_crud->fields(['username', 'firstname', 'midname', 'lastname', 'email', 'phone', 'avatar', 'password', 'roles', 'clientes', 'status']);
+            // Quitar status del form: ahora se cambia directo en el grid con AJAX
+            $users_crud->fields(['username', 'firstname', 'midname', 'lastname', 'email', 'phone', 'avatar', 'password', 'roles', 'clientes']);
             $users_crud->fieldType('password', 'password'); // Indica que el campo password es de tipo password
             $users_crud->unsetDeleteMultiple();
             $users_crud->setActionButton('Clonar', 'fas fa-clone', function ($row) {
                 return '/users/users/clone/' . $row->id;
+            }, false);
+
+            $users_crud->setActionButton('Mapa', 'fas fa-map', function ($row) {
+                return '/deskapp/users/users_mapa/' . $row->id;
             }, false);
             $users_crud->displayAs('username','Username');
             $users_crud->displayAs('firstname','Nombre');
@@ -195,11 +209,36 @@ class Users extends BaseController
             });
             
             // Configurar campos para edición (sin password)
-            $users_crud->editFields(['username', 'firstname', 'midname', 'lastname', 'email', 'phone', 'avatar', 'roles', 'clientes', 'status']);
+            // status se cambia desde el grid
+            $users_crud->editFields(['username', 'firstname', 'midname', 'lastname', 'email', 'phone', 'avatar', 'roles', 'clientes']);
+
+            // Columna status como badge clickeable
+            $users_crud->callbackColumn('status', function ($value, $row) {
+                $userId = (int)($row->id ?? 0);
+                $username = (string)($row->username ?? '');
+                $status = (int)$value === 1;
+                $cls = $status ? 'badge badge-success' : 'badge badge-secondary';
+                $txt = $status ? 'Activo' : 'Inactivo';
+                $title = $status ? 'Click para desactivar' : 'Click para activar';
+
+                return '<a href="#"'
+                    . ' class="js-toggle-user-status ' . $cls . '"'
+                    . ' data-user-id="' . $userId . '"'
+                    . ' data-username="' . htmlspecialchars($username, ENT_QUOTES, 'UTF-8') . '"'
+                    . ' data-status="' . ($status ? '1' : '0') . '"'
+                    . ' title="' . $title . '"'
+                    . ' style="cursor:pointer;">'
+                    . $txt
+                    . '</a>';
+            });
             
             $users_crud->callbackBeforeInsert(function ($stateParameters) {
                 $stateParameters->data['created_at'] = date('Y-m-d H:i:s');
                 $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
+                // Si no viene status (porque ya no está en el form), por defecto activo
+                if (!isset($stateParameters->data['status'])) {
+                    $stateParameters->data['status'] = 1;
+                }
                 // Comprueba y encripta la contraseña
                 if (isset($stateParameters->data['password']) && !empty($stateParameters->data['password'])) {
                     $stateParameters->data['password'] = password_hash($stateParameters->data['password'], PASSWORD_DEFAULT);
@@ -299,6 +338,13 @@ class Users extends BaseController
             });
              
             $users_crud->callbackAfterUpdate(function ($stateParameters) use ($users_crud) {
+                // En este CRUD se pueden modificar relaciones N:N (roles/clientes).
+                // GroceryCRUD puede enviar las relaciones con nombres/formatos distintos, así que
+                // bumpeamos SIEMPRE en update para que el usuario afectado refresque con recarga.
+                if (function_exists('acl_bump_version')) {
+                    acl_bump_version();
+                }
+
                 // Verificar qué se guardó realmente en la base de datos
                 $db = \Config\Database::connect();
                 $lastQuery = $db->getLastQuery();
@@ -325,6 +371,11 @@ class Users extends BaseController
             });
             
             $users_crud->callbackAfterInsert(function ($stateParameters) use ($users_crud) {
+                // Crear usuario también puede incluir N:N (roles/clientes) y/o afectar permisos.
+                if (function_exists('acl_bump_version')) {
+                    acl_bump_version();
+                }
+
                 // Log de la query ejecutada
                 $db = \Config\Database::connect();
                 $lastQuery = $db->getLastQuery();
@@ -337,6 +388,10 @@ class Users extends BaseController
             });
             
             $users_crud->callbackAfterDelete(function ($stateParameters) use ($users_crud) {
+				// Si se borra un usuario, su relación cliente_user/roles/permisos se afecta.
+				if (function_exists('acl_bump_version')) {
+					acl_bump_version();
+				}
                 $tableName = $users_crud->getTable();
                 return logOperation($stateParameters, $tableName);
             });
@@ -350,6 +405,660 @@ class Users extends BaseController
         } catch (\Exception $e) {
             exit($e->getMessage());
         }
+    }
+
+    /**
+     * Toggle AJAX para status del usuario.
+     * POST: user_id, status (0|1)
+     */
+    public function toggle_status()
+    {
+        if ($resp = $this->guardManagementAccess()) {
+            return $resp;
+        }
+
+        if (!$this->request->isAJAX()) {
+            return $this->response
+                ->setStatusCode(400)
+                ->setJSON(['ok' => false, 'message' => 'Solicitud inválida.']);
+        }
+
+        $userId = (int) $this->request->getPost('user_id');
+        $statusRaw = $this->request->getPost('status');
+        $statusInt = is_numeric($statusRaw) ? (int) $statusRaw : -1;
+
+        if ($userId <= 0 || !in_array($statusInt, [0, 1], true)) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON(['ok' => false, 'message' => 'Parámetros inválidos.']);
+        }
+
+        $db = \Config\Database::connect();
+
+        $exists = $db->table('users')->select('id')->where('id', $userId)->get()->getRowArray();
+        if (empty($exists)) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON(['ok' => false, 'message' => 'Usuario no encontrado.']);
+        }
+
+        $data = ['status' => $statusInt];
+        if (is_object($db) && method_exists($db, 'fieldExists') && $db->fieldExists('updated_at', 'users')) {
+            $data['updated_at'] = date('Y-m-d H:i:s');
+        }
+
+        $db->table('users')->where('id', $userId)->update($data);
+
+        return $this->response->setJSON([
+            'ok' => true,
+            'user_id' => $userId,
+            'status' => $statusInt,
+        ]);
+    }
+
+    public function users_mapa($userId = null)
+    {
+        if ($resp = $this->guardManagementAccess()) {
+            return $resp;
+        }
+
+        $userId = (int) ($userId ?? 0);
+        if ($userId <= 0) {
+            return redirect()->to('/deskapp/users/users')->with('error', 'Usuario inválido.');
+        }
+
+        $db = \Config\Database::connect();
+        $session = session();
+        $userModel = new UserModel($db);
+
+        $user = $userModel->find($userId);
+        if (empty($user)) {
+            return redirect()->to('/deskapp/users/users')->with('error', 'Usuario no encontrado.');
+        }
+
+        $userRoles = $userModel->getUserRoles($userId);
+        // Permisos efectivos (roles + overrides por usuario).
+        $userPerms = $userModel->getUserPermissions($userId);
+        $userRoles = normalize_permission_list($userRoles);
+        $userPerms = normalize_permission_list($userPerms);
+
+        // Roles tal cual están en DB (para comparar exacto vs mapeos/reglas)
+        $userRolesDb = [];
+        try {
+            $userRolesDb = $db->table('us_user_roles as ur')
+                ->select('r.id as role_id, r.role_name, r.description')
+                ->join('us_roles as r', 'ur.role_id = r.id', 'inner')
+                ->where('ur.user_id', $userId)
+                ->orderBy('r.role_name', 'asc')
+                ->get()
+                ->getResultArray();
+        } catch (\Throwable $e) {
+            $userRolesDb = [];
+        }
+
+        // Permisos por rol (tal cual DB): us_role_permissions -> us_permissions
+        $rolePermissionsDb = [];
+        try {
+            $roleIds = [];
+            foreach ($userRolesDb as $r) {
+                $rid = (int)($r['role_id'] ?? 0);
+                if ($rid > 0) {
+                    $roleIds[$rid] = $rid;
+                }
+            }
+            $roleIds = array_values($roleIds);
+
+            if (!empty($roleIds)) {
+                $rpBuilder = $db->table('us_role_permissions as rp')
+                    ->select('r.id as role_id, r.role_name, p.permission_name, p.description')
+                    ->join('us_roles as r', 'rp.role_id = r.id', 'inner')
+                    ->join('us_permissions as p', 'rp.permission_id = p.id', 'inner')
+                    ->whereIn('rp.role_id', $roleIds);
+
+                // Si existe la columna status, solo muestra permisos activos.
+                if (is_object($db) && method_exists($db, 'fieldExists') && $db->fieldExists('status', 'us_permissions')) {
+                    $rpBuilder->where('p.status', 1);
+                }
+
+                $rows = $rpBuilder
+                    ->orderBy('r.role_name', 'asc')
+                    ->orderBy('p.permission_name', 'asc')
+                    ->get()
+                    ->getResultArray();
+
+                foreach ($rows as $row) {
+                    $rid = (int)($row['role_id'] ?? 0);
+                    if ($rid <= 0) {
+                        continue;
+                    }
+
+                    if (!isset($rolePermissionsDb[$rid])) {
+                        $rolePermissionsDb[$rid] = [
+                            'role_id' => $rid,
+                            'role_name' => (string)($row['role_name'] ?? ''),
+                            'permissions' => [],
+                        ];
+                    }
+
+                    $permName = trim((string)($row['permission_name'] ?? ''));
+                    if ($permName === '') {
+                        continue;
+                    }
+
+                    $rolePermissionsDb[$rid]['permissions'][] = [
+                        'permission_name' => $permName,
+                        'description' => (string)($row['description'] ?? ''),
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            $rolePermissionsDb = [];
+        }
+
+        // Set rápido: permisos base por rol (para distinguir “Rol” vs “Usuario”).
+        $rolePermSet = [];
+        foreach (($rolePermissionsDb ?? []) as $ri) {
+            foreach (($ri['permissions'] ?? []) as $p) {
+                $pn = trim((string)($p['permission_name'] ?? ''));
+                if ($pn !== '') {
+                    $rolePermSet[$pn] = true;
+                }
+            }
+        }
+
+        // Overrides por usuario (para mostrar origen + permitir toggles)
+        $userPermissionOverrides = [];
+        try {
+            $ovBuilder = $db->table('us_user_permissions as up')
+                ->select('p.permission_name, up.granted')
+                ->join('us_permissions as p', 'p.id = up.permission_id', 'inner')
+                ->where('up.user_id', $userId);
+
+            if (is_object($db) && method_exists($db, 'fieldExists') && $db->fieldExists('status', 'us_permissions')) {
+                $ovBuilder->where('p.status', 1);
+            }
+
+            $rows = $ovBuilder->orderBy('p.permission_name', 'asc')->get()->getResultArray();
+            foreach ($rows as $row) {
+                $pn = trim((string)($row['permission_name'] ?? ''));
+                if ($pn === '') {
+                    continue;
+                }
+                $userPermissionOverrides[$pn] = ((int)($row['granted'] ?? 1) === 1) ? 1 : 0;
+            }
+        } catch (\Throwable $e) {
+            $userPermissionOverrides = [];
+        }
+
+        // --------------------------------------------------------------------
+        // Catálogo completo de permisos + descripciones desde DB
+        // --------------------------------------------------------------------
+        $permissionDescription = [];
+        $permissionUiArea = [];
+        try {
+            $permBuilder = $db->table('us_permissions')
+                ->select('permission_name, description');
+
+            // Si existe la columna status, el mapa solo lista permisos activos.
+            if (is_object($db) && method_exists($db, 'fieldExists') && $db->fieldExists('status', 'us_permissions')) {
+                $permBuilder->where('status', 1);
+            }
+
+            $permRows = $permBuilder
+                ->orderBy('permission_name', 'asc')
+                ->get()
+                ->getResultArray();
+
+            foreach ($permRows as $row) {
+                $permName = trim((string)($row['permission_name'] ?? ''));
+                if ($permName === '') {
+                    continue;
+                }
+                $permissionDescription[$permName] = (string)($row['description'] ?? '');
+
+                $p = strtolower($permName);
+                if (strpos($p, 'menu_') === 0) {
+                    $permissionUiArea[$permName] = 'Menú';
+                } elseif (strpos($p, 'header_') === 0 || $p === 'header_buttons') {
+                    $permissionUiArea[$permName] = 'Header';
+                } elseif (strpos($p, 'important_') === 0) {
+                    $permissionUiArea[$permName] = 'Acceso rápido';
+                } elseif (strpos($p, 'section_') === 0) {
+                    $permissionUiArea[$permName] = 'Sección';
+                } else {
+                    $permissionUiArea[$permName] = 'Acción';
+                }
+            }
+        } catch (\Throwable $e) {
+            // Si falla el catálogo, seguimos con el mapeo estático (fallback).
+            $permissionDescription = [];
+            $permissionUiArea = [];
+        }
+
+        // --------------------------------------------------------------------
+        // Config base por paso: roles y permisos semilla (fallback)
+        // --------------------------------------------------------------------
+        $steps = [
+            1 => [
+                'name' => 'Paso 1: Datos del trámite',
+                // Nota UI: Starter “mueve” Paso 1 en el sentido de iniciar/crear el trámite.
+                'roles_can_move' => ['Starter', 'Executer', 'Admin', 'Super Admin'],
+                'permissions' => [
+                    'read_tramite', 'listar_tramite', 'create_tramite', 'editar_tramite', 'delete_tramite',
+                    'export_tramite', 'print_tramite', 'clone_tramite',
+                    'section_inicial_datos',
+                    'editar_tramite_principal', 'editar_tramite_asociado', 'delete_tramite_asociado',
+                ],
+            ],
+            2 => [
+                'name' => 'Paso 2: Gestor y Empresa',
+                'roles_can_move' => ['Executer', 'Admin', 'Super Admin'],
+                'permissions' => ['section_asigna_gestor', 'tramite_view_gestor', 'editar_tramite'],
+            ],
+            3 => [
+                'name' => 'Paso 3: Pago de derechos',
+                'roles_can_move' => ['Executer', 'Admin', 'Super Admin'],
+                'permissions' => ['section_pago_derechos', 'section_linea_captura', 'section_documentos_pago', 'editar_tramite'],
+            ],
+            4 => [
+                'name' => 'Paso 4: Pago a gestor',
+                'roles_can_move' => ['Authorizer Editor', 'Authorizer Simple', 'Admin', 'Super Admin'],
+                'permissions' => ['section_pago_gestor', 'editar_pago_gestor', 'important_pasar_a_pagos', 'editar_tramite'],
+            ],
+            5 => [
+                'name' => 'Paso 5: Cobro a cliente',
+                'roles_can_move' => ['Closer', 'Admin', 'Super Admin'],
+                'permissions' => [
+                    'section_final_costos',
+                    'read_final_tramite', 'listar_final_tramite',
+                    'export_final_tramite', 'print_final_tramite',
+                    'important_concluir_tramite', 'important_cancelar_tramite',
+                    'editar_tramite',
+                ],
+            ],
+        ];
+
+        // --------------------------------------------------------------------
+        // “Mapear todo”: incorporar permisos desde catálogo DB a pasos 1-5.
+        // Esto incluye permisos usados por secciones/detalles de GroceryCRUD.
+        // --------------------------------------------------------------------
+        $adminPermissions = [];
+        if (!empty($permissionDescription)) {
+            $candidatePerms = array_keys($permissionDescription);
+
+            // Índices para evitar duplicados
+            $stepPermSet = [1 => [], 2 => [], 3 => [], 4 => [], 5 => []];
+            foreach ($steps as $sNum => $cfg) {
+                foreach (($cfg['permissions'] ?? []) as $p) {
+                    $stepPermSet[$sNum][(string)$p] = true;
+                }
+            }
+
+            $assignStepForPerm = static function (string $permName): ?int {
+                $p = strtolower($permName);
+
+                $contains = static function (string $haystack, string $needle): bool {
+                    return $needle !== '' && strpos($haystack, $needle) !== false;
+                };
+
+                // ----------------------------------------------------------------
+                // Más específico → menos específico
+                // ----------------------------------------------------------------
+
+                // Paso 5: proceso final / cobro / concluido
+                if (
+                    $contains($p, 'section_final_costos') ||
+                    $contains($p, 'final_tramite') ||
+                    $contains($p, 'cobro_cliente') ||
+                    $contains($p, 'final_costos') ||
+                    $contains($p, 'concluido') ||
+                    $contains($p, 'concluir') ||
+                    $contains($p, 'cancelar')
+                ) {
+                    return 5;
+                }
+
+                // Paso 4: pago gestor / autorizaciones
+                if (
+                    $contains($p, 'section_pago_gestor') ||
+                    $contains($p, 'pago_gestor') ||
+                    $contains($p, 'editar_pago_gestor') ||
+                    $contains($p, 'pasar_a_pagos')
+                ) {
+                    return 4;
+                }
+
+                // Paso 3: pago derechos / línea / docs de pago
+                if (
+                    $contains($p, 'section_pago_derechos') ||
+                    $contains($p, 'pago_derechos') ||
+                    $contains($p, 'linea_captura') ||
+                    $contains($p, 'documentos_pago')
+                ) {
+                    return 3;
+                }
+
+                // Paso 2: gestor / asignaciones
+                if (
+                    $contains($p, 'section_asigna_gestor') ||
+                    $contains($p, 'tramite_view_gestor')
+                ) {
+                    return 2;
+                }
+
+                // Paso 1: base del trámite
+                if (
+                    $contains($p, 'read_tramite') ||
+                    $contains($p, 'listar_tramite') ||
+                    $contains($p, 'create_tramite') ||
+                    $contains($p, 'editar_tramite') ||
+                    $contains($p, 'delete_tramite') ||
+                    $contains($p, 'export_tramite') ||
+                    $contains($p, 'print_tramite') ||
+                    $contains($p, 'clone_tramite') ||
+                    $contains($p, 'section_inicial_datos') ||
+                    $contains($p, 'editar_tramite_principal') ||
+                    $contains($p, 'editar_tramite_asociado')
+                ) {
+                    return 1;
+                }
+
+                // ----------------------------------------------------------------
+                // Prefijos típicos del sistema
+                // ----------------------------------------------------------------
+
+                // Menús: intentar ponerlos en el paso más cercano
+                if (strpos($p, 'menu_') === 0) {
+                    // Solo menús del flujo de trámites viven en pasos.
+                    if ($contains($p, 'proceso_final')) {
+                        return 5;
+                    }
+                    if ($contains($p, 'tramites')) {
+                        return 1;
+                    }
+                    return null;
+                }
+
+                // Listados: final vs normal
+                if (strpos($p, 'listar_') === 0) {
+                    if ($contains($p, 'final_tramite') || $contains($p, 'concluido')) {
+                        return 5;
+                    }
+                    if ($contains($p, 'tramite')) {
+                        return 1;
+                    }
+                    return null;
+                }
+
+                // Export/print: final vs normal
+                if (strpos($p, 'export_') === 0 || strpos($p, 'print_') === 0) {
+                    if ($contains($p, 'final_tramite')) {
+                        return 5;
+                    }
+                    if ($contains($p, 'tramite')) {
+                        return 1;
+                    }
+                    return null;
+                }
+
+                // Default: no pertenece a pasos 1-5 (se mostrará en Admin permisos)
+                return null;
+            };
+
+            foreach ($candidatePerms as $permName) {
+                if ($permName === '') {
+                    continue;
+                }
+                $stepNum = $assignStepForPerm($permName);
+                if ($stepNum === null) {
+                    $adminPermissions[$permName] = true;
+                    continue;
+                }
+                $stepPermSet[$stepNum][$permName] = true;
+            }
+
+            // Rehidratar en el arreglo final, ordenado
+            foreach ($steps as $sNum => &$cfg) {
+                $perms = array_keys($stepPermSet[$sNum]);
+                sort($perms, SORT_STRING);
+                $cfg['permissions'] = $perms;
+            }
+            unset($cfg);
+        }
+
+        $adminPermissions = array_keys($adminPermissions);
+        sort($adminPermissions, SORT_STRING);
+
+        // UI-only: “Puede mover este paso” se define por permisos efectivos (no por rol).
+        // Super Admin queda cubierto por el bypass dentro de has_permission().
+        $canMoveStep = [];
+        foreach ($steps as $stepNum => $_cfg) {
+            $stepNum = (int) $stepNum;
+            switch ($stepNum) {
+                case 1:
+                    $canMoveStep[$stepNum] = has_permission('create_tramite', $userPerms, $userRoles)
+                        || can_write_tramite_step(1, $userPerms, $userRoles);
+                    break;
+                case 2:
+                    $canMoveStep[$stepNum] = can_write_tramite_step(2, $userPerms, $userRoles);
+                    break;
+                case 3:
+                    $canMoveStep[$stepNum] = can_write_tramite_step(3, $userPerms, $userRoles);
+                    break;
+                case 4:
+                    $canMoveStep[$stepNum] = has_permission('section_pago_gestor', $userPerms, $userRoles)
+                        && has_permission('editar_pago_gestor', $userPerms, $userRoles);
+                    break;
+                case 5:
+                    $canMoveStep[$stepNum] = has_permission('section_final_costos', $userPerms, $userRoles);
+                    break;
+                default:
+                    $canMoveStep[$stepNum] = false;
+                    break;
+            }
+        }
+
+        $data = [
+            'session' => $session,
+            'username' => $session->get('user_name'),
+            'title' => 'Mapa de permisos',
+            'description' => 'Mapa por zonas (pasos 1 a 5) y sección de permisos administrativos, con permisos en verde/gris.',
+            'target_user' => $user,
+            'target_roles' => $userRoles,
+            'target_roles_db' => $userRolesDb,
+            'target_role_permissions_db' => $rolePermissionsDb,
+            'target_permissions' => $userPerms,
+            'target_role_permission_set' => $rolePermSet,
+            'target_user_permission_overrides' => $userPermissionOverrides,
+            'steps' => $steps,
+            'admin_permissions' => $adminPermissions,
+            'permission_descriptions' => $permissionDescription,
+            'permission_ui_area' => $permissionUiArea,
+            'can_move_step' => $canMoveStep,
+            'can_authorize_target' => can_authorize_tramite($userRoles, $userPerms),
+            'toggle_user_permission_url' => (string) base_url('deskapp/users/toggle_user_permission'),
+        ];
+
+        return view('deskapp/users/users_mapa', $data);
+    }
+
+    /**
+     * Toggle de override user-permiso (extras y denegaciones) sin modificar roles.
+     * Regla:
+     * - BaseGranted (por rol) + Override (user): Effective
+     * - Si deseas activar y ya viene por rol, se elimina override (si existía).
+     * - Si deseas desactivar y NO viene por rol, se elimina override (si existía).
+     * - En los demás casos, se upsertea override granted=1/0.
+     */
+    public function toggle_user_permission()
+    {
+        if ($resp = $this->guardManagementAccess()) {
+            return $resp;
+        }
+
+        helper('acl_version');
+
+        if (!$this->request->isAJAX()) {
+            return $this->response
+                ->setStatusCode(400)
+                ->setJSON(['ok' => false, 'message' => 'Solicitud inválida.']);
+        }
+
+        $userId = (int) $this->request->getPost('user_id');
+        $permissionName = trim((string) $this->request->getPost('permission_name'));
+        $desiredRaw = $this->request->getPost('granted');
+        $desired = is_numeric($desiredRaw) ? (int) $desiredRaw : -1;
+
+        if ($userId <= 0 || $permissionName === '' || !in_array($desired, [0, 1], true)) {
+            return $this->response
+                ->setStatusCode(422)
+                ->setJSON(['ok' => false, 'message' => 'Parámetros inválidos.']);
+        }
+
+        $db = \Config\Database::connect();
+
+        $userExists = $db->table('users')->select('id')->where('id', $userId)->get()->getRowArray();
+        if (empty($userExists)) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON(['ok' => false, 'message' => 'Usuario no encontrado.']);
+        }
+
+        // Resolver permission_id
+        $permBuilder = $db->table('us_permissions')->select('id, permission_name');
+        if (is_object($db) && method_exists($db, 'fieldExists') && $db->fieldExists('status', 'us_permissions')) {
+            $permBuilder->where('status', 1);
+        }
+        $permRow = $permBuilder->where('permission_name', $permissionName)->get()->getRowArray();
+        if (empty($permRow)) {
+            return $this->response
+                ->setStatusCode(404)
+                ->setJSON(['ok' => false, 'message' => 'Permiso no encontrado o inactivo.']);
+        }
+        $permissionId = (int) ($permRow['id'] ?? 0);
+        if ($permissionId <= 0) {
+            return $this->response
+                ->setStatusCode(500)
+                ->setJSON(['ok' => false, 'message' => 'Permiso inválido.']);
+        }
+
+        // BaseGranted por rol (DB)
+        $baseGranted = false;
+        try {
+            $baseQ = $db->table('us_user_roles as ur')
+                ->select('rp.permission_id')
+                ->join('us_role_permissions as rp', 'rp.role_id = ur.role_id', 'inner')
+                ->where('ur.user_id', $userId)
+                ->where('rp.permission_id', $permissionId)
+                ->limit(1)
+                ->get()
+                ->getRowArray();
+            $baseGranted = !empty($baseQ);
+        } catch (\Throwable $e) {
+            $baseGranted = false;
+        }
+
+        // Override actual
+        $overrideRow = null;
+        try {
+            $overrideRow = $db->table('us_user_permissions')
+                ->select('id, granted')
+                ->where('user_id', $userId)
+                ->where('permission_id', $permissionId)
+                ->get()
+                ->getRowArray();
+        } catch (\Throwable $e) {
+            $overrideRow = null;
+        }
+
+        $overrideExists = !empty($overrideRow);
+        $overrideId = (int) ($overrideRow['id'] ?? 0);
+        $currentOverrideGranted = $overrideExists ? (int) ($overrideRow['granted'] ?? 1) : null;
+
+        $action = 'none';
+        $finalOverride = null; // null|0|1
+
+        // Regla de minimización de overrides (mantener consistencia con roles)
+        if ($desired === 1) {
+            if ($baseGranted) {
+                // Ya viene por rol: quitar override si existía (especialmente si era deny)
+                if ($overrideExists) {
+                    $db->table('us_user_permissions')->where('id', $overrideId)->delete();
+                    $action = 'deleted';
+                }
+                $finalOverride = null;
+            } else {
+                // No viene por rol: necesitamos override allow
+                $data = [
+                    'user_id' => $userId,
+                    'permission_id' => $permissionId,
+                    'granted' => 1,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ];
+                if (!$overrideExists) {
+                    $data['created_at'] = date('Y-m-d H:i:s');
+                    $db->table('us_user_permissions')->insert($data);
+                    $action = 'inserted';
+                } else {
+                    $db->table('us_user_permissions')->where('id', $overrideId)->update($data);
+                    $action = ($currentOverrideGranted === 1) ? 'kept' : 'updated';
+                }
+                $finalOverride = 1;
+            }
+        } else {
+            // desired === 0
+            if (!$baseGranted) {
+                // No viene por rol: quitar override si existía (especialmente si era allow)
+                if ($overrideExists) {
+                    $db->table('us_user_permissions')->where('id', $overrideId)->delete();
+                    $action = 'deleted';
+                }
+                $finalOverride = null;
+            } else {
+                // Viene por rol: necesitamos override deny
+                $data = [
+                    'user_id' => $userId,
+                    'permission_id' => $permissionId,
+                    'granted' => 0,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ];
+                if (!$overrideExists) {
+                    $data['created_at'] = date('Y-m-d H:i:s');
+                    $db->table('us_user_permissions')->insert($data);
+                    $action = 'inserted';
+                } else {
+                    $db->table('us_user_permissions')->where('id', $overrideId)->update($data);
+                    $action = ($currentOverrideGranted === 0) ? 'kept' : 'updated';
+                }
+                $finalOverride = 0;
+            }
+        }
+
+        $effectiveGranted = ($finalOverride !== null) ? ($finalOverride === 1) : $baseGranted;
+        $source = 'none';
+        if ($finalOverride !== null) {
+            $source = ($finalOverride === 1) ? 'user_allow' : 'user_deny';
+        } else {
+            $source = $baseGranted ? 'role' : 'none';
+        }
+
+        // Invalidar cache ACL en sesión (solo si hubo cambio real en BD)
+        if (in_array($action, ['inserted', 'updated', 'deleted'], true)) {
+            if (function_exists('acl_bump_version')) {
+                acl_bump_version();
+            }
+        }
+
+        return $this->response->setJSON([
+            'ok' => true,
+            'user_id' => $userId,
+            'permission_name' => $permissionName,
+            'base_granted' => $baseGranted,
+            'override' => $finalOverride,
+            'granted' => $effectiveGranted ? 1 : 0,
+            'source' => $source,
+            'action' => $action,
+        ]);
     }
     
     public function get_debug_info()
@@ -381,6 +1090,8 @@ class Users extends BaseController
                 return $resp;
             }
 
+            helper('acl_version');
+
             $session = session();
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
@@ -400,14 +1111,23 @@ class Users extends BaseController
             $user_roles_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
 
             $user_roles_crud->callbackAfterInsert(function ($stateParameters) use ($user_roles_crud) {
+                if (function_exists('acl_bump_version')) {
+                    acl_bump_version();
+                }
                 $tableName = $user_roles_crud->getTable();
                 return logOperation($stateParameters, $tableName);
             });
             $user_roles_crud->callbackAfterUpdate(function ($stateParameters) use ($user_roles_crud) {
+                if (function_exists('acl_bump_version')) {
+                    acl_bump_version();
+                }
                 $tableName = $user_roles_crud->getTable();
                 return logOperation($stateParameters, $tableName);
             });
             $user_roles_crud->callbackAfterDelete(function ($stateParameters) use ($user_roles_crud) {
+                if (function_exists('acl_bump_version')) {
+                    acl_bump_version();
+                }
                 $tableName = $user_roles_crud->getTable();
                 return logOperation($stateParameters, $tableName);
             });

@@ -154,6 +154,11 @@
     animation: pulse-urgente 2s infinite;
 }
 
+.status-badge.status-id {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 55%, #60a5fa 100%);
+    color: white;
+}
+
 @keyframes pulse-urgente {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.7; }
@@ -480,6 +485,45 @@
     height: 28px;
     background: linear-gradient(180deg, var(--primary) 0%, var(--primary-light) 100%);
     border-radius: var(--radius-full);
+}
+
+.wizard-modern .sgl-add-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+}
+
+.wizard-modern .sgl-add-controls .form-control,
+.wizard-modern .sgl-add-controls .custom-select,
+.wizard-modern .sgl-add-controls .sgl-btn-mini {
+    font-size: .76rem;
+}
+
+.wizard-modern .sgl-add-controls .form-control,
+.wizard-modern .sgl-add-controls .custom-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 34px;
+    padding: .25rem .5rem;
+}
+
+.wizard-modern .sgl-add-controls .sgl-btn-mini {
+    flex: 0 0 auto;
+    padding: 5px 10px;
+    white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+    .wizard-modern .sgl-add-controls {
+        gap: 6px;
+    }
+
+    .wizard-modern .sgl-add-controls .sgl-btn-mini {
+        padding: 5px 8px;
+    }
 }
 
 /* ============================================================================

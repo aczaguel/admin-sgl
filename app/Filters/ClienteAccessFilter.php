@@ -45,17 +45,20 @@ class ClienteAccessFilter implements FilterInterface
      */
     public function before(RequestInterface $request, $arguments = null)
     {
-        helper('cliente_filter');
+        helper(['cliente_filter', 'acl_guard', 'permissions']);
         
         $session = session();
         
         // Verificar que el usuario esté autenticado
-        if (!$session->get('logged_in')) {
+        $sessionUserId = (int) ($session->get('id') ?? 0);
+        $sessionLoggedIn = (bool) ($session->get('logged_in') ?? false);
+        if (!($sessionLoggedIn || $sessionUserId > 0)) {
             return redirect()->to('/deskapp/login')
                 ->with('error', 'Debe iniciar sesión para acceder');
         }
-        
-        $userId = $session->get('id');
+
+        $userId = $sessionUserId;
+        [$roles, $perms] = session_roles_perms($session);
         
         // Verificar si es una solicitud a un trámite específico
         // Ejemplo: /deskapp/tramites/ver/123
@@ -73,7 +76,7 @@ class ClienteAccessFilter implements FilterInterface
         
         // Si se está accediendo a un trámite específico, validar acceso
         if ($tramiteId && is_numeric($tramiteId)) {
-            if (!validate_tramite_access($tramiteId, $userId)) {
+            if (!acl_has_tramite_tenant_access((int) $tramiteId, $userId, $roles)) {
                 // Registrar intento de acceso no autorizado
                 log_unauthorized_access_attempt('tramite', $tramiteId, $userId);
                 

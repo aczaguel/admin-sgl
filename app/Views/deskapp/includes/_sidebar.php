@@ -1,8 +1,7 @@
 <?php
 	helper(['permissions']);
 	$session = session();
-	$userRolesForSidebar = $session->get('user_roles') ?? [];
-	if (is_client($userRolesForSidebar) && !is_super_admin($userRolesForSidebar)) {
+	if (has_permission_strict('ui_sidebar_cliente', $session->get('user_permissions'))) {
 		echo view('deskapp/includes/_sidebar_cliente', ['session' => $session]);
 		return;
 	}
@@ -24,21 +23,14 @@
 		<div class="sidebar-menu">
 			<ul id="accordion-menu">
 				<?php 
-					helper(['cliente_filter']);
-					// Determinar si el usuario es Admin o Super Admin por rol
-					$userRole = $session->get('user_roles');
-					$userRoleStr = is_array($userRole) ? implode(',', $userRole) : (string)$userRole;
-					$userRoleLower = strtolower(str_replace(' ', '', $userRoleStr)); // Remover espacios y convertir a minúsculas
-					$isAdmin = user_is_admin($session->get('id'));
-					$hasGlobalClienteAccess = user_has_global_cliente_access($session->get('id'));
-					$isSuperAdmin = is_super_admin($userRole);
-					$isLimitedAdmin = $isAdmin && !$isSuperAdmin && !$hasGlobalClienteAccess;
+					// Sidebar gobernado por permisos (sin gates por rol).
 				?>
 
-				<?php if ($isAdmin || has_permission('menu_dashboard_admin', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+				<?php if (has_permission('menu_dashboard_admin', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 				<!-- SECCIÓN: DASHBOARD ADMINISTRATIVO -->
 				<li class="menu-section-title">
 					<span><i class="fas fa-chart-line me-2"></i> Análisis y Reportes</span>
+					<?= perm_audit_tag('menu_dashboard_admin', $session) ?>
 				</li>
 				<li class="dropdown">
 					<a href="javascript:;" class="dropdown-toggle">
@@ -81,6 +73,7 @@
 				<?php if (has_permission('menu_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-file-alt me-2"></i> Gestión de Trámites</span>
+						<?= perm_audit_tag('menu_tramites', $session) ?>
 					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
@@ -91,29 +84,31 @@
 							<?php if (has_permission('listar_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramitesn/tramite'); ?>">
 									<i class="fas fa-magic text-primary"></i> Trámites (nuevo flujo)
-								</a></li>
-								<li><a href="<?php echo base_url('deskapp/tramitesn/search'); ?>">
-									<i class="fas fa-search text-info"></i> Busca un trámite
+									<?= perm_audit_tag('listar_tramite', $session) ?>
 								</a></li>
 							<?php endif; ?>
-							<?php if (has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-								<li><a href="<?php echo base_url('deskapp/tramitesn/cobro_cliente'); ?>">
-									<i class="fas fa-receipt text-success"></i> Cobro a Cliente
+							<?php if (has_permission('search_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramitesn/search'); ?>">
+									<i class="fas fa-search text-info"></i> Busca un trámite
+									<?= perm_audit_tag('search_tramite', $session) ?>
 								</a></li>
 							<?php endif; ?>
 							<?php if (has_permission('menu_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/flotillas/import'); ?>">
 									<i class="fas fa-layer-group text-info"></i> Flotillas (Importar)
+									<?= perm_audit_tag('menu_tramites', $session) ?>
 								</a></li>
 							<?php endif; ?>
 							<?php if (has_permission('listar_tramites_concluidos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/concluido/final'); ?>">
 									<i class="fas fa-check-circle"></i> Concluidos
+									<?= perm_audit_tag('listar_tramites_concluidos', $session) ?>
 								</a></li>
 							<?php endif; ?>	
 							<?php if (has_permission('menu_tramites_tenencias', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramites/tenencias'); ?>">
 									<i class="fas fa-car"></i> Tenencias
+									<?= perm_audit_tag('menu_tramites_tenencias', $session) ?>
 								</a></li>
 							<?php endif; ?>	
 						</ul>
@@ -143,6 +138,7 @@
 				<?php if (has_permission('menu_proceso_final', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-flag-checkered me-2"></i> Cierre de Trámites</span>
+						<?= perm_audit_tag('menu_proceso_final', $session) ?>
 					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
@@ -150,14 +146,22 @@
 							<span class="mtext">Cierre</span>
 						</a>
 						<ul class="submenu">
-							<?php if (has_permission('listar_final_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+							<?php if (has_permission('read_final_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/proceso/final'); ?>">
 									<i class="fas fa-check-double text-success"></i> Finalizado
+									<?= perm_audit_tag('read_final_tramite', $session) ?>
 								</a></li>
 							<?php endif; ?>	
-							<?php if (has_permission('listar_concluidos_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+							<?php if (has_permission('list_cobro_cliente', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramitesn/cobro_cliente'); ?>">
+									<i class="fas fa-receipt text-success"></i> Cobro a Cliente
+									<?= perm_audit_tag('list_cobro_cliente', $session) ?>
+								</a></li>
+							<?php endif; ?>
+							<?php if (has_permission('listar_tramites_cancelado', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramites/cancelados'); ?>">
 									<i class="fas fa-times-circle text-danger"></i> Cancelados
+									<?= perm_audit_tag('listar_tramites_cancelado', $session) ?>
 								</a></li>
 							<?php endif; ?>	
 						</ul>
@@ -165,9 +169,10 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: GESTORES -->
-				<?php if (has_permission('menu_gestores', $session->get('user_permissions'), $session->get('user_roles')) && !$isLimitedAdmin): ?>
+				<?php if (has_permission('menu_gestores', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-handshake me-2"></i> Gestión de Gestores</span>
+						<?= perm_audit_tag('menu_gestores', $session) ?>
 					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
@@ -186,9 +191,10 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: CLIENTES -->
-				<?php if (has_permission('menu_clientes', $session->get('user_permissions'), $session->get('user_roles')) && !$isLimitedAdmin): ?>
+				<?php if (has_permission('menu_clientes', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-users me-2"></i> Gestión de Clientes</span>
+						<?= perm_audit_tag('menu_clientes', $session) ?>
 					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
@@ -213,9 +219,10 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: CONFIGURACIÓN -->
-				<?php if (has_permission('menu_configuracion', $session->get('user_permissions'), $session->get('user_roles')) && !$isLimitedAdmin): ?>
+				<?php if (has_permission('menu_configuracion', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-cog me-2"></i> Configuración del Sistema</span>
+						<?= perm_audit_tag('menu_configuracion', $session) ?>
 					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
@@ -234,9 +241,10 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: DOCUMENTOS -->
-				<?php if (has_permission('menu_documentos', $session->get('user_permissions'), $session->get('user_roles')) && !$isLimitedAdmin): ?>
+				<?php if (has_permission('menu_documentos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-folder me-2"></i> Gestión Documental</span>
+						<?= perm_audit_tag('menu_documentos', $session) ?>
 					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
@@ -255,9 +263,10 @@
 				<?php endif; ?>
 				
 				<!-- SECCIÓN: PERMISOS Y USUARIOS -->
-				<?php if (has_permission('menu_roles', $session->get('user_permissions'), $session->get('user_roles')) && !$isLimitedAdmin): ?>
+				<?php if (has_permission('menu_roles', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-shield-alt me-2"></i> Seguridad y Accesos</span>
+						<?= perm_audit_tag('menu_roles', $session) ?>
 					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
@@ -284,9 +293,10 @@
 					</li>
 				<?php endif; ?>
 
-				<?php if ($isAdmin): ?>
+				<?php if (has_permission('menu_monitoreo_actividad', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 				<li class="menu-section-title">
 					<span><i class="fas fa-eye me-2"></i> Monitoreo de Actividad</span>
+					<?= perm_audit_tag('menu_monitoreo_actividad', $session) ?>
 				</li>
 				<li class="dropdown">
 					<a href="javascript:;" class="dropdown-toggle">
@@ -294,15 +304,24 @@
 						<span class="mtext">Monitoreo de Actividad</span>
 					</a>
 					<ul class="submenu">
-						<li><a href="<?php echo site_url('/bitacora/search'); ?>">
-							<i class="fas fa-history text-primary"></i> Bitacora Search
-						</a></li>
-						<li><a href="<?php echo base_url('correccion-tramites'); ?>">
-							<i class="fas fa-edit text-info"></i> Corrección de Trámites
-						</a></li>
-						<li><a href="<?php echo base_url('deskapp/tramites/audit_search'); ?>">
-							<i class="fas fa-clipboard-check"></i> Auditoría de Trámite
-						</a></li>
+						<?php if (has_permission('monitoreo_bitacora_search', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+							<li><a href="<?php echo site_url('/bitacora/search'); ?>">
+								<i class="fas fa-history text-primary"></i> Bitacora Search
+								<?= perm_audit_tag('monitoreo_bitacora_search', $session) ?>
+							</a></li>
+						<?php endif; ?>
+						<?php if (has_permission('monitoreo_correccion_tramites', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+							<li><a href="<?php echo base_url('correccion-tramites'); ?>">
+								<i class="fas fa-edit text-info"></i> Corrección de Trámites
+								<?= perm_audit_tag('monitoreo_correccion_tramites', $session) ?>
+							</a></li>
+						<?php endif; ?>
+						<?php if (has_permission('monitoreo_auditoria_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+							<li><a href="<?php echo base_url('deskapp/tramites/audit_search'); ?>">
+								<i class="fas fa-clipboard-check"></i> Auditoría de Trámite
+								<?= perm_audit_tag('monitoreo_auditoria_tramite', $session) ?>
+							</a></li>
+						<?php endif; ?>
 					</ul>
 				</li>
 				<?php endif; ?>

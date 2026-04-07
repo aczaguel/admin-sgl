@@ -37,8 +37,12 @@ $routes->get('/', 'Deskapp/Login::index');
 
 // Alias para que /deskapp sin acción vaya al dashboard
 $routes->get('/deskapp','Deskapp/Dashboard::index',['filter' => 'auth']);
+$routes->get('/deskapp/','Deskapp/Dashboard::index',['filter' => 'auth']);
+$routes->get('/deskapp/auth/login', 'Deskapp/Login::index');
+$routes->post('/deskapp/auth/login', 'Deskapp/Login::index');
 $routes->get('/deskapp/dashboard','Deskapp/Dashboard::index',['filter' => 'auth']);
 $routes->post('/deskapp/dashboard','Deskapp/Dashboard::index',['filter' => 'auth']);
+$routes->post('/deskapp/','Deskapp/Dashboard::index',['filter' => 'auth']);
 
 // Dashboard Cliente
 $routes->get('/deskapp/clientes/dashboard', 'Deskapp/DashboardCliente::index',['filter' => 'auth']);
@@ -55,17 +59,44 @@ $routes->get('/deskapp/clientes/dashboard_data', 'Deskapp/DashboardCliente::data
 
 $routes->get('/users/users', 'Deskapp/Users::users',['filter' => 'auth']);
 $routes->post('/users/users', 'Deskapp/Users::users',['filter' => 'auth']);
+// $routes->get('/users/users_mapa/(:num)', 'Deskapp/Users::users_mapa/$1',['filter' => 'auth']);
+// $routes->post('/users/users_mapa/(:num)', 'Deskapp/Users::users_mapa/$1',['filter' => 'auth']);
 $routes->add('/users/users/(:any)', 'Deskapp/Users::users',['filter' => 'auth']);
 $routes->add('/users/users/(:any)/(:any)', 'Deskapp/Users::users',['filter' => 'auth']);
 
+$routes->get('/deskapp/users/users', 'Deskapp/Users::users',['filter' => 'auth']);
+$routes->post('/deskapp/users/users', 'Deskapp/Users::users',['filter' => 'auth']);
+// $routes->get('/deskapp/users/users_mapa/(:num)', 'Deskapp/Users::users_mapa/$1',['filter' => 'auth']);
+// $routes->post('/deskapp/users/users_mapa/(:num)', 'Deskapp/Users::users_mapa/$1',['filter' => 'auth']);
+$routes->add('/deskapp/users/users/(:any)', 'Deskapp/Users::users',['filter' => 'auth']);
+$routes->add('/deskapp/users/users/(:any)/(:any)', 'Deskapp/Users::users',['filter' => 'auth']);
+
 $routes->get('/roles/roles', 'Deskapp/Roles::roles',['filter' => 'auth']);
 $routes->post('/roles/roles', 'Deskapp/Roles::roles',['filter' => 'auth']);
+
+// Toggle AJAX rol-permiso (para mapa de roles)
+$routes->post('/roles/toggle_permission', 'Deskapp/Roles::toggle_permission',['filter' => 'auth']);
+$routes->post('/deskapp/roles/toggle_permission', 'Deskapp/Roles::toggle_permission',['filter' => 'auth']);
+
+// $routes->get('/roles/roles_mapa/(:num)', 'Deskapp/Roles::roles_mapa/$1',['filter' => 'auth']);
+// $routes->post('/roles/roles_mapa/(:num)', 'Deskapp/Roles::roles_mapa/$1',['filter' => 'auth']);
+
+// $routes->get('/deskapp/roles/roles_mapa/(:num)', 'Deskapp/Roles::roles_mapa/$1',['filter' => 'auth']);
+// $routes->post('/deskapp/roles/roles_mapa/(:num)', 'Deskapp/Roles::roles_mapa/$1',['filter' => 'auth']);
 
 $routes->get('/roles/role_permissions', 'Deskapp/Roles::role_permissions',['filter' => 'auth']);
 $routes->post('/roles/role_permissions', 'Deskapp/Roles::role_permissions',['filter' => 'auth']);
 
 $routes->get('/users/user_roles', 'Deskapp/Users::user_roles',['filter' => 'auth']);
 $routes->post('/users/user_roles', 'Deskapp/Users::user_roles',['filter' => 'auth']);
+
+// Toggle AJAX user-status (users.status)
+$routes->post('/users/toggle_status', 'Deskapp/Users::toggle_status',['filter' => 'auth']);
+$routes->post('/deskapp/users/toggle_status', 'Deskapp/Users::toggle_status',['filter' => 'auth']);
+
+// Toggle AJAX user-permission override (us_user_permissions)
+$routes->post('/users/toggle_user_permission', 'Deskapp/Users::toggle_user_permission',['filter' => 'auth']);
+$routes->post('/deskapp/users/toggle_user_permission', 'Deskapp/Users::toggle_user_permission',['filter' => 'auth']);
 
 $routes->get('/users/manage', 'Deskapp/Users::manage',['filter' => 'auth']);
 $routes->post('/users/manage', 'Deskapp/Users::manage',['filter' => 'auth']);
@@ -266,11 +297,25 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 
 	$routes->get('tramitesn/update/(:num)', 'Tramitesn::update/$1');
 	$routes->post('tramitesn/update/(:num)', 'Tramitesn::update/$1');
+	$routes->get('tramitesn/ver_seccion_pago_gestor/(:num)', 'Tramitesn::ver_seccion_pago_gestor/$1');
+	$routes->post('tramitesn/ver_seccion_pago_gestor/(:num)', 'Tramitesn::ver_seccion_pago_gestor/$1');
+	$routes->get('tramitesn/ver_seccion_cobro_cliente/(:num)', 'Tramitesn::ver_seccion_cobro_cliente/$1');
+	$routes->post('tramitesn/ver_seccion_cobro_cliente/(:num)', 'Tramitesn::ver_seccion_cobro_cliente/$1');
+	$routes->get('tramitesn/getCobroClienteFiles/(:num)', 'Tramitesn::getCobroClienteFiles/$1');
+	$routes->post('tramitesn/getCobroClienteFiles/(:num)', 'Tramitesn::getCobroClienteFiles/$1');
+	$routes->get('tramitesn/upload_pago_gestor/(:num)', 'Tramitesn::upload_pago_gestor/$1');
+	$routes->post('tramitesn/upload_pago_gestor/(:num)', 'Tramitesn::upload_pago_gestor/$1');
+	$routes->get('tramitesn/upload_cobro_cliente/(:num)', 'Tramitesn::upload_cobro_cliente');
+	$routes->post('tramitesn/upload_cobro_cliente/(:num)', 'Tramitesn::upload_cobro_cliente');
+	$routes->post('tramitesn/delete_pago_gestor', 'Tramitesn::delete_pago_gestor');
+	$routes->post('tramitesn/delete_cobro_cliente', 'Tramitesn::delete_cobro_cliente');
 
 	// Guardado (reutiliza lógica heredada de Tramites::update_save)
 	$routes->post('tramitesn/update_save/(:num)', 'Tramitesn::update_save');
 	$routes->post('tramitesn/update_gestor_save/(:num)', 'Tramitesn::update_gestor_save');
 	$routes->post('tramitesn/update_derechos_save/(:num)', 'Tramitesn::update_derechos_save');
+	$routes->post('tramitesn/update_pago_gestor/(:num)', 'Tramitesn::update_pago_gestor');
+	$routes->post('tramitesn/update_final_save/(:num)', 'Tramitesn::update_final_save');
 
 	// Tipos de trámite asociados (tra_tramite_asociado)
 	$routes->get('tramitesn/services/(:num)', 'Tramitesn::services/$1');
@@ -291,6 +336,13 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 
 	$routes->get('tramitesn/insert', 'Tramitesn::insert');
 	$routes->post('tramitesn/insert', 'Tramitesn::insert');
+
+	$routes->get('/users/users_mapa/(:num)', 'Users::users_mapa/$1');
+	$routes->post('/users/users_mapa/(:num)', 'Users::users_mapa/$1');
+
+	$routes->get('/roles/roles_mapa/(:num)', 'Roles::roles_mapa/$1');
+	$routes->post('/roles/roles_mapa/(:num)', 'Roles::roles_mapa/$1');
+	$routes->post('/roles/toggle_permission', 'Roles::toggle_permission');
 });
 
 

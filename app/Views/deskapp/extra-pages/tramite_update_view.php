@@ -25,6 +25,48 @@ if (isset($tra_status_id)) {
         exit;
     }
 }
+
+$statusStep = isset($step) ? (int) $step : 1;
+$wizardVisibleSteps = [];
+$canViewPagoDerechos = has_permission('section_pago_derechos', $session->get('user_permissions'), $session->get('user_roles'))
+	&& !in_array((int) $tra_status_id, [11], true);
+$canViewPagoGestor = in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true)
+	&& has_permission('section_pago_gestor', $session->get('user_permissions'), $session->get('user_roles'));
+$canViewCobroCliente = in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true)
+	&& has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles'));
+
+if (has_permission('section_inicial_datos', $session->get('user_permissions'), $session->get('user_roles'))) {
+	$wizardVisibleSteps[] = 1;
+}
+
+if (has_permission('section_asigna_gestor', $session->get('user_permissions'), $session->get('user_roles'))) {
+	$wizardVisibleSteps[] = 2;
+}
+
+if ($canViewPagoDerechos) {
+	$wizardVisibleSteps[] = 3;
+}
+
+if ($canViewPagoGestor) {
+	$wizardVisibleSteps[] = 4;
+}
+
+if ($canViewCobroCliente) {
+	$wizardVisibleSteps[] = 5;
+}
+
+$wizardTargetStep = !empty($wizardVisibleSteps) ? $wizardVisibleSteps[0] : 1;
+foreach ($wizardVisibleSteps as $visibleStep) {
+	if ($visibleStep <= $statusStep) {
+		$wizardTargetStep = $visibleStep;
+	}
+}
+
+$wizStepIndex = 0;
+$wizardTargetIndex = array_search($wizardTargetStep, $wizardVisibleSteps, true);
+if ($wizardTargetIndex !== false) {
+	$wizStepIndex = (int) $wizardTargetIndex;
+}
 ?>
 <?= $this->extend('layout/main') ?>
 
@@ -47,7 +89,7 @@ if (isset($tra_status_id)) {
 	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 	<script>
-		var wiz_step = "<?php echo isset($step) ? (int)($step - 1) : 0; ?>";
+		var wiz_step = "<?php echo $wizStepIndex; ?>";
 		var tra_status_id = "<?php echo (int)$tra_status_id; ?>";
 	</script>
 
@@ -209,6 +251,10 @@ if (isset($tra_status_id)) {
 		<div class="tramite-header-modern">
 			<div class="header-top-row">
 				<div class="d-flex align-items-center" style="gap:8px;flex-wrap:wrap;">
+					<div class="status-badge status-id">
+						<i class="fas fa-hashtag"></i>
+						ID: <?= isset($id) && $id !== '' ? esc((string) $id) : '--' ?>
+					</div>
 					<div class="folio-badge">
 						<i class="fas fa-file-alt"></i>
 						Folio: <?= isset($folio) ? esc($folio) : 'TR-0000-000' ?>
@@ -295,12 +341,14 @@ if (isset($tra_status_id)) {
 								<i class="fas fa-file-invoice"></i>
 								Es solo Cotización
 							</button>
+								<?= perm_audit_tag('important_cancelar_tramite', $session) ?>
 						<?php } ?>
 						<?php if (!in_array($tra_status_id, [20, 21])) { ?>
 							<button type="button" class="btn-modern btn-danger" data-toggle="modal" data-target="#Medium-modal">
 								<i class="fas fa-times-circle"></i>
 								Cancelar Trámite
 							</button>
+								<?= perm_audit_tag('important_cancelar_tramite', $session) ?>
 						<?php } ?>
 					<?php endif; ?>
 
@@ -310,6 +358,7 @@ if (isset($tra_status_id)) {
 							<i class="fas fa-check-circle"></i>
 							Concluir Trámite
 						</button>
+						<?= perm_audit_tag('important_concluir_tramite', $session) ?>
 					<?php endif; ?>
 				<?php endif; ?>
 				</div>
@@ -322,59 +371,98 @@ if (isset($tra_status_id)) {
 				<i class="fas fa-bolt"></i>
 				<span>Acciones Rápidas</span>
 			</div>
+			<?php
+				helper(['permissions']);
+				[$detailRoles, $detailPerms] = session_roles_perms($session);
+				$canSectionPagoGestor = has_permission('section_pago_gestor', $detailPerms, $detailRoles);
+				$canSectionFinalCostos = has_permission('section_final_costos', $detailPerms, $detailRoles);
+
+				// Permisos por botón (ideal: asignar por rol).
+				$canQuickDocumentos = has_permission('quick_action_documentos', $detailPerms, $detailRoles);
+				$canQuickBitacora = has_permission('quick_action_bitacora', $detailPerms, $detailRoles);
+				$canQuickPagosDerecho = has_permission('quick_action_pagos_derecho', $detailPerms, $detailRoles);
+				$canQuickPagoGestor = has_permission('quick_action_pago_gestor', $detailPerms, $detailRoles);
+				$canQuickEvidenciasFinales = has_permission('quick_action_evidencias_finales', $detailPerms, $detailRoles);
+				$canQuickCobrosCliente = has_permission('quick_action_cobros_cliente', $detailPerms, $detailRoles);
+
+				$canSeePagoGestorBtn = $canQuickPagoGestor && $canSectionPagoGestor;
+				$canSeeEvidenciasFinalesBtn = $canQuickEvidenciasFinales && $canSectionFinalCostos;
+				$canSeeCobroClienteBtn = $canQuickCobrosCliente && $canSectionFinalCostos;
+
+				$canSeeAnyQuickAction = (
+					$canQuickDocumentos
+					|| $canQuickBitacora
+					|| $canQuickPagosDerecho
+					|| (!empty($tra_status_id) && in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true) && ($canSeePagoGestorBtn || $canSeeEvidenciasFinalesBtn || $canSeeCobroClienteBtn))
+				);
+			?>
 			<div class="ribbon-buttons">
-				<!-- Botón Documentos -->
-				<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-documentos">
-					<div class="ribbon-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-						<i class="fas fa-folder-open"></i>
-					</div>
-					<span class="ribbon-label">Documentos</span>
-				</button>
-
-				<!-- Botón Bitácora -->
-				<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-bitacora">
-					<div class="ribbon-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-						<i class="fas fa-history"></i>
-					</div>
-					<span class="ribbon-label">Bitácora</span>
-				</button>
-
-				<!-- Botón Pagos de Derecho -->
-				<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-pagos-derecho">
-					<div class="ribbon-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-						<i class="fas fa-receipt"></i>
-					</div>
-					<span class="ribbon-label">Pagos Derecho</span>
-				</button>
-
-				<!-- Botón Pago al Gestor -->
-				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21]) && has_permission('section_pago_gestor', $session->get('user_permissions'), $session->get('user_roles'))) : ?>
-					<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-pago-gestor">
-						<div class="ribbon-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-							<i class="fas fa-hand-holding-usd"></i>
+				<?php if ($canSeeAnyQuickAction): ?>
+					<?php if ($canQuickDocumentos): ?>
+						<!-- Botón Documentos -->
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-documentos">
+						<div class="ribbon-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+							<i class="fas fa-folder-open"></i>
 						</div>
-						<span class="ribbon-label">Pago Gestor</span>
+						<span class="ribbon-label">Documentos</span>
+						<?= perm_audit_tag('quick_action_documentos', $session) ?>
 					</button>
-				<?php endif; ?>
+					<?php endif; ?>
 
-				<!-- Botón Cobros al Cliente -->
-				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
-					<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-cobro-cliente">
-						<div class="ribbon-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-							<i class="fas fa-money-check-alt"></i>
+					<?php if ($canQuickBitacora): ?>
+						<!-- Botón Bitácora -->
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-bitacora">
+						<div class="ribbon-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+							<i class="fas fa-history"></i>
 						</div>
-						<span class="ribbon-label">Cobros Cliente</span>
+						<span class="ribbon-label">Bitácora</span>
+						<?= perm_audit_tag('quick_action_bitacora', $session) ?>
 					</button>
-				<?php endif; ?>
+					<?php endif; ?>
 
-				<!-- Botón Evidencias Finales -->
-				<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
-					<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-evidencias-finales">
-						<div class="ribbon-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
-							<i class="fas fa-check-double"></i>
+					<?php if ($canQuickPagosDerecho): ?>
+						<!-- Botón Pagos de Derecho -->
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-pagos-derecho">
+						<div class="ribbon-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+							<i class="fas fa-receipt"></i>
 						</div>
-						<span class="ribbon-label">Evidencias</span>
+						<span class="ribbon-label">Pagos Derecho</span>
+						<?= perm_audit_tag('quick_action_pagos_derecho', $session) ?>
 					</button>
+					<?php endif; ?>
+
+					<!-- Botón Pago al Gestor -->
+					<?php if (!empty($tra_status_id) && in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true) && $canSeePagoGestorBtn): ?>
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-pago-gestor">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+								<i class="fas fa-hand-holding-usd"></i>
+							</div>
+							<span class="ribbon-label">Pago Gestor</span>
+							<?= perm_audit_tag('quick_action_pago_gestor', $session) ?>
+						</button>
+					<?php endif; ?>
+
+					<!-- Botón Evidencias Finales (primero) -->
+					<?php if (!empty($tra_status_id) && in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true) && $canSeeEvidenciasFinalesBtn): ?>
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-evidencias-finales">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+								<i class="fas fa-check-double"></i>
+							</div>
+							<span class="ribbon-label">Evidencias Finales</span>
+							<?= perm_audit_tag('quick_action_evidencias_finales', $session) ?>
+						</button>
+					<?php endif; ?>
+
+					<!-- Botón Cobros al Cliente (después) -->
+					<?php if (!empty($tra_status_id) && in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true) && $canSeeCobroClienteBtn): ?>
+						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-cobro-cliente">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+								<i class="fas fa-money-check-alt"></i>
+							</div>
+							<span class="ribbon-label">Cobros Cliente</span>
+							<?= perm_audit_tag('quick_action_cobros_cliente', $session) ?>
+						</button>
+					<?php endif; ?>
 				<?php endif; ?>
 			</div>
 		</div>
@@ -411,7 +499,7 @@ if (isset($tra_status_id)) {
 						<div id="wizard" class="wizard-modern">
 							<!-- Step 1: Datos principales -->
 							<?php if (has_permission('section_inicial_datos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-								<h3>Información</h3>
+								<h3>Información <?= perm_audit_tag('section_inicial_datos', $session) ?></h3>
 								<section>
 									<div class="min-height-200px">
 										<div class="sgl-step-form-ribbon" data-form-id="tramiteForm" aria-live="polite">
@@ -437,7 +525,7 @@ if (isset($tra_status_id)) {
 										<div id="service-list">
 											<!-- Aquí se pintarán dinámicamente los tipos de servicio -->
 										</div>
-										<?php if(puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'botones_agregar_servicio', $reembolso_status_id, $cobro_status_id, 1)): ?>
+										<?php if (has_permission('write_tramite_datos_tramite', $session->get('user_permissions'), $session->get('user_roles')) && puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'botones_agregar_servicio', $reembolso_status_id, $cobro_status_id, 1)): ?>
 										<button type="button" id="add-service" class="btn-wizard btn-primary mt-3">
 											<i class="fas fa-plus-circle"></i> Agregar Servicio
 										</button>
@@ -454,7 +542,7 @@ if (isset($tra_status_id)) {
 							<!-- Step 2: Asignacion de Gestor -->
 							
 							<?php if (has_permission('section_asigna_gestor', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-								<h3>Gestor</h3>
+								<h3>Gestor <?= perm_audit_tag('section_asigna_gestor', $session) ?></h3>
 								<section>
 									<div class="min-height-200px">
 										<div class="sgl-step-form-ribbon" data-form-id="gestorForm" aria-live="polite">
@@ -481,7 +569,7 @@ if (isset($tra_status_id)) {
 							<?php endif; ?>
 							<?php if (has_permission('section_pago_derechos', $session->get('user_permissions'), $session->get('user_roles')) && !in_array($tra_status_id, [11])): ?>
 								<!-- Step 3: La forma en que se pagan los derechos -->
-						<h3>Pago de Derechos</h3>
+						<h3>Pago de Derechos <?= perm_audit_tag('section_pago_derechos', $session) ?></h3>
 						<section>
 							<!-- Grid 70/30: Formulario | Dropzone -->
 							<div class="form-dropzone-grid">
@@ -515,7 +603,7 @@ if (isset($tra_status_id)) {
 									$step_actual = isset($arr_status[$tra_status_id]) ? $arr_status[$tra_status_id] : 1;
 									
 									// Solo mostrar el botón si estamos en step 3 o inferior (no aprobado aún)
-														if (has_permission('important_pasar_a_pagos', $session->get('user_permissions'), $session->get('user_roles'))):
+														if (has_permission('important_pasar_a_pagos', $session->get('user_permissions'), $session->get('user_roles')) && has_permission('write_tramite_pago_derechos', $session->get('user_permissions'), $session->get('user_roles'))):
 															if($step_actual <= 3 && puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'boton_aprobar_tramite', $reembolso_status_id, $cobro_status_id, 3)): ?>
 											<?php if ($paso3_completo): ?>
 												<div class="alert alert-info approval-ready" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50; border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 20px; box-shadow: 0 4px 6px rgba(76, 175, 80, 0.15);">
@@ -534,6 +622,7 @@ if (isset($tra_status_id)) {
 												        onclick="if(confirm('¿Estás seguro de aprobar este trámite? Esta acción cambiará el estado del trámite.')) { changeStatusTramite(<?php echo $id;?>, 23); }">
 															<i class="fas fa-check-double"></i> Aprobar Trámite
 														</button>
+														<?= perm_audit_tag('important_pasar_a_pagos', $session) ?>
 													</div>
 												</div>
 											<?php else: ?>
@@ -572,8 +661,11 @@ if (isset($tra_status_id)) {
 								<div class="dropzone-sticky">
 									<h5 class="dropzone-title">
 										<i class="fas fa-cloud-upload-alt"></i> Documentos de Derechos
+										<?= perm_audit_tag('can_upload_dropzone_pago_derechos', $session) ?>
 									</h5>
-									<?php if(puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'step3_upload', $reembolso_status_id, $cobro_status_id, 3)): ?>									<!-- Contenedor Dropzone -->
+											<?php if (has_permission('write_tramite_pago_derechos', $session->get('user_permissions'), $session->get('user_roles'))
+												&& has_permission('can_upload_dropzone_pago_derechos', $session->get('user_permissions'), $session->get('user_roles'))
+												&& puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'step3_upload', $reembolso_status_id, $cobro_status_id, 3)): ?>											<!-- Contenedor Dropzone -->
 									<div class="dropzone-container">											<form class="dropzone dropzone-documentos dropzone-compact" id="miDropzone">
 												<div class="dz-default dz-message">
 													<button class="dz-button" type="button">
@@ -596,7 +688,9 @@ if (isset($tra_status_id)) {
 									
 									<!-- Galería de Imágenes -->
 									<div class="gallery-preview" id="documentos-container"></div>
-								<?php endif; ?>
+									<?php else: ?>
+										<div class="gallery-preview" id="documentos-container"></div>
+									<?php endif; ?>
 								</div>
 							</div>
 						</div> <!-- Cierra form-dropzone-grid -->
@@ -610,9 +704,9 @@ if (isset($tra_status_id)) {
 						</section>
 							<?php endif; ?>
 							<?php if (in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
-								<?php if (has_permission('section_pago_gestor', $session->get('user_permissions'), $session->get('user_roles')) ): ?>
+								<?php if (has_permission('section_pago_gestor', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 									<!-- Step 4: Se paga al gestor -->
-									<h3>Pago a Gestor</h3>
+									<h3>Pago a Gestor <?= perm_audit_tag('section_pago_gestor', $session) ?></h3>
 									<section>
 									<div class="form-dropzone-grid">
 										<!-- Columna Izquierda: Formulario (70%) -->
@@ -643,8 +737,10 @@ if (isset($tra_status_id)) {
 										<div class="dropzone-sticky">
 											<h5 class="dropzone-title">
 												<i class="fas fa-cloud-upload-alt"></i> Documentos de Pago
+												<?= perm_audit_tag('can_upload_dropzone_pago_gestor', $session) ?>
 											</h5>
-											<?php if(puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'upload_pago_gestor', $reembolso_status_id, $cobro_status_id, 4)): ?>
+											<?php if (has_permission('can_upload_dropzone_pago_gestor', $session->get('user_permissions'), $session->get('user_roles'))
+												&& puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'upload_pago_gestor', $reembolso_status_id, $cobro_status_id, 4)): ?>
 													<!-- Contenedor Dropzone -->
 													<div class="dropzone-container">
 														<form class="dropzone dropzone-gestor dropzone-compact" id="miDropzoneGestor">
@@ -664,9 +760,11 @@ if (isset($tra_status_id)) {
 														<i class="fas fa-info-circle"></i>
 													<h6>Para eliminar un archivo, solicítalo al administrador</h6>
 												</div>
-												<!-- Galería de Imágenes -->
-													<div class="gallery-preview" id="gestor-container"></div>
-												<?php endif; ?>
+															<!-- Galería de Imágenes -->
+															<div class="gallery-preview" id="gestor-container"></div>
+													<?php else: ?>
+														<div class="gallery-preview" id="gestor-container"></div>
+													<?php endif; ?>
 											</div>
 										</div>
 									</div> <!-- Cierra form-dropzone-grid -->
@@ -674,7 +772,7 @@ if (isset($tra_status_id)) {
 								<?php endif; ?>
 								<?php if (has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles')) ): ?>
 									<!-- Step 5: Se cobra al cliente -->
-									<h3>Cobro a Cliente</h3>
+									<h3>Cobro a Cliente <?= perm_audit_tag('section_final_costos', $session) ?></h3>
 									<section>
 									<!-- Grid 70/30: Formulario | Dropzone -->
 									<div class="form-dropzone-grid">
@@ -700,8 +798,10 @@ if (isset($tra_status_id)) {
 											<div class="dropzone-sticky">
 												<h5 class="dropzone-title">
 													<i class="fas fa-cloud-upload-alt"></i> Documentos
+													<?= perm_audit_tag('can_upload_dropzone_cobro_cliente', $session) ?>
 												</h5>
-												<?php if(puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'upload_cobro_cliente', $reembolso_status_id, $cobro_status_id, 5)): ?>
+														<?php if (has_permission('can_upload_dropzone_cobro_cliente', $session->get('user_permissions'), $session->get('user_roles'))
+															&& puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'upload_cobro_cliente', $reembolso_status_id, $cobro_status_id, 5)): ?>
 												<!-- Contenedor Dropzone -->
 												<div class="dropzone-container">
 												<form class="dropzone dropzone-cliente dropzone-compact" id="miDropzoneCliente">
@@ -725,9 +825,11 @@ if (isset($tra_status_id)) {
 												<h6>Para eliminar un archivo, solicítalo al administrador</h6>
 											</div>
 											
-											<!-- Galería de Imágenes -->
-											<div class="gallery-preview" id="cliente-container"></div>
-										<?php endif; ?>
+															<!-- Galería de Imágenes -->
+															<div class="gallery-preview" id="cliente-container"></div>
+													<?php else: ?>
+														<div class="gallery-preview" id="cliente-container"></div>
+													<?php endif; ?>
 										</div>
 									</div>
 								</div> <!-- Cierra form-dropzone-grid -->
@@ -743,6 +845,7 @@ if (isset($tra_status_id)) {
 <!-- MODALS DE INFORMACIÓN -->
 
 <!-- Modal Documentos -->
+<?php if (!empty($canQuickDocumentos)) : ?>
 <div class="modal fade" id="modal-documentos" tabindex="-1" role="dialog" aria-labelledby="modalDocumentosLabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
@@ -769,8 +872,10 @@ if (isset($tra_status_id)) {
 		</div>
 	</div>
 </div>
+<?php endif; ?>
 
 <!-- Modal Bitácora -->
+<?php if (!empty($canQuickBitacora)) : ?>
 <div class="modal fade" id="modal-bitacora" tabindex="-1" role="dialog" aria-labelledby="modalBitacoraLabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
@@ -797,8 +902,10 @@ if (isset($tra_status_id)) {
 		</div>
 	</div>
 </div>
+<?php endif; ?>
 
 <!-- Modal Pagos de Derecho -->
+<?php if (!empty($canQuickPagosDerecho)) : ?>
 <div class="modal fade" id="modal-pagos-derecho" tabindex="-1" role="dialog" aria-labelledby="modalPagosDerechoLabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
@@ -825,9 +932,10 @@ if (isset($tra_status_id)) {
 		</div>
 	</div>
 </div>
+<?php endif; ?>
 
 <!-- Modal Pago al Gestor -->
-<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
+<?php if (isset($tra_status_id) && in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true) && !empty($canSeePagoGestorBtn)) : ?>
 <div class="modal fade" id="modal-pago-gestor" tabindex="-1" role="dialog" aria-labelledby="modalPagoGestorLabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
@@ -857,7 +965,7 @@ if (isset($tra_status_id)) {
 <?php endif; ?>
 
 <!-- Modal Cobros al Cliente -->
-<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
+<?php if (isset($tra_status_id) && in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true) && !empty($canSeeCobroClienteBtn)) : ?>
 <div class="modal fade" id="modal-cobro-cliente" tabindex="-1" role="dialog" aria-labelledby="modalCobroClienteLabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">
@@ -887,7 +995,7 @@ if (isset($tra_status_id)) {
 <?php endif; ?>
 
 <!-- Modal Evidencias Finales -->
-<?php if(isset($tra_status_id) && in_array($tra_status_id, [23, 27, 28, 20, 21])) : ?>
+<?php if (isset($tra_status_id) && in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true) && !empty($canSeeEvidenciasFinalesBtn)) : ?>
 <div class="modal fade" id="modal-evidencias-finales" tabindex="-1" role="dialog" aria-labelledby="modalEvidenciasFinalesLabel" aria-hidden="true">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 		<div class="modal-content">

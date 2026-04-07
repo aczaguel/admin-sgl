@@ -3,6 +3,8 @@
 namespace App\Controllers\Deskapp;
 use App\Controllers\BaseController;
 use Config\Database as ConfigDatabase;
+use Config\GroceryCrud as ConfigGroceryCrud;
+use GroceryCrud\Core\GroceryCrud;
 
 use App\Models\BitacoraModel;
 use CodeIgniter\Controller;
@@ -11,7 +13,7 @@ class Bitacora extends BaseController
 {
     public function __construct()
     {
-        helper(['cliente_filter']);
+        helper(['cliente_filter', 'permissions', 'acl_guard']);
     }
 
     public function index()
@@ -98,7 +100,10 @@ class Bitacora extends BaseController
             $validatedTramiteId = (int) $tramiteRow['id'];
         }
 
-        if ($validatedTramiteId && !validate_tramite_access($validatedTramiteId)) {
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = session_roles_perms($session);
+
+        if ($validatedTramiteId && !acl_has_tramite_tenant_access((int) $validatedTramiteId, $userId, $roles)) {
             log_unauthorized_access_attempt('bitacora', $validatedTramiteId);
             return redirect()->to(site_url('/bitacora/search'))->with('error', 'No tienes permisos para ver este trámite');
         }
@@ -143,6 +148,12 @@ class Bitacora extends BaseController
     public function search()
     {
         $session = session();
+
+        [$roles, $perms] = session_roles_perms($session);
+        if ($resp = acl_require_permission('monitoreo_bitacora_search', $roles, $perms, 'No tienes permisos para acceder a esta función', '/deskapp/dashboard', 403, null)) {
+            return $resp;
+        }
+
         $model = new \CodeIgniter\Model();
         $model->setTable('bitacora');
 

@@ -57,6 +57,14 @@ log_tramite_bulk_changes($tramiteId, $changes);
 - ✅ Ruta: `/tramites/audit_timeline/7669`
 - ✅ Helper cargado automáticamente
 
+### 5. **Debug UI (Audit Payload / Tags) — Controlado por permiso**
+Para ayudar en QA/diagnóstico existen contenedores de debug en algunas vistas (por ejemplo “Audit Payload” y etiquetas inline de permisos).
+
+Reglas:
+- El botón **Debug ON/OFF** y la visualización de bloques `.debug-info-container` / `.sgl-perm-audit` están protegidos por el permiso `debug_perm_audit_tags` (el bypass de Super Admin ocurre dentro de `has_permission()`).
+- El estado del toggle se guarda en el navegador como `localStorage.debugMode`.
+- Si el usuario NO tiene `debug_perm_audit_tags`, el sistema fuerza `localStorage.debugMode=false` y oculta cualquier bloque debug aunque el navegador lo traiga “encendido” de otra sesión (evita leaks entre cuentas).
+
 ---
 
 ## 🚀 CÓMO USARLO

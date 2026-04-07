@@ -1,5 +1,18 @@
 <!-- Dropdown de Notificaciones -->
-<?php helper('permissions'); ?>
+<?php
+    helper('permissions');
+    $session = $session ?? session();
+    $roles = normalize_permission_list($session->get('user_roles') ?? []);
+    $perms = normalize_permission_list($session->get('user_permissions') ?? []);
+    $canNotifications = has_permission('menu_notifications', $perms, $roles);
+
+    // Para URL fallback, no usamos rol "Cliente"; usamos un permiso explícito.
+    $isClienteUi = has_permission_strict('ui_sidebar_cliente', $perms) || has_permission_strict('menu_tramites_cliente', $perms);
+
+    if (!$canNotifications) {
+        return;
+    }
+?>
 <div class="dropdown notification-dropdown">
     <a class="dropdown-toggle no-arrow notification-bell" href="javascript:;" role="button" data-toggle="dropdown" id="notificationDropdown">
         <i class="dw dw-notification"></i>
@@ -235,7 +248,7 @@
 (function() {
     let notificationCheckInterval;
     const REFRESH_INTERVAL = 60000; // 1 minuto
-    const TRAMITE_FALLBACK_BASE = '<?= base_url(is_client(\Config\Services::session()->get('user_roles')) ? 'deskapp/clientes/ver' : 'deskapp/tramitesn/update') ?>';
+    const TRAMITE_FALLBACK_BASE = '<?= base_url($isClienteUi ? 'deskapp/clientes/ver' : 'deskapp/tramitesn/update') ?>';
 
     // Cargar notificaciones al iniciar
     function loadNotifications() {

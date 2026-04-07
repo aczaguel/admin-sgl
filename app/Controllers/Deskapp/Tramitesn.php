@@ -43,16 +43,9 @@ class Tramitesn extends Tramites
 
     private function normalizeRolesPermsFromSession(): array
     {
+        helper(['permissions']);
         $session = session();
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
-        return [$roles, $perms];
+        return session_roles_perms($session);
     }
 
     private function denyJson(int $statusCode, string $message)
@@ -64,9 +57,143 @@ class Tramitesn extends Tramites
         ]);
     }
 
+    private function requireCanEditTramiteJson(array $roles, array $perms)
+    {
+        if (!can_edit_tramite($roles, $perms)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
+        }
+
+        return null;
+    }
+
+    private function getPaidPagoGestorStatusIds(?array $options = null): array
+    {
+        $statusOptions = $options;
+        if ($statusOptions === null) {
+            try {
+                $statusOptions = (new PagoGestorStatusModel($this->_getDbData()))->getPagoGestorStatusOptions();
+            } catch (\Throwable $e) {
+                $statusOptions = [];
+            }
+        }
+
+        $paidIds = [];
+        foreach ($statusOptions as $statusId => $label) {
+            if ($this->isPaidLabel((string) $label)) {
+                $paidIds[] = (int) $statusId;
+            }
+        }
+
+        return array_values(array_unique(array_filter($paidIds)));
+    }
+
+    private function isReadyForCobroCliente(array $tramiteRow, ?array $pagoGestorStatusOptions = null): bool
+    {
+        $paidIds = $this->getPaidPagoGestorStatusIds($pagoGestorStatusOptions);
+        if (empty($paidIds)) {
+            return false;
+        }
+
+        return in_array((int) ($tramiteRow['pago_gestor_st_id'] ?? 0), $paidIds, true)
+            && (int) ($tramiteRow['cobrar_cliente'] ?? 0) === 1;
+    }
+
+    private function syncCobroClienteStatusFromPagoGestor($db, int $tramiteId, ?int $forcedPagoGestorStatusId = null): int
+    {
+        if ($tramiteId <= 0) {
+            return 0;
+        }
+
+        $tramiteRow = $db->table('tramite')
+            ->select('tra_status_id, pago_gestor_st_id, cobrar_cliente')
+            ->where('id', $tramiteId)
+            ->get(1)
+            ->getRowArray();
+
+        if (empty($tramiteRow)) {
+            return 0;
+        }
+
+        if ($forcedPagoGestorStatusId !== null) {
+            $tramiteRow['pago_gestor_st_id'] = $forcedPagoGestorStatusId;
+        }
+
+        $targetStatus = $this->isReadyForCobroCliente($tramiteRow) ? 28 : 23;
+        $currentStatus = (int) ($tramiteRow['tra_status_id'] ?? 0);
+
+        if ($currentStatus !== $targetStatus) {
+            $this->updateTramiteStatus($tramiteId, $targetStatus);
+        }
+
+        return $targetStatus;
+    }
+
+    private function syncCobroClienteStatusAfterPagoGestorResponse($response, int $tramiteId): void
+    {
+        if ($tramiteId <= 0 || !is_object($response) || !method_exists($response, 'getStatusCode')) {
+            return;
+        }
+
+        if ((int) $response->getStatusCode() >= 400) {
+            return;
+        }
+
+        $payload = json_decode((string) $response->getBody(), true);
+        if (is_array($payload) && array_key_exists('success', $payload) && !$payload['success']) {
+            return;
+        }
+
+        $db = \Config\Database::connect();
+        $this->updateCobrarClienteFlagTramitesn($db, $tramiteId);
+        $this->syncCobroClienteStatusFromPagoGestor($db, $tramiteId);
+    }
+
+    /**
+     * En pasos 1–3, una vez autorizado (status 23+), queda solo lectura.
+     * Override por permiso (Super Admin pasa por bypass dentro de has_permission()).
+     */
+    private function requireNotApprovedForSteps123Json(int $traStatusId, array $roles, array $perms)
+    {
+        helper(['tramite_status']);
+
+        if (has_permission('override_tramite_approved_lock', $perms, $roles)) {
+            return null;
+        }
+
+        if (tramite_is_aprobado_por_status((int) $traStatusId)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
+        }
+
+        return null;
+    }
+
+    private function resolveAdvancedStepView(int $statusId, array $roles, array $perms): ?string
+    {
+        $maxBusinessStep = 0;
+        if ($statusId === 23) {
+            $maxBusinessStep = 4;
+        } elseif (in_array($statusId, [28, 20, 21], true)) {
+            $maxBusinessStep = 5;
+        }
+
+        if ($maxBusinessStep >= 5) {
+            $canViewStep5 = has_permission('list_cobro_cliente', $perms, $roles)
+                || has_permission('section_final_costos', $perms, $roles);
+            if ($canViewStep5) {
+                return 'deskapp/extra-pages/tramite_cobro_cliente_view';
+            }
+        }
+
+        if ($maxBusinessStep >= 4 && has_permission('section_pago_gestor', $perms, $roles)) {
+            return 'deskapp/extra-pages/tramite_update_view_pago_gestor';
+        }
+
+        return null;
+    }
+
     public function search()
     {
-        helper(['permissions', 'cliente_filter']);
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
 
         $session = session();
         $userId = (int) ($session->get('id') ?? 0);
@@ -75,8 +202,8 @@ class Tramitesn extends Tramites
         }
 
         [$roles, $perms] = $this->normalizeRolesPermsFromSession();
-        $canRead = (is_super_admin($roles) || is_admin($roles) || has_permission('read_tramite', $perms, $roles) || has_permission('read_final_tramite', $perms, $roles));
-        if (!$canRead) {
+        $canSearch = has_permission('search_tramite', $perms, $roles);
+        if (!$canSearch) {
             return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para buscar trámites.');
         }
 
@@ -109,10 +236,9 @@ class Tramitesn extends Tramites
             return redirect()->to('/deskapp/tramitesn/search')->with('error', 'El trámite no existe.');
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($resolvedId, $userId);
-        if (!$hasTenantAccess) {
+        if ($resp = acl_require_tramite_tenant_access($resolvedId, $userId, $roles, 'El ejecutivo no tiene acceso a ese recurso.', '/deskapp/tramitesn/search', 403, false)) {
             log_unauthorized_access_attempt('tramite_search', $resolvedId);
-            return redirect()->to('/deskapp/tramitesn/search')->with('error', 'El ejecutivo no tiene acceso a ese recurso.');
+            return $resp;
         }
 
         return redirect()->to('/deskapp/tramitesn/update/' . $resolvedId . '?from=search');
@@ -120,42 +246,27 @@ class Tramitesn extends Tramites
 
     public function services($tramiteId)
     {
-        helper(['permissions', 'cliente_filter']);
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', true)) {
+            return $resp;
+        }
 
         $session = session();
-        $userId = (int) $session->get('id');
-        if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON([
-                'status' => 'error',
-                'message' => 'Sesión expirada.',
-                'csrfHash' => csrf_hash(),
-            ]);
-        }
+        $userId = (int) ($session->get('id') ?? 0);
         [$roles, $perms] = $this->normalizeRolesPermsFromSession();
 
         $tramiteId = (int) $tramiteId;
         if ($tramiteId <= 0) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'status' => 'error',
-                'message' => 'ID inválido.',
-                'csrfHash' => csrf_hash(),
-            ]);
+            return acl_deny('ID inválido.', 400, null, true);
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-        if (!$hasTenantAccess) {
-            return $this->response->setStatusCode(403)->setJSON([
-                'status' => 'error',
-                'message' => 'Acceso denegado.',
-                'csrfHash' => csrf_hash(),
-            ]);
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
-        if (!has_permission('editar_tramite', $perms, $roles) && !has_permission('read_tramite', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON([
-                'status' => 'error',
-                'message' => 'Acceso denegado.',
-                'csrfHash' => csrf_hash(),
-            ]);
+
+        if (!can_edit_tramite($roles, $perms) && !has_permission('read_tramite', $perms, $roles)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
         }
 
         $db = \Config\Database::connect();
@@ -175,44 +286,32 @@ class Tramitesn extends Tramites
 
     public function services_add()
     {
-        helper(['permissions', 'cliente_filter']);
+        helper(['permissions', 'cliente_filter', 'acl_guard', 'tramite_status']);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', true)) {
+            return $resp;
+        }
 
         $session = session();
-        $userId = (int) $session->get('id');
-        if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON([
-                'status' => 'error',
-                'message' => 'Sesión expirada.',
-                'csrfHash' => csrf_hash(),
-            ]);
-        }
+        $userId = (int) ($session->get('id') ?? 0);
         [$roles, $perms] = $this->normalizeRolesPermsFromSession();
 
         $tramiteId = (int) $this->request->getPost('tramite_id');
         $traTiposId = (int) $this->request->getPost('tra_tipos_id');
         if ($tramiteId <= 0 || $traTiposId <= 0) {
-            return $this->response->setStatusCode(400)->setJSON([
-                'status' => 'error',
-                'message' => 'Datos insuficientes.',
-                'csrfHash' => csrf_hash(),
-            ]);
+            return acl_deny('Datos insuficientes.', 400, null, true);
         }
 
-        if (!has_permission('editar_tramite', $perms, $roles) && !(is_super_admin($roles) || is_admin($roles))) {
-            return $this->response->setStatusCode(403)->setJSON([
-                'status' => 'error',
-                'message' => 'Acceso denegado.',
-                'csrfHash' => csrf_hash(),
-            ]);
+        if ($resp = $this->requireCanEditTramiteJson($roles, $perms)) {
+            return $resp;
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-        if (!$hasTenantAccess) {
-            return $this->response->setStatusCode(403)->setJSON([
-                'status' => 'error',
-                'message' => 'Acceso denegado.',
-                'csrfHash' => csrf_hash(),
-            ]);
+        if ($resp = acl_require_permission('write_tramite_datos_tramite', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
         // No permitir ligar el tipo principal como asociado
@@ -224,6 +323,10 @@ class Tramitesn extends Tramites
                 'message' => 'Trámite no encontrado.',
                 'csrfHash' => csrf_hash(),
             ]);
+        }
+
+        if ($resp = $this->requireNotApprovedForSteps123Json((int) ($tramiteRow['tra_status_id'] ?? 0), $roles, $perms)) {
+            return $resp;
         }
 
         if ($this->isLockedStatusId((int) ($tramiteRow['tra_status_id'] ?? 0))) {
@@ -258,13 +361,22 @@ class Tramitesn extends Tramites
 
     public function services_update()
     {
-        helper(['permissions', 'cliente_filter']);
-        $session = session();
-        $userId = (int) $session->get('id');
-        if ($userId <= 0) {
-            return $this->denyJson(401, 'Sesión expirada.');
+        helper(['permissions', 'cliente_filter', 'acl_guard', 'tramite_status']);
+        if ($resp = acl_require_login('/', 'Sesión expirada.', true)) {
+            return $resp;
         }
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
         [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($resp = $this->requireCanEditTramiteJson($roles, $perms)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('write_tramite_datos_tramite', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
 
         $tramiteId = (int) $this->request->getPost('tramite_id');
         $asociadoId = (int) $this->request->getPost('asociado_id');
@@ -273,11 +385,10 @@ class Tramitesn extends Tramites
             return $this->denyJson(400, 'Datos insuficientes.');
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-        if (!$hasTenantAccess) {
-            return $this->denyJson(403, 'Acceso denegado.');
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('editar_tramite_asociado', $perms, $roles)) {
+        if (!has_permission('editar_tramite_asociado', $perms, $roles)) {
             return $this->denyJson(403, 'No tienes permisos para cambiar tipos asociados.');
         }
 
@@ -287,6 +398,10 @@ class Tramitesn extends Tramites
         $tramiteRow = $db->table('tramite')->select('id, tra_tipos_id, tra_status_id')->where('id', $tramiteId)->get()->getRowArray();
         if (!$tramiteRow) {
             return $this->denyJson(404, 'Trámite no encontrado.');
+        }
+
+        if ($resp = $this->requireNotApprovedForSteps123Json((int) ($tramiteRow['tra_status_id'] ?? 0), $roles, $perms)) {
+            return $resp;
         }
 
         if ($this->isLockedStatusId((int) ($tramiteRow['tra_status_id'] ?? 0))) {
@@ -335,13 +450,22 @@ class Tramitesn extends Tramites
 
     public function services_delete()
     {
-        helper(['permissions', 'cliente_filter']);
-        $session = session();
-        $userId = (int) $session->get('id');
-        if ($userId <= 0) {
-            return $this->denyJson(401, 'Sesión expirada.');
+        helper(['permissions', 'cliente_filter', 'acl_guard', 'tramite_status']);
+        if ($resp = acl_require_login('/', 'Sesión expirada.', true)) {
+            return $resp;
         }
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
         [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($resp = $this->requireCanEditTramiteJson($roles, $perms)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('write_tramite_datos_tramite', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
 
         $tramiteId = (int) $this->request->getPost('tramite_id');
         $asociadoId = (int) $this->request->getPost('asociado_id');
@@ -349,11 +473,10 @@ class Tramitesn extends Tramites
             return $this->denyJson(400, 'Datos insuficientes.');
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-        if (!$hasTenantAccess) {
-            return $this->denyJson(403, 'Acceso denegado.');
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('delete_tramite_asociado', $perms, $roles)) {
+        if (!has_permission('delete_tramite_asociado', $perms, $roles)) {
             return $this->denyJson(403, 'No tienes permisos para eliminar tipos asociados.');
         }
 
@@ -362,6 +485,10 @@ class Tramitesn extends Tramites
         }
 
         $db = \Config\Database::connect();
+        $tramiteRow = $db->table('tramite')->select('tra_status_id')->where('id', $tramiteId)->get()->getRowArray();
+        if ($resp = $this->requireNotApprovedForSteps123Json((int) ($tramiteRow['tra_status_id'] ?? 0), $roles, $perms)) {
+            return $resp;
+        }
         $row = $db->table('tra_tramite_asociado')
             ->select('id, tramite_id')
             ->where('id', $asociadoId)
@@ -382,13 +509,22 @@ class Tramitesn extends Tramites
 
     public function principal_update_tipo()
     {
-        helper(['permissions', 'cliente_filter']);
-        $session = session();
-        $userId = (int) $session->get('id');
-        if ($userId <= 0) {
-            return $this->denyJson(401, 'Sesión expirada.');
+        helper(['permissions', 'cliente_filter', 'acl_guard', 'tramite_status']);
+        if ($resp = acl_require_login('/', 'Sesión expirada.', true)) {
+            return $resp;
         }
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
         [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($resp = $this->requireCanEditTramiteJson($roles, $perms)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('write_tramite_datos_tramite', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
 
         $tramiteId = (int) $this->request->getPost('tramite_id');
         $nuevoTipoId = (int) $this->request->getPost('tra_tipos_id');
@@ -396,11 +532,10 @@ class Tramitesn extends Tramites
             return $this->denyJson(400, 'Datos insuficientes.');
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-        if (!$hasTenantAccess) {
-            return $this->denyJson(403, 'Acceso denegado.');
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('editar_tramite_principal', $perms, $roles)) {
+        if (!has_permission('editar_tramite_principal', $perms, $roles)) {
             return $this->denyJson(403, 'No tienes permisos para editar el trámite principal.');
         }
 
@@ -408,6 +543,10 @@ class Tramitesn extends Tramites
         $tramiteRow = $db->table('tramite')->select('id, tra_tipos_id, tra_status_id')->where('id', $tramiteId)->get()->getRowArray();
         if (!$tramiteRow) {
             return $this->denyJson(404, 'Trámite no encontrado.');
+        }
+
+        if ($resp = $this->requireNotApprovedForSteps123Json((int) ($tramiteRow['tra_status_id'] ?? 0), $roles, $perms)) {
+            return $resp;
         }
 
         if ($this->isLockedStatusId((int) ($tramiteRow['tra_status_id'] ?? 0))) {
@@ -484,36 +623,27 @@ class Tramitesn extends Tramites
 
     public function get_service_costs_by_tramite($tramiteId)
     {
-        helper(['permissions', 'cliente_filter']);
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', true)) {
+            return $resp;
+        }
 
         $session = session();
-        $userId = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
 
         $tramiteId = (int) $tramiteId;
         if ($tramiteId <= 0) {
-            return $this->response->setStatusCode(400)->setJSON([]);
+            return acl_json_empty(400);
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-        if (!$hasTenantAccess) {
-            return $this->response->setStatusCode(403)->setJSON([
-                'status' => 'error',
-                'message' => 'Acceso denegado.',
-            ]);
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
-        if (!has_permission('section_pago_gestor', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON([
-                'status' => 'error',
-                'message' => 'Acceso denegado.',
-            ]);
+
+        if ($resp = acl_require_permission('section_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
         $db = \Config\Database::connect();
@@ -528,18 +658,15 @@ class Tramitesn extends Tramites
 
     public function update_service_cost()
     {
-        helper(['permissions', 'cliente_filter']);
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', true)) {
+            return $resp;
+        }
 
         $session = session();
-        $userId = (int) $session->get('id');
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
 
         $id = $this->request->getPost('id');
         $costo_tramite = $this->request->getPost('costo_tramite');
@@ -574,13 +701,6 @@ class Tramitesn extends Tramites
                 ]);
             }
 
-            if (!has_permission('editar_pago_gestor', $perms, $roles)) {
-                return $this->response->setStatusCode(403)->setJSON([
-                    'status' => 'error',
-                    'message' => 'Acceso denegado.'
-                ]);
-            }
-
             $tramiteId = (int) ($existingRecord['tramite_id'] ?? 0);
             if ($tramiteId <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
@@ -589,12 +709,17 @@ class Tramitesn extends Tramites
                 ]);
             }
 
-            $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-            if (!$hasTenantAccess) {
-                return $this->response->setStatusCode(403)->setJSON([
-                    'status' => 'error',
-                    'message' => 'Acceso denegado.'
-                ]);
+            // Mutación: requiere permiso de edición del trámite.
+            if ($resp = $this->requireCanEditTramiteJson($roles, $perms)) {
+                return $resp;
+            }
+
+            if ($resp = acl_require_permission('editar_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
+            }
+
+            if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
             }
 
             if ($this->isTramiteLocked($tramiteId)) {
@@ -631,16 +756,32 @@ class Tramitesn extends Tramites
 
     public function update_save()
     {
-        $session = session();
-        $myid = $session->get('id');
-        $id = $this->request->uri->getSegment(4);
+        helper(['permissions', 'cliente_filter', 'acl_guard', 'tramite_status']);
 
-        if (!$id || !is_numeric($id)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'ID de trámite inválido.',
-                'csrfHash' => csrf_hash(),
-            ]);
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        $session = session();
+        $myid = (int) ($session->get('id') ?? 0);
+        $id = (int) ($this->request->uri->getSegment(4) ?? 0);
+
+        if ($id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, null, true);
+        }
+
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($resp = $this->requireCanEditTramiteJson($roles, $perms)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('write_tramite_datos_tramite', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
         $validation = \Config\Services::validation();
@@ -668,6 +809,10 @@ class Tramitesn extends Tramites
                     'message' => 'El trámite no existe.',
                     'csrfHash' => csrf_hash(),
                 ]);
+            }
+
+            if ($resp = $this->requireNotApprovedForSteps123Json((int) ($existingTramite['tra_status_id'] ?? 0), $roles, $perms)) {
+                return $resp;
             }
 
             if ($this->isLockedStatusId((int) ($existingTramite['tra_status_id'] ?? 0))) {
@@ -699,6 +844,31 @@ class Tramitesn extends Tramites
                 foreach (['derechos_tramite', 'derechos_pago_sitio', 'derechos_vigencia', 'derechos_revol_cliente', 'derechos_refer_banc'] as $field) {
                     if (array_key_exists($field, $data)) {
                         unset($data[$field]);
+                    }
+                }
+            }
+
+            $shouldValidateDuplicates = $currentStep <= 1
+                || array_key_exists('serie', $data)
+                || array_key_exists('tra_tipos_id', $data);
+            if ($shouldValidateDuplicates) {
+                $duplicateSerie = trim((string) ($data['serie'] ?? ($existingTramite['serie'] ?? '')));
+                $duplicateTipoId = (int) ($data['tra_tipos_id'] ?? ($existingTramite['tra_tipos_id'] ?? 0));
+
+                if ($duplicateSerie !== '' && $duplicateTipoId > 0) {
+                    $duplicateBuilder = $db->table('tramite');
+                    $duplicateBuilder->where('tra_tipos_id', $duplicateTipoId);
+                    $duplicateBuilder->where('serie', $duplicateSerie);
+                    $duplicateBuilder->where('created_at >=', date('Y-m-d H:i:s', strtotime('-1 year')));
+                    $duplicateBuilder->where('id !=', $id);
+
+                    $duplicateExists = !empty($duplicateBuilder->get()->getRowArray());
+                    if ($duplicateExists) {
+                        return $this->response->setJSON([
+                            'success' => false,
+                            'message' => 'Ya existe un tramite con el mismo tipo y serie dentro del ultimo ano.',
+                            'csrfHash' => csrf_hash(),
+                        ]);
                     }
                 }
             }
@@ -846,16 +1016,32 @@ class Tramitesn extends Tramites
 
     public function update_gestor_save()
     {
-        $session = session();
-        $myid = $session->get('id');
-        $id = $this->request->uri->getSegment(4);
+        helper(['permissions', 'cliente_filter', 'acl_guard', 'tramite_status']);
 
-        if (!$id || !is_numeric($id)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'ID de trámite inválido.',
-                'csrfHash' => csrf_hash(),
-            ]);
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        $session = session();
+        $myid = (int) ($session->get('id') ?? 0);
+        $id = (int) ($this->request->uri->getSegment(4) ?? 0);
+
+        if ($id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, null, true);
+        }
+
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($resp = $this->requireCanEditTramiteJson($roles, $perms)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('write_tramite_asigna_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
         $validation = \Config\Services::validation();
@@ -883,6 +1069,10 @@ class Tramitesn extends Tramites
                     'message' => 'El trámite no existe.',
                     'csrfHash' => csrf_hash(),
                 ]);
+            }
+
+            if ($resp = $this->requireNotApprovedForSteps123Json((int) ($tramiteBase['tra_status_id'] ?? 0), $roles, $perms)) {
+                return $resp;
             }
 
             if ($this->isLockedStatusId((int) ($tramiteBase['tra_status_id'] ?? 0))) {
@@ -984,16 +1174,32 @@ class Tramitesn extends Tramites
 
     public function update_derechos_save()
     {
-        $session = session();
-        $myid = $session->get('id');
-        $id = $this->request->uri->getSegment(4);
+        helper(['permissions', 'cliente_filter', 'acl_guard', 'tramite_status']);
 
-        if (!$id || !is_numeric($id)) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'ID de trámite inválido.',
-                'csrfHash' => csrf_hash(),
-            ]);
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        $session = session();
+        $myid = (int) ($session->get('id') ?? 0);
+        $id = (int) ($this->request->uri->getSegment(4) ?? 0);
+
+        if ($id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, null, true);
+        }
+
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($resp = $this->requireCanEditTramiteJson($roles, $perms)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('write_tramite_pago_derechos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
         $validation = \Config\Services::validation();
@@ -1022,6 +1228,10 @@ class Tramitesn extends Tramites
                     'message' => 'El trámite no existe.',
                     'csrfHash' => csrf_hash(),
                 ]);
+            }
+
+            if ($resp = $this->requireNotApprovedForSteps123Json((int) ($existingTramite['tra_status_id'] ?? 0), $roles, $perms)) {
+                return $resp;
             }
 
             if ($this->isLockedStatusId((int) ($existingTramite['tra_status_id'] ?? 0))) {
@@ -1144,6 +1354,287 @@ class Tramitesn extends Tramites
             ]);
         }
     }
+
+    public function update_pago_gestor()
+    {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        $session = session();
+        $myid = (int) ($session->get('id') ?? 0);
+        $id = (int) ($this->request->uri->getSegment(4) ?? 0);
+
+        if ($id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, null, true);
+        }
+
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($resp = $this->requireCanEditTramiteJson($roles, $perms)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('section_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('editar_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        $db = \Config\Database::connect();
+        $builder = $db->table('tramite');
+        $existingTramite = $builder->where('id', $id)->get()->getRowArray();
+        if (!$existingTramite) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'El trámite no existe.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $traStatusId = (int) ($existingTramite['tra_status_id'] ?? 0);
+        $reembolsoStatusId = (int) ($existingTramite['reembolso_status_id'] ?? 0);
+        $cobroStatusId = (int) ($existingTramite['cobro_status_id'] ?? 0);
+        $canKeepStep4Editable = $this->canKeepStep4Editable(
+            $reembolsoStatusId,
+            (int) ($existingTramite['pago_gestor_st_id'] ?? 0),
+            null,
+            (string) ($existingTramite['status_doctos_gestor'] ?? '')
+        );
+        $canOverrideStatus28 = has_permission('override_tramite_status_28_readonly', $perms, $roles);
+
+        if ($this->isLockedStatusId($traStatusId) || ($traStatusId === 28 && !$canOverrideStatus28 && !$canKeepStep4Editable)) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'El trámite está en modo de solo lectura.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+        if (!$canKeepStep4Editable && !puede_editar_modulo($roles, $traStatusId, 'editar_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
+        }
+
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'reembolso_status_id' => 'required|integer',
+            'status_doctos_gestor' => 'required|in_list[en proceso,entregados]',
+        ]);
+
+        if ($validation->withRequest($this->request)->run() === false) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error en la validación de datos.',
+                'errors' => $validation->getErrors(),
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $data = $this->request->getPost();
+        $csrfName = csrf_token();
+        if (isset($data[$csrfName])) {
+            unset($data[$csrfName]);
+        }
+
+        $data['user_id'] = $myid;
+
+        $camposAEliminar = [
+            'gestor_total_pago_hidden',
+            'reembolso_status_id_hidden',
+            'impuesto_gestoria_hidden',
+            'gestoria_comision_hidden',
+            'gestor_name',
+            'gestor_id',
+        ];
+        foreach ($camposAEliminar as $campo) {
+            if (isset($data[$campo])) {
+                unset($data[$campo]);
+            }
+        }
+
+        $camposNumericos = [
+            'costo_tramite',
+            'deposito_gestor',
+            'col_a_favor',
+            'impuesto_gestoria',
+            'gestoria_comision',
+            'costo_paqueteria',
+            'gestor_total_pago',
+        ];
+        foreach ($camposNumericos as $campo) {
+            if (isset($data[$campo]) && $data[$campo] === '') {
+                $data[$campo] = null;
+            }
+        }
+
+        try {
+            try {
+                $changes = compare_tramite_data($existingTramite, $data);
+            } catch (\Throwable $e) {
+                $changes = [];
+                log_message('error', 'Error en compare_tramite_data (Tramitesn::update_pago_gestor): ' . $e->getMessage());
+            }
+
+            $builder->where('id', $id);
+            $updateResult = $builder->update($data);
+            if (!$updateResult) {
+                throw new \Exception('No se pudo actualizar el trámite.');
+            }
+
+            $this->updateCobrarClienteFlagTramitesn($db, $id);
+            $targetStatus = $this->syncCobroClienteStatusFromPagoGestor(
+                $db,
+                (int) $id,
+                isset($data['pago_gestor_st_id']) ? (int) $data['pago_gestor_st_id'] : null
+            );
+
+            $db2 = $this->_getDbData();
+            $bitacoraModel = new BitacoraModel($db2);
+            $bitacoraModel->insert([
+                'id' => null,
+                'tipo' => 'update',
+                'origen' => 'tramite',
+                'tramite_id' => (int) $id,
+                'cambios' => json_encode($this->buildBitacoraChanges($changes)),
+                'user_id' => (int) $myid,
+            ], 'bitacora');
+
+            $traUserLog = new TraUserLogModel($db2);
+            $traUserLog->insert([
+                'tramite_id' => (int) $id,
+                'user_id' => (int) $myid,
+                'tra_status_id' => $targetStatus,
+            ], 'tra_user_log');
+
+            if (!empty($changes)) {
+                log_tramite_bulk_changes($id, $changes, 'tramite', [
+                    'form_name' => 'Pago a Gestor',
+                    'form_step' => 4,
+                    'form_section' => 'update_pago_gestor',
+                ]);
+            }
+
+            $redirectUrl = '/deskapp/tramitesn/update/' . $id;
+            if ($targetStatus === 28 && (has_permission('list_cobro_cliente', $perms, $roles) || has_permission('section_final_costos', $perms, $roles))) {
+                $redirectUrl = '/deskapp/tramitesn/ver_seccion_cobro_cliente/' . $id;
+            } elseif (has_permission('section_pago_gestor', $perms, $roles)) {
+                $redirectUrl = '/deskapp/tramitesn/ver_seccion_pago_gestor/' . $id;
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Pago a gestor guardado correctamente.',
+                'redirect' => $redirectUrl,
+                'csrfHash' => csrf_hash(),
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Error en Tramitesn::update_pago_gestor: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al guardar el pago a gestor: ' . $e->getMessage(),
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+    }
+
+    public function upload_pago_gestor($id = null)
+    {
+        $response = parent::upload_pago_gestor();
+        $tramiteId = (int) ($id ?? $this->request->getUri()->getSegment(4));
+        $this->syncCobroClienteStatusAfterPagoGestorResponse($response, $tramiteId);
+        return $response;
+    }
+
+    public function delete_pago_gestor()
+    {
+        $tramiteId = (int) $this->request->getPost('tramite_id');
+        $response = parent::delete_pago_gestor();
+        $this->syncCobroClienteStatusAfterPagoGestorResponse($response, $tramiteId);
+        return $response;
+    }
+
+    public function getCobroClienteFiles($id)
+    {
+        return parent::getCobroClienteFiles($id);
+    }
+
+    public function upload_cobro_cliente()
+    {
+        return parent::upload_cobro_cliente();
+    }
+
+    public function delete_cobro_cliente()
+    {
+        return parent::delete_cobro_cliente();
+    }
+
+    public function update_final_save()
+    {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
+        $tramiteId = (int) ($this->request->uri->getSegment(4) ?? 0);
+
+        if ($tramiteId <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, null, true);
+        }
+
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        $db = \Config\Database::connect();
+        $tramiteRow = $db->table('tramite')
+            ->select('id, tra_status_id, reembolso_status_id, cobro_status_id')
+            ->where('id', $tramiteId)
+            ->get(1)
+            ->getRowArray();
+
+        if (empty($tramiteRow)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'El trámite no existe.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
+        $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+
+        if ($this->isLockedStatusId($traStatusId)) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'El trámite está concluido o cancelado.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        if (!puede_editar_modulo($roles, $traStatusId, 'botones', $reembolsoStatusId, $cobroStatusId, 5)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
+        }
+
+        return parent::update_final_save();
+    }
+
     public function index()
     {
         $output = (object)[
@@ -1166,20 +1657,18 @@ class Tramitesn extends Tramites
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = $this->normalizeRolesPermsFromSession();
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
 
             // Filtro multi-tenancy
             $filterSql = get_tramite_filter_sql($myid);
             $tramite_crud->where($filterSql);
+
+            // Filtro "solo ver mis trámites" por permiso (no por rol).
+            if (has_permission('tramitesn_filter_owner_only', $perms, $roles)) {
+                $tramite_crud->where(['tramite.user_id' => (int) $myid]);
+            }
             $data['audit_payload'] = [
                 'source' => 'Tramitesn::tramite',
                 'user_id' => (int) $myid,
@@ -1194,7 +1683,7 @@ class Tramitesn extends Tramites
             $tramite_crud->unsetDeleteMultiple();
 
             // Botón Editar → nuevo flujo
-            if (has_permission('editar_tramite', $perms, $roles)){
+            if (can_edit_tramite($roles, $perms)){
                 $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
                     return '/deskapp/tramitesn/update/' . $row->id;
                 }, false);
@@ -1365,7 +1854,9 @@ class Tramitesn extends Tramites
             $salida_total = array_merge((array)$tramite_salida, $data);
             $salida_total['audit_payload'] = $data['audit_payload'] ?? null;
             // El botón de "Nuevo" seguirá usando el alta tradicional si se requiere
-            $salida_total['insert_button_url'] = '/public/deskapp/tramites/add';
+            helper(['permissions']);
+            [$rolesAcl, $permsAcl] = session_roles_perms($session ?? session());
+            $salida_total['insert_button_url'] = can_create_tramite($rolesAcl, $permsAcl) ? '/public/deskapp/tramites/add' : '';
 
             echo $this->_example_output($salida_total);
 
@@ -1381,33 +1872,47 @@ class Tramitesn extends Tramites
     public function cobro_cliente()
     {
         try {
+            helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+            if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+                return $resp;
+            }
+
             $session = session();
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
-            $roles = $session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
+            [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+            // Validación de acceso al listado (no basta con ocultar el botón).
+            // Permiso específico del listado de Cobro a Cliente.
+            $canAccessList = has_permission('list_cobro_cliente', $perms, $roles);
+            if (!$canAccessList) {
+                return redirect()->to('/deskapp/dashboard')
+                    ->with('error', 'No tienes permisos para acceder a Cobro a Cliente');
             }
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
+            $paidStatusIds = $this->getPaidPagoGestorStatusIds();
 
             // $filterSql = get_tramite_filter_sql($myid);
             // $tramite_crud->where($filterSql);
-            $tramite_crud->where('tra_status_id = 28');
+            if (!empty($paidStatusIds)) {
+                $tramite_crud->where(
+                    '(tramite.tra_status_id = 28 OR (tramite.tra_status_id = 23 AND tramite.cobrar_cliente = 1 AND tramite.pago_gestor_st_id IN (' . implode(',', $paidStatusIds) . ')))'
+                );
+            } else {
+                $tramite_crud->where('tramite.tra_status_id = 28');
+            }
 
-            // El listado muestra todos los tramites en estatus 28; la columna indica si ya puede cobrarse.
+            // El listado muestra trámites ya en paso 5 y también los del paso 4 que ya están listos para cierre.
 
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
             $tramite_crud->unsetRead();
             $tramite_crud->unsetDeleteMultiple();
 
-            if (has_permission('section_final_costos', $perms, $roles)) {
+            if (has_permission('list_cobro_cliente', $perms, $roles)) {
                 $tramite_crud->setActionButton('Cobro a Cliente', 'fas fa-receipt', function ($row) {
                     return '/deskapp/tramitesn/cobro_cliente/' . $row->id;
                 }, false);
@@ -1449,32 +1954,24 @@ class Tramitesn extends Tramites
             $tramite_crud->displayAs('started_at', 'Desde Asignacion');
             $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
             $tramite_crud->displayAs('user_id', 'Ejecutivo');
-            $tramite_crud->displayAs('cobro_status_id', 'Tramite puede ser cobrado');
+            $tramite_crud->displayAs('cobro_status_id', 'Cierre de Pago a Gestor');
 
             $db = \Config\Database::connect();
             $tramite_crud->callbackColumn('cobro_status_id', function ($value, $row) use ($db) {
-                if ((int) $value === 23) {
-                    return '<span class="badge badge-primary">Cobrado</span>';
-                }
-                $rows = $db->table('tra_pago_gestor')
-                    ->select('comprobante_final')
-                    ->where('tramite_id', (int) $row->id)
-                    ->where('status', 1)
-                    ->get()
-                    ->getResultArray();
+                $tramiteRow = $db->table('tramite')
+                    ->select('tra_status_id, pago_gestor_st_id, cobrar_cliente')
+                    ->where('id', (int) $row->id)
+                    ->get(1)
+                    ->getRowArray();
 
-                $hasTramite = false;
-                $hasAcuse = false;
-                foreach ($rows as $doc) {
-                    $tipo = (string) ($doc['comprobante_final'] ?? '');
-                    if ($tipo === 'tramite_recibido') {
-                        $hasTramite = true;
-                    } elseif ($tipo === 'acuse_recibo_cliente') {
-                        $hasAcuse = true;
-                    }
+                $isReady = $this->isReadyForCobroCliente($tramiteRow ?? []);
+                $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+
+                if ($statusId === 28 && $isReady) {
+                    return '<span class="badge badge-primary">En Paso 5</span>';
                 }
-                if ($hasTramite && $hasAcuse) {
-                    return '<span class="badge badge-success">Listo para Cobrar</span>';
+                if ($statusId === 23 && $isReady) {
+                    return '<span class="badge badge-success">Listo para Cierre</span>';
                 }
                 return '<span class="badge badge-secondary">Pendiente</span>';
             });
@@ -1523,7 +2020,9 @@ class Tramitesn extends Tramites
             $tramite_salida = $tramite_crud->render();
 
             $salida_total = array_merge((array)$tramite_salida, $data);
-            $salida_total['insert_button_url'] = '/public/deskapp/tramites/add';
+            helper(['permissions']);
+            [$rolesAcl, $permsAcl] = session_roles_perms($session ?? session());
+            $salida_total['insert_button_url'] = can_create_tramite($rolesAcl, $permsAcl) ? '/public/deskapp/tramites/add' : '';
 
             echo $this->_example_output($salida_total);
 
@@ -1534,17 +2033,33 @@ class Tramitesn extends Tramites
 
     public function cobro_cliente_ver($id)
     {
-        if (!validate_tramite_access($id)) {
-            log_unauthorized_access_attempt('tramite', $id);
-            return redirect()->to('/deskapp/tramitesn/cobro_cliente')
-                ->with('error', 'No tienes permiso para ver este tramite');
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+            return $resp;
         }
 
-        helper(['permissions']);
+        $session = session();
+        $myid = (int) ($session->get('id') ?? 0);
         [$roles, $perms] = $this->normalizeRolesPermsFromSession();
-        $canSectionFinal = has_permission('section_final_costos', $perms, $roles);
-        if (!(is_super_admin($roles) || is_admin($roles) || $canSectionFinal)) {
-            return redirect()->to('/deskapp/tramitesn/cobro_cliente')
+
+        $id = (int) $id;
+        if ($id <= 0) {
+            return redirect()->to('/deskapp/tramitesn/tramite')
+                ->with('error', 'ID de trámite inválido.');
+        }
+
+        // Si no tiene acceso por multi-tenancy, no enviarlo al listado de cobro.
+        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, 'No tienes permiso para ver este tramite', '/deskapp/tramitesn/update/' . (int) $id, 403, false)) {
+            log_unauthorized_access_attempt('tramite', $id);
+            return $resp;
+        }
+
+        $canViewCobroCliente = has_permission('list_cobro_cliente', $perms, $roles);
+        if (!$canViewCobroCliente) {
+            // No tiene permiso del flujo/listado de cobro: permitir ver el trámite en update (si aplica)
+            // en lugar de mandarlo al listado al que tampoco debería poder entrar.
+            return redirect()->to('/deskapp/tramitesn/update/' . (int) $id)
                 ->with('error', 'No tienes permisos para acceder a Cobro a Cliente');
         }
 
@@ -1559,36 +2074,75 @@ class Tramitesn extends Tramites
         return $this->update($id, 'deskapp/extra-pages/tramite_cobro_cliente_view');
     }
 
+    // =====================================================================
+    // VISTAS SEPARADAS POR SECCIÓN (para auditoría / requerimientos futuros)
+    // =====================================================================
+    public function ver_seccion_generales($id)
+    {
+        return $this->update($id, 'deskapp/extra-pages/tramite_update_view_generales');
+    }
+
+    public function ver_seccion_asigna_gestor($id)
+    {
+        return $this->update($id, 'deskapp/extra-pages/tramite_update_view_asigna_gestor');
+    }
+
+    public function ver_seccion_pago_derechos($id)
+    {
+        return $this->update($id, 'deskapp/extra-pages/tramite_update_view_pago_derechos');
+    }
+
+    public function ver_seccion_pago_gestor($id)
+    {
+        return $this->update($id, 'deskapp/extra-pages/tramite_update_view_pago_gestor');
+    }
+
+    public function ver_seccion_cobro_cliente($id)
+    {
+        return $this->update($id, 'deskapp/extra-pages/tramite_update_view_cobro_cliente');
+    }
+
     /**
      * Versión nueva del update del trámite sin Grocery CRUD para el wizard.
      * Mantiene la misma lógica de negocio, pero la vista es 100% custom.
      */
     public function update($id, $viewName = null)
     {
-        // ========================================================================
-        // VALIDACIÓN DE ACCESO - MULTI-TENANCY
-        // ========================================================================
-        if (!validate_tramite_access($id)) {
-            log_unauthorized_access_attempt('tramite', $id);
-            $from = strtolower((string) $this->request->getGet('from'));
-            if ($from === 'search') {
-                return redirect()->to('/deskapp/tramitesn/search')
-                    ->with('error', 'El ejecutivo no tiene acceso a ese recurso.');
-            }
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
 
-            return redirect()->to('/deskapp/tramitesn/tramite')
-                ->with('error', '⛔ No tienes permiso para editar este trámite');
-        }
-
-        helper(['permissions']);
 		$session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
-        $myid = $session->get('id');
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+            return $resp;
+        }
+
+        $myid = (int) ($session->get('id') ?? 0);
 		[$roles, $perms] = $this->normalizeRolesPermsFromSession();
-		$canEditPrincipal = (is_super_admin($roles) || is_admin($roles) || has_permission('editar_tramite_principal', $perms, $roles));
-		$canEditAsociado = (is_super_admin($roles) || is_admin($roles) || has_permission('editar_tramite_asociado', $perms, $roles));
-		$canDeleteAsociado = (is_super_admin($roles) || is_admin($roles) || has_permission('delete_tramite_asociado', $perms, $roles));
+
+        $id = (int) $id;
+        if ($id <= 0) {
+            return redirect()->to('/deskapp/tramitesn/tramite')
+                ->with('error', 'ID de trámite inválido.');
+        }
+
+        // ========================================================================
+        // VALIDACIÓN DE ACCESO - MULTI-TENANCY
+        // ========================================================================
+        $from = strtolower((string) $this->request->getGet('from'));
+        $tenantRedirect = ($from === 'search') ? '/deskapp/tramitesn/search' : '/deskapp/tramitesn/tramite';
+        $tenantMessage = ($from === 'search') ? 'El ejecutivo no tiene acceso a ese recurso.' : '⛔ No tienes permiso para editar este trámite';
+
+        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, $tenantMessage, $tenantRedirect, 403, false)) {
+            log_unauthorized_access_attempt('tramite', $id);
+            return $resp;
+        }
+
+        $canEditTramite = can_edit_tramite($roles, $perms);
+        $canEditPrincipal = $canEditTramite && has_permission('editar_tramite_principal', $perms, $roles);
+        $canEditAsociado = $canEditTramite && has_permission('editar_tramite_asociado', $perms, $roles);
+        $canDeleteAsociado = $canEditTramite && has_permission('delete_tramite_asociado', $perms, $roles);
         $db = \Config\Database::connect();
         $builder = $db->table('tramite');
         $db2 = $this->_getDbData();
@@ -1614,10 +2168,25 @@ class Tramitesn extends Tramites
                 ->with('error', 'No se encontró el trámite solicitado');
         }
 
-        // Si el trámite está en Cobro a Cliente (28), enviarlo al flujo dedicado.
-        // Evita loop cuando ya se invoca update() desde cobro_cliente_ver().
-        if (((int) ($tramite['tra_status_id'] ?? 0)) === 28 && $viewName !== 'deskapp/extra-pages/tramite_cobro_cliente_view') {
-            return redirect()->to('/deskapp/tramitesn/cobro_cliente/' . $id);
+        // Concluido/Cancelado siempre debe mostrarse como solo lectura en el wizard.
+        // Esto controla la UI (inputs disabled) además de los bloqueos por endpoint.
+        $isLockedByStatus = in_array((int) ($tramite['tra_status_id'] ?? 0), [20, 21], true);
+        if ($isLockedByStatus) {
+            $canEditTramite = false;
+            $canEditPrincipal = false;
+            $canEditAsociado = false;
+            $canDeleteAsociado = false;
+        }
+
+        $statusId = (int) ($tramite['tra_status_id'] ?? 0);
+        if ($viewName === null) {
+            $targetAdvancedView = $this->resolveAdvancedStepView($statusId, $roles, $perms);
+            if ($targetAdvancedView === 'deskapp/extra-pages/tramite_update_view_pago_gestor') {
+                return redirect()->to('/deskapp/tramitesn/ver_seccion_pago_gestor/' . $id);
+            }
+            if ($targetAdvancedView === 'deskapp/extra-pages/tramite_cobro_cliente_view') {
+                return redirect()->to('/deskapp/tramitesn/ver_seccion_cobro_cliente/' . $id);
+            }
         }
 
         // Sumatoria de derechos desde costos del tramite (principal + asociados)
@@ -1671,6 +2240,7 @@ class Tramitesn extends Tramites
         // Opciones dependientes (para que el wizard cargue con valores existentes)
         $cliEjecutivoModel = new ClienteDirectoEjecutivoModel($db2);
         $cli_ejecutivo_options = [];
+        
         if (!empty($tramite['cli_directo_id'])) {
             $cli_ejecutivo_options = $cliEjecutivoModel->getEjecutivosOptions($tramite['cli_directo_id']);
         }
@@ -1747,6 +2317,17 @@ class Tramitesn extends Tramites
 
         $pago_gestor_st = new PagoGestorStatusModel($db2);
         $pago_gestor_st_opciones = $pago_gestor_st->getPagoGestorStatusOptions();
+        $statusDoctosGestorOptions = [
+            'en proceso' => 'En Proceso',
+            'entregados' => 'Entregados',
+        ];
+
+        $canKeepStep4Editable = $this->canKeepStep4Editable(
+            (int) ($tramite['reembolso_status_id'] ?? 0),
+            (int) ($tramite['pago_gestor_st_id'] ?? 0),
+            $pago_gestor_st_opciones,
+            (string) ($tramite['status_doctos_gestor'] ?? '')
+        );
 
         $form = new \stdClass();
 
@@ -1935,6 +2516,14 @@ class Tramitesn extends Tramites
                 'type' => 'select',
                 'options' => $pago_gestor_st_opciones,
                 'value' => $tramite['pago_gestor_st_id'],
+                'required' => true,
+            ],
+            'status_doctos_gestor' => [
+                'label' => 'Estatus de Documentos',
+                'type' => 'select',
+                'options' => $statusDoctosGestorOptions,
+                'value' => !empty($tramite['status_doctos_gestor']) ? $tramite['status_doctos_gestor'] : 'en proceso',
+                'required' => true,
             ],
             'impuesto_gestoria' => [
                 'label' => 'Honorarios de Gestoria',
@@ -2051,13 +2640,29 @@ class Tramitesn extends Tramites
         $step2Complete = !empty($tramite['empresa_gestora_id']) && !empty($tramite['gestor_id']);
         $step3Complete = !empty($tramite['derechos_tramite']) && !empty($tramite['derechos_revol_cliente']) && !empty($tramite['derechos_refer_banc']);
 
-        $canUploadDerechos = puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'step3_upload', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 3);
+        $canUploadDerechos = $canEditTramite && puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'step3_upload', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 3);
         $canSectionPagoDerechos = has_permission('section_pago_derechos', $perms, $roles);
         $canSectionPagoGestor = has_permission('section_pago_gestor', $perms, $roles);
         $canSectionFinalCostos = has_permission('section_final_costos', $perms, $roles);
-        $canEditPagoGestor = puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'editar_pago_gestor', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 4);
-        $canUploadPagoGestor = puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'upload_pago_gestor', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 4);
-        $canUploadFinalDocs = puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'upload_cobro_cliente', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 5);
+
+        $canEditPagoGestor = $canEditTramite
+            && $canSectionPagoGestor
+            && has_permission('editar_pago_gestor', $perms, $roles)
+            && ($canKeepStep4Editable || puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'editar_pago_gestor', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 4));
+        // Uploads (Dropzone/GroceryCRUD) NO dependen de `editar_tramite`.
+        // Los endpoints single_* controlan escritura por permisos finos + puede_editar_modulo().
+        $canUploadPagoGestor = $canSectionPagoGestor
+            && has_permission('editar_pago_gestor', $perms, $roles)
+            && ($canKeepStep4Editable || puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'upload_pago_gestor', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 4));
+        $canEditFinalForm = $canSectionFinalCostos
+            && puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'botones', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 5);
+        $canUploadFinalDocs = $canSectionFinalCostos
+            && puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'upload_cobro_cliente', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 5);
+
+        // Permisos finos para Dropzones: sin el permiso, el upload queda en solo-lectura
+        $canUploadDropzonePagoDerechos = $canUploadDerechos && has_permission('can_upload_dropzone_pago_derechos', $perms, $roles);
+        $canUploadDropzonePagoGestor = $canUploadPagoGestor && has_permission('can_upload_dropzone_pago_gestor', $perms, $roles);
+        $canUploadDropzoneCobroCliente = $canUploadFinalDocs && has_permission('can_upload_dropzone_cobro_cliente', $perms, $roles);
 
         if (isset($tramite['costo_tramite']) && $tramite['costo_tramite'] > 0) {
             $tramite['costo_tramite'] = number_format($tramite['costo_tramite'], 2, '.', '');
@@ -2087,25 +2692,44 @@ class Tramitesn extends Tramites
         $crud = $this->_getGroceryCrudEnterprise();
         $crudOutput = $crud->render();
 
-        $form->css_files = $crudOutput->css_files;
+        // Grocery CRUD suele traer Bootstrap (v4) dentro de css_files.
+        // En este wizard usamos el Bootstrap del layout (v5); cargar otro Bootstrap después
+        // descuadra el header/sidebar. Filtramos Bootstrap aquí sin afectar los demás assets.
+        $cssFiles = (array) ($crudOutput->css_files ?? []);
+        $cssFiles = array_values(array_filter($cssFiles, static function ($file) {
+            $file = (string) $file;
+            return stripos($file, 'bootstrap') === false;
+        }));
+        $form->css_files = $cssFiles;
         $form->js_files = $crudOutput->js_files;
 
-        $isLocked = in_array((int) ($tramite['tra_status_id'] ?? 0), [20, 21], true);
+        $isLockedByStatus = in_array((int) ($tramite['tra_status_id'] ?? 0), [20, 21], true);
+        // En el wizard, la selección Tramites vs Concluido depende del estatus (concluido/cancelado).
+        // Los permisos finos de escritura se resuelven dentro de cada endpoint single_*.
+        $isLocked = $isLockedByStatus;
+
+        $isCobroClienteSectionView = in_array($viewName, [
+            'deskapp/extra-pages/tramite_cobro_cliente_view',
+            'deskapp/extra-pages/tramite_update_view_cobro_cliente',
+        ], true);
+        $historyCrudBasePath = ($isLocked || $isCobroClienteSectionView) ? '/deskapp/concluido' : '/deskapp/tramites';
 
         $cruddocstatus = $this->_getGroceryCrudEnterprise();
-		$cruddocstatus->setApiUrlPath(($isLocked ? '/deskapp/concluido' : '/deskapp/tramites') . '/single_documentostatus/' . $id);
+        $cruddocstatus->setApiUrlPath($historyCrudBasePath . '/single_documentostatus/' . $id);
         $output_docs = $cruddocstatus->render();
 
         $crudevidencias = $this->_getGroceryCrudEnterprise();
-		$crudevidencias->setApiUrlPath(($isLocked ? '/deskapp/concluido' : '/deskapp/tramites') . '/single_evidencias/' . $id);
+        $crudevidencias->setApiUrlPath($historyCrudBasePath . '/single_evidencias/' . $id);
         $outputevidencias = $crudevidencias->render();
 
         $crud_derechos = $this->_getGroceryCrudEnterprise();
-		$crud_derechos->setApiUrlPath(($isLocked ? '/deskapp/concluido' : '/deskapp/tramites') . '/single_pago_derechos/' . $id);
+        $crud_derechos->setApiUrlPath($historyCrudBasePath . '/single_pago_derechos/' . $id);
         $output_derechos = $crud_derechos->render();
 
         $crud_pago_gestor = $this->_getGroceryCrudEnterprise();
-		if (!$isLocked && puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_gestor', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
+        $canWritePagoGestorCrud = !$isLocked
+            && $canUploadPagoGestor;
+        if ($canWritePagoGestorCrud) {
             $crud_pago_gestor->setApiUrlPath('/deskapp/tramites/single_pago_gestor/' . $id);
         } else {
             $crud_pago_gestor->setApiUrlPath('/deskapp/concluido/single_pago_gestor/' . $id);
@@ -2113,7 +2737,10 @@ class Tramitesn extends Tramites
         $output_pago_gestor = $crud_pago_gestor->render();
 
         $crud_cobro_cliente = $this->_getGroceryCrudEnterprise();
-		if (!$isLocked && puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_cliente', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
+        $canWriteCobroClienteCrud = !$isLockedByStatus
+            && $canSectionFinalCostos
+            && puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'upload_cobro_cliente', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 5);
+        if ($canWriteCobroClienteCrud) {
             $crud_cobro_cliente->setApiUrlPath('/deskapp/tramites/single_cobro_cliente/' . $id);
         } else {
             $crud_cobro_cliente->setApiUrlPath('/deskapp/concluido/single_cobro_cliente/' . $id);
@@ -2121,7 +2748,10 @@ class Tramitesn extends Tramites
         $output_cobro_cliente = $crud_cobro_cliente->render();
 
         $crudevidencias_finales = $this->_getGroceryCrudEnterprise();
-		if (!$isLocked && puede_editar_modulo($session->get('user_roles'), $tramite['tra_status_id'], 'evidencias_finales_cliente', $tramite['reembolso_status_id'], $tramite['cobro_status_id'], $tramite['tra_status_id'])) {
+        $canWriteEvidenciasFinalesCrud = !$isLockedByStatus
+            && $canSectionFinalCostos
+            && puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'evidencias_finales_gestor', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 4);
+        if ($canWriteEvidenciasFinalesCrud) {
             $crudevidencias_finales->setApiUrlPath('/deskapp/tramites/single_evidencias_finales/' . $id);
         } else {
             $crudevidencias_finales->setApiUrlPath('/deskapp/concluido/single_evidencias_finales/' . $id);
@@ -2146,6 +2776,7 @@ class Tramitesn extends Tramites
 		$viewData['can_delete_asociado'] = $canDeleteAsociado;
         $viewData['user_roles'] = $roles;
         $viewData['user_permissions'] = $perms;
+        $viewData['can_edit_tramite'] = $canEditTramite;
         $viewData['pago_derechos_db'] = $pago_derechos_db;
         $viewData['pago_gestor_db'] = $pago_gestor_db;
         $viewData['has_comprobante_tramite_recibido'] = $hasComprobanteTramiteRecibido;
@@ -2160,12 +2791,16 @@ class Tramitesn extends Tramites
         $viewData['step2_complete'] = $step2Complete;
         $viewData['step3_complete'] = $step3Complete;
         $viewData['can_upload_derechos'] = $canUploadDerechos;
+        $viewData['can_upload_dropzone_pago_derechos'] = $canUploadDropzonePagoDerechos;
         $viewData['can_section_pago_derechos'] = $canSectionPagoDerechos;
         $viewData['can_section_pago_gestor'] = $canSectionPagoGestor;
         $viewData['can_section_final_costos'] = $canSectionFinalCostos;
         $viewData['can_edit_pago_gestor'] = $canEditPagoGestor;
         $viewData['can_upload_pago_gestor'] = $canUploadPagoGestor;
+        $viewData['can_upload_dropzone_pago_gestor'] = $canUploadDropzonePagoGestor;
+        $viewData['can_edit_final_form'] = $canEditFinalForm;
         $viewData['can_upload_final_docs'] = $canUploadFinalDocs;
+        $viewData['can_upload_dropzone_cobro_cliente'] = $canUploadDropzoneCobroCliente;
 
         $targetView = $viewName ?: 'deskapp/extra-pages/tramite_update_view_nuevo';
         return view($targetView, $viewData);
@@ -2173,22 +2808,15 @@ class Tramitesn extends Tramites
 
     public function upload_final_doc($tramiteId = null, $documentoId = null)
     {
-        helper(['permissions', 'cliente_filter']);
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', true)) {
+            return $resp;
+        }
 
         $session = session();
-        $userId = (int) $session->get('id');
-        if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
-        }
-
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
 
         $tramiteId = (int) $tramiteId;
         $documentoId = (int) $documentoId;
@@ -2196,13 +2824,12 @@ class Tramitesn extends Tramites
             return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Parámetros inválidos.']);
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-        if (!$hasTenantAccess) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_final_costos', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if ($resp = acl_require_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
         $db = \Config\Database::connect();
@@ -2223,7 +2850,7 @@ class Tramitesn extends Tramites
             return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está concluido o cancelado.']);
         }
         if (!puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            return acl_deny('Acceso denegado.', 403, null, true);
         }
 
         if (empty($_FILES['file'])) {
@@ -2314,22 +2941,15 @@ class Tramitesn extends Tramites
 
     public function delete_final_doc()
     {
-        helper(['permissions', 'cliente_filter']);
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', true)) {
+            return $resp;
+        }
 
         $session = session();
-        $userId = (int) $session->get('id');
-        if ($userId <= 0) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada.']);
-        }
-
-        $roles = $session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
-        $perms = $session->get('user_permissions') ?? [];
-        if (!is_array($perms)) {
-            $perms = [$perms];
-        }
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
 
         $request = \Config\Services::request();
         $tramiteId = (int) $request->getPost('tramite_id');
@@ -2340,13 +2960,12 @@ class Tramitesn extends Tramites
             return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Parámetros inválidos.']);
         }
 
-        $hasTenantAccess = (is_super_admin($roles) || is_admin($roles)) ? true : validate_tramite_access($tramiteId, $userId);
-        if (!$hasTenantAccess) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('section_final_costos', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+        if ($resp = acl_require_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
         $db = \Config\Database::connect();
@@ -2367,7 +2986,7 @@ class Tramitesn extends Tramites
             return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está concluido o cancelado.']);
         }
         if (!puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado.']);
+            return acl_deny('Acceso denegado.', 403, null, true);
         }
 
         try {
@@ -2443,5 +3062,34 @@ class Tramitesn extends Tramites
             ];
         }
         return $diferencias;
+    }
+
+    private function updateCobrarClienteFlagTramitesn($db, int $tramiteId): void
+    {
+        if ($tramiteId <= 0) {
+            return;
+        }
+
+        $rows = $db->table('tra_pago_gestor')
+            ->select('comprobante_final')
+            ->where('tramite_id', $tramiteId)
+            ->where('status', 1)
+            ->get()
+            ->getResultArray();
+
+        $hasTramite = false;
+        $hasAcuse = false;
+        foreach ($rows as $row) {
+            $tipo = (string) ($row['comprobante_final'] ?? '');
+            if ($tipo === 'tramite_recibido') {
+                $hasTramite = true;
+            } elseif ($tipo === 'acuse_recibo_cliente') {
+                $hasAcuse = true;
+            }
+        }
+
+        $db->table('tramite')
+            ->where('id', $tramiteId)
+            ->update(['cobrar_cliente' => ($hasTramite && $hasAcuse) ? 1 : 0]);
     }
 }

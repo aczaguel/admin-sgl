@@ -16,7 +16,7 @@ class CorrecionTramites extends BaseController
     public function __construct()
     {
         $this->db = Database::connect();
-        helper(['url', 'form', 'session', 'cliente_filter', 'cliente_context']);
+        helper(['url', 'form', 'session', 'cliente_filter', 'cliente_context', 'permissions', 'acl_guard']);
 
         $session = session();
         $userId = $session->get('id');
@@ -24,6 +24,21 @@ class CorrecionTramites extends BaseController
 
         // Persistir cliente activo (si viene en GET) para que el filtro aplique en ESTA misma request
         resolve_active_cliente_id($userId, $requested);
+    }
+
+    private function requireCorreccionTramitesPermission(?bool $forceJson = null)
+    {
+        $session = session();
+        [$roles, $perms] = session_roles_perms($session);
+        return acl_require_permission(
+            'monitoreo_correccion_tramites',
+            $roles,
+            $perms,
+            'No tienes permisos para acceder a esta función',
+            '/deskapp/dashboard',
+            403,
+            $forceJson
+        );
     }
 
     private function _getDbData() {
@@ -67,11 +82,9 @@ class CorrecionTramites extends BaseController
     public function index()
     {
         $session = session();
-        
-        // Verificar que sea Admin
-        $userRoles = $session->get('user_roles') ?? [];
-        if (!is_admin($userRoles)) {
-            return redirect()->to('deskapp/dashboard')->with('error', 'No tienes permisos para acceder');
+
+        if ($resp = $this->requireCorreccionTramitesPermission(false)) {
+            return $resp;
         }
 
         $data['session'] = \Config\Services::session();
@@ -231,9 +244,9 @@ class CorrecionTramites extends BaseController
         log_message('debug', 'Request POST: ' . json_encode($this->request->getPost()));
         
         $session = session();
-        $userRoles = $session->get('user_roles') ?? [];
-        if (!is_admin($userRoles)) {
-            return $this->response->setJSON(['error' => 'No autorizado']);
+
+        if ($resp = $this->requireCorreccionTramitesPermission(true)) {
+            return $resp;
         }
 
         try {
@@ -504,9 +517,9 @@ class CorrecionTramites extends BaseController
     public function buscar()
     {
         $session = session();
-        $userRoles = $session->get('user_roles') ?? [];
-        if (!is_admin($userRoles)) {
-            return $this->response->setJSON(['error' => 'No autorizado']);
+
+        if ($resp = $this->requireCorreccionTramitesPermission(true)) {
+            return $resp;
         }
 
         $search = $this->request->getGet('q');
@@ -543,9 +556,9 @@ class CorrecionTramites extends BaseController
     public function historial()
     {
         $session = session();
-        $userRoles = $session->get('user_roles') ?? [];
-        if (!is_admin($userRoles)) {
-            return redirect()->to('deskapp/dashboard')->with('error', 'No tienes permisos');
+
+        if ($resp = $this->requireCorreccionTramitesPermission(false)) {
+            return $resp;
         }
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');

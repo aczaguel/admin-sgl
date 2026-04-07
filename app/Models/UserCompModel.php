@@ -3,7 +3,7 @@ namespace App\Models;
 use GroceryCrud\Core\Model;
 use Laminas\Db\Sql\Sql;
 use Laminas\Db\ResultSet\ResultSet;
-class UserModel extends Model
+class UserCompModel extends Model
 {
     protected $table = 'users';
     protected $primaryKey = 'id';
@@ -29,7 +29,17 @@ class UserModel extends Model
     }
     public function getuser()
     {
-        return $this->findAll();
+        try {
+            $statement = $this->adapter->query('SELECT * FROM users');
+            $result = $statement->execute();
+            $rows = [];
+            foreach ($result as $row) {
+                $rows[] = $row;
+            }
+            return $rows;
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
     public function getRolesAndPermissions($userId)
     {

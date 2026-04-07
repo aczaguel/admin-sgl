@@ -295,7 +295,7 @@ if (isset($tra_status_id)) {
 							<?php endif; ?>
 							<?php if (has_permission('section_documentos_pago', $session->get('user_permissions'), $session->get('user_roles')) && !in_array($tra_status_id, [11])): ?>
 								<!-- Step 5: Todos los documentos relacionados con el proceso en ventanilla -->
-								<h3>Documentos de Pago</h3>
+								<h3>Documentos de Pago <?= perm_audit_tag('can_upload_dropzone_pago_derechos', $session) ?></h3>
 								<section>
 									<?php if (has_permission('important_pasar_a_pagos', $session->get('user_permissions'), $session->get('user_roles'))): 
 										if (!in_array($tra_status_id, array(20, 23, 21))) : ?>
@@ -305,18 +305,20 @@ if (isset($tra_status_id)) {
 									
 									<hr>
 									<div>
-										<!-- Contenedor Dropzone -->
-										<div class="dropzone-container">
-											<form class="dropzone dropzone-documentos" id="miDropzone">
-												<div class="dz-default dz-message">
-													<button class="dz-button" type="button">
-														<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
-													</button>
-												</div>
-											</form>
-										</div>
-										<!-- Botón Subir -->
-										<button id="btnSubirDocumentos" class="btnSubir">Subir</button>
+										<?php if (has_permission('can_upload_dropzone_pago_derechos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+											<!-- Contenedor Dropzone -->
+											<div class="dropzone-container">
+												<form class="dropzone dropzone-documentos" id="miDropzone">
+													<div class="dz-default dz-message">
+														<button class="dz-button" type="button">
+															<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+														</button>
+													</div>
+												</form>
+											</div>
+											<!-- Botón Subir -->
+											<button id="btnSubirDocumentos" class="btnSubir">Subir</button>
+										<?php endif; ?>
 										<hr>
 										<!-- Mensaje de Eliminación -->
 										<div class="row mb-3">
@@ -335,7 +337,7 @@ if (isset($tra_status_id)) {
 							<?php endif; ?>
 							<?php if (has_permission('section_pago_gestor', $session->get('user_permissions'), $session->get('user_roles')) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
 								<!-- Step 6: Se paga al gestor -->
-								<h3>Pago a Gestor</h3>
+								<h3>Pago a Gestor <?= perm_audit_tag('can_upload_dropzone_pago_gestor', $session) ?></h3>
 								<section>
 									<div class="min-height-200px">
 										<?php 
@@ -352,19 +354,21 @@ if (isset($tra_status_id)) {
 									</div>
 									<hr>
 									<div>
-										<!-- Contenedor Dropzone -->
-										<div class="dropzone-container">
-											<form class="dropzone dropzone-gestor" id="miDropzoneGestor">
-												<div class="dz-default dz-message">
-													<button class="dz-button" type="button">
-														<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
-													</button>
-												</div>
-											</form>
-										</div>
+										<?php if (has_permission('can_upload_dropzone_pago_gestor', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+											<!-- Contenedor Dropzone -->
+											<div class="dropzone-container">
+												<form class="dropzone dropzone-gestor" id="miDropzoneGestor">
+													<div class="dz-default dz-message">
+														<button class="dz-button" type="button">
+															<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+														</button>
+													</div>
+												</form>
+											</div>
 
-										<!-- Botón Subir -->
-										<button id="btnSubirGestor" class="btnSubir">Subir</button>
+											<!-- Botón Subir -->
+											<button id="btnSubirGestor" class="btnSubir">Subir</button>
+										<?php endif; ?>
 
 										<hr>
 
@@ -384,7 +388,7 @@ if (isset($tra_status_id)) {
 							<?php endif; ?>
 							<?php if (has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles')) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
 								<!-- Step 7: Se cobra al cliente -->
-								<h3>Cobro a Cliente</h3>
+								<h3>Cobro a Cliente <?= perm_audit_tag('can_upload_dropzone_cobro_cliente', $session) ?></h3>
 								<section>
 									<div class="min-height-200px">
 										
@@ -407,19 +411,21 @@ if (isset($tra_status_id)) {
 									</div>
 									<hr>
 									<div>
-										<!-- Contenedor Dropzone -->
-										<div class="dropzone-container">
-											<form class="dropzone dropzone-cliente" id="miDropzoneCliente">
-												<div class="dz-default dz-message">
-													<button class="dz-button" type="button">
-														<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
-													</button>
-												</div>
-											</form>
-										</div>
+										<?php if (has_permission('can_upload_dropzone_cobro_cliente', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+											<!-- Contenedor Dropzone -->
+											<div class="dropzone-container">
+												<form class="dropzone dropzone-cliente" id="miDropzoneCliente">
+													<div class="dz-default dz-message">
+														<button class="dz-button" type="button">
+															<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+														</button>
+													</div>
+												</form>
+											</div>
 
-										<!-- Botón Subir -->
-										<button id="btnSubirCliente" class="btnSubir">Subir</button>
+											<!-- Botón Subir -->
+											<button id="btnSubirCliente" class="btnSubir">Subir</button>
+										<?php endif; ?>
 
 										<hr>
 

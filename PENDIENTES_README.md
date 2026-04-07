@@ -65,6 +65,14 @@ Puntos detectados (a retomar):
 ### Soporte / Comunicación (WhatsApp)
 - [ ] Diseñar e implementar administrador de comunicación (ver COMUNICACION_WHATSAPP_SOPORTE_README.md)
 
+### Menú / Trámites por etapa
+- [ ] Separar el menú de Trámites por bloques operativos:
+  - Wizard pasos 1, 2 y 3
+  - Paso 4
+  - Paso 5
+- [ ] En el bloque de Paso 4 agregar un botón visible: "Revisar pasos anteriores para editar"
+- [ ] Validar qué permisos y rutas deben usarse para que el botón de revisión no rompa el flujo actual ni los bloqueos por estatus
+
 ### 1) Bug: estatus de usuario no se actualiza bien
 - Pendiente de investigar:
   - Dónde se escribe el estatus (DB/modelo).

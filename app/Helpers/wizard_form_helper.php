@@ -13,8 +13,13 @@ if (!function_exists('render_form_fields')) {
      */
     function render_form_fields(array $fields, int $start, int $length, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, $step): string
     {
+        helper(['permissions']);
+
         $formHtml = '';
         $sliceFields = array_slice($fields, $start, $length, true);
+
+        [$roles, $perms] = session_roles_perms($session);
+        $canWriteStep = can_write_tramite_step((int) $step, $perms, $roles);
 
         foreach ($sliceFields as $field_name => $field_info) {
             if ($field_info['type'] === 'hr') {
@@ -34,12 +39,18 @@ if (!function_exists('render_form_fields')) {
             
             if(isset($field_info['just_read'])) {
                 $can_edit = !$field_info['just_read'];
-            }else{
+            } else {
                 $can_edit = puede_editar_modulo($session->get('user_roles'), $tra_status_id, $field_name, $reembolso_status_id, $cobro_status_id, $step);
             }
 
+            // Gate global por paso (1-3): sin permiso write_* todo queda readonly.
+            if (!$canWriteStep) {
+                $can_edit = false;
+            }
+
             if (!$can_edit) {
-                $disabled = 'readonly';
+                $readonly = 'readonly';
+                $disabled = 'disabled';
             }
 
             if ($field_info['type'] === 'hidden') {
@@ -59,9 +70,6 @@ if (!function_exists('render_form_fields')) {
                         $formHtml .= render_input($field_name, $field_info['type'], $value, $required, $readonly, $disabled);
                         break;
                     case 'select':
-                        if (!$can_edit) {
-                            $disabled = 'readonly';
-                        }
                         $formHtml .= render_select($field_name, $field_info['options'] ?? [], $value, $readonly, $disabled);
                         break;
                     case 'textarea':

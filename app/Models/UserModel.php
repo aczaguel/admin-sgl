@@ -41,15 +41,59 @@ class UserModel extends Model
     }
     public function getUserPermissions($userId)
     {
+        // Base: permisos por roles (DB: us_user_roles -> us_role_permissions -> us_permissions)
         $builder = $this->db->table('users as u');
         $builder->select('p.permission_name');
         $builder->join('us_user_roles as ur', 'u.id = ur.user_id', 'inner');
         $builder->join('us_roles as r', 'ur.role_id = r.id', 'inner');
         $builder->join('us_role_permissions as rp', 'r.id = rp.role_id', 'inner');
         $builder->join('us_permissions as p', 'rp.permission_id = p.id', 'inner');
+
+        // Si existe la columna status, solo considera permisos activos.
+        // Nota: $this->db está tipado como ConnectionInterface; usamos method_exists para evitar warnings del analizador.
+        $db = $this->db;
+        $permHasStatus = (is_object($db) && method_exists($db, 'fieldExists') && $db->fieldExists('status', 'us_permissions'));
+        if ($permHasStatus) {
+            $builder->where('p.status', 1);
+        }
+
         $builder->where('u.id', $userId);
         $query = $builder->get();
-        $permissionNames = $this->extractPermissionNames($query->getResultArray());
+        $rolePerms = $this->extractPermissionNames($query->getResultArray());
+
+        // Overrides por usuario (extras y denegaciones): us_user_permissions
+        // - granted=1: agrega
+        // - granted=0: remueve
+        $effective = array_fill_keys($rolePerms, true);
+        try {
+            $overrideBuilder = $this->db->table('us_user_permissions as up')
+                ->select('p.permission_name, up.granted')
+                ->join('us_permissions as p', 'p.id = up.permission_id', 'inner')
+                ->where('up.user_id', $userId);
+
+            if ($permHasStatus) {
+                $overrideBuilder->where('p.status', 1);
+            }
+
+            $rows = $overrideBuilder->get()->getResultArray();
+            foreach ($rows as $row) {
+                $permName = trim((string)($row['permission_name'] ?? ''));
+                if ($permName === '') {
+                    continue;
+                }
+                $granted = (int)($row['granted'] ?? 1);
+                if ($granted === 1) {
+                    $effective[$permName] = true;
+                } else {
+                    unset($effective[$permName]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // Si no existe la tabla o falla la query, regresamos los permisos por rol.
+        }
+
+        $permissionNames = array_keys($effective);
+        sort($permissionNames, SORT_STRING);
         return $permissionNames;
     }
     function extractPermissionNames($permissionsArray)

@@ -227,9 +227,18 @@
                         <p class="text-muted">Gestión completa de trámites</p>
                     </div>
                     <div class="col-md-6 text-right">
-                        <a href="<?= base_url() ?>/deskapp/tramitewizard" class="btn btn-primary">
-                            <i class="icon-copy fa fa-plus"></i> Nuevo Trámite
-                        </a>
+                        <?php
+                            helper(['permissions']);
+                            $session = $session ?? session();
+                            [$roles, $perms] = session_roles_perms($session);
+                            $canCreateTramite = can_create_tramite($roles, $perms);
+                        ?>
+
+                        <?php if ($canCreateTramite): ?>
+                            <a href="<?= base_url() ?>/deskapp/tramitewizard" class="btn btn-primary">
+                                <i class="icon-copy fa fa-plus"></i> Nuevo Trámite
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

@@ -129,8 +129,8 @@ class Customers extends BaseController
 
             $perms = $session->get('user_permissions');
             $roles = $session->get('user_roles');
-            if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_final_tramite', $perms, $roles)) {
-                return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para ver trámites.');
+              if (!has_permission('read_final_tramite', $perms, $roles)) {
+                 return redirect()->to('/deskapp/dashboard')->with('error', 'Acceso denegado.');
             }
             
             $crud = $this->_getGroceryCrudEnterprise();
@@ -308,8 +308,8 @@ class Customers extends BaseController
 
         $perms = $session->get('user_permissions');
         $roles = $session->get('user_roles');
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_final_tramite', $perms, $roles)) {
-            throw new \Exception('Acceso denegado');
+           if (!has_permission('read_final_tramite', $perms, $roles)) {
+             throw new \Exception('Acceso denegado');
         }
 
         $db = \Config\Database::connect();
@@ -473,6 +473,7 @@ class Customers extends BaseController
     public function proceso_documentostatus()
     {
         $session = session();
+        helper(['permissions', 'acl_guard']);
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $db = Database::connect();
@@ -481,21 +482,20 @@ class Customers extends BaseController
 
         $myid = $session->get('id');
         if (!$myid) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+            return acl_deny('Sesión expirada', 401, null, true);
         }
 
-        $perms = $session->get('user_permissions');
-        $roles = $session->get('user_roles');
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_final_tramite', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        [$roles, $perms] = session_roles_perms($session);
+        if (!has_permission('read_final_tramite', $perms, $roles)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
 
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        if (!$tramite_id || !validate_tramite_access($tramite_id, $myid)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        if (!$tramite_id || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
 
         $tramiteModel = new TramitesModel($db2);
@@ -636,6 +636,7 @@ class Customers extends BaseController
 
     public function proceso_evidencias(){
         $session = session();
+        helper(['permissions', 'acl_guard']);
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $db2 = $this->_getDbData();
@@ -643,13 +644,12 @@ class Customers extends BaseController
 
         $myid = $session->get('id');
         if (!$myid) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+            return acl_deny('Sesión expirada', 401, null, true);
         }
 
-        $perms = $session->get('user_permissions');
-        $roles = $session->get('user_roles');
-        if (!(is_super_admin($roles) || is_admin($roles)) && !has_permission('read_final_tramite', $perms, $roles)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        [$roles, $perms] = session_roles_perms($session);
+        if (!has_permission('read_final_tramite', $perms, $roles)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
 
         $request = \Config\Services::request();
@@ -657,8 +657,8 @@ class Customers extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        if (!$tramite_id || !validate_tramite_access($tramite_id, $myid)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        if (!$tramite_id || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
 
         $tramiteModel = new TramitesModel($db2);
@@ -824,6 +824,7 @@ class Customers extends BaseController
 
     public function proceso_pago_derechos(){
         $session = session();
+        helper(['permissions', 'acl_guard']);
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $db2 = $this->_getDbData();
@@ -831,13 +832,12 @@ class Customers extends BaseController
 
         $myid = $session->get('id');
         if (!$myid) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+            return acl_deny('Sesión expirada', 401, null, true);
         }
 
-        $perms = $session->get('user_permissions');
-        $roles = $session->get('user_roles');
-        if (!(is_super_admin($roles) || is_admin($roles)) && (!has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_pago_derechos', $perms, $roles))) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        [$roles, $perms] = session_roles_perms($session);
+        if (!has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_pago_derechos', $perms, $roles)) {
+              return acl_deny('Acceso denegado', 403, null, true);
         }
 
         $request = \Config\Services::request();
@@ -845,8 +845,8 @@ class Customers extends BaseController
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        if (!$tramite_id || !validate_tramite_access($tramite_id, $myid)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        if (!$tramite_id || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
     
         $crud = $this->_getGroceryCrudEnterprise();
@@ -985,27 +985,27 @@ class Customers extends BaseController
 
     public function proceso_evidencias_finales(){
         $session = session();
+        helper(['permissions', 'acl_guard']);
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
         $self = $this;
 
         $myid = $session->get('id');
         if (!$myid) {
-            return $this->response->setStatusCode(401)->setJSON(['success' => false, 'message' => 'Sesión expirada']);
+            return acl_deny('Sesión expirada', 401, null, true);
         }
 
-        $perms = $session->get('user_permissions');
-        $roles = $session->get('user_roles');
-        if (!(is_super_admin($roles) || is_admin($roles)) && (!has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_final_costos', $perms, $roles))) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        [$roles, $perms] = session_roles_perms($session);
+        if (!has_permission('read_final_tramite', $perms, $roles) || !has_permission('section_final_costos', $perms, $roles)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
 
         $request = \Config\Services::request();
         $uri = $request->getUri();
         $tramite_id = (int) $uri->getSegment(4);
 
-        if (!$tramite_id || !validate_tramite_access($tramite_id, $myid)) {
-            return $this->response->setStatusCode(403)->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        if (!$tramite_id || !acl_has_tramite_tenant_access($tramite_id, (int) $myid, $roles)) {
+            return acl_deny('Acceso denegado', 403, null, true);
         }
     
         $crud = $this->_getGroceryCrudEnterprise();

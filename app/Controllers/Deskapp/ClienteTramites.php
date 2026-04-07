@@ -14,7 +14,7 @@ class ClienteTramites extends BaseController
 
     public function __construct()
     {
-        helper(['form', 'url', 'cliente_filter', 'cliente_context', 'permissions', 'audit']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context', 'permissions', 'audit', 'acl_guard']);
         $this->session = session();
 
         $userId = $this->session->get('id');
@@ -24,12 +24,9 @@ class ClienteTramites extends BaseController
 
     private function requireClienteAccess()
     {
-        $roles = $this->session->get('user_roles') ?? [];
-        if (!is_array($roles)) {
-            $roles = [$roles];
-        }
+        [$roles, $perms] = session_roles_perms($this->session);
 
-        if (is_client($roles)) {
+        if (has_permission('menu_tramites_cliente', $perms, $roles)) {
             return null;
         }
 
@@ -187,14 +184,7 @@ class ClienteTramites extends BaseController
             ];
 
             $userId = (int) $this->session->get('id');
-            $roles = $this->session->get('user_roles') ?? [];
-            if (!is_array($roles)) {
-                $roles = [$roles];
-            }
-            $perms = $this->session->get('user_permissions') ?? [];
-            if (!is_array($perms)) {
-                $perms = [$perms];
-            }
+            [$roles, $perms] = session_roles_perms($this->session);
 
             $tramiteCrud = $this->_getGroceryCrudEnterprise();
 
@@ -437,7 +427,10 @@ class ClienteTramites extends BaseController
         }
 
         $tramiteId = (int) $tramiteId;
-        if (!validate_tramite_access($tramiteId)) {
+        $userId = (int) ($this->session->get('id') ?? 0);
+        [$roles, $perms] = session_roles_perms($this->session);
+
+        if (!acl_has_tramite_tenant_access($tramiteId, $userId, $roles)) {
             return redirect()->to(site_url('/deskapp/clientes/tramites'))
                 ->with('error', 'No tienes permisos para ver este tramite');
         }

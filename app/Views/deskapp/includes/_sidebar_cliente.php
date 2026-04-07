@@ -1,4 +1,10 @@
-<div class="left-side-bar">
+	<?php
+		helper(['permissions']);
+		$session = isset($session) && $session ? $session : session();
+		$canDashboardCliente = has_permission('menu_dashboard_cliente', $session->get('user_permissions'), $session->get('user_roles'));
+		$canTramitesCliente = has_permission('menu_tramites_cliente', $session->get('user_permissions'), $session->get('user_roles'));
+	?>
+	<div class="left-side-bar">
 		<div class="brand-logo">
 			<a href="<?php echo base_url('deskapp/dashboard'); ?>">
 				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo" width="150px">
@@ -14,19 +20,33 @@
 					<li>
 					<br>
 					</li>
-					<li class="menu-section-title">
-						<span><i class="fas fa-chart-line me-2"></i> Dashboard Cliente</span>
-					</li>
-					<li>
-						<a href="<?php echo base_url('deskapp/clientes/dashboard'); ?>" class="dropdown-toggle no-arrow">
-							<span class="micon dw dw-analytics-21"></span><span class="mtext">Resumen en tiempo real</span>
-						</a>
-					</li>
-					<li>
-						<a href="<?php echo base_url('deskapp/clientes/tramites'); ?>" class="dropdown-toggle no-arrow">
-							<span class="micon dw dw-house-1"></span><span class="mtext">Trámites</span>
-						</a>
-					</li>
+					<?php if ($canDashboardCliente || $canTramitesCliente): ?>
+						<li class="menu-section-title">
+							<span><i class="fas fa-chart-line me-2"></i> Dashboard Cliente</span>
+							<?php if ($canDashboardCliente): ?>
+								<?= perm_audit_tag('menu_dashboard_cliente', $session) ?>
+							<?php endif; ?>
+							<?php if ($canTramitesCliente): ?>
+								<?= perm_audit_tag('menu_tramites_cliente', $session) ?>
+							<?php endif; ?>
+						</li>
+					<?php endif; ?>
+					<?php if ($canDashboardCliente): ?>
+						<li>
+							<a href="<?php echo base_url('deskapp/clientes/dashboard'); ?>" class="dropdown-toggle no-arrow">
+								<span class="micon dw dw-analytics-21"></span><span class="mtext">Resumen en tiempo real</span>
+								<?= perm_audit_tag('menu_dashboard_cliente', $session) ?>
+							</a>
+						</li>
+					<?php endif; ?>
+					<?php if ($canTramitesCliente): ?>
+						<li>
+							<a href="<?php echo base_url('deskapp/clientes/tramites'); ?>" class="dropdown-toggle no-arrow">
+								<span class="micon dw dw-house-1"></span><span class="mtext">Trámites</span>
+								<?= perm_audit_tag('menu_tramites_cliente', $session) ?>
+							</a>
+						</li>
+					<?php endif; ?>
 					<!-- <li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
 							<span class="micon dw dw-library"></span><span class="mtext">Seguimiento</span>
@@ -41,7 +61,7 @@
 								<span class="micon dw dw-house-1"></span><span class="mtext">Proceso Final</span>
 							</a>
 							<ul class="submenu">
-								<?php if (has_permission('listar_final_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+								<?php if (has_permission('read_final_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 									<li><a href="<?php echo base_url('deskapp/proceso/final'); //listar_final_tramite?>">Finalizando</a></li>
 								<?php endif; ?>	
 							</ul>

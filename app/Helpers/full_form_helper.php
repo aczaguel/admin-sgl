@@ -17,6 +17,10 @@ if (!function_exists('render_full_form')) {
     {
         $html = '';
 
+        helper(['permissions']);
+        [$roles, $perms] = session_roles_perms($session);
+        $canWriteStep = can_write_tramite_step((int) $step, $perms, $roles);
+
         // Abrir formulario
         $html .= form_open($form_action, ['class' => 'form-horizontal', 'id' => $form_id]);
 
@@ -43,9 +47,15 @@ if (!function_exists('render_full_form')) {
                 </div>';
 
         // Botones de acción
-        
-        if (puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'botones', $reembolso_status_id, $cobro_status_id, $step)) { // este que sea un render_buttons para validarlo con la funcion puede_editar_modulo
-            if (has_permission($submit_permission, $session->get('user_permissions'), $session->get('user_roles'))) {
+        $canSubmitForm = false;
+        if (puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'botones', $reembolso_status_id, $cobro_status_id, $step)) {
+            if ((int) $step === 5 && $submit_permission === 'editar_final') {
+                $canSubmitForm = has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles'));
+            } else {
+                $canSubmitForm = $canWriteStep && has_permission($submit_permission, $session->get('user_permissions'), $session->get('user_roles'));
+            }
+
+            if ($canSubmitForm) {
                 $html .= '<div class="button-group" id="boton_autorizar">
                             <a href="' . esc($cancel_url) . '" class="btn-wizard btn-secondary">
                                 <i class="fas fa-times"></i> Cancelar
