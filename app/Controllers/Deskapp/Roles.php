@@ -75,11 +75,26 @@ class Roles extends BaseController
             
             $roles_crud->columns(['id', 'role_name', 'permisos', 'description']);
             $roles_crud->fields(['role_name', 'permisos', 'description']);
+            $roles_crud->cloneFields(['role_name', 'permisos', 'description']);
+            $roles_crud->requiredCloneFields(['role_name']);
             $roles_crud->unsetDeleteMultiple();
+
+            $roles_crud->setActionButton('Clonar', 'fas fa-clone', function ($row) {
+                return '/roles/roles/clone/' . $row->id;
+            }, false);
 
             $roles_crud->setActionButton('Mapa', 'fas fa-map', function ($row) {
                 return '/deskapp/roles/roles_mapa/' . $row->id;
             }, false);
+
+            $roles_crud->callbackCloneField('role_name', function ($value, $primaryKeyValue, $rowData) {
+                $baseName = trim((string) $value);
+                if ($baseName === '') {
+                    $baseName = 'Rol';
+                }
+
+                return $baseName . ' copia ' . date('YmdHis');
+            });
 
             $roles_crud->callbackBeforeInsert(function ($stateParameters) {
                 $stateParameters->data['created_at'] = date('Y-m-d H:i:s');

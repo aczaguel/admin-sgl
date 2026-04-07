@@ -4,7 +4,7 @@
 		$canDashboardCliente = has_permission('menu_dashboard_cliente', $session->get('user_permissions'), $session->get('user_roles'));
 		$canTramitesCliente = has_permission('menu_tramites_cliente', $session->get('user_permissions'), $session->get('user_roles'));
 	?>
-	<div class="left-side-bar" data-sidebar-version="2026-04-06-1">
+	<div class="left-side-bar">
 		<div class="brand-logo">
 			<a href="<?php echo base_url('deskapp/dashboard'); ?>">
 				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo" width="150px">

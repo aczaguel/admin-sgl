@@ -1,7 +1,19 @@
 <?php
 	helper(['permissions']);
 	$session = session();
-	if (has_permission_strict('ui_sidebar_cliente', $session->get('user_permissions'))) {
+	$perms = $session->get('user_permissions') ?? [];
+	$roles = $session->get('user_roles') ?? [];
+	$useClienteSidebar = has_permission_strict('ui_sidebar_cliente', $perms)
+		&& !(
+			has_permission('menu_dashboard_admin', $perms, $roles)
+			|| has_permission('menu_tramites', $perms, $roles)
+			|| has_permission('menu_proceso_final', $perms, $roles)
+			|| has_permission('menu_gestores', $perms, $roles)
+			|| has_permission('menu_clientes', $perms, $roles)
+			|| has_permission('menu_configuracion', $perms, $roles)
+			|| has_permission('menu_permisos', $perms, $roles)
+		);
+	if ($useClienteSidebar) {
 		echo view('deskapp/includes/_sidebar_cliente', ['session' => $session]);
 		return;
 	}

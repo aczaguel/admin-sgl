@@ -146,7 +146,7 @@ class Users extends BaseController
             $users_crud->defaultOrdering('users.id', 'desc');
             
             // Callback para cifrar la contraseña antes de insertar
-            $users_crud->columns(['id', 'username', 'firstname', 'midname', 'lastname', 'email', 'avatar', 'roles', 'clientes', 'status']);
+            $users_crud->columns(['id', 'status', 'username', 'firstname', 'midname', 'lastname', 'email', 'avatar', 'roles', 'clientes']);
             // Quitar status del form: ahora se cambia directo en el grid con AJAX
             $users_crud->fields(['username', 'firstname', 'midname', 'lastname', 'email', 'phone', 'avatar', 'password', 'roles', 'clientes']);
             $users_crud->fieldType('password', 'password'); // Indica que el campo password es de tipo password

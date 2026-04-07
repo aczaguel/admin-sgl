@@ -1,4 +1,5 @@
 <?= $this->extend('layout/main') ?>
+<?= $this->section('additional_css') ?>
 <!-- DataTables CSS -->
 <?php $assets = base_url('/public/assets'); ?>
 <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
@@ -32,7 +33,107 @@
 .table-sm td, .table-sm th {
 	padding: 0.5rem;
 }
+.team-showcase {
+	background: linear-gradient(135deg, #fff7ed 0%, #ffffff 55%, #eff6ff 100%);
+	border: 1px solid rgba(15, 23, 42, 0.08);
+	border-radius: 22px;
+	padding: 28px;
+	box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+	position: relative;
+	overflow: hidden;
+}
+.team-showcase:before {
+	content: "";
+	position: absolute;
+	inset: auto -60px -60px auto;
+	width: 180px;
+	height: 180px;
+	background: radial-gradient(circle, rgba(14, 165, 233, 0.16) 0%, rgba(14, 165, 233, 0) 72%);
+	pointer-events: none;
+}
+.team-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 18px;
+	position: relative;
+	z-index: 1;
+}
+.team-card {
+	background: rgba(255, 255, 255, 0.9);
+	border: 1px solid rgba(148, 163, 184, 0.22);
+	border-radius: 18px;
+	padding: 18px 14px;
+	text-align: center;
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.team-card:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12);
+}
+.team-card.is-founder {
+	background: linear-gradient(180deg, #fff 0%, #fff7ed 100%);
+	border-color: rgba(249, 115, 22, 0.25);
+}
+.team-avatar {
+	width: 86px;
+	height: 86px;
+	margin: 0 auto 14px;
+	border-radius: 50%;
+	overflow: hidden;
+	border: 4px solid rgba(255, 255, 255, 0.95);
+	box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+	background: #e2e8f0;
+}
+.team-avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.team-name {
+	color: #0f172a;
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 1.35;
+	margin-bottom: 6px;
+}
+.team-meta {
+	color: #475569;
+	font-size: 12px;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.team-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
+	border-radius: 999px;
+	background: #fff1f2;
+	color: #be123c;
+	font-size: 11px;
+	font-weight: 700;
+	margin-top: 10px;
+}
+.team-badge.is-systems {
+	background: #eff6ff;
+	color: #1d4ed8;
+}
+@media (max-width: 767.98px) {
+	.team-showcase {
+		padding: 22px 18px;
+	}
+	.team-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 14px;
+	}
+	.team-avatar {
+		width: 74px;
+		height: 74px;
+	}
+}
 </style>
+<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 <div class="main-container">
@@ -145,6 +246,43 @@
 		updateTime();
 		setInterval(updateTime, 1000);
 		</script>
+
+		<div class="row mb-30">
+			<div class="col-md-12">
+				<div class="team-showcase">
+					<div class="d-flex flex-wrap align-items-center justify-content-between mb-25" style="position: relative; z-index: 1; gap: 12px;">
+						<div>
+							<div style="font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #ea580c; font-weight: 700; margin-bottom: 6px;">Equipo activo</div>
+							<h4 style="margin: 0; color: #0f172a; font-weight: 700;">Personas que mueven la operación día a día</h4>
+						</div>
+						<div style="background: rgba(255,255,255,0.8); border: 1px solid rgba(148,163,184,0.22); border-radius: 999px; padding: 8px 14px; color: #334155; font-size: 12px; font-weight: 600;">
+							<?= count($team_members ?? []) ?> perfiles visibles
+						</div>
+					</div>
+
+					<?php if (!empty($team_members)): ?>
+						<div class="team-grid">
+							<?php foreach ($team_members as $member): ?>
+								<div class="team-card <?= (int) ($member['id'] ?? 0) === 4 ? 'is-founder' : '' ?>">
+									<div class="team-avatar">
+										<img src="/public/<?= esc($member['avatar']) ?>" alt="<?= esc($member['display_name']) ?>">
+									</div>
+									<div class="team-name"><?= esc($member['display_name']) ?></div>
+									<div class="team-meta">Equipo activo</div>
+									<?php if ((int) ($member['id'] ?? 0) === 6): ?>
+										<div class="team-badge"><i class="fa fa-star"></i> Fundador</div>
+									<?php elseif ((int) ($member['id'] ?? 0) === 4): ?>
+										<div class="team-badge is-systems"><i class="fa fa-cogs"></i> Sistemas</div>
+									<?php endif; ?>
+								</div>
+							<?php endforeach; ?>
+						</div>
+					<?php else: ?>
+						<div style="position: relative; z-index: 1; color: #475569; font-size: 14px;">No hay perfiles activos con foto para mostrar.</div>
+					<?php endif; ?>
+				</div>
+			</div>
+		</div>
 
 		<!-- Cuadro informativo de reglas de semáforos -->
 		<div class="row mb-30">

@@ -88,6 +88,50 @@
 		$data['cliente_id_filtro'] = $clienteId;
 		$data['tipo_tramite_id_filtro'] = $tipoTramiteId;
 
+		$excludedTeamIds = [11, 13, 25, 26, 27];
+		$roleSevenUserIds = $db->table('us_user_roles')
+			->select('user_id')
+			->where('role_id', 7)
+			->get()
+			->getResultArray();
+		$excludedTeamIds = array_values(array_unique(array_merge(
+			$excludedTeamIds,
+			array_map(static fn(array $row): int => (int) ($row['user_id'] ?? 0), $roleSevenUserIds)
+		)));
+
+		$teamMembers = $db->table('users')
+			->select('id, username, firstname, lastname, avatar, status')
+			->where('status', 1)
+			->groupStart()
+				->where('id >=', 6)
+				->orWhere('id', 4)
+			->groupEnd()
+			->whereNotIn('id', $excludedTeamIds)
+			->orderBy('CASE WHEN id = 4 THEN 1 ELSE 0 END', 'ASC', false)
+			->orderBy('id', 'ASC')
+			->get()
+			->getResultArray();
+
+		$data['team_members'] = array_map(static function (array $member): array {
+			$firstName = trim((string) ($member['firstname'] ?? ''));
+			$lastName = trim((string) ($member['lastname'] ?? ''));
+			$fullName = trim($firstName . ' ' . $lastName);
+
+			if ($fullName === '') {
+				$fullName = (string) ($member['username'] ?? ('Usuario ' . ($member['id'] ?? '')));
+			}
+
+			$avatar = trim((string) ($member['avatar'] ?? ''));
+			if ($avatar === '') {
+				$avatar = 'uploads/avatars/default.png';
+			}
+
+			$member['display_name'] = $fullName;
+			$member['avatar'] = $avatar;
+
+			return $member;
+		}, $teamMembers);
+
  		echo view('deskapp/dashboard/index_sgl',$data);
  	}
 
