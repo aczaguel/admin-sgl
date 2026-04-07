@@ -107,7 +107,6 @@
 
 		const userId = getPkValue();
 		if (!userId) return;
-,,,
 		const input = findStatusInput();
 		if (!input) return;
 		if (input.dataset.ajaxStatusBound === '1') return;
