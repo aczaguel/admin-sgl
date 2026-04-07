@@ -1661,18 +1661,21 @@ class Tramitesn extends Tramites
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
 
+            // Evita que Grocery CRUD restaure busquedas o paginacion previas desde el navegador.
+            $tramite_crud->setConfig('remember_state_upon_refresh', false);
+            $tramite_crud->setConfig('remember_filters_upon_refresh', false);
+
             // Filtro multi-tenancy
             $filterSql = get_tramite_filter_sql($myid);
             $tramite_crud->where($filterSql);
+            $filterSqlDebug = trim((string) preg_replace('/\s+/', ' ', $filterSql));
 
-            // Filtro "solo ver mis trámites" por permiso (no por rol).
-            if (has_permission('tramitesn_filter_owner_only', $perms, $roles)) {
-                $tramite_crud->where(['tramite.user_id' => (int) $myid]);
-            }
             $data['audit_payload'] = [
                 'source' => 'Tramitesn::tramite',
                 'user_id' => (int) $myid,
-                'filterSql' => $filterSql,
+                'filterSql' => $filterSqlDebug,
+                'owner_only_filter_active' => false,
+                'created_at_min' => '2026-01-01 00:00:00',
             ];
 
             // Mostrar todos los estatus en el listado
