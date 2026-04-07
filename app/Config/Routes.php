@@ -73,6 +73,8 @@ $routes->add('/deskapp/users/users/(:any)/(:any)', 'Deskapp/Users::users',['filt
 
 $routes->get('/roles/roles', 'Deskapp/Roles::roles',['filter' => 'auth']);
 $routes->post('/roles/roles', 'Deskapp/Roles::roles',['filter' => 'auth']);
+$routes->add('/roles/roles/(:any)', 'Deskapp/Roles::roles',['filter' => 'auth']);
+$routes->add('/roles/roles/(:any)/(:any)', 'Deskapp/Roles::roles',['filter' => 'auth']);
 
 // Toggle AJAX rol-permiso (para mapa de roles)
 $routes->post('/roles/toggle_permission', 'Deskapp/Roles::toggle_permission',['filter' => 'auth']);
@@ -86,6 +88,11 @@ $routes->post('/deskapp/roles/toggle_permission', 'Deskapp/Roles::toggle_permiss
 
 $routes->get('/roles/role_permissions', 'Deskapp/Roles::role_permissions',['filter' => 'auth']);
 $routes->post('/roles/role_permissions', 'Deskapp/Roles::role_permissions',['filter' => 'auth']);
+
+$routes->get('/deskapp/roles/roles', 'Deskapp/Roles::roles',['filter' => 'auth']);
+$routes->post('/deskapp/roles/roles', 'Deskapp/Roles::roles',['filter' => 'auth']);
+$routes->add('/deskapp/roles/roles/(:any)', 'Deskapp/Roles::roles',['filter' => 'auth']);
+$routes->add('/deskapp/roles/roles/(:any)/(:any)', 'Deskapp/Roles::roles',['filter' => 'auth']);
 
 $routes->get('/users/user_roles', 'Deskapp/Users::user_roles',['filter' => 'auth']);
 $routes->post('/users/user_roles', 'Deskapp/Users::user_roles',['filter' => 'auth']);
