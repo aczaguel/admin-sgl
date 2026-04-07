@@ -61,6 +61,7 @@ Puntos detectados (a retomar):
 - [ ] Contratar y configurar SendGrid (API key, remitente, plantillas, pruebas de envío)
 - [ ] Solicitar un número de WhatsApp para atención (definir proveedor y flujo)
 - [ ] Generar dummy/datos de ejemplo para mostrar en el demo (usuarios, trámites, notificaciones)
+- [ ] Subir a S3 todas las imágenes actualmente almacenadas en el servidor como respaldo y medida de seguridad (avatars, evidencias, uploads históricos y cualquier imagen operativa vigente)
 
 ### Soporte / Comunicación (WhatsApp)
 - [ ] Diseñar e implementar administrador de comunicación (ver COMUNICACION_WHATSAPP_SOPORTE_README.md)
