@@ -349,19 +349,19 @@ class Roles extends BaseController
                 return $needle !== '' && strpos($haystack, $needle) !== false;
             };
 
-            if ($contains($p, 'section_final_costos') || $contains($p, 'final_tramite') || $contains($p, 'cobro_cliente') || $contains($p, 'final_costos') || $contains($p, 'concluido') || $contains($p, 'concluir') || $contains($p, 'cancelar')) {
+            if ($contains($p, 'section_final_costos') || $contains($p, 'final_tramite') || $contains($p, 'cobro_cliente') || $contains($p, 'cobros_cliente') || $contains($p, 'final_costos') || $contains($p, 'concluido') || $contains($p, 'concluir') || $contains($p, 'cancelar')) {
                 return 5;
             }
-            if ($contains($p, 'section_pago_gestor') || $contains($p, 'pago_gestor') || $contains($p, 'editar_pago_gestor') || $contains($p, 'pasar_a_pagos')) {
+            if ($contains($p, 'section_pago_gestor') || $contains($p, 'pago_gestor') || $contains($p, 'editar_pago_gestor') || $contains($p, 'pasar_a_pagos') || $contains($p, 'evidencias_finales') || $contains($p, 'can_upload_dropzone_pago_gestor')) {
                 return 4;
             }
-            if ($contains($p, 'section_pago_derechos') || $contains($p, 'pago_derechos') || $contains($p, 'linea_captura') || $contains($p, 'documentos_pago')) {
+            if ($contains($p, 'write_tramite_pago_derechos') || $contains($p, 'section_pago_derechos') || $contains($p, 'pago_derechos') || $contains($p, 'linea_captura') || $contains($p, 'documentos_pago') || $contains($p, 'quick_action_pagos_derecho') || $contains($p, 'can_upload_dropzone_pago_derechos')) {
                 return 3;
             }
-            if ($contains($p, 'section_asigna_gestor') || $contains($p, 'tramite_view_gestor')) {
+            if ($contains($p, 'write_tramite_asigna_gestor') || $contains($p, 'section_asigna_gestor') || $contains($p, 'tramite_view_gestor')) {
                 return 2;
             }
-            if ($contains($p, 'read_tramite') || $contains($p, 'listar_tramite') || $contains($p, 'create_tramite') || $contains($p, 'editar_tramite') || $contains($p, 'delete_tramite') || $contains($p, 'export_tramite') || $contains($p, 'print_tramite') || $contains($p, 'clone_tramite') || $contains($p, 'section_inicial_datos') || $contains($p, 'editar_tramite_principal') || $contains($p, 'editar_tramite_asociado')) {
+            if ($contains($p, 'write_tramite_datos_tramite') || $contains($p, 'read_tramite') || $contains($p, 'listar_tramite') || $contains($p, 'create_tramite') || $contains($p, 'editar_tramite') || $contains($p, 'delete_tramite') || $contains($p, 'export_tramite') || $contains($p, 'print_tramite') || $contains($p, 'clone_tramite') || $contains($p, 'section_inicial_datos') || $contains($p, 'editar_tramite_principal') || $contains($p, 'editar_tramite_asociado') || $contains($p, 'search_tramite') || $contains($p, 'tramitesn_filter_owner_only') || $contains($p, 'wizard_list_only_own') || $contains($p, 'quick_action_documentos') || $contains($p, 'quick_action_bitacora')) {
                 return 1;
             }
             if (strpos($p, 'menu_') === 0) {
