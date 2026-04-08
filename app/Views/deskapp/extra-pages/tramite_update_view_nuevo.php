@@ -82,6 +82,20 @@
 		$onlySectionStep = (int) ($map[$only_section] ?? 0);
 	}
 	$isOnlySectionView = $onlySectionStep > 0;
+	$readonlySectionsForAdvancedView = static function (string $section) use ($user_permissions, $user_roles) : bool {
+		switch ($section) {
+			case 'generales':
+				return has_permission('section_inicial_datos', $user_permissions ?? [], $user_roles ?? []);
+			case 'asigna_gestor':
+				return has_permission('section_asigna_gestor', $user_permissions ?? [], $user_roles ?? []);
+			case 'pago_derechos':
+				return has_permission('section_pago_derechos', $user_permissions ?? [], $user_roles ?? []);
+			case 'pago_gestor':
+				return has_permission('section_pago_gestor', $user_permissions ?? [], $user_roles ?? []);
+			default:
+				return false;
+		}
+	};
 ?>
 
 
@@ -124,6 +138,37 @@
 				</div>
 				<div id="headerTiposLigados" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"></div>
 			</div>
+
+			<?php if (has_permission('important_cancelar_tramite', $user_permissions ?? [], $user_roles ?? []) || has_permission('important_concluir_tramite', $user_permissions ?? [], $user_roles ?? [])): ?>
+				<div class="header-actions">
+					<?php if (has_permission('important_cancelar_tramite', $user_permissions ?? [], $user_roles ?? [])): ?>
+						<?php if ((int) ($tra_status_id ?? 0) === 11): ?>
+							<button type="button" class="btn-modern btn-warning" onclick="changeStatusTramite(<?= (int) ($id ?? 0) ?>, 29)">
+								<i class="fas fa-file-invoice"></i>
+								Es solo Cotizacion
+							</button>
+							<?= perm_audit_tag('important_cancelar_tramite') ?>
+						<?php endif; ?>
+						<?php if (!in_array((int) ($tra_status_id ?? 0), [20, 21], true)): ?>
+							<button type="button" class="btn-modern btn-danger" data-toggle="modal" data-target="#Medium-modal">
+								<i class="fas fa-times-circle"></i>
+								Cancelar Tramite
+							</button>
+							<?= perm_audit_tag('important_cancelar_tramite') ?>
+						<?php endif; ?>
+					<?php endif; ?>
+
+					<?php if (has_permission('important_concluir_tramite', $user_permissions ?? [], $user_roles ?? [])): ?>
+						<?php if (in_array((int) ($tra_status_id ?? 0), [28], true)): ?>
+							<button type="button" class="btn-modern btn-success" onclick="concluirTramite(<?= (int) ($id ?? 0) ?>, 20)">
+								<i class="fas fa-check-circle"></i>
+								Concluir Tramite
+							</button>
+							<?= perm_audit_tag('important_concluir_tramite') ?>
+						<?php endif; ?>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
 
 			<div class="timeline-info">
 				<div class="timeline-item">
@@ -282,8 +327,9 @@
 
 		<div class="pd-20 card-box mb-30 sgl-page-tight">
 			<?php if (!empty($isOnlySectionView) && $onlySectionStep === 4): ?>
-				<?php // Step 4 incluye su propio <form>; evitar forms anidados. ?>
-				<?= $this->include('deskapp/extra-pages/tramite_update/steps/step_4') ?>
+				<?php // Paso 4 dedicado: mostrar 1-3 como readonly y 4 editable en la misma pantalla. ?>
+				<?php $showSection = $readonlySectionsForAdvancedView; ?>
+				<?php include APPPATH . 'Views/deskapp/extra-pages/tramitesn/partials/steps_readonly_1_4.php'; ?>
 			<?php else: ?>
 				<form id="tramiteNuevoForm" method="post" action="<?= site_url('/deskapp/tramitesn/update_save/' . (int) ($id ?? 0)) ?>">
 					<input type="hidden" id="current_step" name="current_step" value="<?= (int) ($isOnlySectionView ? $onlySectionStep : ($step ?? ($step_actual ?? 1))) ?>">
