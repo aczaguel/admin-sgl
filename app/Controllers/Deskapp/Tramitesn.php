@@ -2671,6 +2671,7 @@ class Tramitesn extends Tramites
                 'type' => 'select',
                 'options' => $cobro_status_options,
                 'value' => $tramite['cobro_status_id'],
+                'native' => true,
             ],
             'evidencia_cobro_txt' => [
                 'label' => 'Evidencia de cobro',

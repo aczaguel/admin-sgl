@@ -655,6 +655,12 @@
 		isLocked: <?= in_array((int) ($tra_status_id ?? 0), [20, 21], true) ? 'true' : 'false' ?>,
 		isReadOnlyMode: <?= !empty($isReadOnlyMode) ? 'true' : 'false' ?>,
 		readOnlySteps: <?= json_encode($readOnlySteps ?? new stdClass()) ?>,
+		requireSavedSteps: { 2: true },
+		savedSteps: {
+			1: <?= !empty($step1_complete) ? 'true' : 'false' ?>,
+			2: <?= !empty($step2_complete) ? 'true' : 'false' ?>,
+			3: <?= !empty($step3_complete) ? 'true' : 'false' ?>
+		},
 		stepActual: <?= (int) ($step ?? ($step_actual ?? 0)) ?>,
 		canEditAsociado: <?= (!empty($can_edit_asociado) && !in_array((int) ($tra_status_id ?? 0), [20, 21], true)) ? 'true' : 'false' ?>,
 		canDeleteAsociado: <?= (!empty($can_delete_asociado) && !in_array((int) ($tra_status_id ?? 0), [20, 21], true)) ? 'true' : 'false' ?>,

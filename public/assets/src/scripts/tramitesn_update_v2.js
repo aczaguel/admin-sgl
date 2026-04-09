@@ -21,6 +21,9 @@ console.log('tramitesn_update_v2 loaded');
 		var onlySectionStep = parseInt(cfg.onlySectionStep || 0, 10);
 		var csrfName = cfg.csrfName;
 		var csrfHash = cfg.csrfHash;
+		var requireSavedSteps = cfg.requireSavedSteps || {};
+		var savedSteps = Object.assign({}, cfg.savedSteps || {});
+		var savedStepSignatures = {};
 
 		var TRAMITE_ID = parseInt(cfg.tramiteId || 0, 10);
 		var TIPOS_OPTIONS = cfg.tiposOptions || {};
@@ -669,6 +672,9 @@ console.log('tramitesn_update_v2 loaded');
 			var section = document.querySelector('.wizard-section[data-step="' + step + '"]');
 			if (!section) return true;
 			var valid = true;
+			var requiresSaved = !!(requireSavedSteps[step] || requireSavedSteps[String(step)]);
+			var isSaved = !!(savedSteps[step] || savedSteps[String(step)]);
+			var msg = getMessageContainerForStep(step);
 			section.querySelectorAll('input, select, textarea').forEach(function (el) {
 				if (el.disabled) return;
 				if (el.hasAttribute('required')) {
@@ -680,6 +686,19 @@ console.log('tramitesn_update_v2 loaded');
 					}
 				}
 			});
+			if (valid && requiresSaved && !isSaved) {
+				valid = false;
+				if (msg) {
+					msg.className = 'alert alert-warning';
+					msg.textContent = 'Guarda los datos de este paso antes de continuar.';
+					msg.style.display = 'block';
+					msg.setAttribute('data-sgl-step-save-guard', '1');
+				}
+			} else if (msg && msg.getAttribute('data-sgl-step-save-guard') === '1') {
+				msg.style.display = 'none';
+				msg.textContent = '';
+				msg.removeAttribute('data-sgl-step-save-guard');
+			}
 			var ribbon = document.querySelector('.sgl-step-form-ribbon[data-ribbon-step="' + step + '"]');
 			if (ribbon) {
 				ribbon.classList.toggle('is-complete', valid);
@@ -687,9 +706,78 @@ console.log('tramitesn_update_v2 loaded');
 				ribbon.querySelector('.sgl-icon i').className = valid ? 'fas fa-check' : 'fas fa-exclamation';
 				ribbon.querySelector('.sgl-text').textContent = valid
 					? 'Datos completos en este paso'
-					: 'Revisa los campos obligatorios de este paso';
+					: (requiresSaved && isStepFilled(step)
+						? 'Hay cambios sin guardar en este paso'
+						: 'Revisa los campos obligatorios de este paso');
 			}
 			return valid;
+		}
+
+		function getStepFields(step) {
+			var section = document.querySelector('.wizard-section[data-step="' + step + '"]');
+			if (!section) return [];
+			return Array.prototype.slice.call(section.querySelectorAll('input[name], select[name], textarea[name]'));
+		}
+
+		function captureStepSignature(step) {
+			return getStepFields(step)
+				.filter(function (el) { return !!el.name && !el.disabled && el.type !== 'file'; })
+				.map(function (el) {
+					var value = '';
+					if (el.type === 'checkbox') {
+						value = el.checked ? (el.value || '1') : '0';
+					} else if (el.type === 'radio') {
+						value = el.checked ? el.value : '';
+					} else {
+						value = el.value || '';
+					}
+					return el.name + '=' + value;
+				})
+				.join('&');
+		}
+
+		function isStepFilled(step) {
+			var section = document.querySelector('.wizard-section[data-step="' + step + '"]');
+			if (!section) return true;
+			var complete = true;
+			section.querySelectorAll('input, select, textarea').forEach(function (el) {
+				if (el.disabled) return;
+				if (el.hasAttribute('required') && !el.value) {
+					complete = false;
+				}
+			});
+			return complete;
+		}
+
+		function setStepSaved(step, isSaved) {
+			savedSteps[String(step)] = !!isSaved;
+		}
+
+		function syncStepSavedState(step) {
+			if (!(requireSavedSteps[step] || requireSavedSteps[String(step)])) return;
+			var savedSignature = savedStepSignatures[String(step)] || '';
+			var currentSignature = captureStepSignature(step);
+			setStepSaved(step, !!savedSignature && currentSignature === savedSignature);
+			validateStep(step);
+		}
+
+		function initStepSaveGuards() {
+			Object.keys(requireSavedSteps).forEach(function (stepKey) {
+				if (!requireSavedSteps[stepKey]) return;
+				var step = parseInt(stepKey, 10);
+				if (!step) return;
+				if (savedSteps[stepKey] || savedSteps[step]) {
+					savedStepSignatures[String(step)] = captureStepSignature(step);
+				}
+				getStepFields(step).forEach(function (el) {
+					var sync = function () { syncStepSavedState(step); };
+					el.addEventListener('change', sync);
+					if (el.tagName !== 'SELECT') {
+						el.addEventListener('input', sync);
+					}
+				});
+				validateStep(step);
+			});
 		}
 
 		function getFieldValue(fieldId) {
@@ -868,6 +956,10 @@ console.log('tramitesn_update_v2 loaded');
 				var data = await resp.json();
 				if (data && data.csrfHash) updateCsrf(data.csrfHash);
 				if (data && data.success) {
+					if (requireSavedSteps[currentStepValue] || requireSavedSteps[String(currentStepValue)]) {
+						savedStepSignatures[String(currentStepValue)] = captureStepSignature(currentStepValue);
+						setStepSaved(currentStepValue, true);
+					}
 					var successMessage = data.message || 'Guardado correctamente.';
 					var shouldPersistMessage = false;
 					if (currentStepValue === 3 && !isApprovedStatus(TRA_STATUS_ID)) {
@@ -2237,6 +2329,7 @@ console.log('tramitesn_update_v2 loaded');
 		safeInit('initServiceCosts', initServiceCosts);
 		safeInit('initCancelTramite', initCancelTramite);
 		safeInit('initGestorDependents', initGestorDependents);
+		safeInit('initStepSaveGuards', initStepSaveGuards);
 		renderStepperFixed();
 		refreshBadgesBar();
 		refreshHeaderBadges();

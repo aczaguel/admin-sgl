@@ -70,7 +70,7 @@ if (!function_exists('render_form_fields')) {
                         $formHtml .= render_input($field_name, $field_info['type'], $value, $required, $readonly, $disabled);
                         break;
                     case 'select':
-                        $formHtml .= render_select($field_name, $field_info['options'] ?? [], $value, $readonly, $disabled);
+                        $formHtml .= render_select($field_name, $field_info, $value, $readonly, $disabled);
                         break;
                     case 'textarea':
                         $formHtml .= render_textarea($field_name, $value, $required, $readonly, $disabled);
@@ -107,9 +107,15 @@ if (!function_exists('render_form_fields')) {
         return "<input type=\"{$type}\" class=\"form-control {$name}\" id=\"{$name}\" name=\"{$name}\" value=\"{$value}\" {$step} {$required} {$readonly} {$disabled}>";
     }
 
-    function render_select(string $name, array $options, string $value, string $readonly, string $disabled): string
+    function render_select(string $name, array $field_info, string $value, string $readonly, string $disabled): string
     {
-        $selectHtml = "<select class=\"form-control select2 {$name}\" id=\"{$name}\" name=\"{$name}\" {$readonly} {$disabled}>";
+        $options = $field_info['options'] ?? [];
+        $useNative = !empty($field_info['native']);
+        $extraClass = trim((string) ($field_info['class'] ?? ''));
+        $baseClass = $useNative ? 'form-control form-control-sm' : 'form-control select2';
+        $classAttr = trim($baseClass . ' ' . $extraClass . ' ' . $name);
+
+        $selectHtml = "<select class=\"{$classAttr}\" id=\"{$name}\" name=\"{$name}\" {$readonly} {$disabled}>";
         $selectHtml .= "<option value=\"\">Seleccione</option>";
         foreach ($options as $option_value => $option_label) {
             $selected = set_select($name, $option_value, $value == $option_value);
