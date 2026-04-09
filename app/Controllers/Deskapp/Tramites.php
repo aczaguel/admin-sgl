@@ -3014,8 +3014,15 @@ class Tramites extends BaseController
         if ($resp = acl_require_permission('editar_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
             return $resp;
         }
-        if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-            return $resp;
+        $existingComprobanteFinal = (string) ($existingRecord['comprobante_final'] ?? '');
+        if (in_array($existingComprobanteFinal, ['factura_gestor', 'comprobante_pago'], true)) {
+            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor_documentos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
+            }
+        } else {
+            if ($resp = acl_require_permission('can_upload_dropzone_evidencias_finales', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
+            }
         }
         if (!$canKeepStep4Editable && !puede_editar_modulo($roles, $traStatusId, 'can_upload_dropzone_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4)) {
             return acl_deny('Acceso denegado.', 403, null, true);
@@ -3118,9 +3125,27 @@ class Tramites extends BaseController
         $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
         $pagoGestorStatusId = (int) ($tramiteRow['pago_gestor_st_id'] ?? 0);
 
-        // Permiso fino Dropzone
-        if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-            return $resp;
+        $comprobanteFinal = (string) $request->getPost('comprobante_final');
+        $allowedComprobanteFinal = [
+            'tramite_recibido',
+            'acuse_recibo_cliente',
+            'factura_gestor',
+            'comprobante_pago',
+            'otro',
+        ];
+        if (!in_array($comprobanteFinal, $allowedComprobanteFinal, true)) {
+            $comprobanteFinal = null;
+        }
+
+        // Permiso fino Dropzone segun el tipo de archivo que se sube.
+        if (in_array($comprobanteFinal, ['factura_gestor', 'comprobante_pago'], true)) {
+            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor_documentos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
+            }
+        } else {
+            if ($resp = acl_require_permission('can_upload_dropzone_evidencias_finales', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
+            }
         }
 
         $canKeepStep4Editable = $this->canKeepStep4Editable(
@@ -3163,12 +3188,6 @@ class Tramites extends BaseController
             }
             $fileName = $safeBase . '_' . $random . ($extension !== '' ? '.' . $extension : '');
             $targetFile = $targetPath . $fileName;
-
-            $comprobanteFinal = (string) $request->getPost('comprobante_final');
-            $allowedComprobanteFinal = ['tramite_recibido', 'acuse_recibo_cliente', 'otro'];
-            if (!in_array($comprobanteFinal, $allowedComprobanteFinal, true)) {
-                $comprobanteFinal = null;
-            }
 
             if (move_uploaded_file($tempFile, $targetFile)) {
                 // Guardar el registro en la tabla tra_pago_gestor
@@ -4318,17 +4337,17 @@ class Tramites extends BaseController
             ->get()
             ->getResultArray();
 
-        $hasTramite = false;
-        $hasAcuse = false;
+        $hasFacturaGestor = false;
+        $hasComprobantePago = false;
         foreach ($rows as $row) {
             $tipo = (string) ($row['comprobante_final'] ?? '');
-            if ($tipo === 'tramite_recibido') {
-                $hasTramite = true;
-            } elseif ($tipo === 'acuse_recibo_cliente') {
-                $hasAcuse = true;
+            if ($tipo === 'factura_gestor') {
+                $hasFacturaGestor = true;
+            } elseif ($tipo === 'comprobante_pago') {
+                $hasComprobantePago = true;
             }
         }
-        $canCobrar = ($hasTramite && $hasAcuse) ? 1 : 0;
+        $canCobrar = ($hasFacturaGestor && $hasComprobantePago) ? 1 : 0;
         $db->table('tramite')
             ->where('id', (int) $tramiteId)
             ->update(['cobrar_cliente' => $canCobrar]);

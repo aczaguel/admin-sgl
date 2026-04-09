@@ -60,6 +60,45 @@ Permisos distintos: **89**  Referencias totales: **354**
 - [app/Views/deskapp/extra-pages/tramite_concluido_final.php](app/Views/deskapp/extra-pages/tramite_concluido_final.php#L357)
 - [app/Views/deskapp/extra-pages/tramite_update_view.php](app/Views/deskapp/extra-pages/tramite_update_view.php#L696)
 
+## can_upload_dropzone_evidencias_finales
+
+**Controllers**
+- [app/Controllers/Deskapp/Tramites.php](app/Controllers/Deskapp/Tramites.php) — Tramites::upload_pago_gestor
+- [app/Controllers/Deskapp/Tramites.php](app/Controllers/Deskapp/Tramites.php) — Tramites::delete_pago_gestor
+- [app/Controllers/Deskapp/Tramitesn.php](app/Controllers/Deskapp/Tramitesn.php) — Tramitesn::update
+
+**Vistas**
+- [app/Views/deskapp/extra-pages/tramitesn/partials/step_4_evidencias_finales.php](app/Views/deskapp/extra-pages/tramitesn/partials/step_4_evidencias_finales.php)
+
+## can_upload_dropzone_pago_gestor_documentos
+
+**Controllers**
+- [app/Controllers/Deskapp/Tramites.php](app/Controllers/Deskapp/Tramites.php) — Tramites::upload_pago_gestor
+- [app/Controllers/Deskapp/Tramites.php](app/Controllers/Deskapp/Tramites.php) — Tramites::delete_pago_gestor
+- [app/Controllers/Deskapp/Tramitesn.php](app/Controllers/Deskapp/Tramitesn.php) — Tramitesn::update
+
+**Vistas**
+- [app/Views/deskapp/extra-pages/tramitesn/partials/step_5_pago_gestor.php](app/Views/deskapp/extra-pages/tramitesn/partials/step_5_pago_gestor.php)
+
+## important_ir_cobro_cliente
+
+**Controllers**
+- [app/Controllers/Deskapp/Tramitesn.php](app/Controllers/Deskapp/Tramitesn.php) — Tramitesn::ver_seccion_cobro_cliente
+- [app/Controllers/Deskapp/Tramitesn.php](app/Controllers/Deskapp/Tramitesn.php) — Tramitesn::update
+
+**Vistas**
+- [app/Views/deskapp/extra-pages/tramitesn/partials/step_4_evidencias_finales.php](app/Views/deskapp/extra-pages/tramitesn/partials/step_4_evidencias_finales.php)
+- [app/Views/deskapp/extra-pages/tramitesn/partials/step_5_pago_gestor.php](app/Views/deskapp/extra-pages/tramitesn/partials/step_5_pago_gestor.php)
+
+## important_ir_pago_gestor
+
+**Controllers**
+- [app/Controllers/Deskapp/Tramitesn.php](app/Controllers/Deskapp/Tramitesn.php) — Tramitesn::ver_seccion_pago_gestor
+- [app/Controllers/Deskapp/Tramitesn.php](app/Controllers/Deskapp/Tramitesn.php) — Tramitesn::update
+
+**Vistas**
+- [app/Views/deskapp/extra-pages/tramitesn/partials/step_4_evidencias_finales.php](app/Views/deskapp/extra-pages/tramitesn/partials/step_4_evidencias_finales.php)
+
 ## clone_tramite
 
 **Controllers**

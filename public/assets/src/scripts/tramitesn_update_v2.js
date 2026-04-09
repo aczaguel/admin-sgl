@@ -1082,7 +1082,11 @@ console.log('tramitesn_update_v2 loaded');
 		}
 
 		function renderGestorPreview(fileUrl, fileName, docType) {
-			var container = document.getElementById('gestor-container');
+			var containerId = 'gestor-container';
+			if (docType === 'factura_gestor' || docType === 'comprobante_pago') {
+				containerId = 'gestor-pago-container';
+			}
+			var container = document.getElementById(containerId);
 			if (!container) return;
 			var ext = (fileName || '').split('.').pop().toLowerCase();
 			var isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].indexOf(ext) !== -1;
@@ -1091,6 +1095,10 @@ console.log('tramitesn_update_v2 loaded');
 				docTypeLabel = 'Tramite Entregado por Gestor';
 			} else if (docType === 'acuse_recibo_cliente') {
 				docTypeLabel = 'Acuse de Recibo del Cliente';
+			} else if (docType === 'factura_gestor') {
+				docTypeLabel = 'Factura del Gestor';
+			} else if (docType === 'comprobante_pago') {
+				docTypeLabel = 'Comprobante de Pago';
 			} else if (docType === 'otro') {
 				docTypeLabel = 'Otro';
 			}
@@ -1143,13 +1151,47 @@ console.log('tramitesn_update_v2 loaded');
 					chipCobrar = document.createElement('span');
 					chipCobrar.id = 'chipPuedeCobrar';
 					chipCobrar.className = 'sgl-status-chip is-success';
-					chipCobrar.textContent = 'Ya se puede cobrar';
+					chipCobrar.textContent = 'Evidencias finales completas';
 					var row = ribbon.querySelector('.sgl-status-row');
 					if (row) row.appendChild(chipCobrar);
 				}
 				setChipState(chipCobrar, true);
 			} else if (chipCobrar) {
 				chipCobrar.remove();
+			}
+		}
+
+		function updatePagoGestorPagoChips() {
+			var ribbon = document.querySelector('.sgl-step-form-ribbon[data-ribbon-step="5"]');
+			if (!ribbon) return;
+			var hasFactura = ribbon.getAttribute('data-has-factura-gestor') === '1';
+			var hasComprobante = ribbon.getAttribute('data-has-comprobante-pago') === '1';
+			var pagoCompleto = hasFactura && hasComprobante;
+
+			var chipFactura = document.getElementById('chipFacturaGestor');
+			var chipComprobante = document.getElementById('chipComprobantePago');
+			var chipCompleto = document.getElementById('chipPagoGestorCompleto');
+
+			function setChipState(chip, isOk) {
+				if (!chip) return;
+				chip.classList.toggle('is-success', isOk);
+				chip.classList.toggle('is-muted', !isOk);
+			}
+
+			setChipState(chipFactura, hasFactura);
+			setChipState(chipComprobante, hasComprobante);
+			if (pagoCompleto) {
+				if (!chipCompleto) {
+					chipCompleto = document.createElement('span');
+					chipCompleto.id = 'chipPagoGestorCompleto';
+					chipCompleto.className = 'sgl-status-chip is-success';
+					chipCompleto.textContent = 'Pago completado';
+					var row = ribbon.querySelector('.sgl-status-row');
+					if (row) row.appendChild(chipCompleto);
+				}
+				setChipState(chipCompleto, true);
+			} else if (chipCompleto) {
+				chipCompleto.remove();
 			}
 		}
 
@@ -1260,7 +1302,7 @@ console.log('tramitesn_update_v2 loaded');
 
 		function initDropzoneGestor() {
 			if (IS_LOCKED) return;
-			if (cfg.permissions && (cfg.permissions.canUploadPagoGestor === false || cfg.permissions.canUploadDropzonePagoGestor === false)) return;
+			if (cfg.permissions && (cfg.permissions.canUploadPagoGestor === false || cfg.permissions.canUploadDropzoneEvidenciasFinales === false)) return;
 			if (typeof Dropzone === 'undefined') return;
 			if (!cfg.urls || !cfg.urls.uploadPagoGestor || !cfg.urls.deletePagoGestor) return;
 			var el = document.querySelector('.dropzone-gestor, #miDropzoneGestor');
@@ -1362,6 +1404,77 @@ console.log('tramitesn_update_v2 loaded');
 			var btn = document.getElementById('btnSubirGestor');
 			if (btn && !btn.__sglGestorBtnBound) {
 				btn.__sglGestorBtnBound = true;
+				btn.addEventListener('click', function (e) {
+					e.preventDefault();
+					if (dz.files && dz.files.length > 0) {
+						dz.processQueue();
+					}
+				});
+			}
+		}
+
+		function initDropzoneGestorPago() {
+			if (IS_LOCKED) return;
+			if (cfg.permissions && (cfg.permissions.canUploadPagoGestor === false || cfg.permissions.canUploadDropzonePagoGestorDocumentos === false)) return;
+			if (typeof Dropzone === 'undefined') return;
+			if (!cfg.urls || !cfg.urls.uploadPagoGestor || !cfg.urls.deletePagoGestor) return;
+			var el = document.querySelector('.dropzone-gestor-pago, #miDropzoneGestorPago');
+			if (!el) return;
+			var typeSelect = document.getElementById('pagoGestorDocumentoTipo');
+			Dropzone.autoDiscover = false;
+			var dz = el.dropzone || null;
+			if (dz && typeof dz.destroy === 'function') {
+				dz.destroy();
+				dz = null;
+			}
+			dz = new Dropzone(el, {
+				url: cfg.urls.uploadPagoGestor,
+				autoProcessQueue: false,
+				maxFilesize: 10,
+				acceptedFiles: '.xml,.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx',
+				addRemoveLinks: false,
+				renameFile: function (file) {
+					var randomHex = '-' + Array.from(crypto.getRandomValues(new Uint8Array(3)))
+						.map(function (byte) { return byte.toString(16).padStart(2, '0'); })
+						.join('');
+					var originalName = file.name.split('.').slice(0, -1).join('.');
+					var extension = file.name.split('.').pop();
+					return originalName + randomHex + '.' + extension;
+				}
+			});
+			dz.on('sending', function (file, xhr, formData) {
+				formData.append(csrfName, csrfHash);
+				if (typeSelect && typeSelect.value) {
+					formData.append('comprobante_final', typeSelect.value);
+				}
+			});
+			dz.on('success', function (file, response) {
+				if (!(response && response.success && response.filePath)) return;
+				var fileName = response.fileName || (file.upload ? file.upload.filename : file.name);
+				var docType = response.comprobanteFinal || (typeSelect ? typeSelect.value : '');
+				if (response.filePath && fileName) {
+					renderGestorPreview(response.filePath, fileName, docType);
+				}
+				var ribbon = document.querySelector('.sgl-step-form-ribbon[data-ribbon-step="5"]');
+				if (ribbon && docType) {
+					if (docType === 'factura_gestor') {
+						ribbon.setAttribute('data-has-factura-gestor', '1');
+					} else if (docType === 'comprobante_pago') {
+						ribbon.setAttribute('data-has-comprobante-pago', '1');
+					}
+					updatePagoGestorPagoChips();
+				}
+				var modalText = document.getElementById('comprobanteFinalText');
+				if (modalText && docType) {
+					modalText.textContent = docType === 'factura_gestor' ? 'Factura del Gestor' : 'Comprobante de Pago';
+				}
+				if (docType && window.jQuery) {
+					jQuery('#modalComprobanteFinal').modal('show');
+				}
+			});
+			var btn = document.getElementById('btnSubirGestorPago');
+			if (btn && !btn.__sglGestorPagoBtnBound) {
+				btn.__sglGestorPagoBtnBound = true;
 				btn.addEventListener('click', function (e) {
 					e.preventDefault();
 					if (dz.files && dz.files.length > 0) {
@@ -2115,7 +2228,9 @@ console.log('tramitesn_update_v2 loaded');
 		safeInit('initWizard', initWizard);
 		safeInit('initDropzoneDerechos', initDropzoneDerechos);
 		safeInit('initDropzoneGestor', initDropzoneGestor);
+		safeInit('initDropzoneGestorPago', initDropzoneGestorPago);
 		safeInit('updatePagoGestorChips', updatePagoGestorChips);
+		safeInit('updatePagoGestorPagoChips', updatePagoGestorPagoChips);
 		safeInit('initFinalDocs', initFinalDocs);
 		safeInit('initPagoGestorForm', initPagoGestorForm);
 		safeInit('initChangeStatus', initChangeStatus);

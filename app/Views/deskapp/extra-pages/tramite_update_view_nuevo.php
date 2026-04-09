@@ -74,10 +74,11 @@
 	$onlySectionStep = 0;
 	if (!empty($only_section)) {
 		$map = [
+			'evidencias_finales' => 4,
 			'generales' => 1,
 			'asigna_gestor' => 2,
 			'pago_derechos' => 3,
-			'pago_gestor' => 4,
+			'pago_gestor' => 5,
 		];
 		$onlySectionStep = (int) ($map[$only_section] ?? 0);
 	}
@@ -327,9 +328,19 @@
 
 		<div class="pd-20 card-box mb-30 sgl-page-tight">
 			<?php if (!empty($isOnlySectionView) && $onlySectionStep === 4): ?>
-				<?php // Paso 4 dedicado: mostrar 1-3 como readonly y 4 editable en la misma pantalla. ?>
-				<?php $showSection = $readonlySectionsForAdvancedView; ?>
-				<?php include APPPATH . 'Views/deskapp/extra-pages/tramitesn/partials/steps_readonly_1_4.php'; ?>
+				<?php // Paso 4 dedicado: mostrar 1-3 readonly y el modulo de evidencias finales. ?>
+				<div class="sgl-readonly-mode">
+					<?php $showSection = $readonlySectionsForAdvancedView; ?>
+					<?php include APPPATH . 'Views/deskapp/extra-pages/tramitesn/partials/steps_readonly_1_3.php'; ?>
+				</div>
+				<?php include APPPATH . 'Views/deskapp/extra-pages/tramitesn/partials/step_4_evidencias_finales.php'; ?>
+			<?php elseif (!empty($isOnlySectionView) && $onlySectionStep === 5): ?>
+				<?php // Paso 5 dedicado: mostrar 1-3 readonly y Pago a Gestor sin dropzone. ?>
+				<div class="sgl-readonly-mode">
+					<?php $showSection = $readonlySectionsForAdvancedView; ?>
+					<?php include APPPATH . 'Views/deskapp/extra-pages/tramitesn/partials/steps_readonly_1_3.php'; ?>
+				</div>
+				<?php include APPPATH . 'Views/deskapp/extra-pages/tramitesn/partials/step_5_pago_gestor.php'; ?>
 			<?php else: ?>
 				<form id="tramiteNuevoForm" method="post" action="<?= site_url('/deskapp/tramitesn/update_save/' . (int) ($id ?? 0)) ?>">
 					<input type="hidden" id="current_step" name="current_step" value="<?= (int) ($isOnlySectionView ? $onlySectionStep : ($step ?? ($step_actual ?? 1))) ?>">
@@ -652,7 +663,8 @@
 			canUploadDerechos: <?= !empty($can_upload_derechos) ? 'true' : 'false' ?>,
 			canUploadDropzoneDerechos: <?= !empty($can_upload_dropzone_pago_derechos) ? 'true' : 'false' ?>,
 			canUploadPagoGestor: <?= !empty($can_upload_pago_gestor) ? 'true' : 'false' ?>,
-			canUploadDropzonePagoGestor: <?= !empty($can_upload_dropzone_pago_gestor) ? 'true' : 'false' ?>,
+			canUploadDropzoneEvidenciasFinales: <?= !empty($can_upload_dropzone_evidencias_finales) ? 'true' : 'false' ?>,
+			canUploadDropzonePagoGestorDocumentos: <?= !empty($can_upload_dropzone_pago_gestor_documentos) ? 'true' : 'false' ?>,
 			canUploadFinalDocs: <?= !empty($can_upload_final_docs) ? 'true' : 'false' ?>
 		},
 		swalSrc: '<?= $assets ?>/src/plugins/sweetalert2/sweetalert2.all.js',
@@ -661,7 +673,9 @@
 			servicesUpdate: '<?= site_url('/deskapp/tramitesn/services/update') ?>',
 			servicesDelete: '<?= site_url('/deskapp/tramitesn/services/delete') ?>',
 			principalUpdateTipo: '<?= site_url('/deskapp/tramitesn/principal/update_tipo') ?>',
+			viewEvidenciasFinales: '<?= site_url('/deskapp/tramitesn/ver_seccion_evidencias_finales/' . (int) ($id ?? 0)) ?>',
 			viewPagoGestor: '<?= site_url('/deskapp/tramitesn/ver_seccion_pago_gestor/' . (int) ($id ?? 0)) ?>',
+			viewCobroCliente: '<?= site_url('/deskapp/tramitesn/ver_seccion_cobro_cliente/' . (int) ($id ?? 0)) ?>',
 			updateSave: '<?= site_url('/deskapp/tramitesn/update_save/' . (int) ($id ?? 0)) ?>',
 			updateGestorSave: '<?= site_url('/deskapp/tramitesn/update_gestor_save/' . (int) ($id ?? 0)) ?>',
 			updateDerechosSave: '<?= site_url('/deskapp/tramitesn/update_derechos_save/' . (int) ($id ?? 0)) ?>',
