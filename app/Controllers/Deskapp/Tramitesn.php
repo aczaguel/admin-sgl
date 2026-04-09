@@ -185,7 +185,7 @@ class Tramitesn extends Tramites
         }
 
         if ($maxBusinessStep >= 4 && has_permission('section_pago_gestor', $perms, $roles)) {
-            return 'deskapp/extra-pages/tramite_update_view_pago_gestor';
+			return 'deskapp/extra-pages/tramite_update_view_evidencias_finales';
         }
 
         return null;
@@ -2097,11 +2097,73 @@ class Tramitesn extends Tramites
 
     public function ver_seccion_pago_gestor($id)
     {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+            return $resp;
+        }
+
+        $session = session();
+        $myid = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        $id = (int) $id;
+        if ($id <= 0) {
+            return redirect()->to('/deskapp/tramitesn/tramite')
+                ->with('error', 'ID de trámite inválido.');
+        }
+
+        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, 'No tienes permiso para ver este tramite', '/deskapp/tramitesn/update/' . (int) $id, 403, false)) {
+            log_unauthorized_access_attempt('tramite', $id);
+            return $resp;
+        }
+
+        $canNavigatePagoGestor = has_permission('section_pago_gestor', $perms, $roles)
+            && has_permission('important_ir_pago_gestor', $perms, $roles);
+        if (!$canNavigatePagoGestor) {
+            return redirect()->to('/deskapp/tramitesn/update/' . (int) $id)
+                ->with('error', 'No tienes permisos para acceder a Pago a Gestor');
+        }
+
         return $this->update($id, 'deskapp/extra-pages/tramite_update_view_pago_gestor');
     }
 
+	public function ver_seccion_evidencias_finales($id)
+	{
+		return $this->update($id, 'deskapp/extra-pages/tramite_update_view_evidencias_finales');
+	}
+
     public function ver_seccion_cobro_cliente($id)
     {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+            return $resp;
+        }
+
+        $session = session();
+        $myid = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        $id = (int) $id;
+        if ($id <= 0) {
+            return redirect()->to('/deskapp/tramitesn/tramite')
+                ->with('error', 'ID de trámite inválido.');
+        }
+
+        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, 'No tienes permiso para ver este tramite', '/deskapp/tramitesn/update/' . (int) $id, 403, false)) {
+            log_unauthorized_access_attempt('tramite', $id);
+            return $resp;
+        }
+
+        $canNavigateCobroCliente = (has_permission('list_cobro_cliente', $perms, $roles)
+                || has_permission('section_final_costos', $perms, $roles))
+            && has_permission('important_ir_cobro_cliente', $perms, $roles);
+        if (!$canNavigateCobroCliente) {
+            return redirect()->to('/deskapp/tramitesn/update/' . (int) $id)
+                ->with('error', 'No tienes permisos para acceder a Cobro a Cliente');
+        }
+
         return $this->update($id, 'deskapp/extra-pages/tramite_update_view_cobro_cliente');
     }
 
@@ -2184,6 +2246,9 @@ class Tramitesn extends Tramites
         $statusId = (int) ($tramite['tra_status_id'] ?? 0);
         if ($viewName === null) {
             $targetAdvancedView = $this->resolveAdvancedStepView($statusId, $roles, $perms);
+			if ($targetAdvancedView === 'deskapp/extra-pages/tramite_update_view_evidencias_finales') {
+				return redirect()->to('/deskapp/tramitesn/ver_seccion_evidencias_finales/' . $id);
+			}
             if ($targetAdvancedView === 'deskapp/extra-pages/tramite_update_view_pago_gestor') {
                 return redirect()->to('/deskapp/tramitesn/ver_seccion_pago_gestor/' . $id);
             }
@@ -2286,12 +2351,26 @@ class Tramitesn extends Tramites
 
         $hasComprobanteTramiteRecibido = false;
         $hasComprobanteAcuseRecibo = false;
+        $hasFacturaGestor = false;
+        $hasComprobantePago = false;
+        $pagoGestorEvidenciasDb = [];
+        $pagoGestorPagoDb = [];
         foreach ($pago_gestor_db as $rowDoc) {
             $tipo = (string) ($rowDoc['comprobante_final'] ?? '');
             if ($tipo === 'tramite_recibido') {
                 $hasComprobanteTramiteRecibido = true;
+                $pagoGestorEvidenciasDb[] = $rowDoc;
             } elseif ($tipo === 'acuse_recibo_cliente') {
                 $hasComprobanteAcuseRecibo = true;
+                $pagoGestorEvidenciasDb[] = $rowDoc;
+            } elseif ($tipo === 'factura_gestor') {
+                $hasFacturaGestor = true;
+                $pagoGestorPagoDb[] = $rowDoc;
+            } elseif ($tipo === 'comprobante_pago') {
+                $hasComprobantePago = true;
+                $pagoGestorPagoDb[] = $rowDoc;
+            } else {
+                $pagoGestorPagoDb[] = $rowDoc;
             }
         }
 
@@ -2647,6 +2726,10 @@ class Tramitesn extends Tramites
         $canSectionPagoDerechos = has_permission('section_pago_derechos', $perms, $roles);
         $canSectionPagoGestor = has_permission('section_pago_gestor', $perms, $roles);
         $canSectionFinalCostos = has_permission('section_final_costos', $perms, $roles);
+        $canNavigatePagoGestor = $canSectionPagoGestor
+            && has_permission('important_ir_pago_gestor', $perms, $roles);
+        $canNavigateCobroCliente = (has_permission('list_cobro_cliente', $perms, $roles) || $canSectionFinalCostos)
+            && has_permission('important_ir_cobro_cliente', $perms, $roles);
 
         $canEditPagoGestor = $canEditTramite
             && $canSectionPagoGestor
@@ -2664,7 +2747,8 @@ class Tramitesn extends Tramites
 
         // Permisos finos para Dropzones: sin el permiso, el upload queda en solo-lectura
         $canUploadDropzonePagoDerechos = $canUploadDerechos && has_permission('can_upload_dropzone_pago_derechos', $perms, $roles);
-        $canUploadDropzonePagoGestor = $canUploadPagoGestor && has_permission('can_upload_dropzone_pago_gestor', $perms, $roles);
+        $canUploadDropzoneEvidenciasFinales = $canUploadPagoGestor && has_permission('can_upload_dropzone_evidencias_finales', $perms, $roles);
+        $canUploadDropzonePagoGestorDocumentos = $canUploadPagoGestor && has_permission('can_upload_dropzone_pago_gestor_documentos', $perms, $roles);
         $canUploadDropzoneCobroCliente = $canUploadFinalDocs && has_permission('can_upload_dropzone_cobro_cliente', $perms, $roles);
 
         if (isset($tramite['costo_tramite']) && $tramite['costo_tramite'] > 0) {
@@ -2782,8 +2866,12 @@ class Tramitesn extends Tramites
         $viewData['can_edit_tramite'] = $canEditTramite;
         $viewData['pago_derechos_db'] = $pago_derechos_db;
         $viewData['pago_gestor_db'] = $pago_gestor_db;
+        $viewData['pago_gestor_evidencias_db'] = $pagoGestorEvidenciasDb;
+        $viewData['pago_gestor_pago_db'] = $pagoGestorPagoDb;
         $viewData['has_comprobante_tramite_recibido'] = $hasComprobanteTramiteRecibido;
         $viewData['has_comprobante_acuse_recibo'] = $hasComprobanteAcuseRecibo;
+        $viewData['has_factura_gestor'] = $hasFacturaGestor;
+        $viewData['has_comprobante_pago'] = $hasComprobantePago;
         $viewData['final_docs_db'] = $final_docs_db;
         $viewData['pago_gestor_campos'] = $form->pago_gestor_campos;
         $viewData['final_campos'] = $form->final_campos;
@@ -2798,9 +2886,12 @@ class Tramitesn extends Tramites
         $viewData['can_section_pago_derechos'] = $canSectionPagoDerechos;
         $viewData['can_section_pago_gestor'] = $canSectionPagoGestor;
         $viewData['can_section_final_costos'] = $canSectionFinalCostos;
+        $viewData['can_navigate_pago_gestor'] = $canNavigatePagoGestor;
+        $viewData['can_navigate_cobro_cliente'] = $canNavigateCobroCliente;
         $viewData['can_edit_pago_gestor'] = $canEditPagoGestor;
         $viewData['can_upload_pago_gestor'] = $canUploadPagoGestor;
-        $viewData['can_upload_dropzone_pago_gestor'] = $canUploadDropzonePagoGestor;
+        $viewData['can_upload_dropzone_evidencias_finales'] = $canUploadDropzoneEvidenciasFinales;
+        $viewData['can_upload_dropzone_pago_gestor_documentos'] = $canUploadDropzonePagoGestorDocumentos;
         $viewData['can_edit_final_form'] = $canEditFinalForm;
         $viewData['can_upload_final_docs'] = $canUploadFinalDocs;
         $viewData['can_upload_dropzone_cobro_cliente'] = $canUploadDropzoneCobroCliente;
@@ -3080,19 +3171,19 @@ class Tramitesn extends Tramites
             ->get()
             ->getResultArray();
 
-        $hasTramite = false;
-        $hasAcuse = false;
+        $hasFacturaGestor = false;
+        $hasComprobantePago = false;
         foreach ($rows as $row) {
             $tipo = (string) ($row['comprobante_final'] ?? '');
-            if ($tipo === 'tramite_recibido') {
-                $hasTramite = true;
-            } elseif ($tipo === 'acuse_recibo_cliente') {
-                $hasAcuse = true;
+            if ($tipo === 'factura_gestor') {
+                $hasFacturaGestor = true;
+            } elseif ($tipo === 'comprobante_pago') {
+                $hasComprobantePago = true;
             }
         }
 
         $db->table('tramite')
             ->where('id', $tramiteId)
-            ->update(['cobrar_cliente' => ($hasTramite && $hasAcuse) ? 1 : 0]);
+            ->update(['cobrar_cliente' => ($hasFacturaGestor && $hasComprobantePago) ? 1 : 0]);
     }
 }

@@ -64,7 +64,7 @@
 <?= $this->section('content') ?>
 
 <?php
-	// El paso 5 no debe depender de `editar_tramite`; usa permisos propios de cierre.
+	// El paso 6 no debe depender de `editar_tramite`; usa permisos propios de cierre.
 	$isReadOnlyMode = empty($can_edit_final_form) && empty($can_upload_final_docs);
 	$detailRoles = $user_roles ?? ($session->get('user_roles') ?? []);
 	$detailPerms = $user_permissions ?? ($session->get('user_permissions') ?? []);
@@ -363,11 +363,13 @@
 				<?php
 					$hasTramiteRecibido = !empty($has_comprobante_tramite_recibido);
 					$hasAcuseRecibo = !empty($has_comprobante_acuse_recibo);
-					$canCobrar = $hasTramiteRecibido && $hasAcuseRecibo;
+					$hasFacturaGestor = !empty($has_factura_gestor);
+					$hasComprobantePago = !empty($has_comprobante_pago);
+					$pagoCompleto = $hasFacturaGestor && $hasComprobantePago;
 				?>
 				<div class="sgl-step-form-ribbon mt-3" data-ribbon-step="4" data-has-tramite-recibido="<?= $hasTramiteRecibido ? '1' : '0' ?>" data-has-acuse-recibo="<?= $hasAcuseRecibo ? '1' : '0' ?>">
-					<div class="sgl-icon"><i class="fas fa-credit-card"></i></div>
-					<div class="sgl-text">Paso 4: Pago a Gestor</div>
+					<div class="sgl-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+					<div class="sgl-text">Paso 4: Evidencias Finales</div>
 					<button class="btn btn-sm btn-outline-secondary sgl-btn-icon" type="button" data-toggle="collapse" data-target="#collapsePaso4" aria-expanded="false" aria-controls="collapsePaso4">
 						<i class="fas fa-chevron-down"></i>
 					</button>
@@ -375,43 +377,21 @@
 
 				<div id="collapsePaso4" class="collapse">
 					<div class="sgl-soft-panel mt-3">
-						<p class="sgl-soft-panel-title">Datos de pago a gestor</p>
-						<div class="sgl-info-grid">
-							<?php if (!empty($pago_gestor_campos) && is_array($pago_gestor_campos)): ?>
-								<?php foreach ($pago_gestor_campos as $name => $cfg): ?>
-									<?php
-										if (!is_array($cfg)) {
-											continue;
-										}
-										$type = $cfg['type'] ?? 'text';
-										if ($type === 'hidden') {
-											continue;
-										}
-										$label = $cfg['label'] ?? ucfirst((string) $name);
-										$val = $cfg['value'] ?? '';
-										$display = ($val === null || $val === '') ? '--' : $val;
-									?>
-									<div class="sgl-info-item">
-										<div class="sgl-info-label"><?= esc($label) ?></div>
-										<div class="sgl-info-value"><?= esc($display) ?></div>
-									</div>
-								<?php endforeach; ?>
-							<?php endif; ?>
-						</div>
+						<p class="sgl-soft-panel-title">Evidencias finales del tramite</p>
 						<div class="sgl-status-row" style="margin-top:8px;">
 							<span class="sgl-status-chip <?= $hasTramiteRecibido ? '' : 'is-muted' ?>">Tramite Entregado por Gestor</span>
 							<span class="sgl-status-chip <?= $hasAcuseRecibo ? '' : 'is-muted' ?>">Acuse de Recibo del Cliente</span>
-							<?php if ($canCobrar): ?>
-								<span class="sgl-status-chip">Ya se puede cobrar</span>
+							<?php if ($hasTramiteRecibido && $hasAcuseRecibo): ?>
+								<span class="sgl-status-chip">Evidencias finales completas</span>
 							<?php endif; ?>
 						</div>
 					</div>
 
 					<div class="sgl-soft-panel mt-3">
-						<p class="sgl-soft-panel-title">Documentos de pago a gestor</p>
+						<p class="sgl-soft-panel-title">Documentos de evidencias finales</p>
 						<div class="gallery-preview" id="gestor-container-readonly">
-							<?php if (!empty($pago_gestor_db) && is_array($pago_gestor_db)): ?>
-								<?php foreach ($pago_gestor_db as $doc): ?>
+							<?php if (!empty($pago_gestor_evidencias_db) && is_array($pago_gestor_evidencias_db)): ?>
+								<?php foreach ($pago_gestor_evidencias_db as $doc): ?>
 									<?php
 										$fileName = (string) ($doc['file'] ?? '');
 										$docType = (string) ($doc['comprobante_final'] ?? '');
@@ -449,14 +429,95 @@
 						</div>
 					</div>
 				</div>
+
+				<div class="sgl-step-form-ribbon mt-3" data-ribbon-step="5" data-has-tramite-recibido="<?= $hasTramiteRecibido ? '1' : '0' ?>" data-has-acuse-recibo="<?= $hasAcuseRecibo ? '1' : '0' ?>">
+					<div class="sgl-icon"><i class="fas fa-credit-card"></i></div>
+					<div class="sgl-text">Paso 5: Pago a Gestor</div>
+					<button class="btn btn-sm btn-outline-secondary sgl-btn-icon" type="button" data-toggle="collapse" data-target="#collapsePaso5" aria-expanded="false" aria-controls="collapsePaso5">
+						<i class="fas fa-chevron-down"></i>
+					</button>
+				</div>
+
+				<div id="collapsePaso5" class="collapse">
+					<div class="sgl-soft-panel mt-3">
+						<p class="sgl-soft-panel-title">Datos de pago a gestor</p>
+						<div class="sgl-info-grid">
+							<?php if (!empty($pago_gestor_campos) && is_array($pago_gestor_campos)): ?>
+								<?php foreach ($pago_gestor_campos as $name => $cfg): ?>
+									<?php
+										if (!is_array($cfg)) {
+											continue;
+										}
+										$type = $cfg['type'] ?? 'text';
+										if ($type === 'hidden') {
+											continue;
+										}
+										$label = $cfg['label'] ?? ucfirst((string) $name);
+										$val = $cfg['value'] ?? '';
+										$display = ($val === null || $val === '') ? '--' : $val;
+									?>
+									<div class="sgl-info-item">
+										<div class="sgl-info-label"><?= esc($label) ?></div>
+										<div class="sgl-info-value"><?= esc($display) ?></div>
+									</div>
+								<?php endforeach; ?>
+							<?php endif; ?>
+						</div>
+						<div class="sgl-status-row" style="margin-top:8px;">
+							<span class="sgl-status-chip <?= $hasFacturaGestor ? '' : 'is-muted' ?>">Factura del Gestor</span>
+							<span class="sgl-status-chip <?= $hasComprobantePago ? '' : 'is-muted' ?>">Comprobante de Pago</span>
+							<?php if ($pagoCompleto): ?>
+								<span class="sgl-status-chip">Pago completado</span>
+							<?php endif; ?>
+						</div>
+					</div>
+
+					<div class="sgl-soft-panel mt-3">
+						<p class="sgl-soft-panel-title">Documentos de pago a gestor</p>
+						<div class="gallery-preview" id="gestor-pago-container-readonly">
+							<?php if (!empty($pago_gestor_pago_db) && is_array($pago_gestor_pago_db)): ?>
+								<?php foreach ($pago_gestor_pago_db as $doc): ?>
+									<?php
+										$fileName = (string) ($doc['file'] ?? '');
+										$docType = (string) ($doc['comprobante_final'] ?? '');
+										$fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+										$isImage = in_array($fileExt, ['jpg','jpeg','png','gif','webp'], true);
+										$fileUrl = base_url('/assets/uploads/pago_gestor/' . $id . '/' . $fileName);
+										$docTypeLabel = $docType === 'factura_gestor' ? 'Factura del Gestor' : ($docType === 'comprobante_pago' ? 'Comprobante de Pago' : 'Otro');
+									?>
+									<div class="file-preview" data-file="<?= esc($fileName) ?>" style="border:1px solid #ddd;border-radius:5px;padding:5px;background-color:#f9f9f9;display:inline-block;margin:4px;text-align:center;">
+										<a href="<?= esc($fileUrl) ?>" target="_blank">
+											<?php if ($isImage): ?>
+												<img src="<?= esc($fileUrl) ?>" alt="<?= esc($fileName) ?>" class="img-thumbnail" style="width:60px;height:60px;object-fit:cover;">
+											<?php else: ?>
+												<i class="far fa-file" style="font-size:32px;color:#6b7280;"></i>
+											<?php endif; ?>
+										</a>
+										<p style="font-size:10px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+											<?= esc($fileName) ?>
+										</p>
+										<span class="badge badge-info"><?= esc($docTypeLabel) ?></span>
+									</div>
+								<?php endforeach; ?>
+							<?php else: ?>
+								<div class="text-muted">Sin documentos de pago a gestor registrados.</div>
+							<?php endif; ?>
+						</div>
+					</div>
+				</div>
 			<?php endif; ?>
 		</div>
 
 		<div class="sgl-step-center mt-3">
 			<div class="sgl-soft-panel">
-				<div class="d-flex flex-wrap align-items-center" style="gap:8px;">
-					<h5 class="sgl-soft-panel-title" style="margin:0;"><i class="fas fa-receipt"></i> Cobro a Cliente</h5>
-					<div id="cobro-status-chips" class="sgl-status-row"></div>
+				<div class="d-flex flex-wrap align-items-center justify-content-between" style="gap:8px;">
+					<h5 class="sgl-soft-panel-title" style="margin:0;"><i class="fas fa-receipt"></i> Paso 6: Cobro a Cliente</h5>
+					<div class="d-flex flex-wrap align-items-center" style="gap:8px;">
+						<div id="cobro-status-chips" class="sgl-status-row"></div>
+						<a href="<?= site_url('/deskapp/tramitesn/ver_seccion_evidencias_finales/' . (int) ($id ?? 0)) ?>" class="btn btn-sm btn-outline-secondary sgl-btn-pill">
+							<i class="fas fa-arrow-left"></i> Ver paso 4
+						</a>
+					</div>
 				</div>
 				<div class="form-dropzone-grid">
 					<div class="form-column">
