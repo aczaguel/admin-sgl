@@ -161,10 +161,6 @@ $routes->post('/tramites/getEjecutivosByClienteId/(:num)', 'Deskapp/Tramites::ge
 $routes->get('/deskapp/tramites/getEjecutivosByClienteId/(:num)', 'Deskapp/Tramites::getEjecutivosByClienteId/$1',['filter' => 'auth']);
 $routes->post('/deskapp/tramites/getEjecutivosByClienteId/(:num)', 'Deskapp/Tramites::getEjecutivosByClienteId/$1',['filter' => 'auth']);
 
-$routes->get('/tramites/getGestoresByEmpresaId/(:num)', 'Deskapp/Tramites::getGestoresByEmpresaId/$1',['filter' => 'auth']);
-$routes->post('/tramites/getGestoresByEmpresaId/(:num)', 'Deskapp/Tramites::getGestoresByEmpresaId/$1',['filter' => 'auth']);
-$routes->get('/deskapp/tramites/getGestoresByEmpresaId/(:num)', 'Deskapp/Tramites::getGestoresByEmpresaId/$1',['filter' => 'auth']);
-$routes->post('/deskapp/tramites/getGestoresByEmpresaId/(:num)', 'Deskapp/Tramites::getGestoresByEmpresaId/$1',['filter' => 'auth']);
 
 
 $routes->get('/deskapp/tramites_masivos/import', 'Deskapp/TramitesMasivos::import',['filter' => 'auth']);
@@ -362,6 +358,8 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 	$routes->get('/deskapp/tramites/getDependentData/(:segment)/(:num)', 'Tramites::getDependentData/$1/$2');
 	$routes->post('/deskapp/tramites/getDependentData/(:segment)/(:num)', 'Tramites::getDependentData/$1/$2');
 
+	$routes->get('/deskapp/tramites/getGestoresByEmpresaId/(:num)', 'Tramites::getGestoresByEmpresaId/$1');
+	$routes->post('/deskapp/tramites/getGestoresByEmpresaId/(:num)', 'Tramites::getGestoresByEmpresaId/$1');
 });
 
 

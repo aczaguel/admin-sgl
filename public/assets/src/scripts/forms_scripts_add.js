@@ -35,7 +35,7 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
         var clienteDirectoId = $(this).val();
         if(clienteDirectoId) {
             $.ajax({
-                url: '/public/deskapp/tramites/getEjecutivosByClienteId/' + clienteDirectoId,
+                url: '/deskapp/tramites/getEjecutivosByClienteId/' + clienteDirectoId,
                 type: 'GET',
                 dataType: 'json',
                 success: function(data) {
@@ -56,7 +56,7 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
       var empresaGestoraId = $(this).val();
       if(empresaGestoraId) {
         $.ajax({
-          url: '/public/deskapp/tramites/getGestoresByEmpresaId/' + empresaGestoraId,
+          url: '/deskapp/tramites/getGestoresByEmpresaId/' + empresaGestoraId,
           type: 'GET',
           dataType: 'json',
           success: function(data) {
