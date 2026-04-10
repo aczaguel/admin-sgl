@@ -22,6 +22,7 @@ if (isset($tra_status_id)) {
 
 <!DOCTYPE html>
 <html>
+	<?php $headerContrato = $contrato ?? ($fields['contrato']['value'] ?? $gestor_campos['contrato']['value'] ?? $derechos_campos['contrato']['value'] ?? $bancario_campos['contrato']['value'] ?? $pago_gestor['contrato']['value'] ?? $final_campos['contrato']['value'] ?? null); ?>
 <head>
 	<!-- Basic Page Info -->
 	<meta charset="utf-8">
@@ -190,7 +191,9 @@ if (isset($tra_status_id)) {
 				</div>
 			</div>
 			<div class="header_wizard-bottom">
-				<strong>FOLIO: <?php echo (isset($folio)?$folio:"");?> </strong>
+				<strong>ID: <?php echo isset($id) ? esc((string) $id) : '--'; ?> </strong>
+				<strong class="ml-3">FOLIO: <?php echo isset($folio) ? esc($folio) : '--'; ?> </strong>
+				<strong class="ml-3">CONTRATO: <?php echo ($headerContrato !== null && $headerContrato !== '') ? esc($headerContrato) : '--'; ?> </strong>
 			</div>
 		</div>
 		<br>

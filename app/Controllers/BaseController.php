@@ -46,4 +46,17 @@ class BaseController extends \CodeIgniter\Controller
 		//--------------------------------------------------------------------
 		// E.g.: $this->session = \Config\Services::session();
 	}
+
+	protected function applyDefaultCrudDateTimeFormatting($groceryCrud): void
+	{
+		helper('datetime_es');
+
+		$dateFields = ['created_at', 'updated_at', 'started_at', 'finished_at'];
+		foreach ($dateFields as $field) {
+			$groceryCrud->callbackColumn($field, static function ($value) use ($field) {
+				$fallback = in_array($field, ['started_at', 'finished_at'], true) ? 'Pendiente' : 'N/A';
+				return format_datetime_es($value, true, $fallback);
+			});
+		}
+	}
 }

@@ -111,6 +111,13 @@
 									<?= perm_audit_tag('menu_tramites', $session) ?>
 								</a></li>
 							<?php endif; ?>
+							<?php if (has_permission('menu_tramites', $session->get('user_permissions'), $session->get('user_roles')) && has_permission('create_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+								<li><a href="<?php echo base_url('deskapp/tramites_masivos/import'); ?>">
+									<i class="fas fa-file-upload text-success"></i> Trámites Masivos
+									<?= perm_audit_tag('menu_tramites', $session) ?>
+									<?= perm_audit_tag('create_tramite', $session) ?>
+								</a></li>
+							<?php endif; ?>
 							<?php if (has_permission('listar_tramites_concluidos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/concluido/final'); ?>">
 									<i class="fas fa-check-circle"></i> Concluidos

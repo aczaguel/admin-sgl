@@ -827,7 +827,7 @@ class Concluido extends BaseController
         }
 
         $db = \Config\Database::connect();
-    
+
         switch ($type) {
             case 'gestor':
                 $builder = $db->table('ges_gestor');
@@ -860,7 +860,7 @@ class Concluido extends BaseController
                 $result = [];
                 break;
         }
-    
+
         return $this->response->setJSON($result);
     }
 
@@ -2978,6 +2978,7 @@ class Concluido extends BaseController
         $config = (new ConfigGroceryCrud())->getDefaultConfig();
 
         $groceryCrud = new GroceryCrud($config, $db);
+        $this->applyDefaultCrudDateTimeFormatting($groceryCrud);
         return $groceryCrud;
     }
 

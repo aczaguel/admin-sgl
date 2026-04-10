@@ -14,21 +14,38 @@ if (!function_exists('format_datetime_es')) {
             return $fallback;
         }
 
-        $ts = strtotime((string) $value);
-        if (!$ts) {
+        try {
+            $timezoneName = function_exists('app_timezone') ? app_timezone() : date_default_timezone_get();
+            $timezone = new \DateTimeZone($timezoneName ?: 'America/Mexico_City');
+
+            if ($value instanceof \DateTimeInterface) {
+                $dateTime = \DateTimeImmutable::createFromInterface($value)->setTimezone($timezone);
+            } else {
+                $rawValue = trim((string) $value);
+                if ($rawValue === '') {
+                    return $fallback;
+                }
+
+                $hasExplicitTimezone = (bool) preg_match('/(?:Z|[+-]\d{2}:?\d{2})$/i', $rawValue);
+                $dateTime = $hasExplicitTimezone
+                    ? new \DateTimeImmutable($rawValue)
+                    : new \DateTimeImmutable($rawValue, $timezone);
+                $dateTime = $dateTime->setTimezone($timezone);
+            }
+        } catch (\Throwable $e) {
             return (string) $value;
         }
 
         $months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-        $mIndex = (int) date('n', $ts);
+        $mIndex = (int) $dateTime->format('n');
         $mon = $months[max(1, min(12, $mIndex)) - 1];
 
-        $datePart = date('j', $ts) . ' ' . $mon . ' ' . date('Y', $ts);
+        $datePart = $dateTime->format('j') . ' ' . $mon . ' ' . $dateTime->format('Y');
         if (!$withTime) {
             return $datePart;
         }
 
-        return $datePart . ', ' . date('H:i', $ts);
+        return $datePart . ', ' . $dateTime->format('H:i');
     }
 }
 

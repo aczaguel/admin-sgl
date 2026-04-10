@@ -29,7 +29,7 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
       }
   });
 }
-  
+
   $(document).ready(function() {
     $('#cli_directo_id').change(function() {
         var clienteDirectoId = $(this).val();

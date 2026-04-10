@@ -76,10 +76,11 @@ class Bitacora extends BaseController
         $session = session();
         $folio = trim((string) $this->request->getGet('folio'));
         $tramiteId = trim((string) $this->request->getGet('tramite_id'));
+        $contrato = trim((string) $this->request->getGet('contrato'));
 
         $validatedTramiteId = null;
 
-        if ($folio === '' && $tramiteId === '') {
+        if ($folio === '' && $tramiteId === '' && $contrato === '') {
             return redirect()->to(site_url('/bitacora/search'))->with('error', 'Selecciona un tramite para ver la bitacora.');
         }
 
@@ -90,6 +91,19 @@ class Bitacora extends BaseController
             $tramiteRow = $db->table('tramite')
                 ->select('id')
                 ->where('folio', $folio)
+                ->get()
+                ->getRowArray();
+
+            if (!$tramiteRow) {
+                return redirect()->to(site_url('/bitacora/search'))->with('error', 'Trámite no encontrado');
+            }
+
+            $validatedTramiteId = (int) $tramiteRow['id'];
+        } elseif ($contrato !== '') {
+            $db = ConfigDatabase::connect();
+            $tramiteRow = $db->table('tramite')
+                ->select('id')
+                ->where('contrato', $contrato)
                 ->get()
                 ->getRowArray();
 
@@ -139,6 +153,7 @@ class Bitacora extends BaseController
             'filters' => [
                 'folio' => $folio,
                 'tramite_id' => $tramiteId,
+                'contrato' => $contrato,
             ],
         ];
 
@@ -160,13 +175,13 @@ class Bitacora extends BaseController
         $userId = $session->get('id');
 
         $builder = $model
-            ->select('bitacora.tramite_id, bitacora.folio_tramite, MAX(bitacora.created_at) AS last_change, COUNT(*) AS total_changes')
-            ->groupBy('bitacora.tramite_id, bitacora.folio_tramite')
+            ->select('bitacora.tramite_id, bitacora.folio_tramite, t.contrato, MAX(bitacora.created_at) AS last_change, COUNT(*) AS total_changes')
+            ->join('tramite t', 't.id = bitacora.tramite_id', 'left')
+            ->groupBy('bitacora.tramite_id, bitacora.folio_tramite, t.contrato')
             ->orderBy('last_change', 'DESC')
             ->limit(100);
 
         if (!user_has_global_cliente_access($userId)) {
-            $builder->join('tramite t', 't.id = bitacora.tramite_id', 'inner');
             $builder->where(get_cliente_filter_sql($userId, 't'), null, false);
         }
 
@@ -294,6 +309,7 @@ class Bitacora extends BaseController
         $config = (new ConfigGroceryCrud())->getDefaultConfig();
 
         $groceryCrud = new GroceryCrud($config, $db);
+        $this->applyDefaultCrudDateTimeFormatting($groceryCrud);
         return $groceryCrud;
     }
 }

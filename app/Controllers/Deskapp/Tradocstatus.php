@@ -154,6 +154,7 @@ class Tradocstatus extends BaseController
         $config = (new ConfigGroceryCrud())->getDefaultConfig();
 
         $groceryCrud = new GroceryCrud($config, $db);
+        $this->applyDefaultCrudDateTimeFormatting($groceryCrud);
         return $groceryCrud;
     }
 }

@@ -2,6 +2,7 @@
 "use strict";
 function loadDependentData(type, parentId, targetId, selectedId = null) {
     console.log("loadDependentData");
+
   $.ajax({
       url: `/deskapp/tramites/getDependentData/${type}/${parentId}`,
       method: 'GET',
@@ -24,53 +25,53 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
       }
   });
 }
-  
-  $(document).ready(function() {
-    $('#cli_directo_id').change(function() {
-        var clienteDirectoId = $(this).val();
-        if(clienteDirectoId) {
-            $.ajax({
-                url: '/public/deskapp/tramites/getEjecutivosByClienteId/' + clienteDirectoId,
-                type: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    $('#cli_directo_ejecutivo_id').empty();
-                    $('#cli_directo_ejecutivo_id').append('<option value="">Seleccione un Ejecutivo</option>');
-                    $.each(data, function(key, value) {
-                        $('#cli_directo_ejecutivo_id').append('<option value="'+ key +'">'+ value +'</option>');
-                    });
-                }
-            });
-        } else {
-            $('#cli_directo_ejecutivo_id').empty();
-            $('#cli_directo_ejecutivo_id').append('<option value="">Seleccione un Ejecutivo</option>');
-        }
-    });
 
-    $('#empresa_gestora_id').change(function() {
-      var empresaGestoraId = $(this).val();
-      if(empresaGestoraId) {
-        $.ajax({
-          url: '/public/deskapp/tramites/getGestoresByEmpresaId/' + empresaGestoraId,
-          type: 'GET',
-          dataType: 'json',
-          success: function(data) {
-            $('#gestor_id').empty();
-            $('#gestor_id').append('<option value="">Seleccione un Gestor</option>');
-            $.each(data, function(key, value) {
-              $('#gestor_id').append('<option value="'+ key +'">'+ value +'</option>');
-            });
-          },
-          error: function(jqXHR, textStatus, errorThrown) {
-            console.error('Error loading gestores: ' + textStatus);
-          }
+    $(document).ready(function() {
+        $('#cli_directo_id').change(function() {
+                var clienteDirectoId = $(this).val();
+                if(clienteDirectoId) {
+                        $.ajax({
+                                url: '/public/deskapp/tramites/getEjecutivosByClienteId/' + clienteDirectoId,
+                                type: 'GET',
+                                dataType: 'json',
+                                success: function(data) {
+                                        $('#cli_directo_ejecutivo_id').empty();
+                                        $('#cli_directo_ejecutivo_id').append('<option value="">Seleccione un Ejecutivo</option>');
+                                        $.each(data, function(key, value) {
+                                                $('#cli_directo_ejecutivo_id').append('<option value="'+ key +'">'+ value +'</option>');
+                                        });
+                                }
+                        });
+                } else {
+                        $('#cli_directo_ejecutivo_id').empty();
+                        $('#cli_directo_ejecutivo_id').append('<option value="">Seleccione un Ejecutivo</option>');
+                }
         });
-      } else {
-        $('#gestor_id').empty();
-        $('#gestor_id').append('<option value="">Seleccione un Gestor</option>');
-      }
+
+        $('#empresa_gestora_id').change(function() {
+            var empresaGestoraId = $(this).val();
+            if(empresaGestoraId) {
+                $.ajax({
+                    url: '/public/deskapp/tramites/getGestoresByEmpresaId/' + empresaGestoraId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#gestor_id').empty();
+                        $('#gestor_id').append('<option value="">Seleccione un Gestor</option>');
+                        $.each(data, function(key, value) {
+                            $('#gestor_id').append('<option value="'+ key +'">'+ value +'</option>');
+                        });
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error('Error loading gestores: ' + textStatus);
+                    }
+                });
+            } else {
+                $('#gestor_id').empty();
+                $('#gestor_id').append('<option value="">Seleccione un Gestor</option>');
+            }
+        });
     });
-  });
 
   $(document).ready(function() {
     // Inicializar flatpickr

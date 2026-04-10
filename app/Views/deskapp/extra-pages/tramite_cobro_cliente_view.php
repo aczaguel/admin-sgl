@@ -89,11 +89,22 @@
 
 <div class="main-container <?= $isReadOnlyMode ? 'sgl-readonly-mode' : '' ?>">
 	<div class="pd-20 card-box mb-30 sgl-page-tight">
+		<?php $headerContrato = $contrato ?? ($final_campos['contrato']['value'] ?? null); ?>
 		<div class="tramite-header-modern sgl-header-compact">
 			<div class="d-flex justify-content-between align-items-center mb-2">
-				<div class="folio-badge">
-					<i class="fas fa-file-alt"></i>
-					<?= isset($folio) ? esc($folio) : '--' ?>
+				<div class="d-flex align-items-center" style="gap:8px;flex-wrap:wrap;">
+					<div class="status-badge status-id">
+						<i class="fas fa-hashtag"></i>
+						ID: <?= isset($id) && $id !== '' ? esc((string) $id) : '--' ?>
+					</div>
+					<div class="folio-badge">
+						<i class="fas fa-file-alt"></i>
+						Folio: <?= isset($folio) ? esc($folio) : '--' ?>
+					</div>
+					<div class="folio-badge">
+						<i class="fas fa-file-signature"></i>
+						Contrato: <?= ($headerContrato !== null && $headerContrato !== '') ? esc($headerContrato) : '--' ?>
+					</div>
 				</div>
 				<div class="status-badge">
 					<i class="fas fa-circle"></i>

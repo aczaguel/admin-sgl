@@ -217,9 +217,11 @@ class Tramitesn extends Tramites
         $tramiteId = (int) ($this->request->getPost('tramite_id') ?? 0);
         $folio = trim((string) ($this->request->getPost('folio') ?? ''));
         $folio = strtoupper($folio);
+        $contrato = trim((string) ($this->request->getPost('contrato') ?? ''));
+        $contrato = strtoupper($contrato);
 
-        if ($tramiteId <= 0 && $folio === '') {
-            return redirect()->to('/deskapp/tramitesn/search')->with('error', 'Ingresa el ID del trámite o el folio.');
+        if ($tramiteId <= 0 && $folio === '' && $contrato === '') {
+            return redirect()->to('/deskapp/tramitesn/search')->with('error', 'Ingresa el ID del trámite, el folio o el contrato.');
         }
 
         $db = \Config\Database::connect();
@@ -227,8 +229,10 @@ class Tramitesn extends Tramites
 
         if ($tramiteId > 0) {
             $tramiteRow = $db->table('tramite')->select('id, folio')->where('id', $tramiteId)->get()->getRowArray();
-        } else {
+        } elseif ($folio !== '') {
             $tramiteRow = $db->table('tramite')->select('id, folio')->where('folio', $folio)->get()->getRowArray();
+        } else {
+            $tramiteRow = $db->table('tramite')->select('id, folio')->where('contrato', $contrato)->get()->getRowArray();
         }
 
         $resolvedId = (int) ($tramiteRow['id'] ?? 0);
@@ -2760,6 +2764,7 @@ class Tramitesn extends Tramites
 
         $data['id'] = $id;
         $data['folio'] = $tramite['folio'];
+        $data['contrato'] = $tramite['contrato'];
         $data['tra_status'] = $tra_status_options[$tramite['tra_status_id']] ?? '';
         $data['tra_status_id'] = $tramite['tra_status_id'];
         $data['created_at'] = $tramite['created_at'];
