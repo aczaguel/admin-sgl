@@ -109,6 +109,29 @@
 										</div>
 
 										<div class="row">
+											<div class="col-md-12 text-center">
+												<h6 class="mb-0 mt-20 mb-20">O</h6>
+											</div>
+										</div>
+
+										<div class="row">
+											<div class="col-md-12">
+												<div class="form-group">
+													<label>Buscar por Contrato:</label>
+													<input type="text"
+														name="contrato"
+														id="contrato"
+														class="form-control text-uppercase"
+														placeholder="Ej: ABC12345"
+														style="text-transform: uppercase;">
+													<small class="form-text text-muted">
+														Puedes buscar directamente por el contrato del trámite
+													</small>
+												</div>
+											</div>
+										</div>
+
+										<div class="row">
 											<div class="col-md-12">
 												<div class="form-group text-center mt-30">
 													<button type="submit" class="btn btn-primary btn-lg">
@@ -140,6 +163,7 @@
 								<tr>
 									<th>Tramite ID</th>
 									<th>Folio</th>
+									<th>Contrato</th>
 									<th>Ultimo cambio</th>
 									<th>Total movimientos</th>
 									<th></th>
@@ -151,6 +175,7 @@
 										<tr>
 											<td><?= esc($item['tramite_id'] ?? 'N/A') ?></td>
 											<td><?= esc($item['folio_tramite'] ?? 'N/A') ?></td>
+											<td><?= esc($item['contrato'] ?? 'N/A') ?></td>
 											<td>
 												<?= esc(format_datetime_es($item['last_change'] ?? null, true, 'N/A')) ?>
 											</td>
@@ -195,13 +220,18 @@
 			this.value = this.value.toUpperCase();
 		});
 
+		$('#contrato').on('input', function() {
+			this.value = this.value.toUpperCase();
+		});
+
 		$('#searchBitacoraForm').on('submit', function(e) {
 			e.preventDefault();
 			const tramiteId = $('#tramite_id').val();
 			const folio = $('#folio').val().trim();
+			const contrato = $('#contrato').val().trim();
 
-			if (!tramiteId && !folio) {
-				showBitacoraError('Por favor ingresa el ID del tramite o el folio');
+			if (!tramiteId && !folio && !contrato) {
+				showBitacoraError('Por favor ingresa el ID del tramite, el folio o el contrato');
 				return;
 			}
 
@@ -210,7 +240,12 @@
 				return;
 			}
 
-			window.location.href = '<?= site_url('/bitacora/timeline') ?>?folio=' + encodeURIComponent(folio);
+			if (folio) {
+				window.location.href = '<?= site_url('/bitacora/timeline') ?>?folio=' + encodeURIComponent(folio);
+				return;
+			}
+
+			window.location.href = '<?= site_url('/bitacora/timeline') ?>?contrato=' + encodeURIComponent(contrato);
 		});
 
 	function showBitacoraError(message) {

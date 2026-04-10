@@ -160,7 +160,13 @@
 									<input type="text" name="tramite_id" class="form-control" value="<?= esc($filters['tramite_id'] ?? '') ?>" placeholder="Ej: 108">
 								</div>
 							</div>
-							<div class="col-md-4 d-flex align-items-end">
+							<div class="col-md-4">
+								<div class="form-group">
+									<label>Contrato</label>
+									<input type="text" name="contrato" class="form-control" value="<?= esc($filters['contrato'] ?? '') ?>" placeholder="Ej: ABC12345">
+								</div>
+							</div>
+							<div class="col-md-12 d-flex align-items-end">
 								<div class="form-group mb-0">
 									<button type="submit" class="btn btn-primary">Filtrar</button>
 									<a href="<?= base_url('bitacora/timeline') ?>" class="btn btn-outline-secondary">Limpiar</a>

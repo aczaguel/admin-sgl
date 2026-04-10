@@ -830,6 +830,8 @@ class ClienteTramites extends BaseController
         $db = $this->_getDbData();
         $config = (new ConfigGroceryCrud())->getDefaultConfig();
 
-        return new GroceryCrud($config, $db);
+        $groceryCrud = new GroceryCrud($config, $db);
+        $this->applyDefaultCrudDateTimeFormatting($groceryCrud);
+        return $groceryCrud;
     }
 }

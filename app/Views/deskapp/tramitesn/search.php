@@ -44,7 +44,7 @@
 							<i class="fas fa-search text-primary"></i> Buscar Trámite
 						</h4>
 						<p class="font-18 max-width-600">
-							Ingresa el ID o el folio para abrir el trámite en el flujo nuevo.
+							Ingresa el ID, el folio o el contrato para abrir el trámite en el flujo nuevo.
 						</p>
 					</div>
 				</div>
@@ -93,6 +93,22 @@
 											</div>
 										</div>
 
+									<div class="row">
+										<div class="col-md-12 text-center">
+											<h6 class="mb-0 mt-20 mb-20">O</h6>
+										</div>
+									</div>
+
+									<div class="row">
+										<div class="col-md-12">
+											<div class="form-group">
+												<label>Buscar por Contrato:</label>
+												<input type="text" name="contrato" id="contrato" class="form-control text-uppercase" placeholder="Ej: ABC12345" style="text-transform: uppercase;">
+												<small class="form-text text-muted">El contrato se convertirá a mayúsculas automáticamente.</small>
+											</div>
+										</div>
+									</div>
+
 										<div class="row">
 											<div class="col-md-12">
 												<div class="form-group text-center mt-30">
@@ -121,7 +137,7 @@
 	<script src="<?= base_url() ?>/public/assets/vendors/scripts/layout-settings.js"></script>
 	<script>
 		$(document).ready(function() {
-			$('#folio').on('input', function() {
+			$('#folio, #contrato').on('input', function() {
 				this.value = this.value.toUpperCase();
 			});
 		});

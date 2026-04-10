@@ -246,6 +246,7 @@ if ($wizardTargetIndex !== false) {
 			<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
 		</li>
 	<?php endif; ?>
+	<?php $headerContrato = $contrato ?? ($fields['contrato']['value'] ?? $gestor_campos['contrato']['value'] ?? $derechos_campos['contrato']['value'] ?? $pago_gestor['contrato']['value'] ?? $final_campos['contrato']['value'] ?? null); ?>
 	<div class="main-container">
 		<!-- Header Moderno del Trámite -->
 		<div class="tramite-header-modern">
@@ -261,7 +262,7 @@ if ($wizardTargetIndex !== false) {
 					</div>
 					<div class="folio-badge">
 						<i class="fas fa-file-signature"></i>
-						Contrato: <?= isset($contrato) ? esc($contrato) : '--' ?>
+						Contrato: <?= ($headerContrato !== null && $headerContrato !== '') ? esc($headerContrato) : '--' ?>
 					</div>
 				</div>
 				<div class="status-badge status-<?php 

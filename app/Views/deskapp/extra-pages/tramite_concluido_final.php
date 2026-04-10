@@ -132,6 +132,7 @@ if (isset($tra_status_id)) {
 			<a class="nav-link text-blue" data-toggle="tab" href="#final_evi" role="tab" aria-selected="false">Evidencias Finales</a>
 		</li>
 	<?php endif; ?>
+	<?php $headerContrato = $contrato ?? ($fields['contrato']['value'] ?? $gestor_campos['contrato']['value'] ?? $derechos_campos['contrato']['value'] ?? $bancario_campos['contrato']['value'] ?? $pago_gestor['contrato']['value'] ?? $final_campos['contrato']['value'] ?? null); ?>
 	<div class="main-container">
 		
 		<div class="header_wizard">
@@ -154,7 +155,9 @@ if (isset($tra_status_id)) {
 				</div>
 			</div>
 			<div class="header_wizard-bottom">
-				<strong>FOLIO: <?php echo (isset($folio)?$folio:"");?> </strong>
+				<strong>ID: <?php echo isset($id) ? esc((string) $id) : '--'; ?> </strong>
+				<strong class="ml-3">FOLIO: <?php echo isset($folio) ? esc($folio) : '--'; ?> </strong>
+				<strong class="ml-3">CONTRATO: <?php echo ($headerContrato !== null && $headerContrato !== '') ? esc($headerContrato) : '--'; ?> </strong>
 			</div>
 			<?php if (has_permission('important_cancelar_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 				<div class="header_wizard-bottom">

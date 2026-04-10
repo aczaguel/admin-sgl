@@ -60,6 +60,7 @@ class CorrecionTramites extends BaseController
         $db = $this->_getDbData();
         $config = (new ConfigGroceryCrud())->getDefaultConfig();
         $groceryCrud = new GroceryCrud($config, $db);
+        $this->applyDefaultCrudDateTimeFormatting($groceryCrud);
         return $groceryCrud;
     }
 
