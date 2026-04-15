@@ -34,6 +34,18 @@ class UserModel extends Model
 {
     protected $table = 'users';
     protected $allowedFields = ['username','firstname','midname','lastname','email','phone','avatar','password','status','created_at','updated_at'];
+
+    private function normalizeRoleKeyLocal($role): string
+    {
+        if (!is_string($role)) {
+            return '';
+        }
+
+        $role = strtolower(trim($role));
+        $role = preg_replace('/[\s_\-]+/', '', $role);
+
+        return is_string($role) ? $role : '';
+    }
     
     public function getuser()
     {
@@ -110,6 +122,93 @@ class UserModel extends Model
         $builder->where('ur.user_id', $userId);
         $query = $builder->get();
         return $this->extractRoleNames($query->getResultArray());
+    }
+
+    public function getRolePermissionsById(int $roleId): array
+    {
+        if ($roleId <= 0) {
+            return [];
+        }
+
+        $builder = $this->db->table('us_role_permissions as rp');
+        $builder->select('p.permission_name');
+        $builder->join('us_permissions as p', 'rp.permission_id = p.id', 'inner');
+        $builder->where('rp.role_id', $roleId);
+
+        $db = $this->db;
+        $permHasStatus = (is_object($db) && method_exists($db, 'fieldExists') && $db->fieldExists('status', 'us_permissions'));
+        if ($permHasStatus) {
+            $builder->where('p.status', 1);
+        }
+
+        $rows = $builder->get()->getResultArray();
+        $permissions = $this->extractPermissionNames($rows);
+        $permissions = array_values(array_unique($permissions));
+        sort($permissions, SORT_STRING);
+
+        return $permissions;
+    }
+
+    public function getAvailableRoles(bool $excludeDebug = false): array
+    {
+        $builder = $this->db->table('us_roles');
+        $builder->select('id, role_name');
+
+        $db = $this->db;
+        $roleHasStatus = (is_object($db) && method_exists($db, 'fieldExists') && $db->fieldExists('status', 'us_roles'));
+        if ($roleHasStatus) {
+            $builder->where('status', 1);
+        }
+
+        $rows = $builder
+            ->orderBy('role_name', 'asc')
+            ->get()
+            ->getResultArray();
+
+        if (!$excludeDebug) {
+            return $rows;
+        }
+
+        return array_values(array_filter($rows, function (array $row): bool {
+            return $this->normalizeRoleKeyLocal($row['role_name'] ?? '') !== 'debug';
+        }));
+    }
+
+    public function findRoleByNormalizedKey(string $roleKey): ?array
+    {
+        $roleKey = $this->normalizeRoleKeyLocal($roleKey);
+        if ($roleKey === '') {
+            return null;
+        }
+
+        foreach ($this->getAvailableRoles(false) as $role) {
+            if ($this->normalizeRoleKeyLocal($role['role_name'] ?? '') === $roleKey) {
+                return $role;
+            }
+        }
+
+        return null;
+    }
+
+    public function findRoleById(int $roleId): ?array
+    {
+        if ($roleId <= 0) {
+            return null;
+        }
+
+        $builder = $this->db->table('us_roles');
+        $builder->select('id, role_name');
+        $builder->where('id', $roleId);
+
+        $db = $this->db;
+        $roleHasStatus = (is_object($db) && method_exists($db, 'fieldExists') && $db->fieldExists('status', 'us_roles'));
+        if ($roleHasStatus) {
+            $builder->where('status', 1);
+        }
+
+        $row = $builder->get()->getRowArray();
+
+        return $row ?: null;
     }
 
     /**

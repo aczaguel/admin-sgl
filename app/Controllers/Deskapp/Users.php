@@ -83,6 +83,124 @@ class Users extends BaseController
         return null;
     }
 
+    private function hasDebugRoleAccess(array $roles, array $perms): bool
+    {
+        if (in_array('debug_perm_audit_tags', normalize_permission_list($perms), true)) {
+            return true;
+        }
+
+        foreach (normalize_permission_list($roles) as $roleName) {
+            if (normalize_role_key($roleName) === 'debug') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function getDebugMarkerRoleName(array $roles): string
+    {
+        foreach (normalize_permission_list($roles) as $roleName) {
+            if (normalize_role_key($roleName) === 'debug') {
+                return (string) $roleName;
+            }
+        }
+
+        return 'Debug';
+    }
+
+    private function applyDebugRoleToSession($session, UserModel $userModel, int $roleId, string $debugRoleName): bool
+    {
+        $role = $userModel->findRoleById($roleId);
+        if ($role === null) {
+            return false;
+        }
+
+        $selectedRoleName = trim((string) ($role['role_name'] ?? ''));
+        if ($selectedRoleName === '' || normalize_role_key($selectedRoleName) === 'debug') {
+            return false;
+        }
+
+        $effectivePermissions = $userModel->getRolePermissionsById($roleId);
+        if (!in_array('debug_perm_audit_tags', $effectivePermissions, true)) {
+            $effectivePermissions[] = 'debug_perm_audit_tags';
+        }
+        $effectivePermissions = array_values(array_unique($effectivePermissions));
+        sort($effectivePermissions, SORT_STRING);
+
+        $effectiveRoles = [$selectedRoleName];
+        if (normalize_role_key($debugRoleName) !== normalize_role_key($selectedRoleName)) {
+            $effectiveRoles[] = $debugRoleName;
+        }
+
+        $session->set([
+            'user_roles' => $effectiveRoles,
+            'user_permissions' => $effectivePermissions,
+            'debug_selected_role_id' => $roleId,
+            'debug_selected_role_name' => $selectedRoleName,
+            'debug_can_switch_roles' => true,
+            'auth_is_debug' => true,
+            'auth_debug_role_name' => $debugRoleName,
+        ]);
+
+        return true;
+    }
+
+    private function ensureDebugRoleContext($session, UserModel $userModel): array
+    {
+        $userId = (int) ($session->get('id') ?? 0);
+        if ($userId <= 0) {
+            return [false, [], 0, ''];
+        }
+
+        $authRoles = $userModel->getUserRoles($userId);
+        $authPerms = $userModel->getUserPermissions($userId);
+        $session->set('auth_user_roles', $authRoles);
+        $session->set('auth_user_permissions', $authPerms);
+
+        $sessionDebugFlag = (bool) ($session->get('auth_is_debug') || $session->get('debug_can_switch_roles'));
+        $isDebugUser = $sessionDebugFlag || $this->hasDebugRoleAccess($authRoles, $authPerms);
+        $session->set('auth_is_debug', $isDebugUser);
+
+        if (!$isDebugUser) {
+            $session->set('debug_can_switch_roles', false);
+            return [false, [], 0, ''];
+        }
+
+        $debugRoleName = $this->getDebugMarkerRoleName($authRoles);
+        $session->set('auth_debug_role_name', $debugRoleName);
+        $session->set('debug_can_switch_roles', true);
+
+        $roleOptions = $userModel->getAvailableRoles(true);
+        $selectedRoleId = (int) ($session->get('debug_selected_role_id') ?? 0);
+        $selectedRoleName = (string) ($session->get('debug_selected_role_name') ?? '');
+        $selectedRole = $selectedRoleId > 0 ? $userModel->findRoleById($selectedRoleId) : null;
+
+        if ($selectedRole === null || normalize_role_key((string) ($selectedRole['role_name'] ?? '')) === 'debug') {
+            $selectedRole = $userModel->findRoleByNormalizedKey('admin');
+            if ($selectedRole === null) {
+                foreach ($roleOptions as $availableRole) {
+                    if (normalize_role_key((string) ($availableRole['role_name'] ?? '')) !== 'debug') {
+                        $selectedRole = $availableRole;
+                        break;
+                    }
+                }
+            }
+
+            if ($selectedRole !== null) {
+                $this->applyDebugRoleToSession($session, $userModel, (int) ($selectedRole['id'] ?? 0), $debugRoleName);
+                $selectedRoleId = (int) ($selectedRole['id'] ?? 0);
+                $selectedRoleName = (string) ($selectedRole['role_name'] ?? '');
+            }
+        }
+
+        $roleOptions = array_values(array_filter($roleOptions, static function (array $role): bool {
+            return normalize_role_key((string) ($role['role_name'] ?? '')) !== 'debug';
+        }));
+
+        return [true, $roleOptions, $selectedRoleId, $selectedRoleName];
+    }
+
     public function index()
     {
         if ($resp = $this->guardManagementAccess()) {
@@ -1190,14 +1308,46 @@ class Users extends BaseController
         
         // Obtener datos del usuario actual
         $user = $userModel->find($session->get('id'));
+        [$isDebugUser, $debugRoleOptions, $debugSelectedRoleId, $debugSelectedRoleName] = $this->ensureDebugRoleContext($session, $userModel);
+
         $data = [
             'session' => $session,
             'username' => $session->get('user_name'),
             'user' => $user,
+            'debugRoleSwitcherEnabled' => $isDebugUser,
+            'debugRoleOptions' => $debugRoleOptions,
+            'debugSelectedRoleId' => $debugSelectedRoleId,
+            'debugSelectedRoleName' => $debugSelectedRoleName,
             'title' => 'Mi Perfil'
         ];
         
         return view('deskapp/users/profile', $data);
+    }
+
+    public function switch_debug_role()
+    {
+        if ($resp = $this->guardSessionOnly(false)) {
+            return $resp;
+        }
+
+        $session = session();
+        $db = \Config\Database::connect();
+        $userModel = new UserModel($db);
+        [$isDebugUser] = $this->ensureDebugRoleContext($session, $userModel);
+
+        if (!$isDebugUser) {
+            return redirect()->to('/users/profile')->with('error', 'No tienes acceso al cambio de rol Debug.');
+        }
+
+        $roleId = (int) ($this->request->getPost('role_id') ?? 0);
+        $debugRoleName = (string) ($session->get('auth_debug_role_name') ?? 'Debug');
+
+        if ($roleId <= 0 || !$this->applyDebugRoleToSession($session, $userModel, $roleId, $debugRoleName)) {
+            return redirect()->to('/users/profile')->with('error', 'Rol Debug inválido.');
+        }
+
+        $selectedRoleName = (string) ($session->get('debug_selected_role_name') ?? '');
+        return redirect()->to('/users/profile')->with('success', '✓ Rol Debug actualizado a ' . $selectedRoleName);
     }
 
     public function update_profile()
