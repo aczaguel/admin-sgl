@@ -158,14 +158,24 @@
 			</div>
 		</div>
 
-		<?php if (has_permission('important_concluir_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-			<?php if ((int) ($tra_status_id ?? 0) === 28): ?>
-				<div class="header-actions" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;">
+		<?php
+			$canHeaderHistorialActividad = has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $session->get('user_permissions'), $session->get('user_roles'));
+			$canConcluirTramite = has_permission('important_concluir_tramite', $session->get('user_permissions'), $session->get('user_roles'))
+				&& (int) ($tra_status_id ?? 0) === 28;
+		?>
+		<?php if ($canHeaderHistorialActividad || $canConcluirTramite): ?>
+			<div class="header-actions" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;">
+				<?php if ($canHeaderHistorialActividad): ?>
+					<a href="<?= site_url('/deskapp/tramites/audit_timeline/' . (int) ($id ?? 0)) ?>" class="btn btn-sm btn-info sgl-btn-pill">
+						<i class="fas fa-stream"></i> Ver Historial de Actividad
+					</a>
+				<?php endif; ?>
+				<?php if ($canConcluirTramite): ?>
 					<button type="button" class="btn btn-sm btn-success sgl-btn-pill" onclick="concluirTramite(<?= (int) $id ?>, 20)">
 						<i class="fas fa-check-circle"></i> Concluir Tramite
 					</button>
-				</div>
-			<?php endif; ?>
+				<?php endif; ?>
+			</div>
 		<?php endif; ?>
 
 		<?php if (!empty($canSeeAnyQuickAction)): ?>

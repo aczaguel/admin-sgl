@@ -1,4 +1,11 @@
 <div class="sgl-step-center">
+	<?php if (has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $user_permissions ?? [], $user_roles ?? [])): ?>
+		<div class="d-flex justify-content-end mb-3">
+			<a href="<?= site_url('/deskapp/tramites/audit_timeline/' . (int) ($id ?? 0)) ?>" class="btn btn-info btn-sm sgl-btn-pill">
+				<i class="fas fa-stream"></i> Ver Historial de Actividad
+			</a>
+		</div>
+	<?php endif; ?>
 	<?php if ($showSection('generales')): ?>
 	<div class="sgl-step-form-ribbon <?= !empty($step1_complete) ? 'is-complete' : 'is-incomplete' ?>" data-ribbon-step="1">
 		<div class="sgl-icon"><i class="<?= !empty($step1_complete) ? 'fas fa-check' : 'fas fa-exclamation' ?>"></i></div>

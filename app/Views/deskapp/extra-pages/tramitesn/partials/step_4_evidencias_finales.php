@@ -7,6 +7,13 @@
 		$canNavigateCobroCliente = !empty($can_navigate_cobro_cliente);
 	?>
 	<div class="sgl-step-center mt-3">
+		<?php if (has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $user_permissions ?? [], $user_roles ?? [])): ?>
+			<div class="d-flex justify-content-end mb-3">
+				<a href="<?= site_url('/deskapp/tramites/audit_timeline/' . (int) ($id ?? 0)) ?>" class="btn btn-info btn-sm sgl-btn-pill">
+					<i class="fas fa-stream"></i> Ver Historial de Actividad
+				</a>
+			</div>
+		<?php endif; ?>
 		<div class="sgl-step-form-ribbon" data-ribbon-step="4" data-has-tramite-recibido="<?= $hasTramiteRecibido ? '1' : '0' ?>" data-has-acuse-recibo="<?= $hasAcuseRecibo ? '1' : '0' ?>">
 			<div class="sgl-icon"><i class="fas fa-cloud-upload-alt"></i></div>
 			<div>
