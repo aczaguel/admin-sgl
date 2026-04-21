@@ -1635,6 +1635,12 @@ class Tramites extends BaseController
                 $bitacoraModel = new BitacoraModel($db2);
                 $data_bitacora = $data;
                 $diferencias = $this->encontrarDiferencias([], $data_bitacora);
+                if ($forceConfirm) {
+                    $diferencias['confirmacion_modal_duplicado'] = [
+                        'valor_original' => '',
+                        'valor_nuevo' => 'Si'
+                    ];
+                }
                 $insert_bitacora = [
                     "id"=>null,
                     "tipo"=>"insert",
@@ -1655,11 +1661,15 @@ class Tramites extends BaseController
                 $tra_user_log->insert($log, 'tra_user_log');
 
                 // AUDITORÍA: Registrar creación del trámite
+                $auditDescription = $forceConfirm
+                    ? "Trámite creado con folio {$newFolio} tras confirmar duplicado en modal"
+                    : "Trámite creado con folio {$newFolio}";
+
                 log_tramite_change(
                     $lastInsertID,
                     'insert',
                     'tramite',
-                    "Trámite creado con folio {$newFolio}",
+                    $auditDescription,
                     null,
                     null,
                     null,
@@ -1667,7 +1677,8 @@ class Tramites extends BaseController
                         'folio' => $newFolio,
                         'tipo_tramite_id' => $tra_tipos_id,
                         'contrato' => $data['contrato'] ?? null,
-                        'serie' => $data['serie'] ?? null
+                        'serie' => $data['serie'] ?? null,
+                        'confirmacion_modal_duplicado' => $forceConfirm
                     ]
                 );
 
@@ -8307,8 +8318,11 @@ class Tramites extends BaseController
         $userId = (int) ($session->get('id') ?? 0);
         [$roles, $perms] = session_roles_perms($session);
 
-        if ($resp = acl_require_permission('monitoreo_auditoria_tramite', $roles, $perms, 'No tienes permisos para acceder a esta función', '/deskapp/dashboard', 403, false)) {
-            return $resp;
+        $canViewAuditTimeline = has_permission('monitoreo_auditoria_tramite', $perms, $roles)
+            || has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $perms, $roles);
+
+        if (!$canViewAuditTimeline) {
+            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para acceder a esta función');
         }
         
         if (!$tramiteId || !is_numeric($tramiteId) || (int) $tramiteId <= 0) {

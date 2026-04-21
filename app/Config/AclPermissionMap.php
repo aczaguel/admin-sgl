@@ -169,6 +169,7 @@ class AclPermissionMap extends BaseConfig
         'list_cobro_cliente' => 'Listar cobros a cliente',
         'quick_action_documentos' => 'Ver acciones rapidas de documentos',
         'quick_action_bitacora' => 'Ver acciones rapidas de bitacora',
+        'tramite_detalle_quick_actions_historial_actividad_ver' => 'Ver boton de historial de actividad',
         'quick_action_pagos_derecho' => 'Ver acciones rapidas de pagos de derecho',
         'quick_action_pago_gestor' => 'Ver acciones rapidas de pago a gestor',
         'quick_action_evidencias_finales' => 'Ver acciones rapidas de evidencias finales',
