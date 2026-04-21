@@ -115,7 +115,7 @@ class Concluido extends BaseController
             $tramite_crud->setSubject('tramite', 'Tramites');
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
                  
-            $tramite_crud->where("tra_status_id IN (20)");
+            $tramite_crud->where('tra_status_id IN (' . SGL_TRA_STATUS_CONCLUIDO . ')');
 
             $tramite_crud->columns([
                 'id', 'reembolso_status_id', 'created_at', 'tra_status_id', 'folio', 'contrato', 'unidad', 'serie', 
@@ -135,18 +135,18 @@ class Concluido extends BaseController
                 $claseRojo = 'background-rojo'; // Clase para ambos pendientes
 
                 // Verificar si ambos procedimientos están pendientes
-                if (in_array($row->reembolso_status_id, [21, 22]) && $row->cobro_status_id == 22) {
+                if (in_array($row->reembolso_status_id, SGL_REEMBOLSO_STATUS_PENDING_IDS, true) && (int) $row->cobro_status_id === SGL_COBRO_STATUS_PENDIENTE) {
                     // Ambos están pendientes
                     $clase = $claseRojo;
                     $mensaje = 'Ambos Pendientes (Gestor y Cliente)';
                 } else {
                     // Si el cobro no está pendiente, evaluar reembolso_status_id
-                    if (in_array($row->reembolso_status_id, [21, 22])) {
+                    if (in_array($row->reembolso_status_id, SGL_REEMBOLSO_STATUS_PENDING_IDS, true)) {
                         // Pendiente, falta proceso por parte del gestor
                         $clase = $claseNaranjaCalido;
                         $mensaje = 'Pago Pendiente (Gestor)';
                     } else {
-                        if ($row->cobro_status_id == 22) {
+                        if ((int) $row->cobro_status_id === SGL_COBRO_STATUS_PENDIENTE) {
                             // Si el cobro del cliente está pendiente, mostrar "Pendiente (Cliente)"
                             $clase = $claseNaranjaFuerte;
                             $mensaje = 'Cobro Pendiente (Cliente)';
@@ -311,7 +311,7 @@ class Concluido extends BaseController
 
         $puede_modificar_pendiente = ["disabled"=>"disabled"];
         $reembolso_pendiente = false;
-        if(in_array($tramite['reembolso_status_id'], [21, 22])){
+        if (in_array($tramite['reembolso_status_id'], SGL_REEMBOLSO_STATUS_PENDING_IDS, true)) {
             $reembolso_pendiente = true;
             $puede_modificar_pendiente = [];
         }
@@ -1184,7 +1184,7 @@ class Concluido extends BaseController
         $canDelete = $canQuickAction && has_permission('quick_action_documentos_delete', $perms, $roles);
 
         // En concluidos/cancelados, el bloqueo es por estatus.
-        $isLocked = in_array($statusId, [20, 21], true);
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true);
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($request->isAJAX()) {
@@ -1537,7 +1537,7 @@ class Concluido extends BaseController
         $canDelete = $canQuickAction && has_permission('quick_action_bitacora_delete', $perms, $roles);
 
         // En concluidos/cancelados, el bloqueo es por estatus.
-        $isLocked = in_array($statusId, [20, 21], true);
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true);
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($request->isAJAX()) {
@@ -1794,7 +1794,7 @@ class Concluido extends BaseController
             && has_permission('can_upload_dropzone_pago_derechos', $perms, $roles);
 
         $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($statusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideReadonly) || !$canWrite;
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($request->isAJAX()) {
@@ -2182,7 +2182,7 @@ class Concluido extends BaseController
             && has_permission('can_upload_dropzone_pago_gestor', $perms, $roles);
 
         $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($statusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideReadonly) || !$canWrite;
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($request->isAJAX()) {
@@ -2481,7 +2481,7 @@ class Concluido extends BaseController
             && has_permission('can_upload_dropzone_cobro_cliente', $perms, $roles);
 
         $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($statusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideReadonly) || !$canWrite;
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($request->isAJAX()) {
@@ -2786,7 +2786,7 @@ class Concluido extends BaseController
         $canDelete = $canWrite && $canQuickAction && has_permission('quick_action_evidencias_finales_delete', $perms, $roles);
 
         $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($statusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideReadonly) || !$canWrite;
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($request->isAJAX()) {
@@ -3009,14 +3009,14 @@ class Concluido extends BaseController
 
             $requiredPermission = null;
             switch ($statusId) {
-                case 23:
+                case SGL_TRA_STATUS_PAGO_GESTOR:
                     $requiredPermission = 'important_pasar_a_pagos';
                     break;
-                case 20:
+                case SGL_TRA_STATUS_CONCLUIDO:
                     $requiredPermission = 'important_concluir_tramite';
                     break;
-                case 29:
-                case 11:
+                case SGL_TRA_STATUS_COTIZACION:
+                case SGL_TRA_STATUS_RECOLECCION_DCTOS:
                     $requiredPermission = 'important_cancelar_tramite';
                     break;
                 default:
@@ -3080,14 +3080,14 @@ class Concluido extends BaseController
 
             $requiredPermission = null;
             switch ($statusId) {
-                case 23:
+                case SGL_TRA_STATUS_PAGO_GESTOR:
                     $requiredPermission = 'important_pasar_a_pagos';
                     break;
-                case 20:
+                case SGL_TRA_STATUS_CONCLUIDO:
                     $requiredPermission = 'important_concluir_tramite';
                     break;
-                case 29:
-                case 11:
+                case SGL_TRA_STATUS_COTIZACION:
+                case SGL_TRA_STATUS_RECOLECCION_DCTOS:
                     $requiredPermission = 'important_cancelar_tramite';
                     break;
                 default:
@@ -3106,7 +3106,7 @@ class Concluido extends BaseController
             // Actualizar el estatus del trámite
 
             $builder->where('id', $tramiteId);
-            if($statusId == 20){
+            if ($statusId == SGL_TRA_STATUS_CONCLUIDO) {
                 $builder->update([
                     'finished_at' => date('Y-m-d H:i:s'),
                     'tra_status_id' => $statusId
@@ -3164,14 +3164,14 @@ class Concluido extends BaseController
 
             $requiredPermission = null;
             switch ($statusId) {
-                case 23:
+                case SGL_TRA_STATUS_PAGO_GESTOR:
                     $requiredPermission = 'important_pasar_a_pagos';
                     break;
-                case 20:
+                case SGL_TRA_STATUS_CONCLUIDO:
                     $requiredPermission = 'important_concluir_tramite';
                     break;
-                case 29:
-                case 11:
+                case SGL_TRA_STATUS_COTIZACION:
+                case SGL_TRA_STATUS_RECOLECCION_DCTOS:
                 default:
                     $requiredPermission = 'important_cancelar_tramite';
                     break;

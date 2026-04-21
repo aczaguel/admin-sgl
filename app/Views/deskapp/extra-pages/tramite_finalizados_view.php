@@ -204,7 +204,7 @@ if (isset($tra_status_id)) {
 											$submit_permission = 'editar_tramite';
 											$field_values = $fields;
 											$show_buttons = false;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 1);  
 										?>
 										<script>
 											var cliDirectoId = "<?php echo isset($fields['cli_directo']['value']) ? $fields['cli_directo']['value'] : ''; ?>";
@@ -225,9 +225,9 @@ if (isset($tra_status_id)) {
 											$form_action = "/deskapp/tramites/update_gestor_save/$id";
 											$form_id = 'gestorForm';
 											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_gestores';
+											$submit_permission = 'write_tramite_asigna_gestor';
 											$field_values = $gestor_campos;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session); 
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 2); 
 										?>
 									</div>
 									
@@ -248,10 +248,10 @@ if (isset($tra_status_id)) {
 											$form_action = "/deskapp/tramites/update_derechos_save/$id";
 											$form_id = 'derechosForm';
 											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_derechos';
+											$submit_permission = 'write_tramite_pago_derechos';
 											$field_values = $derechos_campos;
 											$show_buttons = false;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 3);  
 										?>										
 									</div>
 								</section>
@@ -270,7 +270,7 @@ if (isset($tra_status_id)) {
 											$submit_permission = 'editar_bancario';
 											$field_values = $bancario_campos;
 											$show_buttons = false;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 4);  
 										?>
 									</div>
 								</section>
@@ -299,7 +299,7 @@ if (isset($tra_status_id)) {
 											$submit_permission = 'editar_pago_gestor';
 											$field_values = $pago_gestor;
 											$show_buttons = $reembolso_pendiente;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 4);  
 										?>										
 									</div>
 									<hr>
@@ -324,7 +324,7 @@ if (isset($tra_status_id)) {
 											$submit_permission = 'editar_final';
 											$field_values = $final_campos;
 											$show_buttons = false;
-											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $show_buttons);  
+											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 5);  
 										?>	
 										<?php if (has_permission('important_concluir_tramite', $session->get('user_permissions'), $session->get('user_roles'))): 
 												if (!in_array($tra_status_id, array(20, 21))) : ?>

@@ -423,6 +423,227 @@
 				background-color: #0f172a;
 			}
 		}
+
+		<?php if (!empty($roles_permission_picker['zones'] ?? [])): ?>
+		.role-permission-picker {
+			margin-top: 12px;
+			border: 1px solid #dbe3ef;
+			border-radius: 12px;
+			background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+			padding: 18px;
+		}
+
+		.role-permission-picker__intro {
+			display: flex;
+			justify-content: space-between;
+			gap: 16px;
+			align-items: flex-start;
+			margin-bottom: 16px;
+			flex-wrap: wrap;
+		}
+
+		.role-permission-picker__title {
+			font-size: 16px;
+			font-weight: 700;
+			color: #0f172a;
+			margin-bottom: 4px;
+		}
+
+		.role-permission-picker__description {
+			font-size: 13px;
+			color: #475569;
+			max-width: 720px;
+		}
+
+		.role-permission-picker__summary {
+			font-size: 13px;
+			font-weight: 600;
+			color: #1d4ed8;
+			background: #dbeafe;
+			border-radius: 999px;
+			padding: 8px 12px;
+		}
+
+		.role-permission-picker__search {
+			margin-bottom: 16px;
+		}
+
+		.role-permission-picker__search input {
+			width: 100%;
+			border: 1px solid #cbd5e1;
+			border-radius: 10px;
+			padding: 11px 14px;
+			font-size: 14px;
+		}
+
+		.role-permission-picker__zones {
+			display: grid;
+			gap: 12px;
+		}
+
+		.role-permission-zone {
+			border: 1px solid #dbe3ef;
+			border-radius: 12px;
+			background: #ffffff;
+			overflow: hidden;
+		}
+
+		.role-permission-zone[hidden] {
+			display: none !important;
+		}
+
+		.role-permission-zone summary {
+			list-style: none;
+			cursor: pointer;
+			padding: 16px 18px;
+			background: #f8fafc;
+			display: flex;
+			justify-content: space-between;
+			gap: 12px;
+			align-items: flex-start;
+		}
+
+		.role-permission-zone summary::-webkit-details-marker {
+			display: none;
+		}
+
+		.role-permission-zone__title {
+			font-size: 15px;
+			font-weight: 700;
+			color: #0f172a;
+			margin-bottom: 4px;
+		}
+
+		.role-permission-zone__description {
+			font-size: 12px;
+			color: #64748b;
+		}
+
+		.role-permission-zone__meta {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+
+		.role-permission-zone__count {
+			font-size: 12px;
+			font-weight: 700;
+			padding: 6px 10px;
+			border-radius: 999px;
+			background: #e2e8f0;
+			color: #1e293b;
+		}
+
+		.role-permission-zone__body {
+			padding: 14px 18px 18px;
+		}
+
+		.role-permission-zone__toolbar {
+			display: flex;
+			justify-content: flex-end;
+			gap: 8px;
+			margin-bottom: 12px;
+			flex-wrap: wrap;
+		}
+
+		.role-permission-zone__toolbar button {
+			border: 1px solid #cbd5e1;
+			background: #ffffff;
+			border-radius: 999px;
+			padding: 6px 10px;
+			font-size: 12px;
+			font-weight: 600;
+			color: #334155;
+		}
+
+		.role-permission-zone__list {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+			gap: 10px;
+		}
+
+		.role-permission-item {
+			display: flex;
+			gap: 12px;
+			align-items: flex-start;
+			border: 1px solid #e2e8f0;
+			border-radius: 10px;
+			padding: 12px;
+			background: #ffffff;
+			transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+		}
+
+		.role-permission-item:hover {
+			border-color: #93c5fd;
+			box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+		}
+
+		.role-permission-item--checked {
+			background: #eff6ff;
+			border-color: #60a5fa;
+		}
+
+		.role-permission-item[hidden] {
+			display: none !important;
+		}
+
+		.role-permission-item input {
+			margin-top: 3px;
+			transform: scale(1.15);
+		}
+
+		.role-permission-item__body {
+			min-width: 0;
+		}
+
+		.role-permission-item__title {
+			display: block;
+			font-size: 14px;
+			font-weight: 700;
+			color: #0f172a;
+			margin-bottom: 4px;
+		}
+
+		.role-permission-item__description {
+			display: block;
+			font-size: 12px;
+			color: #475569;
+			line-height: 1.45;
+			margin-bottom: 4px;
+		}
+
+		.role-permission-item__key {
+			display: block;
+			font-size: 11px;
+			color: #94a3b8;
+			word-break: break-word;
+		}
+
+		.role-permission-picker__empty {
+			font-size: 13px;
+			color: #64748b;
+			padding: 12px 0 0;
+		}
+
+		@media (max-width: 768px) {
+			.role-permission-picker {
+				padding: 14px;
+			}
+
+			.role-permission-zone summary {
+				padding: 14px;
+			}
+
+			.role-permission-zone__body {
+				padding: 12px 14px 14px;
+			}
+
+			.role-permission-zone__list {
+				grid-template-columns: 1fr;
+			}
+		}
+		<?php endif; ?>
 	</style>
 <?= $this->endSection() ?>
 
@@ -479,12 +700,16 @@
 											<?php foreach ($permAuditReqs as $label => $permName): ?>
 												<?php
 													$permName = is_string($permName) ? trim($permName) : '';
+														$permLabel = function_exists('permission_ui_label') ? permission_ui_label($permName) : $permName;
 													$assignedStrict = $permName !== '' ? has_permission_strict($permName, $sessionDbgPerms) : false;
 													$canBypass = $permName !== '' ? has_permission($permName, $sessionDbgPerms, $sessionDbgRoles) : false;
 												?>
 												<div>
 													<span style="color:#e2e8f0;"><?= esc((string)$label) ?>:</span>
-													<span style="color:#93c5fd;"><?= esc($permName) ?></span>
+														<span style="color:#93c5fd;"><?= esc($permLabel) ?></span>
+														<?php if ($permName !== '' && $permLabel !== $permName): ?>
+															<span style="opacity:.75;">(<?= esc($permName) ?>)</span>
+														<?php endif; ?>
 													<span style="opacity:.85;"> | en sesión:</span>
 													<strong style="color:<?= $assignedStrict ? '#34d399' : '#fca5a5' ?>;">
 														<?= $assignedStrict ? 'SI' : 'NO' ?>
@@ -588,6 +813,315 @@
 
 			bindMoreDropdowns();
 
+			<?php if (!empty($roles_permission_picker['zones'] ?? [])): ?>
+			(() => {
+				const rolePermissionZones = <?= json_encode($roles_permission_picker['zones'] ?? [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+				if (!Array.isArray(rolePermissionZones) || rolePermissionZones.length === 0) {
+					return;
+				}
+
+				const permissionNames = new Set();
+				rolePermissionZones.forEach((zone) => {
+					(zone.permissions || []).forEach((permission) => {
+						if (permission && permission.name) {
+							permissionNames.add(permission.name);
+						}
+					});
+				});
+
+				function escapeHtml(value) {
+					return String(value || '')
+						.replace(/&/g, '&amp;')
+						.replace(/</g, '&lt;')
+						.replace(/>/g, '&gt;')
+						.replace(/"/g, '&quot;')
+						.replace(/'/g, '&#039;');
+				}
+
+				function findPermissionSelects(root) {
+					return Array.from((root || document).querySelectorAll('select[multiple]')).filter((select) => {
+						if (select.dataset.rolePermissionPickerEnhanced === '1') {
+							return false;
+						}
+
+						const name = String(select.getAttribute('name') || '').toLowerCase();
+						if (name.includes('permisos')) {
+							return true;
+						}
+
+						let matches = 0;
+						Array.from(select.options || []).forEach((option) => {
+							if (permissionNames.has(option.value)) {
+								matches += 1;
+							}
+						});
+
+						return matches >= 5;
+					});
+				}
+
+				function getSelectedPermissions(select) {
+					return new Set(Array.from(select.options || []).filter((option) => option.selected).map((option) => option.value));
+				}
+
+				function updateSelectFromPicker(select, wrapper) {
+					const selectedValues = new Set();
+					wrapper.querySelectorAll('.role-permission-checkbox').forEach((checkbox) => {
+						if (checkbox.checked) {
+							selectedValues.add(checkbox.value);
+						}
+					});
+
+					Array.from(select.options || []).forEach((option) => {
+						option.selected = selectedValues.has(option.value);
+					});
+
+					if (window.jQuery) {
+						window.jQuery(select).trigger('change');
+					}
+
+					select.dispatchEvent(new Event('change', { bubbles: true }));
+				}
+
+				function refreshPickerState(select, wrapper) {
+					const selected = getSelectedPermissions(select);
+					let totalSelected = 0;
+
+					wrapper.querySelectorAll('.role-permission-item').forEach((item) => {
+						const checkbox = item.querySelector('.role-permission-checkbox');
+						if (!checkbox) {
+							return;
+						}
+
+						const isChecked = selected.has(checkbox.value);
+						checkbox.checked = isChecked;
+						item.classList.toggle('role-permission-item--checked', isChecked);
+						if (isChecked) {
+							totalSelected += 1;
+						}
+					});
+
+					wrapper.querySelectorAll('.role-permission-zone').forEach((zone) => {
+						const visibleItems = Array.from(zone.querySelectorAll('.role-permission-item')).filter((item) => !item.hidden);
+						const visibleSelected = visibleItems.filter((item) => {
+							const checkbox = item.querySelector('.role-permission-checkbox');
+							return checkbox && checkbox.checked;
+						}).length;
+						const countEl = zone.querySelector('.role-permission-zone__count');
+						if (countEl) {
+							countEl.textContent = visibleItems.length === 0
+								? '0 visibles'
+								: visibleSelected + ' de ' + visibleItems.length + ' seleccionados';
+						}
+					});
+
+					const summary = wrapper.querySelector('.role-permission-picker__summary');
+					if (summary) {
+						summary.textContent = totalSelected + ' permisos seleccionados';
+					}
+				}
+
+				function applySearchFilter(wrapper, term) {
+					const normalizedTerm = String(term || '').trim().toLowerCase();
+					wrapper.querySelectorAll('.role-permission-zone').forEach((zone) => {
+						let visibleCount = 0;
+						zone.querySelectorAll('.role-permission-item').forEach((item) => {
+							const haystack = String(item.dataset.search || '').toLowerCase();
+							const isVisible = normalizedTerm === '' || haystack.includes(normalizedTerm);
+							item.hidden = !isVisible;
+							if (isVisible) {
+								visibleCount += 1;
+							}
+						});
+
+						zone.hidden = visibleCount === 0;
+					});
+				}
+
+				function renderPickerHtml(select) {
+					const optionsByValue = new Map(Array.from(select.options || []).map((option) => [option.value, option]));
+					const renderedZones = rolePermissionZones
+						.map((zone) => {
+							const permissions = (zone.permissions || []).filter((permission) => optionsByValue.has(permission.name));
+							if (permissions.length === 0) {
+								return '';
+							}
+
+							const permissionHtml = permissions.map((permission) => {
+								const description = permission.description || 'Sin descripcion disponible';
+								const searchText = [permission.label, description, permission.name, zone.title].join(' ');
+								return '' +
+									'<label class="role-permission-item" data-search="' + escapeHtml(searchText) + '">' +
+										'<input type="checkbox" class="role-permission-checkbox" value="' + escapeHtml(permission.name) + '">' +
+										'<span class="role-permission-item__body">' +
+											'<span class="role-permission-item__title">' + escapeHtml(permission.label) + '</span>' +
+											'<span class="role-permission-item__description">' + escapeHtml(description) + '</span>' +
+											'<span class="role-permission-item__key">' + escapeHtml(permission.name) + '</span>' +
+										'</span>' +
+									'</label>';
+							}).join('');
+
+							return '' +
+								'<details class="role-permission-zone" open>' +
+									'<summary>' +
+										'<div>' +
+											'<div class="role-permission-zone__title">' + escapeHtml(zone.title) + '</div>' +
+											'<div class="role-permission-zone__description">' + escapeHtml(zone.description || '') + '</div>' +
+										'</div>' +
+										'<div class="role-permission-zone__meta">' +
+											'<span class="role-permission-zone__count">0 seleccionados</span>' +
+										'</div>' +
+									'</summary>' +
+									'<div class="role-permission-zone__body">' +
+										'<div class="role-permission-zone__toolbar">' +
+											'<button type="button" class="role-permission-zone-select-all">Seleccionar zona</button>' +
+											'<button type="button" class="role-permission-zone-clear">Limpiar zona</button>' +
+										'</div>' +
+										'<div class="role-permission-zone__list">' + permissionHtml + '</div>' +
+									'</div>' +
+								'</details>';
+						})
+						.filter(Boolean)
+						.join('');
+
+					return '' +
+						'<div class="role-permission-picker">' +
+							'<div class="role-permission-picker__intro">' +
+								'<div>' +
+									'<div class="role-permission-picker__title">Asignacion de permisos por zonas</div>' +
+									'<div class="role-permission-picker__description">Selecciona permisos por bloque funcional. La lista original tecnica queda oculta pero sigue sincronizada para guardar sin cambiar la logica del CRUD.</div>' +
+								'</div>' +
+								'<div class="role-permission-picker__summary">0 permisos seleccionados</div>' +
+							'</div>' +
+							'<div class="role-permission-picker__search">' +
+								'<input type="search" class="role-permission-search" placeholder="Buscar permiso por nombre o descripcion">' +
+							'</div>' +
+							'<div class="role-permission-picker__zones">' + renderedZones + '</div>' +
+							'<div class="role-permission-picker__empty" hidden>No hay permisos visibles con ese filtro.</div>' +
+						'</div>';
+				}
+
+				function enhancePermissionSelect(select) {
+					if (!(select instanceof HTMLSelectElement) || select.dataset.rolePermissionPickerEnhanced === '1') {
+						return;
+					}
+
+					const html = renderPickerHtml(select);
+					if (!html) {
+						return;
+					}
+
+					select.dataset.rolePermissionPickerEnhanced = '1';
+					const select2Container = select.nextElementSibling && select.nextElementSibling.classList && select.nextElementSibling.classList.contains('select2-container')
+						? select.nextElementSibling
+						: null;
+
+					select.style.display = 'none';
+					if (select2Container) {
+						select2Container.style.display = 'none';
+					}
+
+					const host = document.createElement('div');
+					host.innerHTML = html;
+					const wrapper = host.firstElementChild;
+					if (!wrapper) {
+						return;
+					}
+
+					if (select2Container && select2Container.parentNode) {
+						select2Container.insertAdjacentElement('afterend', wrapper);
+					} else {
+						select.insertAdjacentElement('afterend', wrapper);
+					}
+
+					const searchInput = wrapper.querySelector('.role-permission-search');
+					if (searchInput) {
+						searchInput.addEventListener('input', (event) => {
+							applySearchFilter(wrapper, event.target.value || '');
+							const hasVisibleZones = Array.from(wrapper.querySelectorAll('.role-permission-zone')).some((zone) => !zone.hidden);
+							const emptyState = wrapper.querySelector('.role-permission-picker__empty');
+							if (emptyState) {
+								emptyState.hidden = hasVisibleZones;
+							}
+							refreshPickerState(select, wrapper);
+						});
+					}
+
+					wrapper.addEventListener('change', (event) => {
+						const checkbox = event.target.closest('.role-permission-checkbox');
+						if (!checkbox) {
+							return;
+						}
+
+						updateSelectFromPicker(select, wrapper);
+						refreshPickerState(select, wrapper);
+					});
+
+					wrapper.addEventListener('click', (event) => {
+						const selectAllButton = event.target.closest('.role-permission-zone-select-all');
+						const clearButton = event.target.closest('.role-permission-zone-clear');
+						if (!selectAllButton && !clearButton) {
+							return;
+						}
+
+						event.preventDefault();
+						event.stopPropagation();
+
+						const zone = event.target.closest('.role-permission-zone');
+						if (!zone) {
+							return;
+						}
+
+						zone.querySelectorAll('.role-permission-item').forEach((item) => {
+							if (item.hidden) {
+								return;
+							}
+
+							const checkbox = item.querySelector('.role-permission-checkbox');
+							if (checkbox) {
+								checkbox.checked = !!selectAllButton;
+							}
+						});
+
+						updateSelectFromPicker(select, wrapper);
+						refreshPickerState(select, wrapper);
+					});
+
+					select.addEventListener('change', () => {
+						refreshPickerState(select, wrapper);
+					});
+
+					refreshPickerState(select, wrapper);
+				}
+
+				function scanAndEnhance(root) {
+					findPermissionSelects(root).forEach((select) => enhancePermissionSelect(select));
+				}
+
+				document.addEventListener('DOMContentLoaded', () => scanAndEnhance(document));
+				scanAndEnhance(document);
+
+				if (window.MutationObserver) {
+					const observer = new MutationObserver((mutations) => {
+						mutations.forEach((mutation) => {
+							mutation.addedNodes.forEach((node) => {
+								if (node && node.nodeType === 1) {
+									scanAndEnhance(node);
+								}
+							});
+						});
+					});
+					observer.observe(document.body, { childList: true, subtree: true });
+				}
+
+				if (window.jQuery) {
+					window.jQuery(document).ajaxComplete(() => {
+						scanAndEnhance(document);
+					});
+				}
+			})();
+			<?php endif; ?>
+
 			// Convert status/boolean fields to toggle switches
 			function initStatusToggles() {
 				// Find status/boolean input fields that haven't been converted yet
@@ -599,7 +1133,6 @@
 					'input[name="enabled"]:not(.toggle-converted), select[name="enabled"]:not(.toggle-converted), ' +
 					'input[name="habilitado"]:not(.toggle-converted), select[name="habilitado"]:not(.toggle-converted)'
 				);
-				
 				statusInputs.each(function() {
 					var $input = $(this);
 					

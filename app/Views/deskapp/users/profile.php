@@ -89,6 +89,22 @@
 	.password-strength.weak { background: #dc3545; width: 33%; }
 	.password-strength.medium { background: #ffc107; width: 66%; }
 	.password-strength.strong { background: #28a745; width: 100%; }
+	.debug-role-switcher {
+		margin-top: 24px;
+		padding: 18px;
+		background: #fff8e1;
+		border: 1px solid #f1d58a;
+		border-radius: 12px;
+		box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+	}
+	.debug-role-switcher h5 {
+		color: #7a4b00;
+	}
+	.debug-role-switcher p,
+	.debug-role-switcher small,
+	.debug-role-switcher label {
+		color: #5f4308;
+	}
 	</style>
 </head>
 <body>
@@ -178,6 +194,29 @@
 									<li><span>País:</span> México</li>
 								</ul>
 							</div>
+
+							<?php if (!empty($debugRoleSwitcherEnabled)): ?>
+								<div class="debug-role-switcher">
+									<h5 class="h5 mb-2"><i class="fa fa-bug"></i> Rol Debug</h5>
+									<p class="mb-2">Rol efectivo actual: <strong><?= esc($debugSelectedRoleName ?: 'Admin') ?></strong> + <strong>Debug</strong></p>
+									<form action="<?= base_url('users/switch_debug_role') ?>" method="post" class="mb-2">
+										<div class="form-group mb-2">
+											<label for="debugRoleSelect" class="font-weight-bold">Cambiar rol para probar accesos</label>
+											<select name="role_id" id="debugRoleSelect" class="form-control">
+												<?php foreach (($debugRoleOptions ?? []) as $roleOption): ?>
+													<option value="<?= (int) ($roleOption['id'] ?? 0) ?>" <?= (int) ($debugSelectedRoleId ?? 0) === (int) ($roleOption['id'] ?? 0) ? 'selected' : '' ?>>
+														<?= esc($roleOption['role_name'] ?? '') ?>
+													</option>
+												<?php endforeach; ?>
+											</select>
+										</div>
+										<button type="submit" class="btn btn-sm btn-dark">
+											<i class="fa fa-exchange"></i> Aplicar rol
+										</button>
+									</form>
+									<small class="d-block">El marcador Debug permanece activo para que puedas seguir cambiando de rol incluso después de recargar.</small>
+								</div>
+							<?php endif; ?>
 						</div>
 					</div>
 
@@ -415,7 +454,7 @@
 		
 		// Auto-ocultar alertas
 		setTimeout(function() {
-			$('.alert').fadeOut('slow');
+			$('.alert-dismissible').fadeOut('slow');
 		}, 5000);
 	});
 	</script>

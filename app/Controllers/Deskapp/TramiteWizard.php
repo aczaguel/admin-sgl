@@ -172,8 +172,8 @@ class TramiteWizard extends BaseController
                 'cli_directo_ejecutivo_id' => $this->request->getPost('cli_directo_ejecutivo_id') ?: null,
                 'empresa_gestora_id' => $this->request->getPost('empresa_gestora_id') ?: null,
                 'gestor_id' => $this->request->getPost('gestor_id') ?: null,
-                'tra_status_id' => 22, // En proceso por defecto
-                'cobro_status_id' => 1, // Pendiente de cobro
+                'tra_status_id' => SGL_TRA_STATUS_DCTOS_COMPLETOS,
+                'cobro_status_id' => SGL_COBRO_STATUS_PENDIENTE_ALTA,
                 'observaciones' => $this->request->getPost('observaciones'),
                 'user_id' => $userId,
                 'created_at' => date('Y-m-d H:i:s'),

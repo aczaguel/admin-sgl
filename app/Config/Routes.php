@@ -117,6 +117,9 @@ $routes->post('/users/update_profile', 'Deskapp/Users::update_profile',['filter'
 $routes->get('/users/update_password', 'Deskapp/Users::update_password',['filter' => 'auth']);
 $routes->post('/users/update_password', 'Deskapp/Users::update_password',['filter' => 'auth']);
 
+$routes->post('/users/switch_debug_role', 'Deskapp/Users::switch_debug_role',['filter' => 'auth']);
+$routes->post('/deskapp/users/switch_debug_role', 'Deskapp/Users::switch_debug_role',['filter' => 'auth']);
+
 
 $routes->get('/tramites/demo_multigrid', 'Deskapp/Tramites::demo_multigrid',['filter' => 'auth']);
 $routes->post('/tramites/demo_multigrid', 'Deskapp/Tramites::demo_multigrid',['filter' => 'auth']);

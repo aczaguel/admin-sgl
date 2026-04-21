@@ -44,6 +44,81 @@ defined('DECADE') || define('DECADE', 315360000);
 
 /*
  | --------------------------------------------------------------------------
+ | Business ID Maps
+ | --------------------------------------------------------------------------
+ |
+ | IDs funcionales usados por el flujo principal de tramites. Mantener este
+ | bloque como la fuente central para evitar comparaciones numericas sueltas.
+ |
+ */
+defined('SGL_TRA_STATUS_RECOLECCION_DCTOS') || define('SGL_TRA_STATUS_RECOLECCION_DCTOS', 11);
+defined('SGL_TRA_STATUS_CONCLUIDO') || define('SGL_TRA_STATUS_CONCLUIDO', 20);
+defined('SGL_TRA_STATUS_CANCELADO') || define('SGL_TRA_STATUS_CANCELADO', 21);
+defined('SGL_TRA_STATUS_DCTOS_COMPLETOS') || define('SGL_TRA_STATUS_DCTOS_COMPLETOS', 22);
+defined('SGL_TRA_STATUS_PAGO_GESTOR') || define('SGL_TRA_STATUS_PAGO_GESTOR', 23);
+defined('SGL_TRA_STATUS_SOLICITUD') || define('SGL_TRA_STATUS_SOLICITUD', 24);
+defined('SGL_TRA_STATUS_PAGO_DERECHOS_COTIZACION') || define('SGL_TRA_STATUS_PAGO_DERECHOS_COTIZACION', 25);
+defined('SGL_TRA_STATUS_PAGO_DERECHOS_LINEA_CAPTURA') || define('SGL_TRA_STATUS_PAGO_DERECHOS_LINEA_CAPTURA', 26);
+defined('SGL_TRA_STATUS_PAGO_DERECHOS_DOCUMENTOS') || define('SGL_TRA_STATUS_PAGO_DERECHOS_DOCUMENTOS', 27);
+defined('SGL_TRA_STATUS_COBRO_CLIENTE') || define('SGL_TRA_STATUS_COBRO_CLIENTE', 28);
+defined('SGL_TRA_STATUS_COTIZACION') || define('SGL_TRA_STATUS_COTIZACION', 29);
+
+defined('SGL_TRA_STATUS_IDS') || define('SGL_TRA_STATUS_IDS', [
+	'recoleccion_dctos' => SGL_TRA_STATUS_RECOLECCION_DCTOS,
+	'concluido' => SGL_TRA_STATUS_CONCLUIDO,
+	'cancelado' => SGL_TRA_STATUS_CANCELADO,
+	'dctos_completos' => SGL_TRA_STATUS_DCTOS_COMPLETOS,
+	'pago_gestor' => SGL_TRA_STATUS_PAGO_GESTOR,
+	'solicitud' => SGL_TRA_STATUS_SOLICITUD,
+	'pago_derechos_cotizacion' => SGL_TRA_STATUS_PAGO_DERECHOS_COTIZACION,
+	'pago_derechos_linea_captura' => SGL_TRA_STATUS_PAGO_DERECHOS_LINEA_CAPTURA,
+	'pago_derechos_documentos' => SGL_TRA_STATUS_PAGO_DERECHOS_DOCUMENTOS,
+	'cobro_cliente' => SGL_TRA_STATUS_COBRO_CLIENTE,
+	'cotizacion' => SGL_TRA_STATUS_COTIZACION,
+]);
+
+defined('SGL_TRA_STATUS_LOCKED_IDS') || define('SGL_TRA_STATUS_LOCKED_IDS', [
+	SGL_TRA_STATUS_CONCLUIDO,
+	SGL_TRA_STATUS_CANCELADO,
+]);
+
+defined('SGL_TRA_STATUS_POST_APPROVAL_IDS') || define('SGL_TRA_STATUS_POST_APPROVAL_IDS', [
+	SGL_TRA_STATUS_PAGO_GESTOR,
+	SGL_TRA_STATUS_COBRO_CLIENTE,
+	SGL_TRA_STATUS_CONCLUIDO,
+	SGL_TRA_STATUS_CANCELADO,
+]);
+
+defined('SGL_TRA_STATUS_EDIT_STAGE_MAP') || define('SGL_TRA_STATUS_EDIT_STAGE_MAP', [
+	SGL_TRA_STATUS_RECOLECCION_DCTOS => 1,
+	SGL_TRA_STATUS_DCTOS_COMPLETOS => 2,
+	SGL_TRA_STATUS_PAGO_DERECHOS_COTIZACION => 3,
+	SGL_TRA_STATUS_PAGO_DERECHOS_LINEA_CAPTURA => 3,
+	SGL_TRA_STATUS_PAGO_DERECHOS_DOCUMENTOS => 3,
+	SGL_TRA_STATUS_PAGO_GESTOR => 4,
+	SGL_TRA_STATUS_COBRO_CLIENTE => 5,
+	SGL_TRA_STATUS_CONCLUIDO => 6,
+	SGL_TRA_STATUS_CANCELADO => 7,
+]);
+
+defined('SGL_REEMBOLSO_STATUS_PENDING_IDS') || define('SGL_REEMBOLSO_STATUS_PENDING_IDS', [21, 22]);
+
+defined('SGL_COBRO_STATUS_PENDIENTE_ALTA') || define('SGL_COBRO_STATUS_PENDIENTE_ALTA', 1);
+defined('SGL_COBRO_STATUS_PENDIENTE') || define('SGL_COBRO_STATUS_PENDIENTE', 22);
+defined('SGL_COBRO_STATUS_COBRADO') || define('SGL_COBRO_STATUS_COBRADO', 23);
+
+defined('SGL_COBRO_STATUS_IDS') || define('SGL_COBRO_STATUS_IDS', [
+	'pendiente_alta' => SGL_COBRO_STATUS_PENDIENTE_ALTA,
+	'pendiente' => SGL_COBRO_STATUS_PENDIENTE,
+	'cobrado' => SGL_COBRO_STATUS_COBRADO,
+]);
+
+defined('SGL_COBRO_STATUS_PENDING_IDS') || define('SGL_COBRO_STATUS_PENDING_IDS', [
+	SGL_COBRO_STATUS_PENDIENTE,
+]);
+
+/*
+ | --------------------------------------------------------------------------
  | Exit Status Codes
  | --------------------------------------------------------------------------
  |

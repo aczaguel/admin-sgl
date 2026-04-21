@@ -140,8 +140,17 @@
 				<div id="headerTiposLigados" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;"></div>
 			</div>
 
-			<?php if (has_permission('important_cancelar_tramite', $user_permissions ?? [], $user_roles ?? []) || has_permission('important_concluir_tramite', $user_permissions ?? [], $user_roles ?? [])): ?>
+			<?php $canHeaderHistorialActividad = has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $user_permissions ?? [], $user_roles ?? []); ?>
+			<?php if ($canHeaderHistorialActividad || has_permission('important_cancelar_tramite', $user_permissions ?? [], $user_roles ?? []) || has_permission('important_concluir_tramite', $user_permissions ?? [], $user_roles ?? [])): ?>
 				<div class="header-actions">
+					<?php if ($canHeaderHistorialActividad): ?>
+						<button type="button" class="btn-modern btn-info" onclick="window.location.href='<?= site_url('/deskapp/tramites/audit_timeline/' . (int) ($id ?? 0)) ?>'">
+							<i class="fas fa-stream"></i>
+							Ver Historial de Actividad
+						</button>
+						<?= perm_audit_tag('tramite_detalle_quick_actions_historial_actividad_ver') ?>
+					<?php endif; ?>
+
 					<?php if (has_permission('important_cancelar_tramite', $user_permissions ?? [], $user_roles ?? [])): ?>
 						<?php if ((int) ($tra_status_id ?? 0) === 11): ?>
 							<button type="button" class="btn-modern btn-warning" onclick="changeStatusTramite(<?= (int) ($id ?? 0) ?>, 29)">
@@ -227,13 +236,14 @@
 		<!-- Detalle rápido (Acciones rápidas) -->
 		<?php
 			helper(['permissions']);
-			$detailRoles = $user_roles ?? [];
-			$detailPerms = $user_permissions ?? [];
+			$detailRoles = !empty($user_roles) ? $user_roles : ($session->get('user_roles') ?? []);
+			$detailPerms = !empty($user_permissions) ? $user_permissions : ($session->get('user_permissions') ?? []);
 			$canSectionPagoGestor = !empty($can_section_pago_gestor) || has_permission('section_pago_gestor', $detailPerms, $detailRoles);
 			$canSectionFinalCostos = !empty($can_section_final_costos) || has_permission('section_final_costos', $detailPerms, $detailRoles);
 
 			$canQuickDocumentos = has_permission('quick_action_documentos', $detailPerms, $detailRoles);
 			$canQuickBitacora = has_permission('quick_action_bitacora', $detailPerms, $detailRoles);
+			$canQuickHistorialActividad = has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $detailPerms, $detailRoles);
 			$canQuickPagosDerecho = has_permission('quick_action_pagos_derecho', $detailPerms, $detailRoles);
 			$canQuickPagoGestor = has_permission('quick_action_pago_gestor', $detailPerms, $detailRoles);
 			$canQuickEvidenciasFinales = has_permission('quick_action_evidencias_finales', $detailPerms, $detailRoles);
@@ -250,6 +260,7 @@
 			$canSeeAnyQuickAction = (
 				$canQuickDocumentos
 				|| $canQuickBitacora
+				|| $canQuickHistorialActividad
 				|| $canQuickPagosDerecho
 				|| ($canSeeStatusQuickActions && ($canSeePagoGestorBtn || $canSeeEvidenciasFinalesBtn || $canSeeCobroClienteBtn))
 			);
@@ -279,6 +290,16 @@
 							</div>
 							<span class="ribbon-label">Bitácora</span>
 							<?= perm_audit_tag('quick_action_bitacora') ?>
+						</button>
+					<?php endif; ?>
+
+					<?php if ($canQuickHistorialActividad): ?>
+						<button type="button" class="ribbon-btn" onclick="window.location.href='<?= site_url('/deskapp/tramites/audit_timeline/' . (int) $id) ?>'">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #5b86e5 0%, #36d1dc 100%);">
+								<i class="fas fa-stream"></i>
+							</div>
+							<span class="ribbon-label">Historial Actividad</span>
+							<?= perm_audit_tag('tramite_detalle_quick_actions_historial_actividad_ver') ?>
 						</button>
 					<?php endif; ?>
 

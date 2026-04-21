@@ -109,68 +109,68 @@
 						</div>
 
 						<div class="row">
-							<?php foreach (($steps ?? []) as $stepNum => $cfg): ?>
-								<?php $canMove = !empty($can_move_step[$stepNum]); ?>
-								<?php $compareCanMove = !empty($compare_can_move_step[$stepNum]); ?>
-								<?php $stepComparison = $comparison['step_counts'][$stepNum] ?? ['shared' => 0, 'only_target' => 0, 'only_compare' => 0]; ?>
+							<?php foreach (($permission_zones ?? []) as $zoneKey => $cfg): ?>
+								<?php
+									$zoneComparison = $comparison['zone_counts'][$zoneKey] ?? ['shared' => 0, 'only_target' => 0, 'only_compare' => 0];
+									$zonePermissions = $cfg['permissions'] ?? [];
+									$assignedCount = 0;
+									$compareAssignedCount = 0;
+									foreach ($zonePermissions as $permName) {
+										if (!empty(($target_role_permission_set ?? [])[$permName])) {
+											$assignedCount++;
+										}
+										if (!empty(($compare_role_permission_set ?? [])[$permName])) {
+											$compareAssignedCount++;
+										}
+									}
+								?>
 								<div class="col-12 col-lg-6 mb-3">
-									<div class="card">
+									<div class="card h-100">
 										<div class="card-body">
-											<div class="d-flex justify-content-between align-items-start">
+											<div class="d-flex justify-content-between align-items-start" style="gap:10px;">
 												<div>
-													<h5 class="card-title mb-1"><?= esc($cfg['name'] ?? ('Paso ' . (int)$stepNum)) ?></h5>
-													<div class="text-muted" style="font-size: 13px;">
-														Este rol puede mover este paso:
-														<?php if ($canMove): ?>
-															<span class="badge badge-success">Sí</span>
-														<?php else: ?>
-															<span class="badge badge-secondary">No</span>
-														<?php endif; ?>
-														<?php if (!empty($comparison['enabled'])): ?>
-															<span class="ml-2">Rol comparado:</span>
-															<?php if ($compareCanMove): ?>
-																<span class="badge badge-info">Sí</span>
-															<?php else: ?>
-																<span class="badge badge-secondary">No</span>
-															<?php endif; ?>
-														<?php endif; ?>
+													<h5 class="card-title mb-1"><?= esc((string)($cfg['title'] ?? 'Zona')) ?></h5>
+													<div class="text-muted" style="font-size: 13px; white-space: normal;">
+														<?= esc((string)($cfg['description'] ?? '')) ?>
 													</div>
-													<?php if (!empty($comparison['enabled'])): ?>
-														<div class="mt-2" style="display:flex;gap:6px;flex-wrap:wrap;">
-															<span class="badge badge-light border">Coinciden: <?= (int)($stepComparison['shared'] ?? 0) ?></span>
-															<span class="badge badge-warning">Solo base: <?= (int)($stepComparison['only_target'] ?? 0) ?></span>
-															<span class="badge badge-secondary">Solo comparado: <?= (int)($stepComparison['only_compare'] ?? 0) ?></span>
-														</div>
-													<?php endif; ?>
 												</div>
+											</div>
+
+											<div class="mt-2" style="display:flex;gap:6px;flex-wrap:wrap;">
+												<span class="badge badge-primary">Catálogo: <?= count($zonePermissions) ?></span>
+												<span class="badge badge-success">Base: <?= $assignedCount ?></span>
+												<?php if (!empty($comparison['enabled'])): ?>
+													<span class="badge badge-info">Comparado: <?= $compareAssignedCount ?></span>
+													<span class="badge badge-light border">Coinciden: <?= (int)($zoneComparison['shared'] ?? 0) ?></span>
+													<span class="badge badge-warning">Solo base: <?= (int)($zoneComparison['only_target'] ?? 0) ?></span>
+													<span class="badge badge-secondary">Solo comparado: <?= (int)($zoneComparison['only_compare'] ?? 0) ?></span>
+												<?php endif; ?>
 											</div>
 
 											<div class="mt-3">
 												<div class="mb-2"><strong>Permisos de esta zona:</strong></div>
-												<?php if (empty($cfg['permissions'] ?? [])): ?>
-													<span class="text-muted">(Ninguno)</span>
-												<?php else: ?>
-													<div class="table-responsive">
-														<table class="table table-sm table-bordered mb-0">
-															<thead class="thead-light">
-																<tr>
-																	<th style="width: 140px;">Origen</th>
-																	<th style="width: 220px;">Permiso</th>
-																	<th>Descripción</th>
-																	<th style="width: 120px;">Asignado</th>
+												<div class="table-responsive">
+													<table class="table table-sm table-bordered mb-0">
+														<thead class="thead-light">
+															<tr>
+																<th style="width: 140px;">Origen</th>
+																<th style="width: 220px;">Permiso</th>
+																<th>Descripción</th>
+																<th style="width: 120px;">Asignado</th>
 																<?php if (!empty($comparison['enabled'])): ?>
 																	<th style="width: 120px;">Comparado</th>
 																	<th style="width: 130px;">Diferencia</th>
 																<?php endif; ?>
-																</tr>
-															</thead>
-															<tbody>
-																<?php foreach (($cfg['permissions'] ?? []) as $permName): ?>
-																	<?php
-																		$granted = !empty(($target_role_permission_set ?? [])[$permName]);
+															</tr>
+														</thead>
+														<tbody>
+															<?php foreach ($zonePermissions as $permName): ?>
+																<?php
+																	$granted = !empty(($target_role_permission_set ?? [])[$permName]);
 																	$compareGranted = !empty(($compare_role_permission_set ?? [])[$permName]);
-																		$desc = (string)(($permission_descriptions[$permName] ?? '') ?: '');
-																		$area = (string)(($permission_ui_area[$permName] ?? '') ?: 'Acción');
+																	$label = function_exists('permission_ui_label') ? permission_ui_label($permName) : $permName;
+																	$desc = (string)(($permission_descriptions[$permName] ?? '') ?: '');
+																	$area = (string)(($permission_ui_area[$permName] ?? '') ?: 'Acción');
 																	$diffLabel = 'Coinciden';
 																	$diffClass = 'badge-light border';
 																	if (!empty($comparison['enabled'])) {
@@ -182,36 +182,37 @@
 																			$diffClass = 'badge-secondary';
 																		}
 																	}
-																	?>
-																	<tr>
-																		<td><span class="badge badge-info"><?= esc($area) ?></span></td>
-																		<td>
-																			<span<?= $desc !== '' ? ' title="' . esc($desc, 'attr') . '"' : '' ?>><?= esc($permName) ?></span>
-																		</td>
-																		<td class="text-muted" style="font-size: 12px; white-space: normal;">
-																			<?= $desc !== '' ? esc($desc) : '<span class="text-muted">—</span>' ?>
-																		</td>
-																		<td>
-																			<a
-																				href="#"
-																					class="js-toggle-role-perm badge <?= $granted ? 'badge-success' : 'badge-secondary' ?>"
-																					data-perm="<?= esc($permName, 'attr') ?>"
-																					data-granted="<?= $granted ? '1' : '0' ?>"
-																					title="Click para <?= $granted ? 'quitar' : 'agregar' ?>"
-																				>
-																				<?= $granted ? 'Sí' : 'No' ?>
-																			</a>
-																		</td>
-																		<?php if (!empty($comparison['enabled'])): ?>
-																			<td><span class="badge <?= $compareGranted ? 'badge-info' : 'badge-secondary' ?>"><?= $compareGranted ? 'Sí' : 'No' ?></span></td>
-																			<td><span class="badge <?= $diffClass ?>"><?= $diffLabel ?></span></td>
-																		<?php endif; ?>
-																	</tr>
-																<?php endforeach; ?>
-															</tbody>
-														</table>
-													</div>
-												<?php endif; ?>
+																?>
+																<tr>
+																	<td><span class="badge badge-info"><?= esc($area) ?></span></td>
+																	<td>
+																		<div<?= $desc !== '' ? ' title="' . esc($desc, 'attr') . '"' : '' ?>><?= esc($label) ?></div>
+																		<div class="text-muted" style="font-size: 11px;"><?= esc($permName) ?></div>
+																	</td>
+																	<td class="text-muted" style="font-size: 12px; white-space: normal;">
+																		<?= $desc !== '' ? esc($desc) : '<span class="text-muted">—</span>' ?>
+																	</td>
+																	<td>
+																		<a
+																			href="#"
+																			class="js-toggle-role-perm badge <?= $granted ? 'badge-success' : 'badge-secondary' ?>"
+																			data-perm="<?= esc($permName, 'attr') ?>"
+																			data-perm-label="<?= esc($label, 'attr') ?>"
+																			data-granted="<?= $granted ? '1' : '0' ?>"
+																			title="Click para <?= $granted ? 'quitar' : 'agregar' ?>"
+																		>
+																			<?= $granted ? 'Sí' : 'No' ?>
+																		</a>
+																	</td>
+																	<?php if (!empty($comparison['enabled'])): ?>
+																		<td><span class="badge <?= $compareGranted ? 'badge-info' : 'badge-secondary' ?>"><?= $compareGranted ? 'Sí' : 'No' ?></span></td>
+																		<td><span class="badge <?= $diffClass ?>"><?= $diffLabel ?></span></td>
+																	<?php endif; ?>
+																</tr>
+															<?php endforeach; ?>
+														</tbody>
+													</table>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -219,91 +220,9 @@
 							<?php endforeach; ?>
 						</div>
 
-						<div class="mt-4">
-							<h5 class="mb-2">Admin permisos</h5>
-							<div class="text-muted" style="font-size: 12px;">
-								Permisos administrativos (Gestores, Clientes, ACL, Documentos, Configuración, Monitoreo, etc.)
-								que no pertenecen al flujo de Pasos 1–5.
-							</div>
-							<?php if (!empty($comparison['enabled'])): ?>
-								<?php $adminComparison = $comparison['step_counts']['admin'] ?? ['shared' => 0, 'only_target' => 0, 'only_compare' => 0]; ?>
-								<div class="mt-2" style="display:flex;gap:6px;flex-wrap:wrap;">
-									<span class="badge badge-light border">Coinciden: <?= (int)($adminComparison['shared'] ?? 0) ?></span>
-									<span class="badge badge-warning">Solo base: <?= (int)($adminComparison['only_target'] ?? 0) ?></span>
-									<span class="badge badge-secondary">Solo comparado: <?= (int)($adminComparison['only_compare'] ?? 0) ?></span>
-								</div>
-							<?php endif; ?>
-
-							<?php if (empty($admin_permissions ?? [])): ?>
-								<div class="text-muted mt-2">(Ninguno)</div>
-							<?php else: ?>
-								<div class="table-responsive mt-3">
-									<table class="table table-sm table-bordered mb-0">
-										<thead class="thead-light">
-											<tr>
-												<th style="width: 140px;">Origen</th>
-												<th style="width: 220px;">Permiso</th>
-												<th>Descripción</th>
-												<th style="width: 120px;">Asignado</th>
-												<?php if (!empty($comparison['enabled'])): ?>
-													<th style="width: 120px;">Comparado</th>
-													<th style="width: 130px;">Diferencia</th>
-												<?php endif; ?>
-											</tr>
-										</thead>
-										<tbody>
-											<?php foreach (($admin_permissions ?? []) as $permName): ?>
-												<?php
-													$granted = !empty(($target_role_permission_set ?? [])[$permName]);
-													$compareGranted = !empty(($compare_role_permission_set ?? [])[$permName]);
-													$desc = (string)(($permission_descriptions[$permName] ?? '') ?: '');
-													$area = (string)(($permission_ui_area[$permName] ?? '') ?: 'Acción');
-													$diffLabel = 'Coinciden';
-													$diffClass = 'badge-light border';
-													if (!empty($comparison['enabled'])) {
-														if ($granted && !$compareGranted) {
-															$diffLabel = 'Solo base';
-															$diffClass = 'badge-warning';
-														} elseif (!$granted && $compareGranted) {
-															$diffLabel = 'Solo comparado';
-															$diffClass = 'badge-secondary';
-														}
-													}
-												?>
-												<tr>
-													<td><span class="badge badge-info"><?= esc($area) ?></span></td>
-													<td>
-														<span<?= $desc !== '' ? ' title="' . esc($desc, 'attr') . '"' : '' ?>><?= esc($permName) ?></span>
-													</td>
-													<td class="text-muted" style="font-size: 12px; white-space: normal;">
-														<?= $desc !== '' ? esc($desc) : '<span class="text-muted">—</span>' ?>
-													</td>
-													<td>
-														<a
-															href="#"
-															class="js-toggle-role-perm badge <?= $granted ? 'badge-success' : 'badge-secondary' ?>"
-															data-perm="<?= esc($permName, 'attr') ?>"
-															data-granted="<?= $granted ? '1' : '0' ?>"
-															title="Click para <?= $granted ? 'quitar' : 'agregar' ?>"
-														>
-															<?= $granted ? 'Sí' : 'No' ?>
-														</a>
-													</td>
-													<?php if (!empty($comparison['enabled'])): ?>
-														<td><span class="badge <?= $compareGranted ? 'badge-info' : 'badge-secondary' ?>"><?= $compareGranted ? 'Sí' : 'No' ?></span></td>
-														<td><span class="badge <?= $diffClass ?>"><?= $diffLabel ?></span></td>
-													<?php endif; ?>
-												</tr>
-											<?php endforeach; ?>
-										</tbody>
-									</table>
-								</div>
-							<?php endif; ?>
-						</div>
-
 						<div class="mt-2 text-muted" style="font-size: 12px;">
-							Nota: este mapa muestra permisos asociados al rol y una regla de “qué roles mueven qué paso”.
-							No evalúa estatus de un trámite en específico.
+							Nota: este mapa muestra permisos asociados al rol, ordenados por zonas funcionales conforme a la nomenclatura ACL vigente.
+							No evalúa por sí mismo el estatus runtime de un trámite específico.
 						</div>
 
 						<!-- Modal de confirmación (toggle rol-permiso) -->
@@ -345,15 +264,15 @@
 									return !!(window.jQuery && window.jQuery.fn && typeof window.jQuery.fn.modal === 'function');
 								}
 
-								function openConfirmModal({ el, permName, action, currentlyGranted }) {
-									pendingToggle = { el, permName, action, currentlyGranted };
+								function openConfirmModal({ el, permName, permLabel, action, currentlyGranted }) {
+									pendingToggle = { el, permName, permLabel, action, currentlyGranted };
 									const actionEl = document.getElementById('confirmToggleAction');
 									const permEl = document.getElementById('confirmTogglePerm');
 									if (actionEl) {
 										actionEl.textContent = action === 'add' ? 'AGREGAR' : 'QUITAR';
 									}
 									if (permEl) {
-										permEl.textContent = permName;
+										permEl.textContent = permLabel || permName;
 									}
 
 									if (isModalAvailable()) {
@@ -362,9 +281,10 @@
 									}
 
 									// Fallback
+									const displayName = permLabel || permName;
 									const msg = (action === 'add')
-										? `¿Deseas AGREGAR el permiso "${permName}" a este rol?`
-										: `¿Deseas QUITAR el permiso "${permName}" de este rol?`;
+										? `¿Deseas AGREGAR el permiso "${displayName}" a este rol?`
+										: `¿Deseas QUITAR el permiso "${displayName}" de este rol?`;
 									if (window.confirm(msg)) {
 										doToggle(pendingToggle);
 									} else {
@@ -448,12 +368,13 @@
 
 									if (!roleId) return;
 									const permName = el.dataset.perm || '';
+									const permLabel = el.dataset.permLabel || permName;
 									if (!permName) return;
 
 									const currentlyGranted = el.dataset.granted === '1';
 									const action = currentlyGranted ? 'remove' : 'add';
 
-									openConfirmModal({ el, permName, action, currentlyGranted });
+									openConfirmModal({ el, permName, permLabel, action, currentlyGranted });
 								});
 							})();
 						</script>

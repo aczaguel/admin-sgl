@@ -381,6 +381,7 @@ if ($wizardTargetIndex !== false) {
 				// Permisos por botón (ideal: asignar por rol).
 				$canQuickDocumentos = has_permission('quick_action_documentos', $detailPerms, $detailRoles);
 				$canQuickBitacora = has_permission('quick_action_bitacora', $detailPerms, $detailRoles);
+				$canQuickHistorialActividad = has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $detailPerms, $detailRoles);
 				$canQuickPagosDerecho = has_permission('quick_action_pagos_derecho', $detailPerms, $detailRoles);
 				$canQuickPagoGestor = has_permission('quick_action_pago_gestor', $detailPerms, $detailRoles);
 				$canQuickEvidenciasFinales = has_permission('quick_action_evidencias_finales', $detailPerms, $detailRoles);
@@ -393,6 +394,7 @@ if ($wizardTargetIndex !== false) {
 				$canSeeAnyQuickAction = (
 					$canQuickDocumentos
 					|| $canQuickBitacora
+					|| $canQuickHistorialActividad
 					|| $canQuickPagosDerecho
 					|| (!empty($tra_status_id) && in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true) && ($canSeePagoGestorBtn || $canSeeEvidenciasFinalesBtn || $canSeeCobroClienteBtn))
 				);
@@ -419,6 +421,16 @@ if ($wizardTargetIndex !== false) {
 						<span class="ribbon-label">Bitácora</span>
 						<?= perm_audit_tag('quick_action_bitacora', $session) ?>
 					</button>
+					<?php endif; ?>
+
+					<?php if ($canQuickHistorialActividad): ?>
+						<button type="button" class="ribbon-btn" onclick="window.location.href='<?= site_url('/deskapp/tramites/audit_timeline/' . (int) $id) ?>'">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #5b86e5 0%, #36d1dc 100%);">
+								<i class="fas fa-stream"></i>
+							</div>
+							<span class="ribbon-label">Historial Actividad</span>
+							<?= perm_audit_tag('tramite_detalle_quick_actions_historial_actividad_ver', $session) ?>
+						</button>
 					<?php endif; ?>
 
 					<?php if ($canQuickPagosDerecho): ?>
@@ -556,7 +568,7 @@ if ($wizardTargetIndex !== false) {
 											$form_action = "/deskapp/tramites/update_gestor_save/$id";
 											$form_id = 'gestorForm';
 											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_gestores';
+											$submit_permission = 'write_tramite_asigna_gestor';
 											$field_values = $gestor_campos;
 											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 2); 
 										?>
@@ -586,7 +598,7 @@ if ($wizardTargetIndex !== false) {
 										$form_action = "/deskapp/tramites/update_derechos_save/$id";
 										$form_id = 'derechosForm';
 										$cancel_url = '/tramites/tramite';
-										$submit_permission = 'editar_derechos';
+										$submit_permission = 'write_tramite_pago_derechos';
 										$field_values = $derechos_campos;
 										echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 3); 
 									?>

@@ -22,17 +22,17 @@ if (!function_exists('tramite_status_catalog')) {
     function tramite_status_catalog(): array
     {
         return [
-            11 => ['tra_status' => 'RECOLECCION DE DCTOS', 'descripcion' => 'En Proceso', 'step' => 1],
-            20 => ['tra_status' => 'CONCLUIDO', 'descripcion' => 'Concluido', 'step' => 1],
-            21 => ['tra_status' => 'CANCELADO', 'descripcion' => 'Cancelado', 'step' => 1],
-            22 => ['tra_status' => 'DCTOS COMPLETOS', 'descripcion' => 'Un tramite que ya fue tomado por alguién de perfil 2', 'step' => 2],
-            23 => ['tra_status' => 'Pago a Gestor', 'descripcion' => 'Proceso de Pago a gestor', 'step' => 4],
-            24 => ['tra_status' => 'SOLICITUD', 'descripcion' => 'Tramite recien cargado', 'step' => 1],
-            25 => ['tra_status' => 'Pago de Derechos', 'descripcion' => 'Se hace la cotizacion de pago de derechos', 'step' => 3],
-            26 => ['tra_status' => 'Linea de Captura', 'descripcion' => 'Se sube linea de captura', 'step' => 3],
-            27 => ['tra_status' => 'Pago de Derechos', 'descripcion' => 'Listado de documentos de pagos', 'step' => 3],
-            28 => ['tra_status' => 'Cobro a Cliente', 'descripcion' => 'Paso final cobro a cliente', 'step' => 5],
-            29 => ['tra_status' => 'Cotizacion', 'descripcion' => 'Se guarda solo como cotizacion', 'step' => null],
+            SGL_TRA_STATUS_RECOLECCION_DCTOS => ['tra_status' => 'RECOLECCION DE DCTOS', 'descripcion' => 'En Proceso', 'step' => 1],
+            SGL_TRA_STATUS_CONCLUIDO => ['tra_status' => 'CONCLUIDO', 'descripcion' => 'Concluido', 'step' => 1],
+            SGL_TRA_STATUS_CANCELADO => ['tra_status' => 'CANCELADO', 'descripcion' => 'Cancelado', 'step' => 1],
+            SGL_TRA_STATUS_DCTOS_COMPLETOS => ['tra_status' => 'DCTOS COMPLETOS', 'descripcion' => 'Un tramite que ya fue tomado por alguién de perfil 2', 'step' => 2],
+            SGL_TRA_STATUS_PAGO_GESTOR => ['tra_status' => 'Pago a Gestor', 'descripcion' => 'Proceso de Pago a gestor', 'step' => 4],
+            SGL_TRA_STATUS_SOLICITUD => ['tra_status' => 'SOLICITUD', 'descripcion' => 'Tramite recien cargado', 'step' => 1],
+            SGL_TRA_STATUS_PAGO_DERECHOS_COTIZACION => ['tra_status' => 'Pago de Derechos', 'descripcion' => 'Se hace la cotizacion de pago de derechos', 'step' => 3],
+            SGL_TRA_STATUS_PAGO_DERECHOS_LINEA_CAPTURA => ['tra_status' => 'Linea de Captura', 'descripcion' => 'Se sube linea de captura', 'step' => 3],
+            SGL_TRA_STATUS_PAGO_DERECHOS_DOCUMENTOS => ['tra_status' => 'Pago de Derechos', 'descripcion' => 'Listado de documentos de pagos', 'step' => 3],
+            SGL_TRA_STATUS_COBRO_CLIENTE => ['tra_status' => 'Cobro a Cliente', 'descripcion' => 'Paso final cobro a cliente', 'step' => 5],
+            SGL_TRA_STATUS_COTIZACION => ['tra_status' => 'Cotizacion', 'descripcion' => 'Se guarda solo como cotizacion', 'step' => null],
         ];
     }
 }
@@ -59,7 +59,7 @@ if (!function_exists('tramite_is_aprobado_por_status')) {
      */
     function tramite_is_aprobado_por_status(int $traStatusId): bool
     {
-        if (in_array($traStatusId, [23, 28, 20, 21], true)) {
+        if (in_array($traStatusId, SGL_TRA_STATUS_POST_APPROVAL_IDS, true)) {
             return true;
         }
 

@@ -172,7 +172,7 @@ class Tramites extends BaseController
             $tramite_crud->where($filterSql);
             
             // Filtro adicional por status
-            $tramite_crud->where('tra_status_id NOT IN (20, 21)');
+            $tramite_crud->where('tra_status_id NOT IN (' . SGL_TRA_STATUS_CONCLUIDO . ', ' . SGL_TRA_STATUS_CANCELADO . ')');
             
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -252,8 +252,8 @@ class Tramites extends BaseController
                 $claseAzulCobroCliente = 'background-azul-cobro-cliente';  // Clase CSS para azul
             
                 // Verificar tra_status_id para colores especiales
-                if ($row->tra_status_id == 23 || $row->tra_status_id == 28) {
-                    if($row->tra_status_id == 23){
+                if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR || $row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
+                    if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR) {
                         $clase = $claseAzulClaro;
                     }
                     $txt_generar_factura = '';
@@ -269,13 +269,13 @@ class Tramites extends BaseController
                         $txt_generar_factura = 'Facturar';
                     }
 
-                    if($row->tra_status_id == 28){
+                    if ($row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
                         $clase = $claseAzulCobroCliente;
                         return '<span class="' . $clase . '">' . $txt_generar_factura . '</span>';
                     }
-                } elseif ($row->tra_status_id == 21) {
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CANCELADO) {
                     $clase = $claseGris;
-                } elseif ($row->tra_status_id == 20) {
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CONCLUIDO) {
                     $clase = $claseAzul;
                 } else {
                     // Determinar si es Local o Foráneo
@@ -307,7 +307,7 @@ class Tramites extends BaseController
                 }
 
 
-                $arrFilter = [20, 21, 23, 28];
+                $arrFilter = [SGL_TRA_STATUS_CONCLUIDO, SGL_TRA_STATUS_CANCELADO, SGL_TRA_STATUS_PAGO_GESTOR, SGL_TRA_STATUS_COBRO_CLIENTE];
                 if (!in_array($row->tra_status_id, $arrFilter)) {
                     return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
                 }
@@ -473,11 +473,11 @@ class Tramites extends BaseController
                 $claseAzul = 'background-azul';  // Clase CSS para azul
             
                 // Verificar tra_status_id para colores especiales
-                if ($row->tra_status_id == 23 || $row->tra_status_id == 28) {
+                if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR || $row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
                     $clase = $claseAzulClaro;
-                } elseif ($row->tra_status_id == 21) {
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CANCELADO) {
                     $clase = $claseGris;
-                } elseif ($row->tra_status_id == 20) {
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CONCLUIDO) {
                     $clase = $claseAzul;
                 } else {
                     // Determinar si es Local o Foráneo
@@ -507,7 +507,7 @@ class Tramites extends BaseController
                         }
                     }
                 }
-                $arrFilter = [20, 21, 23, 28];
+                $arrFilter = [SGL_TRA_STATUS_CONCLUIDO, SGL_TRA_STATUS_CANCELADO, SGL_TRA_STATUS_PAGO_GESTOR, SGL_TRA_STATUS_COBRO_CLIENTE];
                 if (!in_array($row->tra_status_id, $arrFilter)) {
                     return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
                 }
@@ -675,11 +675,11 @@ class Tramites extends BaseController
                 $claseAzul = 'background-azul';  // Clase CSS para azul
             
                 // Verificar tra_status_id para colores especiales
-                if ($row->tra_status_id == 23 || $row->tra_status_id == 28) {
+                if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR || $row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
                     $clase = $claseAzulClaro;
-                } elseif ($row->tra_status_id == 21) {
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CANCELADO) {
                     $clase = $claseGris;
-                } elseif ($row->tra_status_id == 20) {
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CONCLUIDO) {
                     $clase = $claseAzul;
                 } else {
                     // Determinar si es Local o Foráneo
@@ -709,7 +709,7 @@ class Tramites extends BaseController
                         }
                     }
                 }
-                $arrFilter = [20, 21, 23, 28];
+                $arrFilter = [SGL_TRA_STATUS_CONCLUIDO, SGL_TRA_STATUS_CANCELADO, SGL_TRA_STATUS_PAGO_GESTOR, SGL_TRA_STATUS_COBRO_CLIENTE];
                 if (!in_array($row->tra_status_id, $arrFilter)) {
                     return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
                 }
@@ -844,7 +844,7 @@ class Tramites extends BaseController
 
             $tramite_crud->where([
                 'tramite.finished_at >= ?' => ['2025-01-01'],
-                 'tramite.tra_status_id IN (20, 21)'
+                  'tramite.tra_status_id IN (' . SGL_TRA_STATUS_CONCLUIDO . ', ' . SGL_TRA_STATUS_CANCELADO . ')'
             ]);
 
             
@@ -877,11 +877,11 @@ class Tramites extends BaseController
                 $claseAzul = 'background-azul';  // Clase CSS para azul
             
                 // Verificar tra_status_id para colores especiales
-                if ($row->tra_status_id == 23 || $row->tra_status_id == 28) {
+                if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR || $row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
                     $clase = $claseAzulClaro;
-                } elseif ($row->tra_status_id == 21) {
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CANCELADO) {
                     $clase = $claseGris;
-                } elseif ($row->tra_status_id == 20) {
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CONCLUIDO) {
                     $clase = $claseAzul;
                 } else {
                     // Determinar si es Local o Foráneo
@@ -911,7 +911,7 @@ class Tramites extends BaseController
                         }
                     }
                 }
-                $arrFilter = [20, 21, 23, 28];
+                $arrFilter = [SGL_TRA_STATUS_CONCLUIDO, SGL_TRA_STATUS_CANCELADO, SGL_TRA_STATUS_PAGO_GESTOR, SGL_TRA_STATUS_COBRO_CLIENTE];
                 if (!in_array($row->tra_status_id, $arrFilter)) {
                     return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
                 }
@@ -1509,72 +1509,62 @@ class Tramites extends BaseController
                 
                 $button_action = $this->request->getPost('accion');
                 $tra_tipos_id = $data["tra_tipos_id"];
+                $forceConfirm = (int) ($this->request->getPost('force_duplicate_confirm') ?? 0) === 1;
 
                 // Valida duplicados de tipo y serie dentro de la ventana del ultimo ano.
-                $builder = $db->table('tramite');
-                $builder->where('tra_tipos_id', $tra_tipos_id);
-                $builder->where('serie', $data['serie']);
-                $builder->where('created_at >=', date('Y-m-d H:i:s', strtotime('-1 year')));
-                $query = $builder->get();   
+                // Si force_duplicate_confirm=1, salta esta validación (usuario ya confirmó)
+                if (!$forceConfirm) {
+                    $builder = $db->table('tramite');
+                    $builder->where('tra_tipos_id', $tra_tipos_id);
+                    $builder->where('serie', $data['serie']);
+                    $builder->where('created_at >=', date('Y-m-d H:i:s', strtotime('-1 year')));
+                    $query = $builder->get();   
 
-                // retorna el dql
-                //echo "<br>" . $db->getLastQuery();
-                $resultados = $query->getResultArray();
-                $existen = !empty($resultados);
-                $serieExistente = $existen ? $resultados[0]['serie'] : null;
-                if ($existen) {
-                    // Si existe, devuelve un error
-                    // print_r($resultados);
-                    $data_existete = $resultados[0];
-                    $id_existente = $data_existete['id'];
-                    $user_id_existente = $data_existete['user_id'];
-                    $tra_tipos_id_existente = $data_existete['tra_tipos_id'];
-                    $created_at_existente = $data_existete['created_at'];
-                    $serieExistente = $data_existete['serie'];
+                    $resultados = $query->getResultArray();
+                    $existen = !empty($resultados);
+                    
+                    if ($existen) {
+                        helper('datetime_es');
 
-                    // primero imprime lo ids para consultar con un enter enmedio
-                    // echo "<br>Id existente: ";
-                    // print_r($id_existente);
-                    // echo "<br>User ID existente: ";
-                    // print_r($user_id_existente); 
-                    // echo "<br>Tipo de trámite ID existente: ";
-                    // print_r($tra_tipos_id_existente);
-                    // echo "<br>Fecha de creación existente: ";
-                    // print_r($created_at_existente);
-                    // Obtiene la serie existente
+                        $data_existete = $resultados[0];
+                        $id_existente = $data_existete['id'];
+                        $user_id_existente = $data_existete['user_id'];
+                        $tra_tipos_id_existente = $data_existete['tra_tipos_id'];
+                        $created_at_existente = format_datetime_es($data_existete['created_at'], true, 'N/A');
+                        $contratoExistente = $data_existete['contrato'] ?? '';
+                        $serieExistente = $data_existete['serie'];
 
-                    // Obtener el Nombre del usuario que creó el trámite existente
-                    $userModel = new UserModel($db);
-                    // Obtener el nombre completo del usuario por su ID
-                    $user_id_existente = (int)$user_id_existente;
+                        // Obtener el Nombre del usuario que creó el trámite existente
+                        $userModel = new UserModel($db);
+                        $user_id_existente = (int)$user_id_existente;
 
-                    // Verifica si el ID del usuario es válido
-                    if ($user_id_existente <= 0) {
-                        $user_id_existente = 1; // Asigna un ID de usuario por defecto
-                    }
-                    // Obtiene el nombre completo del usuario
-                    // Si el ID del usuario es válido, busca el nombre completo
+                        if ($user_id_existente <= 0) {
+                            $user_id_existente = 1;
+                        }
 
-                    $nombreUsuarioExistente = $userModel->getFullNameById($user_id_existente);      
-                    // Obtener el tipo de trámite existente
-                    $traTiposModel = new TraTiposModel($this->_getDbData());
-                    $tipoTramiteExistente = $traTiposModel->getTipoTramiteById($tra_tipos_id_existente);
+                        $nombreUsuarioExistente = $userModel->getFullNameById($user_id_existente);      
+                        // Obtener el tipo de trámite existente
+                        $traTiposModel = new TraTiposModel($this->_getDbData());
+                        $tipoTramiteExistente = $traTiposModel->getTipoTramiteById($tra_tipos_id_existente);
 
-                    // Genera una cadena que diga, El trámite con serie "serieExistente" ya existe para el tipo de trámite "tipoTramiteExistente" creado por "nombreUsuarioExistente" en la fecha "created_at_existente"
-                    $mensajeError = [];
-                    $mensajeError['serie_existente'] = $serieExistente;
-                    $mensajeError['tipo_tramite_existente'] = $tipoTramiteExistente;
-                    $mensajeError['nombre_usuario_existente'] = $nombreUsuarioExistente;
-                    $mensajeError['created_at_existente'] = $created_at_existente;
-                    $mensajeError['id_existente'] = $id_existente;
+                        $mensajeError = [];
+                        $mensajeError['contrato_existente'] = $contratoExistente;
+                        $mensajeError['serie_existente'] = $serieExistente;
+                        $mensajeError['tipo_tramite_existente'] = $tipoTramiteExistente;
+                        $mensajeError['nombre_usuario_existente'] = $nombreUsuarioExistente;
+                        $mensajeError['created_at_existente'] = $created_at_existente;
+                        $mensajeError['id_existente'] = $id_existente;
 
-                    if ($this->request->isAJAX()) {
-                        return $this->response->setJSON([
-                            'success' => false,
-                            'message' => $mensajeError // Devuelve el mensaje de error como JSON
-                        ]);
-                    } else {
-                        return redirect()->back()->withInput()->with('error', $mensajeError);
+                        if ($this->request->isAJAX()) {
+                            // Devolver respuesta especial para mostrar modal de confirmación
+                            return $this->response->setJSON([
+                                'success' => false,
+                                'confirmable' => true,
+                                'message' => $mensajeError
+                            ]);
+                        } else {
+                            return redirect()->back()->withInput()->with('error', $mensajeError);
+                        }
                     }
                 }
                 // Si no existe, continúa con la inserción
@@ -1594,6 +1584,7 @@ class Tramites extends BaseController
 
                 // Espacio para guardar la relación DosStatus
                 unset($data["accion"]);
+                unset($data['force_duplicate_confirm']);
                 $builder->insert($data);
 
                 $lastInsertID = $db->insertID();
@@ -1644,6 +1635,12 @@ class Tramites extends BaseController
                 $bitacoraModel = new BitacoraModel($db2);
                 $data_bitacora = $data;
                 $diferencias = $this->encontrarDiferencias([], $data_bitacora);
+                if ($forceConfirm) {
+                    $diferencias['confirmacion_modal_duplicado'] = [
+                        'valor_original' => '',
+                        'valor_nuevo' => 'Si'
+                    ];
+                }
                 $insert_bitacora = [
                     "id"=>null,
                     "tipo"=>"insert",
@@ -1664,11 +1661,15 @@ class Tramites extends BaseController
                 $tra_user_log->insert($log, 'tra_user_log');
 
                 // AUDITORÍA: Registrar creación del trámite
+                $auditDescription = $forceConfirm
+                    ? "Trámite creado con folio {$newFolio} tras confirmar duplicado en modal"
+                    : "Trámite creado con folio {$newFolio}";
+
                 log_tramite_change(
                     $lastInsertID,
                     'insert',
                     'tramite',
-                    "Trámite creado con folio {$newFolio}",
+                    $auditDescription,
                     null,
                     null,
                     null,
@@ -1676,7 +1677,8 @@ class Tramites extends BaseController
                         'folio' => $newFolio,
                         'tipo_tramite_id' => $tra_tipos_id,
                         'contrato' => $data['contrato'] ?? null,
-                        'serie' => $data['serie'] ?? null
+                        'serie' => $data['serie'] ?? null,
+                        'confirmacion_modal_duplicado' => $forceConfirm
                     ]
                 );
 
@@ -2778,7 +2780,7 @@ class Tramites extends BaseController
         $reembolsoStatusId = (int) ($tramiteStatusRow['reembolso_status_id'] ?? 0);
         $cobroStatusId = (int) ($tramiteStatusRow['cobro_status_id'] ?? 0);
         $canOverrideStatus28 = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        if (in_array($traStatusId, [20, 21], true) || ($traStatusId === 28 && !$canOverrideStatus28)) {
+        if (in_array($traStatusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($traStatusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideStatus28)) {
             return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está en modo de solo lectura.']);
         }
 
@@ -2906,7 +2908,7 @@ class Tramites extends BaseController
         }
 
         $canOverrideStatus28 = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        if (in_array($traStatusId, [20, 21], true) || ($traStatusId === 28 && !$canOverrideStatus28)) {
+        if (in_array($traStatusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($traStatusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideStatus28)) {
             return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está en modo de solo lectura.']);
         }
         if (!puede_editar_modulo($roles, $traStatusId, 'step3_upload', $reembolsoStatusId, $cobroStatusId, 3)) {
@@ -3004,7 +3006,7 @@ class Tramites extends BaseController
         $statusDoctosGestor = (string) ($tramiteStatusRow['status_doctos_gestor'] ?? '');
         $canKeepStep4Editable = $this->canKeepStep4Editable($reembolsoStatusId, $pagoGestorStatusId, null, $statusDoctosGestor);
         $canOverrideStatus28 = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        if (in_array($traStatusId, [20, 21], true) || ($traStatusId === 28 && !$canOverrideStatus28 && !$canKeepStep4Editable)) {
+        if (in_array($traStatusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($traStatusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideStatus28 && !$canKeepStep4Editable)) {
             return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está en modo de solo lectura.']);
         }
 
@@ -3016,11 +3018,11 @@ class Tramites extends BaseController
         }
         $existingComprobanteFinal = (string) ($existingRecord['comprobante_final'] ?? '');
         if (in_array($existingComprobanteFinal, ['factura_gestor', 'comprobante_pago'], true)) {
-            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor_documentos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
                 return $resp;
             }
         } else {
-            if ($resp = acl_require_permission('can_upload_dropzone_evidencias_finales', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
                 return $resp;
             }
         }
@@ -3139,11 +3141,11 @@ class Tramites extends BaseController
 
         // Permiso fino Dropzone segun el tipo de archivo que se sube.
         if (in_array($comprobanteFinal, ['factura_gestor', 'comprobante_pago'], true)) {
-            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor_documentos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
                 return $resp;
             }
         } else {
-            if ($resp = acl_require_permission('can_upload_dropzone_evidencias_finales', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
                 return $resp;
             }
         }
@@ -3155,7 +3157,7 @@ class Tramites extends BaseController
             (string) ($tramiteRow['status_doctos_gestor'] ?? '')
         );
         $canOverrideStatus28 = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        if (in_array($traStatusId, [20, 21], true) || ($traStatusId === 28 && !$canOverrideStatus28 && !$canKeepStep4Editable)) {
+        if (in_array($traStatusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($traStatusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideStatus28 && !$canKeepStep4Editable)) {
             return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está en modo de solo lectura.']);
         }
         if (!$canKeepStep4Editable && !puede_editar_modulo($roles, $traStatusId, 'upload_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4)) {
@@ -3266,10 +3268,6 @@ class Tramites extends BaseController
             return $resp;
         }
 
-        if ($resp = acl_require_permission('can_upload_dropzone_cobro_cliente', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-            return $resp;
-        }
-
         if (!puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5)) {
             return acl_deny('Acceso denegado.', 403, null, true);
         }
@@ -3358,10 +3356,6 @@ class Tramites extends BaseController
         }
 
         if ($resp = acl_require_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-            return $resp;
-        }
-
-        if ($resp = acl_require_permission('can_upload_dropzone_cobro_cliente', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
             return $resp;
         }
         $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
@@ -7110,9 +7104,13 @@ class Tramites extends BaseController
         $crud->setTable('tra_evidencias_finales');
         $crud->setSubject('Evidencia Final', 'Evidencias Finales');
 
-        $canAdd = $canWrite && $canQuickAction && has_permission('quick_action_evidencias_finales_add', $perms, $roles);
+        $canAdd = $canWrite
+            && $canQuickAction
+            && has_permission('quick_action_evidencias_finales_add', $perms, $roles);
         $canEdit = $canWrite && $canQuickAction && has_permission('quick_action_evidencias_finales_edit', $perms, $roles);
-        $canDelete = $canWrite && $canQuickAction && has_permission('quick_action_evidencias_finales_delete', $perms, $roles);
+        $canDelete = $canWrite
+            && $canQuickAction
+            && has_permission('quick_action_evidencias_finales_delete', $perms, $roles);
 
         if (in_array($gcState, ['add', 'insert', 'ajax_insert'], true) && !$canAdd) {
             return acl_deny('Acceso denegado.', 403, '/deskapp/tramites/single_evidencias_finales/' . $tramite_id, $isApi);
@@ -7791,20 +7789,20 @@ class Tramites extends BaseController
                 ]);
             }
 
-            if ($resp = acl_require_permission('editar_tramite', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-                return $resp;
-            }
-
-            if ($resp = acl_require_permission('editar_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-                return $resp;
-            }
-
             $tramiteId = (int) ($existingRecord['tramite_id'] ?? 0);
             if ($tramiteId <= 0) {
                 return $this->response->setStatusCode(400)->setJSON([
                     'status' => 'error',
                     'message' => 'Servicio inválido.'
                 ]);
+            }
+
+            if ($resp = acl_require_permission('editar_tramite', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
+            }
+
+            if ($resp = acl_require_permission('editar_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
             }
 
             if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
@@ -8320,8 +8318,11 @@ class Tramites extends BaseController
         $userId = (int) ($session->get('id') ?? 0);
         [$roles, $perms] = session_roles_perms($session);
 
-        if ($resp = acl_require_permission('monitoreo_auditoria_tramite', $roles, $perms, 'No tienes permisos para acceder a esta función', '/deskapp/dashboard', 403, false)) {
-            return $resp;
+        $canViewAuditTimeline = has_permission('monitoreo_auditoria_tramite', $perms, $roles)
+            || has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $perms, $roles);
+
+        if (!$canViewAuditTimeline) {
+            return redirect()->to('/deskapp/dashboard')->with('error', 'No tienes permisos para acceder a esta función');
         }
         
         if (!$tramiteId || !is_numeric($tramiteId) || (int) $tramiteId <= 0) {
