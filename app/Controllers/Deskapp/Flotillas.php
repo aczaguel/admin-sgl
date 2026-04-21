@@ -184,7 +184,7 @@ class Flotillas extends BaseController
                 'entidad_id' => $row['entidad_id'],
                 'cli_directo_id' => $cliDirectoId,
                 'tra_tipos_id' => $row['tra_tipos_id'],
-                'tra_status_id' => 11,
+                'tra_status_id' => SGL_TRA_STATUS_RECOLECCION_DCTOS,
                 'user_id' => $userId,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s')
@@ -217,7 +217,7 @@ class Flotillas extends BaseController
                     'folio_tramite' => $folio,
                     'tramite_id' => $tramiteId,
                     'documento_id' => (int) $doc['documento_id'],
-                    'status_documento_id' => 11,
+                    'status_documento_id' => SGL_TRA_STATUS_RECOLECCION_DCTOS,
                     'file' => null,
                     'comentario' => null,
                     'user_id' => $userId
@@ -238,7 +238,7 @@ class Flotillas extends BaseController
             $traUserLogModel->insert([
                 'tramite_id' => $tramiteId,
                 'user_id' => $userId,
-                'tra_status_id' => 11
+                'tra_status_id' => SGL_TRA_STATUS_RECOLECCION_DCTOS
             ], 'tra_user_log');
 
             $imported++;

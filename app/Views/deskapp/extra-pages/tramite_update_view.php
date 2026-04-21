@@ -556,7 +556,7 @@ if ($wizardTargetIndex !== false) {
 											$form_action = "/deskapp/tramites/update_gestor_save/$id";
 											$form_id = 'gestorForm';
 											$cancel_url = '/tramites/tramite';
-											$submit_permission = 'editar_gestores';
+											$submit_permission = 'write_tramite_asigna_gestor';
 											$field_values = $gestor_campos;
 											echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 2); 
 										?>
@@ -586,7 +586,7 @@ if ($wizardTargetIndex !== false) {
 										$form_action = "/deskapp/tramites/update_derechos_save/$id";
 										$form_id = 'derechosForm';
 										$cancel_url = '/tramites/tramite';
-										$submit_permission = 'editar_derechos';
+										$submit_permission = 'write_tramite_pago_derechos';
 										$field_values = $derechos_campos;
 										echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 3); 
 									?>

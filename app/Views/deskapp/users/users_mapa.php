@@ -122,12 +122,16 @@
 															<?php foreach ($rolePerms as $rp): ?>
 																<?php
 																	$permName = (string)($rp['permission_name'] ?? '');
+																	$label = function_exists('permission_ui_label') ? permission_ui_label($permName) : $permName;
 																	$desc = (string)($rp['description'] ?? '');
 																	$area = (string)(($permission_ui_area[$permName] ?? '') ?: 'Acción');
 																?>
 																<tr>
 																	<td><span class="badge badge-info"><?= esc($area) ?></span></td>
-																	<td><?= esc($permName) ?></td>
+																	<td>
+																		<div><?= esc($label) ?></div>
+																		<div class="text-muted" style="font-size: 11px;"><?= esc($permName) ?></div>
+																	</td>
 																	<td class="text-muted" style="font-size: 12px; white-space: normal;">
 																		<?= $desc !== '' ? esc($desc) : '<span class="text-muted">—</span>' ?>
 																	</td>
@@ -215,6 +219,7 @@
 																		$overrideGranted = $overrideExists ? (int)($target_user_permission_overrides[$permName]) : null;
 																		$sourceLabel = '—';
 																		$sourceClass = 'badge-secondary';
+																		$label = function_exists('permission_ui_label') ? permission_ui_label($permName) : $permName;
 																		if ($overrideExists) {
 																			if ($overrideGranted === 1) {
 																				$sourceLabel = 'Usuario';
@@ -235,7 +240,8 @@
 																			<span class="badge badge-info"><?= esc($area) ?></span>
 																		</td>
 																		<td>
-																			<span<?= $desc !== '' ? ' title="' . esc($desc, 'attr') . '"' : '' ?>><?= esc($permName) ?></span>
+																			<div<?= $desc !== '' ? ' title="' . esc($desc, 'attr') . '"' : '' ?>><?= esc($label) ?></div>
+																			<div class="text-muted" style="font-size: 11px;"><?= esc($permName) ?></div>
 																		</td>
 																		<td class="text-muted" style="font-size: 12px; white-space: normal;">
 																			<?= $desc !== '' ? esc($desc) : '<span class="text-muted">—</span>' ?>
@@ -249,6 +255,7 @@
 																				class="js-toggle-user-perm badge <?= $granted ? 'badge-success' : 'badge-secondary' ?>"
 																				data-user-id="<?= (int)($target_user['id'] ?? 0) ?>"
 																				data-perm="<?= esc($permName, 'attr') ?>"
+																				data-perm-label="<?= esc($label, 'attr') ?>"
 																				data-granted="<?= $granted ? '1' : '0' ?>"
 																				title="Click para cambiar"
 																			>
@@ -304,15 +311,15 @@
 									return !!(window.jQuery && window.jQuery.fn && typeof window.jQuery.fn.modal === 'function');
 								}
 
-								function openConfirmModal({ el, userId, permName, desiredGranted }) {
-									pendingToggle = { el, userId, permName, desiredGranted };
+								function openConfirmModal({ el, userId, permName, permLabel, desiredGranted }) {
+									pendingToggle = { el, userId, permName, permLabel, desiredGranted };
 									const actionEl = document.getElementById('confirmUserToggleAction');
 									const permEl = document.getElementById('confirmUserTogglePerm');
 									if (actionEl) {
 										actionEl.textContent = desiredGranted ? 'ASIGNAR' : 'DENEGAR';
 									}
 									if (permEl) {
-										permEl.textContent = permName;
+										permEl.textContent = permLabel || permName;
 									}
 
 									if (isModalAvailable()) {
@@ -321,9 +328,10 @@
 									}
 
 									// Fallback
+									const displayName = permLabel || permName;
 									const msg = desiredGranted
-										? '¿Confirmas asignar el permiso "' + permName + '" a este usuario?'
-										: '¿Confirmas denegar el permiso "' + permName + '" a este usuario?';
+										? '¿Confirmas asignar el permiso "' + displayName + '" a este usuario?'
+										: '¿Confirmas denegar el permiso "' + displayName + '" a este usuario?';
 									if (window.confirm(msg)) {
 										doToggle(pendingToggle);
 									} else {
@@ -413,11 +421,12 @@
 
 									const userId = parseInt(a.getAttribute('data-user-id') || '0', 10);
 									const permName = a.getAttribute('data-perm') || '';
+									const permLabel = a.getAttribute('data-perm-label') || permName;
 									const currentGranted = (a.getAttribute('data-granted') || '0') === '1';
 									const desiredGranted = currentGranted ? 0 : 1;
 
 									if (!userId || !permName) return;
-									openConfirmModal({ el: a, userId, permName, desiredGranted });
+									openConfirmModal({ el: a, userId, permName, permLabel, desiredGranted });
 								});
 							})();
 						</script>
@@ -452,6 +461,7 @@
 															$overrideGranted = $overrideExists ? (int)($target_user_permission_overrides[$permName]) : null;
 															$sourceLabel = '—';
 															$sourceClass = 'badge-secondary';
+															$label = function_exists('permission_ui_label') ? permission_ui_label($permName) : $permName;
 															if ($overrideExists) {
 																	if ($overrideGranted === 1) {
 																			$sourceLabel = 'Usuario';
@@ -470,7 +480,8 @@
 												<tr>
 													<td><span class="badge badge-info"><?= esc($area) ?></span></td>
 													<td>
-														<span<?= $desc !== '' ? ' title="' . esc($desc, 'attr') . '"' : '' ?>><?= esc($permName) ?></span>
+																<div<?= $desc !== '' ? ' title="' . esc($desc, 'attr') . '"' : '' ?>><?= esc($label) ?></div>
+																<div class="text-muted" style="font-size: 11px;"><?= esc($permName) ?></div>
 													</td>
 													<td class="text-muted" style="font-size: 12px; white-space: normal;">
 														<?= $desc !== '' ? esc($desc) : '<span class="text-muted">—</span>' ?>
@@ -484,6 +495,7 @@
 																class="js-toggle-user-perm badge <?= $granted ? 'badge-success' : 'badge-secondary' ?>"
 																data-user-id="<?= (int)($target_user['id'] ?? 0) ?>"
 																data-perm="<?= esc($permName, 'attr') ?>"
+																	data-perm-label="<?= esc($label, 'attr') ?>"
 																data-granted="<?= $granted ? '1' : '0' ?>"
 																title="Click para cambiar"
 															>

@@ -135,6 +135,10 @@ class Roles extends BaseController
             });
 
             $roles_output = $roles_crud->render();
+            $db = \Config\Database::connect();
+            $data['roles_permission_picker'] = [
+                'zones' => $this->buildPermissionAssignmentZones($db),
+            ];
             $final_output = array_merge((array)$roles_output, $data);
             echo $this->_example_output($final_output);
 
@@ -179,10 +183,11 @@ class Roles extends BaseController
             'session' => $session,
             'username' => $session->get('user_name'),
             'title' => 'Mapa de permisos (Rol)',
-            'description' => 'Permisos del rol por zonas (pasos 1 a 5) y permisos administrativos.',
+            'description' => 'Permisos del rol ordenados por zonas funcionales del flujo y zonas administrativas.',
             'target_role' => $role,
             'target_role_permissions' => $baseMap['role_permissions'],
             'target_role_permission_set' => $baseMap['role_permission_set'],
+            'permission_zones' => $baseMap['permission_zones'],
             'steps' => $baseMap['steps'],
             'admin_permissions' => $baseMap['admin_permissions'],
             'permission_descriptions' => $baseMap['permission_descriptions'],
@@ -224,6 +229,262 @@ class Roles extends BaseController
         }
 
         return $catalog;
+    }
+
+    private function buildPermissionAssignmentZones($db): array
+    {
+        $zoneDefinitions = $this->getPermissionZoneDefinitions();
+        $zoneBuckets = [];
+
+        foreach ($zoneDefinitions as $zoneKey => $definition) {
+            $zoneBuckets[$zoneKey] = $definition + ['permissions' => []];
+        }
+
+        try {
+            $permBuilder = $db->table('us_permissions')
+                ->select('permission_name, description');
+
+            if (is_object($db) && method_exists($db, 'fieldExists') && $db->fieldExists('status', 'us_permissions')) {
+                $permBuilder->where('status', 1);
+            }
+
+            $permRows = $permBuilder
+                ->orderBy('permission_name', 'asc')
+                ->get()
+                ->getResultArray();
+        } catch (\Throwable $e) {
+            return array_values($zoneBuckets);
+        }
+
+        foreach ($permRows as $row) {
+            $permissionName = trim((string) ($row['permission_name'] ?? ''));
+            if ($permissionName === '') {
+                continue;
+            }
+
+            $zoneKey = $this->detectPermissionAssignmentZoneKey($permissionName);
+            if (!isset($zoneBuckets[$zoneKey])) {
+                $zoneKey = 'admin_otros';
+            }
+
+            $zoneBuckets[$zoneKey]['permissions'][] = [
+                'name' => $permissionName,
+                'label' => function_exists('permission_ui_label') ? permission_ui_label($permissionName) : $permissionName,
+                'description' => trim((string) ($row['description'] ?? '')),
+            ];
+        }
+
+        foreach ($zoneBuckets as &$zone) {
+            usort($zone['permissions'], static function (array $left, array $right): int {
+                return strcmp((string) ($left['label'] ?? ''), (string) ($right['label'] ?? ''));
+            });
+        }
+        unset($zone);
+
+        return array_values(array_filter($zoneBuckets, static function (array $zone): bool {
+            return !empty($zone['permissions']);
+        }));
+    }
+
+    private function getPermissionZoneDefinitions(): array
+    {
+        return [
+            'paso_1' => [
+                'key' => 'paso_1',
+                'title' => 'Paso 1: Datos del tramite',
+                'description' => 'Alta, consulta, edicion base y operaciones principales del tramite.',
+            ],
+            'paso_2' => [
+                'key' => 'paso_2',
+                'title' => 'Paso 2: Asignacion de gestor',
+                'description' => 'Permisos para asignar gestor y visualizar ese bloque del flujo.',
+            ],
+            'paso_3' => [
+                'key' => 'paso_3',
+                'title' => 'Paso 3: Pago de derechos',
+                'description' => 'Permisos para captura, documentos y autorizacion de pago de derechos.',
+            ],
+            'paso_4' => [
+                'key' => 'paso_4',
+                'title' => 'Paso 4: Evidencias y transicion',
+                'description' => 'Permisos de evidencias finales y botones de transicion hacia pago a gestor o cobro a cliente.',
+            ],
+            'paso_5' => [
+                'key' => 'paso_5',
+                'title' => 'Paso 5: Pago a gestor',
+                'description' => 'Permisos del panel, formulario y documentos del pago a gestor.',
+            ],
+            'paso_6' => [
+                'key' => 'paso_6',
+                'title' => 'Paso 6: Cobro a cliente y cierre',
+                'description' => 'Permisos de costos finales, cobro a cliente y cierre del tramite.',
+            ],
+            'finales' => [
+                'key' => 'finales',
+                'title' => 'Finalizados y cancelados',
+                'description' => 'Listados, detalle y acciones sobre tramites finalizados o cancelados.',
+            ],
+            'quick_actions' => [
+                'key' => 'quick_actions',
+                'title' => 'Acciones rapidas',
+                'description' => 'Permisos CRUD de documentos, bitacora, pagos y evidencias.',
+            ],
+            'global' => [
+                'key' => 'global',
+                'title' => 'Navegacion y controles globales',
+                'description' => 'Header, sidebar, dashboards, menus globales y guards del sistema.',
+            ],
+            'monitoreo' => [
+                'key' => 'monitoreo',
+                'title' => 'Monitoreo',
+                'description' => 'Auditoria, bitacora y herramientas de seguimiento operativo.',
+            ],
+            'filtros_propios' => [
+                'key' => 'filtros_propios',
+                'title' => 'Wizard y filtros propios',
+                'description' => 'Permisos del wizard principal y filtros de tramites propios.',
+            ],
+            'configuracion' => [
+                'key' => 'configuracion',
+                'title' => 'Configuracion y catalogos',
+                'description' => 'Permisos de configuracion y catalogos auxiliares.',
+            ],
+            'admin_otros' => [
+                'key' => 'admin_otros',
+                'title' => 'Otros administrativos',
+                'description' => 'Permisos administrativos que no caen en una zona operativa especifica.',
+            ],
+        ];
+    }
+
+    private function detectPermissionAssignmentZoneKey(string $permissionName): string
+    {
+        $normalizedPermission = strtolower(trim($permissionName));
+        if ($normalizedPermission === 'important_ir_cobro_cliente' || $normalizedPermission === 'paso_5_navegacion_ir_paso_6_ver') {
+            return 'paso_4';
+        }
+
+        $canonicalTargets = $this->resolvePermissionCanonicalTargets($permissionName);
+        foreach ($canonicalTargets as $candidate) {
+            $zoneKey = $this->detectCanonicalPermissionZoneKey($candidate);
+            if ($zoneKey !== 'admin_otros') {
+                return $zoneKey;
+            }
+        }
+
+        return $this->detectCanonicalPermissionZoneKey($permissionName);
+    }
+
+    private function resolvePermissionCanonicalTargets(string $permissionName): array
+    {
+        $permissionName = trim($permissionName);
+        if ($permissionName === '') {
+            return [];
+        }
+
+        $config = config('AclPermissionMap');
+        $exactAliases = is_object($config) && isset($config->exactAliases) && is_array($config->exactAliases)
+            ? $config->exactAliases
+            : [];
+        $splitAliases = is_object($config) && isset($config->splitAliases) && is_array($config->splitAliases)
+            ? $config->splitAliases
+            : [];
+
+        $resolved = [];
+        $visited = [];
+        $stack = [$permissionName];
+
+        while (!empty($stack)) {
+            $candidate = array_pop($stack);
+            $candidate = trim((string) $candidate);
+            if ($candidate === '' || isset($visited[$candidate])) {
+                continue;
+            }
+
+            $visited[$candidate] = true;
+            $next = [];
+
+            if (isset($exactAliases[$candidate]) && is_array($exactAliases[$candidate])) {
+                $next = array_merge($next, $exactAliases[$candidate]);
+            }
+
+            if (isset($splitAliases[$candidate]) && is_array($splitAliases[$candidate])) {
+                $next = array_merge($next, $splitAliases[$candidate]);
+            }
+
+            if (empty($next)) {
+                $resolved[$candidate] = true;
+                continue;
+            }
+
+            foreach ($next as $nextCandidate) {
+                $stack[] = $nextCandidate;
+            }
+        }
+
+        return array_keys($resolved);
+    }
+
+    private function detectCanonicalPermissionZoneKey(string $canonicalPermission): string
+    {
+        $canonicalPermission = strtolower(trim($canonicalPermission));
+        if ($canonicalPermission === '') {
+            return 'admin_otros';
+        }
+
+        if (strpos($canonicalPermission, 'paso_1_') === 0 || strpos($canonicalPermission, 'tramites_listado_') === 0 || strpos($canonicalPermission, 'tramite_detalle_') === 0) {
+            if (strpos($canonicalPermission, 'tramite_detalle_quick_actions_') === 0) {
+                return 'quick_actions';
+            }
+
+            if (strpos($canonicalPermission, 'tramite_detalle_legacy_pasar_final_') === 0) {
+                return 'finales';
+            }
+
+            return 'paso_1';
+        }
+
+        if (strpos($canonicalPermission, 'paso_2_') === 0) {
+            return 'paso_2';
+        }
+
+        if (strpos($canonicalPermission, 'paso_3_') === 0) {
+            return 'paso_3';
+        }
+
+        if (strpos($canonicalPermission, 'paso_4_') === 0) {
+            return 'paso_4';
+        }
+
+        if (strpos($canonicalPermission, 'paso_5_') === 0) {
+            return 'paso_5';
+        }
+
+        if (strpos($canonicalPermission, 'paso_6_') === 0) {
+            return 'paso_6';
+        }
+
+        if (strpos($canonicalPermission, 'tramites_finalizados_') === 0 || strpos($canonicalPermission, 'tramites_cancelados_') === 0 || strpos($canonicalPermission, 'tramites_finales_') === 0) {
+            return 'finales';
+        }
+
+        if (strpos($canonicalPermission, 'monitoreo_') === 0) {
+            return 'monitoreo';
+        }
+
+        if (strpos($canonicalPermission, 'wizard_tramites_') === 0 || strpos($canonicalPermission, 'tramites_mios_') === 0) {
+            return 'filtros_propios';
+        }
+
+        if (strpos($canonicalPermission, 'configuracion_catalogos_') === 0) {
+            return 'configuracion';
+        }
+
+        if (strpos($canonicalPermission, 'global_header_') === 0 || strpos($canonicalPermission, 'global_sidebar_') === 0 || strpos($canonicalPermission, 'global_guard_') === 0) {
+            return 'global';
+        }
+
+        return 'admin_otros';
     }
 
     private function buildRoleMapData($db, int $roleId): array
@@ -315,150 +576,68 @@ class Roles extends BaseController
         sort($rolePerms, SORT_STRING);
         $rolePermSet = array_fill_keys($rolePerms, true);
 
-        $steps = [
-            1 => [
-                'name' => 'Paso 1: Datos del trámite',
-                'roles_can_move' => ['Starter', 'Executer', 'Admin', 'Super Admin'],
-                'permissions' => [],
-            ],
-            2 => [
-                'name' => 'Paso 2: Gestor y Empresa',
-                'roles_can_move' => ['Executer', 'Admin', 'Super Admin'],
-                'permissions' => [],
-            ],
-            3 => [
-                'name' => 'Paso 3: Pago de derechos',
-                'roles_can_move' => ['Executer', 'Admin', 'Super Admin'],
-                'permissions' => [],
-            ],
-            4 => [
-                'name' => 'Paso 4: Pago a gestor',
-                'roles_can_move' => ['Authorizer Editor', 'Authorizer Simple', 'Admin', 'Super Admin'],
-                'permissions' => [],
-            ],
-            5 => [
-                'name' => 'Paso 5: Cobro a cliente',
-                'roles_can_move' => ['Closer', 'Admin', 'Super Admin'],
-                'permissions' => [],
-            ],
-        ];
+        $candidatePerms = !empty($permissionDescription)
+            ? array_keys($permissionDescription)
+            : $rolePerms;
 
-        $assignStepForPerm = static function (string $permName): ?int {
-            $p = strtolower($permName);
-            $contains = static function (string $haystack, string $needle): bool {
-                return $needle !== '' && strpos($haystack, $needle) !== false;
-            };
+        $permissionZones = $this->buildPermissionZonesCatalog($candidatePerms);
 
-            if ($contains($p, 'section_final_costos') || $contains($p, 'final_tramite') || $contains($p, 'cobro_cliente') || $contains($p, 'cobros_cliente') || $contains($p, 'final_costos') || $contains($p, 'concluido') || $contains($p, 'concluir') || $contains($p, 'cancelar')) {
-                return 5;
-            }
-            if ($contains($p, 'section_pago_gestor') || $contains($p, 'pago_gestor') || $contains($p, 'editar_pago_gestor') || $contains($p, 'pasar_a_pagos') || $contains($p, 'evidencias_finales') || $contains($p, 'can_upload_dropzone_pago_gestor')) {
-                return 4;
-            }
-            if ($contains($p, 'write_tramite_pago_derechos') || $contains($p, 'section_pago_derechos') || $contains($p, 'pago_derechos') || $contains($p, 'linea_captura') || $contains($p, 'documentos_pago') || $contains($p, 'quick_action_pagos_derecho') || $contains($p, 'can_upload_dropzone_pago_derechos')) {
-                return 3;
-            }
-            if ($contains($p, 'write_tramite_asigna_gestor') || $contains($p, 'section_asigna_gestor') || $contains($p, 'tramite_view_gestor')) {
-                return 2;
-            }
-            if ($contains($p, 'write_tramite_datos_tramite') || $contains($p, 'read_tramite') || $contains($p, 'listar_tramite') || $contains($p, 'create_tramite') || $contains($p, 'editar_tramite') || $contains($p, 'delete_tramite') || $contains($p, 'export_tramite') || $contains($p, 'print_tramite') || $contains($p, 'clone_tramite') || $contains($p, 'section_inicial_datos') || $contains($p, 'editar_tramite_principal') || $contains($p, 'editar_tramite_asociado') || $contains($p, 'search_tramite') || $contains($p, 'tramitesn_filter_owner_only') || $contains($p, 'wizard_list_only_own') || $contains($p, 'quick_action_documentos') || $contains($p, 'quick_action_bitacora')) {
-                return 1;
-            }
-            if (strpos($p, 'menu_') === 0) {
-                if ($contains($p, 'proceso_final')) {
-                    return 5;
-                }
-                if ($contains($p, 'tramites')) {
-                    return 1;
-                }
-                return null;
-            }
-            if (strpos($p, 'listar_') === 0) {
-                if ($contains($p, 'final_tramite') || $contains($p, 'concluido')) {
-                    return 5;
-                }
-                if ($contains($p, 'tramite')) {
-                    return 1;
-                }
-                return null;
-            }
-            if (strpos($p, 'export_') === 0 || strpos($p, 'print_') === 0) {
-                if ($contains($p, 'final_tramite')) {
-                    return 5;
-                }
-                if ($contains($p, 'tramite')) {
-                    return 1;
-                }
-            }
-
-            return null;
-        };
-
+        $steps = [];
         $adminPermissions = [];
-        if (!empty($permissionDescription)) {
-            $candidatePerms = array_keys($permissionDescription);
-            $stepPermSet = [1 => [], 2 => [], 3 => [], 4 => [], 5 => []];
-            foreach ($candidatePerms as $permName) {
-                $stepNum = $assignStepForPerm($permName);
-                if ($stepNum === null) {
-                    $adminPermissions[$permName] = true;
-                    continue;
-                }
-                $stepPermSet[$stepNum][$permName] = true;
-            }
-
-            foreach ($steps as $stepNum => &$cfg) {
-                $perms = array_keys($stepPermSet[$stepNum]);
-                sort($perms, SORT_STRING);
-                $cfg['permissions'] = $perms;
-            }
-            unset($cfg);
-
-            $adminPermissions = array_keys($adminPermissions);
-            sort($adminPermissions, SORT_STRING);
-        } else {
-            foreach ($rolePerms as $permName) {
-                $stepNum = $assignStepForPerm($permName);
-                if ($stepNum === null) {
-                    $adminPermissions[$permName] = true;
-                    continue;
-                }
-                $steps[$stepNum]['permissions'][$permName] = true;
-            }
-
-            foreach ($steps as $stepNum => &$cfg) {
-                $perms = array_keys($cfg['permissions'] ?? []);
-                sort($perms, SORT_STRING);
-                $cfg['permissions'] = $perms;
-            }
-            unset($cfg);
-
-            $adminPermissions = array_keys($adminPermissions);
-            sort($adminPermissions, SORT_STRING);
-        }
-
         $canMoveStep = [];
-        $roleNameLower = strtolower($roleName);
-        foreach ($steps as $stepNum => $cfg) {
-            $canMoveStep[$stepNum] = false;
-            foreach (($cfg['roles_can_move'] ?? []) as $rn) {
-                if (strtolower((string) $rn) === $roleNameLower) {
-                    $canMoveStep[$stepNum] = true;
-                    break;
-                }
-            }
-        }
 
         return [
             'role' => $role,
             'role_permissions' => $rolePerms,
             'role_permission_set' => $rolePermSet,
+            'permission_zones' => $permissionZones,
             'steps' => $steps,
             'admin_permissions' => $adminPermissions,
             'permission_descriptions' => $permissionDescription,
             'permission_ui_area' => $permissionUiArea,
             'can_move_step' => $canMoveStep,
         ];
+    }
+
+    private function buildPermissionZonesCatalog(array $permissionNames): array
+    {
+        $zoneDefinitions = $this->getPermissionZoneDefinitions();
+        $zones = [];
+
+        foreach ($zoneDefinitions as $zoneKey => $definition) {
+            $zones[$zoneKey] = $definition + ['permissions' => []];
+        }
+
+        foreach ($permissionNames as $permissionName) {
+            $permissionName = trim((string) $permissionName);
+            if ($permissionName === '') {
+                continue;
+            }
+
+            $zoneKey = $this->detectPermissionAssignmentZoneKey($permissionName);
+            if (!isset($zones[$zoneKey])) {
+                $zoneKey = 'admin_otros';
+            }
+
+            $zones[$zoneKey]['permissions'][$permissionName] = true;
+        }
+
+        foreach ($zones as &$zone) {
+            $permissions = array_keys($zone['permissions']);
+            usort($permissions, static function (string $left, string $right): int {
+                $leftLabel = function_exists('permission_ui_label') ? permission_ui_label($left) : $left;
+                $rightLabel = function_exists('permission_ui_label') ? permission_ui_label($right) : $right;
+                $byLabel = strcmp($leftLabel, $rightLabel);
+
+                return $byLabel !== 0 ? $byLabel : strcmp($left, $right);
+            });
+            $zone['permissions'] = $permissions;
+        }
+        unset($zone);
+
+        return array_filter($zones, static function (array $zone): bool {
+            return !empty($zone['permissions']);
+        });
     }
 
     private function buildRoleComparison(array $baseMap, ?array $compareMap): array
@@ -477,6 +656,7 @@ class Roles extends BaseController
                     'only_compare' => 0,
                 ],
                 'step_counts' => [],
+                'zone_counts' => [],
             ];
         }
 
@@ -489,22 +669,15 @@ class Roles extends BaseController
         sort($onlyTarget, SORT_STRING);
         sort($onlyCompare, SORT_STRING);
 
-        $stepCounts = [];
-        foreach (($baseMap['steps'] ?? []) as $stepNum => $cfg) {
+        $zoneCounts = [];
+        foreach (($baseMap['permission_zones'] ?? []) as $zoneKey => $cfg) {
             $catalog = $cfg['permissions'] ?? [];
-            $stepCounts[$stepNum] = [
+            $zoneCounts[$zoneKey] = [
                 'shared' => count(array_intersect($catalog, $shared)),
                 'only_target' => count(array_intersect($catalog, $onlyTarget)),
                 'only_compare' => count(array_intersect($catalog, $onlyCompare)),
             ];
         }
-
-        $adminCatalog = $baseMap['admin_permissions'] ?? [];
-        $stepCounts['admin'] = [
-            'shared' => count(array_intersect($adminCatalog, $shared)),
-            'only_target' => count(array_intersect($adminCatalog, $onlyTarget)),
-            'only_compare' => count(array_intersect($adminCatalog, $onlyCompare)),
-        ];
 
         return [
             'enabled' => true,
@@ -518,7 +691,8 @@ class Roles extends BaseController
                 'only_target' => count($onlyTarget),
                 'only_compare' => count($onlyCompare),
             ],
-            'step_counts' => $stepCounts,
+            'step_counts' => $zoneCounts,
+            'zone_counts' => $zoneCounts,
         ];
     }
 
@@ -679,6 +853,20 @@ class Roles extends BaseController
             // Relaciones
             $role_permissions_crud->setRelation('role_id', 'us_roles', 'role_name');
             $role_permissions_crud->setRelation('permission_id', 'us_permissions', 'permission_name');
+
+            $role_permissions_crud->callbackColumn('permission_id', static function ($value) {
+                $value = trim((string) $value);
+                if ($value === '') {
+                    return '';
+                }
+
+                $label = function_exists('permission_ui_label') ? permission_ui_label($value) : $value;
+                if ($label === $value) {
+                    return esc($label);
+                }
+
+                return esc($label) . '<br><small class="text-muted">' . esc($value) . '</small>';
+            });
 
             $role_permissions_crud->callbackAfterInsert(function ($stateParameters) use ($role_permissions_crud) {
                 if (function_exists('acl_bump_version')) {

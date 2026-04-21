@@ -1,5 +1,167 @@
 
 "use strict";
+
+var lastDuplicateModalTrigger = null;
+
+function moveFocusOutsideDuplicateModal(modalEl) {
+  var activeElement = document.activeElement;
+
+  if (activeElement && modalEl && modalEl.contains(activeElement) && typeof activeElement.blur === 'function') {
+    activeElement.blur();
+  }
+
+  if (lastDuplicateModalTrigger && typeof lastDuplicateModalTrigger.focus === 'function') {
+    lastDuplicateModalTrigger.focus();
+    return;
+  }
+
+  if (document.body && typeof document.body.focus === 'function') {
+    document.body.focus();
+  }
+}
+
+function ensureDuplicateModalReady() {
+  var modalEl = document.getElementById('duplicateConfirmModal');
+
+  if (!modalEl) {
+    console.error('[ensureDuplicateModalReady] Modal element not found');
+    return null;
+  }
+
+  if (modalEl.parentNode !== document.body) {
+    document.body.appendChild(modalEl);
+    console.log('[ensureDuplicateModalReady] Modal moved to document.body');
+  }
+
+  modalEl.style.position = 'fixed';
+  modalEl.style.inset = '0';
+  modalEl.style.zIndex = '200000';
+
+  var dialogEl = modalEl.querySelector('.modal-dialog');
+  if (dialogEl) {
+    dialogEl.style.zIndex = '200001';
+    dialogEl.style.margin = '1.75rem auto';
+  }
+
+  var contentEl = modalEl.querySelector('.modal-content');
+  if (contentEl) {
+    contentEl.style.zIndex = '200002';
+  }
+
+  if (!modalEl.dataset.focusHandlersBound) {
+    modalEl.addEventListener('hide.bs.modal', function() {
+      moveFocusOutsideDuplicateModal(modalEl);
+    });
+
+    modalEl.addEventListener('hidden.bs.modal', function() {
+      moveFocusOutsideDuplicateModal(modalEl);
+    });
+
+    modalEl.dataset.focusHandlersBound = '1';
+  }
+
+  return modalEl;
+}
+
+function showDuplicateModal() {
+  var modalEl = ensureDuplicateModalReady();
+  console.log('[showDuplicateModal] modalEl:', modalEl);
+  if (!modalEl) {
+    console.error('[showDuplicateModal] Modal element not found!');
+    return false;
+  }
+
+  console.log('[showDuplicateModal] window.bootstrap:', typeof window.bootstrap);
+  console.log('[showDuplicateModal] window.jQuery:', typeof window.jQuery);
+
+  // Bootstrap 5
+  if (window.bootstrap && typeof window.bootstrap.Modal === 'function') {
+    console.log('[showDuplicateModal] Using Bootstrap 5 Modal API');
+    try {
+      var modalInstance = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+      modalInstance.show();
+      console.log('[showDuplicateModal] Bootstrap 5 show() called');
+      return true;
+    } catch (e) {
+      console.error('[showDuplicateModal] Bootstrap 5 error:', e);
+    }
+  }
+
+  // Bootstrap 4/jQuery plugin
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    console.log('[showDuplicateModal] Using jQuery/Bootstrap 4 Modal API');
+    try {
+      window.jQuery('#duplicateConfirmModal').modal('show');
+      console.log('[showDuplicateModal] jQuery modal show() called');
+      return true;
+    } catch (e) {
+      console.error('[showDuplicateModal] jQuery error:', e);
+    }
+  }
+
+  // Fallback simple - force CSS
+  console.log('[showDuplicateModal] Using CSS fallback');
+  modalEl.classList.add('show');
+  modalEl.style.display = 'block';
+  modalEl.style.opacity = '1';
+  modalEl.style.visibility = 'visible';
+  modalEl.style.backgroundColor = 'rgba(0, 0, 0, 0.45)';
+  modalEl.removeAttribute('aria-hidden');
+  modalEl.setAttribute('aria-modal', 'true');
+  document.body.classList.add('modal-open');
+  
+  // Force backdrop if not exists
+  if (!document.querySelector('.modal-backdrop')) {
+    var backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop fade show';
+    document.body.appendChild(backdrop);
+  }
+  
+  console.log('[showDuplicateModal] CSS fallback applied. Modal display:', modalEl.style.display);
+  return true;
+}
+
+function hideDuplicateModal() {
+  var modalEl = document.getElementById('duplicateConfirmModal');
+  if (!modalEl) {
+    return;
+  }
+
+  moveFocusOutsideDuplicateModal(modalEl);
+
+  if (window.bootstrap && typeof window.bootstrap.Modal === 'function') {
+    try {
+      var modalInstance = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+      modalInstance.hide();
+      return;
+    } catch (e) {
+      console.error('[hideDuplicateModal] Bootstrap 5 error:', e);
+    }
+  }
+
+  if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+    try {
+      window.jQuery('#duplicateConfirmModal').modal('hide');
+      return;
+    } catch (e) {
+      console.error('[hideDuplicateModal] jQuery error:', e);
+    }
+  }
+
+  modalEl.classList.remove('show');
+  modalEl.style.display = 'none';
+  modalEl.style.opacity = '0';
+  modalEl.style.visibility = 'hidden';
+  modalEl.setAttribute('aria-hidden', 'true');
+  modalEl.removeAttribute('aria-modal');
+  document.body.classList.remove('modal-open');
+  
+  var backdrop = document.querySelector('.modal-backdrop');
+  if (backdrop) {
+    backdrop.remove();
+  }
+}
+
 function loadDependentData(type, parentId, targetId, selectedId = null) {
     if (!parentId || parentId === 'null') {
       return;
@@ -31,6 +193,8 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
 }
 
   $(document).ready(function() {
+    ensureDuplicateModalReady();
+
     $('#cli_directo_id').change(function() {
         var clienteDirectoId = $(this).val();
         if(clienteDirectoId) {
@@ -122,7 +286,14 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
 
     let form = event.target;
     let formData = new FormData(form);
+    let submitter = event.originalEvent ? event.originalEvent.submitter : null;
     let hasErrors = false;
+
+    lastDuplicateModalTrigger = submitter;
+
+    if (submitter && submitter.name) {
+      formData.set(submitter.name, submitter.value);
+    }
 
     form.querySelectorAll('.error-message').forEach(el => el.textContent = '');
 
@@ -146,8 +317,46 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
     })
     .then(response => response.json())
     .then(data => {
+      console.log('[Form Response]', data);
       if (data.success) {
         window.location.href = data.redirect;
+      } else if (data.confirmable && data.message) {
+        // Mostrar modal de confirmación para duplicados
+        console.log('[Duplicate Detected] confirmable:', data.confirmable, 'message:', data.message);
+        pendingFormData = formData;
+        pendingFormAction = form.action;
+        
+        // Llenar detalles del trámite duplicado
+        console.log('[Filling Modal Details]');
+        document.getElementById('duplicateContrato').textContent = data.message.contrato_existente || '';
+        document.getElementById('duplicateTipo').textContent = data.message.tipo_tramite_existente || '';
+        document.getElementById('duplicateSerie').textContent = data.message.serie_existente || '';
+        document.getElementById('duplicateUsuario').textContent = data.message.nombre_usuario_existente || '';
+        document.getElementById('duplicateFecha').textContent = data.message.created_at_existente || '';
+        
+        console.log('[About to call showDuplicateModal]');
+        // Mostrar la modal (compat Bootstrap 5/4)
+        var opened = showDuplicateModal();
+        console.log('[showDuplicateModal returned]', opened);
+        
+        if (!opened) {
+          console.log('[Modal failed, using confirm() fallback]');
+          var proceed = window.confirm('El tramite esta repetido en contrato y en tipo de tramite. Deseas continuar de todas maneras?');
+          if (proceed) {
+            formData.append('force_duplicate_confirm', '1');
+            fetch(form.action, {
+              method: form.method,
+              body: formData,
+              headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(retryData => {
+              if (retryData.success) {
+                window.location.href = retryData.redirect;
+              }
+            });
+          }
+        }
       } else {
         let errorAlert = document.createElement('div');
         errorAlert.className = 'alert alert-danger alert-dismissible fade show';
@@ -182,9 +391,66 @@ function loadDependentData(type, parentId, targetId, selectedId = null) {
       form.prepend(errorAlert);
     });
   });
+
+  // Manejador para el botón de confirmación en la modal de duplicados
+  $('#confirmDuplicateBtn').on('click', function() {
+    console.log('[confirmDuplicateBtn clicked] pendingFormData:', pendingFormData);
+    if (!pendingFormData) {
+      console.error('[confirmDuplicateBtn] NO pendingFormData found!');
+      return;
+    }
+
+    if (typeof this.blur === 'function') {
+      this.blur();
+    }
+    
+    console.log('[confirmDuplicateBtn] Adding force_duplicate_confirm flag');
+    // Agregar el flag de confirmación
+    pendingFormData.append('force_duplicate_confirm', '1');
+    
+    console.log('[confirmDuplicateBtn] Calling hideDuplicateModal()');
+    // Cerrar la modal
+    hideDuplicateModal();
+    
+    console.log('[confirmDuplicateBtn] Sending fetch to:', pendingFormAction);
+    // Re-enviar el formulario con la confirmación
+    fetch(pendingFormAction, {
+      method: 'POST',
+      body: pendingFormData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('[confirmDuplicateBtn Response]', data);
+      if (data.success) {
+        console.log('[confirmDuplicateBtn] Success! Redirecting to:', data.redirect);
+        window.location.href = data.redirect;
+      } else {
+        console.error('[confirmDuplicateBtn] Error response:', data);
+        // Mostrar error si ocurre algo
+        let errorAlert = document.createElement('div');
+        errorAlert.className = 'alert alert-danger alert-dismissible fade show';
+        errorAlert.setAttribute('role', 'alert');
+        errorAlert.innerHTML = `<strong>Error:</strong> ${data.message || 'Ocurrió un error al guardar el trámite.'}`;
+        document.getElementById('tramiteForm').prepend(errorAlert);
+      }
+    })
+    .catch(error => {
+      console.error('[confirmDuplicateBtn Catch Error]:', error);
+      let errorAlert = document.createElement('div');
+      errorAlert.className = 'alert alert-danger alert-dismissible fade show';
+      errorAlert.setAttribute('role', 'alert');
+      errorAlert.innerHTML = `<strong>Error:</strong> ${error.message}`;
+      document.getElementById('tramiteForm').prepend(errorAlert);
+    });
+  });
+
       function formatErrorMessage(message) {
       if (message && typeof message === 'object') {
         let items = '';
+        if (message.contrato_existente) {
+          items += '<li><strong>Contrato:</strong> ' + message.contrato_existente + '</li>';
+        }
         if (message.serie_existente) {
           items += '<li><strong>Serie existente:</strong> ' + message.serie_existente + '</li>';
         }
@@ -400,76 +666,6 @@ $(document).ready(function() {
   flatpickr('.datetime-picker', {
     enableTime: true,
     dateFormat: "Y-m-d H:i",
-  });
-
-  $('#tramiteForm').off('submit.sglAddFetch');
-  $('#tramiteForm').on('submit', function(e) {
-    e.preventDefault(); // Evitar el envío normal
-
-    // Obtener el botón que envió el formulario
-    var submitter = e.originalEvent.submitter;
-
-    // Serializar el formulario
-    var formData = $(this).serialize();
-
-    // Agregar manualmente el botón presionado
-    if (submitter) {
-        formData += '&accion=' + encodeURIComponent(submitter.value);
-    }
-
-    console.log("formData", formData);
-    var url = '/deskapp/tramites/insert';
-    $.ajax({
-        url: url, // URL a donde va la solicitud
-        type: 'POST',
-        data: formData, // Datos del formulario
-        success: function(response) {
-            console.log("response ", response);
-            if (response.from == 'insert') {
-                window.location.href = response.redirect;
-            } 
-
-            if (response.success === true) {
-                // Manejamos la respuesta del servidor
-              $('#tramite_mensaje').html(response.message); // Muestra la respuesta en un div
-              $('#tramite_respuesta').show(); // Mostramos el alert
-              // Ocultar el mensaje automáticamente después de 5 segundos
-              setTimeout(function() {
-                  $('#tramite_respuesta').fadeOut('slow'); // Desaparece suavemente
-              }, 20000); // 20000 milisegundos = 20 segundos
-            } else {
-              var message = '';
-              if (typeof response.message === 'object') {
-                console.log("response.message", response.message);
-                message = 'El trámite con serie "' + response.message.serie_existente + '" ya existe para el tipo de trámite "' + response.message.tipo_tramite_existente + '" creado por ' + response.message.nombre_usuario_existente + ' en la fecha ' + response.message.created_at_existente ;
-                //agrega un link href para enviar a /tramites/update/ + response.message.id_existente
-                message += ' <a href="/deskapp/tramites/update/' + response.message.id_existente + '">Ir al trámite</a>';
-              }else {
-                message = response.message || 'Ocurrió un error desconocido.';
-              }
-
-              $('#tramite_mensaje_error').html(message);
-              $('#tramite_respuesta_error').show(); // Mostramos el alert
-              
-              // Ocultar el mensaje automáticamente después de 5 segundos
-              setTimeout(function() {
-                  $('#tramite_respuesta_error').fadeOut('slow'); // Desaparece suavemente
-              }, 20000); // 20000 milisegundos = 20 segundos
-            }
-            
-        },
-        error: function(xhr, status, error) {
-            // Manejamos el error si ocurre
-            console.log(xhr.responseText);
-            $('#tramite_mensaje_error').html(response.message);
-            $('#tramite_respuesta_error').show(); // Mostramos el alert
-            
-            // Ocultar el mensaje automáticamente después de 5 segundos
-            setTimeout(function() {
-                $('#tramite_respuesta_error').fadeOut('slow'); // Desaparece suavemente
-            }, 5000); // 5000 milisegundos = 5 segundos
-        }
-    });
   });
 
   $('#empresa_gestora_id').on('change', function() {

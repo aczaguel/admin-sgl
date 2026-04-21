@@ -76,6 +76,20 @@ class Permisos extends BaseController
             $permissions_crud->fields(['permission_name', 'description']);
             $permissions_crud->unsetDeleteMultiple();
 
+            $permissions_crud->callbackColumn('permission_name', static function ($value) {
+                $value = trim((string) $value);
+                if ($value === '') {
+                    return '';
+                }
+
+                $label = function_exists('permission_ui_label') ? permission_ui_label($value) : $value;
+                if ($label === $value) {
+                    return esc($label);
+                }
+
+                return esc($label) . '<br><small class="text-muted">' . esc($value) . '</small>';
+            });
+
             $permissions_crud->callbackAfterInsert(function ($stateParameters) use ($permissions_crud) {
                 if (function_exists('acl_bump_version')) {
                     acl_bump_version();

@@ -26,7 +26,7 @@ class Tramitesn extends Tramites
 {
     private function isLockedStatusId(int $statusId): bool
     {
-        return in_array($statusId, [20, 21], true);
+        return in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true);
     }
 
     private function isTramiteLocked(int $tramiteId): bool
@@ -118,7 +118,9 @@ class Tramitesn extends Tramites
             $tramiteRow['pago_gestor_st_id'] = $forcedPagoGestorStatusId;
         }
 
-        $targetStatus = $this->isReadyForCobroCliente($tramiteRow) ? 28 : 23;
+        $targetStatus = $this->isReadyForCobroCliente($tramiteRow)
+            ? SGL_TRA_STATUS_COBRO_CLIENTE
+            : SGL_TRA_STATUS_PAGO_GESTOR;
         $currentStatus = (int) ($tramiteRow['tra_status_id'] ?? 0);
 
         if ($currentStatus !== $targetStatus) {
@@ -170,9 +172,9 @@ class Tramitesn extends Tramites
     private function resolveAdvancedStepView(int $statusId, array $roles, array $perms): ?string
     {
         $maxBusinessStep = 0;
-        if ($statusId === 23) {
+        if ($statusId === SGL_TRA_STATUS_PAGO_GESTOR) {
             $maxBusinessStep = 4;
-        } elseif (in_array($statusId, [28, 20, 21], true)) {
+        } elseif (in_array($statusId, [SGL_TRA_STATUS_COBRO_CLIENTE, SGL_TRA_STATUS_CONCLUIDO, SGL_TRA_STATUS_CANCELADO], true)) {
             $maxBusinessStep = 5;
         }
 
@@ -911,13 +913,13 @@ class Tramitesn extends Tramites
                 && !empty($data['derechos_refer_banc']);
 
             if ($hasGestor) {
-                $targetStatus = 25;
+                $targetStatus = SGL_TRA_STATUS_PAGO_DERECHOS_COTIZACION;
             }
             if ($hasDerechosBase) {
-                $targetStatus = 26;
+                $targetStatus = SGL_TRA_STATUS_PAGO_DERECHOS_LINEA_CAPTURA;
             }
             if ($hasDerechosBanc) {
-                $targetStatus = 27;
+                $targetStatus = SGL_TRA_STATUS_PAGO_DERECHOS_DOCUMENTOS;
             }
 
             $statusUpdatedTo = (int) ($existingTramite['tra_status_id'] ?? 0);
@@ -977,7 +979,7 @@ class Tramitesn extends Tramites
             $log = [
                 'tramite_id' => (int) $id,
                 'user_id' => (int) $myid,
-                'tra_status_id' => $statusUpdatedTo > 0 ? $statusUpdatedTo : 11,
+                'tra_status_id' => $statusUpdatedTo > 0 ? $statusUpdatedTo : SGL_TRA_STATUS_RECOLECCION_DCTOS,
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
@@ -1087,7 +1089,7 @@ class Tramitesn extends Tramites
                 ]);
             }
 
-            $this->updateTramiteStatus($id, 25);
+            $this->updateTramiteStatus($id, SGL_TRA_STATUS_PAGO_DERECHOS_COTIZACION);
 
             $data = $this->request->getPost();
             $csrfName = csrf_token();
@@ -1137,7 +1139,7 @@ class Tramitesn extends Tramites
             $log = [
                 'tramite_id' => (int) $id,
                 'user_id' => (int) $myid,
-                'tra_status_id' => 22,
+                'tra_status_id' => SGL_TRA_STATUS_DCTOS_COMPLETOS,
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
@@ -1278,10 +1280,10 @@ class Tramitesn extends Tramites
                 && !empty($data['derechos_refer_banc']);
 
             if ($hasDerechosBase) {
-                $this->updateTramiteStatus($id, 26);
+                $this->updateTramiteStatus($id, SGL_TRA_STATUS_PAGO_DERECHOS_LINEA_CAPTURA);
             }
             if ($hasDerechosBanc) {
-                $this->updateTramiteStatus($id, 27);
+                $this->updateTramiteStatus($id, SGL_TRA_STATUS_PAGO_DERECHOS_DOCUMENTOS);
             }
 
             $principalTipoId = (int) ($existingTramite['tra_tipos_id'] ?? 0);
@@ -1325,7 +1327,7 @@ class Tramitesn extends Tramites
             $log = [
                 'tramite_id' => (int) $id,
                 'user_id' => (int) $myid,
-                'tra_status_id' => 22,
+                'tra_status_id' => SGL_TRA_STATUS_DCTOS_COMPLETOS,
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
@@ -1415,7 +1417,7 @@ class Tramitesn extends Tramites
         );
         $canOverrideStatus28 = has_permission('override_tramite_status_28_readonly', $perms, $roles);
 
-        if ($this->isLockedStatusId($traStatusId) || ($traStatusId === 28 && !$canOverrideStatus28 && !$canKeepStep4Editable)) {
+        if ($this->isLockedStatusId($traStatusId) || ($traStatusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideStatus28 && !$canKeepStep4Editable)) {
             return $this->response->setStatusCode(409)->setJSON([
                 'success' => false,
                 'message' => 'El trámite está en modo de solo lectura.',
@@ -1526,7 +1528,7 @@ class Tramitesn extends Tramites
             }
 
             $redirectUrl = '/deskapp/tramitesn/update/' . $id;
-            if ($targetStatus === 28 && (has_permission('list_cobro_cliente', $perms, $roles) || has_permission('section_final_costos', $perms, $roles))) {
+            if ($targetStatus === SGL_TRA_STATUS_COBRO_CLIENTE && (has_permission('list_cobro_cliente', $perms, $roles) || has_permission('section_final_costos', $perms, $roles))) {
                 $redirectUrl = '/deskapp/tramitesn/ver_seccion_cobro_cliente/' . $id;
             } elseif (has_permission('section_pago_gestor', $perms, $roles)) {
                 $redirectUrl = '/deskapp/tramitesn/ver_seccion_pago_gestor/' . $id;
@@ -1756,8 +1758,8 @@ class Tramitesn extends Tramites
                 $claseAzul = 'background-azul';
                 $claseAzulCobroCliente = 'background-azul-cobro-cliente';
 
-                if ($row->tra_status_id == 23 || $row->tra_status_id == 28) {
-                    if($row->tra_status_id == 23){
+                if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR || $row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
+                    if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR) {
                         $clase = $claseAzulClaro;
                     }
                     $txt_generar_factura = '';
@@ -1772,13 +1774,13 @@ class Tramitesn extends Tramites
                         $txt_generar_factura = 'Facturar';
                     }
 
-                    if($row->tra_status_id == 28){
+                    if ($row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
                         $clase = $claseAzulCobroCliente;
                         return '<span class="' . $clase . '">' . $txt_generar_factura . '</span>';
                     }
-                } elseif ($row->tra_status_id == 21) {
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CANCELADO) {
                     $clase = $claseGris;
-                } elseif ($row->tra_status_id == 20) {
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CONCLUIDO) {
                     $clase = $claseAzul;
                 } else {
                     $local = ($row->ent_municipio_id >= 266 && $row->ent_municipio_id <= 281) ||
@@ -1807,7 +1809,7 @@ class Tramitesn extends Tramites
                     }
                 }
 
-                $arrFilter = [20, 21, 23, 28];
+                $arrFilter = [SGL_TRA_STATUS_CONCLUIDO, SGL_TRA_STATUS_CANCELADO, SGL_TRA_STATUS_PAGO_GESTOR, SGL_TRA_STATUS_COBRO_CLIENTE];
                 if (!in_array($row->tra_status_id, $arrFilter)) {
                     return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
                 }
@@ -1906,10 +1908,10 @@ class Tramitesn extends Tramites
             // $tramite_crud->where($filterSql);
             if (!empty($paidStatusIds)) {
                 $tramite_crud->where(
-                    '(tramite.tra_status_id = 28 OR (tramite.tra_status_id = 23 AND tramite.cobrar_cliente = 1 AND tramite.pago_gestor_st_id IN (' . implode(',', $paidStatusIds) . ')))'
+                    '(tramite.tra_status_id = ' . SGL_TRA_STATUS_COBRO_CLIENTE . ' OR (tramite.tra_status_id = ' . SGL_TRA_STATUS_PAGO_GESTOR . ' AND tramite.cobrar_cliente = 1 AND tramite.pago_gestor_st_id IN (' . implode(',', $paidStatusIds) . ')))'
                 );
             } else {
-                $tramite_crud->where('tramite.tra_status_id = 28');
+                $tramite_crud->where('tramite.tra_status_id = ' . SGL_TRA_STATUS_COBRO_CLIENTE);
             }
 
             // El listado muestra trámites ya en paso 5 y también los del paso 4 que ya están listos para cierre.
@@ -1974,10 +1976,10 @@ class Tramitesn extends Tramites
                 $isReady = $this->isReadyForCobroCliente($tramiteRow ?? []);
                 $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
 
-                if ($statusId === 28 && $isReady) {
+                if ($statusId === SGL_TRA_STATUS_COBRO_CLIENTE && $isReady) {
                     return '<span class="badge badge-primary">En Paso 5</span>';
                 }
-                if ($statusId === 23 && $isReady) {
+                if ($statusId === SGL_TRA_STATUS_PAGO_GESTOR && $isReady) {
                     return '<span class="badge badge-success">Listo para Cierre</span>';
                 }
                 return '<span class="badge badge-secondary">Pendiente</span>';
@@ -2074,7 +2076,7 @@ class Tramitesn extends Tramites
         $db = \Config\Database::connect();
         $tramite = $db->table('tramite')->select('tra_status_id')->where('id', (int) $id)->get()->getRowArray();
         $statusId = (int) ($tramite['tra_status_id'] ?? 0);
-        if ($statusId !== 28) {
+        if ($statusId !== SGL_TRA_STATUS_COBRO_CLIENTE) {
             return redirect()->to('/deskapp/tramitesn/update/' . (int) $id);
         }
 
@@ -2239,7 +2241,7 @@ class Tramitesn extends Tramites
 
         // Concluido/Cancelado siempre debe mostrarse como solo lectura en el wizard.
         // Esto controla la UI (inputs disabled) además de los bloqueos por endpoint.
-        $isLockedByStatus = in_array((int) ($tramite['tra_status_id'] ?? 0), [20, 21], true);
+        $isLockedByStatus = in_array((int) ($tramite['tra_status_id'] ?? 0), SGL_TRA_STATUS_LOCKED_IDS, true);
         if ($isLockedByStatus) {
             $canEditTramite = false;
             $canEditPrincipal = false;
@@ -2796,7 +2798,7 @@ class Tramitesn extends Tramites
         $form->css_files = $cssFiles;
         $form->js_files = $crudOutput->js_files;
 
-        $isLockedByStatus = in_array((int) ($tramite['tra_status_id'] ?? 0), [20, 21], true);
+        $isLockedByStatus = in_array((int) ($tramite['tra_status_id'] ?? 0), SGL_TRA_STATUS_LOCKED_IDS, true);
         // En el wizard, la selección Tramites vs Concluido depende del estatus (concluido/cancelado).
         // Los permisos finos de escritura se resuelven dentro de cada endpoint single_*.
         $isLocked = $isLockedByStatus;
@@ -3014,7 +3016,7 @@ class Tramitesn extends Tramites
                 'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
                 'tramite_id' => $tramiteId,
                 'documento_id' => $documentoId,
-                'status_documento_id' => 11,
+                'status_documento_id' => SGL_TRA_STATUS_RECOLECCION_DCTOS,
                 'file' => $fileName,
                 'comentario' => $comentario,
                 'user_id' => $userId,

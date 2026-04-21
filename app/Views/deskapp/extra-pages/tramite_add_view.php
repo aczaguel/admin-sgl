@@ -328,9 +328,43 @@
 
 									<?php echo form_close(); ?>
 
+									<!-- Modal de confirmación para trámites duplicados -->
+									<div class="modal fade" id="duplicateConfirmModal" tabindex="-1" role="dialog" aria-labelledby="duplicateModalLabel" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
+										<div class="modal-dialog modal-dialog-centered" role="dialog">
+											<div class="modal-content" style="position: relative; z-index: 9999;">
+												<div class="modal-header bg-warning text-white">
+													<h5 class="modal-title" id="duplicateModalLabel">
+														<i class="fa fa-exclamation-triangle"></i> Trámite Repetido
+													</h5>
+													<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+												</div>
+												<div class="modal-body">
+													<p><strong>El trámite está repetido en:</strong></p>
+													<ul id="duplicateDetails" style="margin: 0; padding-left: 20px;">
+														<li><strong>Contrato:</strong> <span id="duplicateContrato"></span></li>
+														<li><strong>Tipo de Trámite:</strong> <span id="duplicateTipo"></span></li>
+														<li><strong>Serie:</strong> <span id="duplicateSerie"></span></li>
+														<li><strong>Creado por:</strong> <span id="duplicateUsuario"></span></li>
+														<li><strong>Fecha:</strong> <span id="duplicateFecha"></span></li>
+													</ul>
+												</div>
+												<div class="modal-footer">
+													<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+														<i class="fa fa-times"></i> Cancelar
+													</button>
+													<button type="button" class="btn btn-primary" id="confirmDuplicateBtn">
+														<i class="fa fa-check"></i> Sí, Continuar
+													</button>
+												</div>
+											</div>
+										</div>
+									</div>
+
 									<script>
 										var cliDirectoId = "<?php echo isset($fields['cli_directo']['value']) ? $fields['cli_directo']['value'] : ''; ?>";
 										var ejecutivoId = "<?php echo isset($fields['cli_directo_ejecutivo_id']['value']) ? $fields['cli_directo_ejecutivo_id']['value'] : ''; ?>";
+										var pendingFormData = null;
+										var pendingFormAction = null;
 									</script>
 
 					</div>
@@ -349,6 +383,7 @@
 	<script src="<?php echo base_url(); ?>/public/assets/src/plugins/jquery-steps/jquery.steps.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/my_scripts.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 	<script src="<?php echo base_url(); ?>/public/assets/src/scripts/forms_scripts_add.js?v=<?php echo time(); ?>"></script>

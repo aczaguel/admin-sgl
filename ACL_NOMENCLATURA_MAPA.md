@@ -4,6 +4,12 @@ Fecha de corte: 2026-04-14
 
 Objetivo: proponer el renombre canónico de permisos actuales al formato nuevo.
 
+Implementacion runtime actual:
+
+- La proyeccion ejecutable de este mapa vive en app/Config/AclPermissionMap.php.
+- Ese archivo alimenta alias de compatibilidad y etiquetas visibles en app/Helpers/permissions_helper.php.
+- Este markdown sigue siendo la referencia documental y debe mantenerse alineado con la config.
+
 Formato:
 
 - anterior -- nueva

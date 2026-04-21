@@ -151,8 +151,8 @@ class TramitesMasivos extends BaseController
         }
 
         $catalogs = $this->loadCatalogs();
-        $seenContracts = [];
-        $validated = $this->validateCsvRow($row, (int) ($row['linea'] ?? 0), $catalogs, $seenContracts);
+        $seenRows = [];
+        $validated = $this->validateCsvRow($row, (int) ($row['linea'] ?? 0), $catalogs, $seenRows);
 
         if (!empty($validated['errors'])) {
             return $this->response->setJSON([
@@ -284,7 +284,7 @@ class TramitesMasivos extends BaseController
         $header = null;
         $rows = [];
         $line = 0;
-        $seenContracts = [];
+        $seenRows = [];
 
         while (($data = fgetcsv($handle)) !== false) {
             $line++;
@@ -305,7 +305,7 @@ class TramitesMasivos extends BaseController
             }
 
             $row = $this->combineRow($header, $data);
-            $rows[] = $this->validateCsvRow($row, $line, $catalogs, $seenContracts);
+            $rows[] = $this->validateCsvRow($row, $line, $catalogs, $seenRows);
         }
 
         fclose($handle);
@@ -440,7 +440,7 @@ class TramitesMasivos extends BaseController
         ];
     }
 
-    private function validateCsvRow(array $row, int $line, array $catalogs, array &$seenContracts): array
+    private function validateCsvRow(array $row, int $line, array $catalogs, array &$seenRows): array
     {
         $db = \Config\Database::connect();
 
@@ -485,30 +485,6 @@ class TramitesMasivos extends BaseController
             $normalized['errors'][] = 'Entidad requerida.';
         }
 
-        $contractKey = $this->normalizeKey($normalized['contrato']);
-        if ($contractKey !== '') {
-            if (isset($seenContracts[$contractKey])) {
-                $normalized['errors'][] = 'Contrato repetido dentro del archivo.';
-            } else {
-                $seenContracts[$contractKey] = true;
-            }
-
-            $existingTramite = $db->table('tramite')
-                ->select('id, folio')
-                ->where('contrato', $normalized['contrato'])
-                ->get()
-                ->getRowArray();
-
-            if (!empty($existingTramite)) {
-                $normalized['existing_tramite_id'] = (int) ($existingTramite['id'] ?? 0);
-                $normalized['existing_tramite_folio'] = (string) ($existingTramite['folio'] ?? '');
-                $normalized['existing_tramite_url'] = $normalized['existing_tramite_id'] > 0
-                    ? site_url('/deskapp/tramitesn/update/' . $normalized['existing_tramite_id'])
-                    : '';
-                $normalized['errors'][] = 'Contrato ya existe en el sistema.';
-            }
-        }
-
         if ($normalized['tra_tipos_id'] > 0 && isset($catalogs['tra_tipos'][$normalized['tra_tipos_id']])) {
             $normalized['tipo_tramite_label'] = $catalogs['tra_tipos'][$normalized['tra_tipos_id']];
             $normalized['tipo_tramite'] = $normalized['tipo_tramite_label'];
@@ -521,6 +497,34 @@ class TramitesMasivos extends BaseController
             }
             if ($tipoResolution['error'] !== null) {
                 $normalized['errors'][] = $tipoResolution['error'];
+            }
+        }
+
+        $duplicateSerie = trim((string) $normalized['serie']);
+        $duplicateTipoId = (int) $normalized['tra_tipos_id'];
+        if ($duplicateSerie !== '' && $duplicateTipoId > 0) {
+            $duplicateKey = $duplicateTipoId . '|' . $this->normalizeKey($duplicateSerie);
+            if (isset($seenRows[$duplicateKey])) {
+                $normalized['errors'][] = 'Serie repetida dentro del archivo para el mismo tipo de trámite.';
+            } else {
+                $seenRows[$duplicateKey] = true;
+            }
+
+            $existingTramite = $db->table('tramite')
+                ->select('id, folio')
+                ->where('tra_tipos_id', $duplicateTipoId)
+                ->where('serie', $duplicateSerie)
+                ->where('created_at >=', date('Y-m-d H:i:s', strtotime('-1 year')))
+                ->get()
+                ->getRowArray();
+
+            if (!empty($existingTramite)) {
+                $normalized['existing_tramite_id'] = (int) ($existingTramite['id'] ?? 0);
+                $normalized['existing_tramite_folio'] = (string) ($existingTramite['folio'] ?? '');
+                $normalized['existing_tramite_url'] = $normalized['existing_tramite_id'] > 0
+                    ? site_url('/deskapp/tramitesn/update/' . $normalized['existing_tramite_id'])
+                    : '';
+                $normalized['errors'][] = 'Ya existe un trámite con la misma serie y el mismo tipo dentro del último año.';
             }
         }
 
