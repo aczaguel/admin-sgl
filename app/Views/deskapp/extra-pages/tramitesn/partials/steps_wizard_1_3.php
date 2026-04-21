@@ -27,6 +27,13 @@
 	<?= csrf_field() ?>
 	<input type="hidden" id="current_step" name="current_step" value="1">
 	<div id="tramiteNuevoMessage" class="alert mt-2" style="display:none;"></div>
+	<?php if (has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $user_permissions ?? [], $user_roles ?? [])): ?>
+		<div class="d-flex justify-content-end mb-3">
+			<a href="<?= site_url('/deskapp/tramites/audit_timeline/' . (int) ($id ?? 0)) ?>" class="btn btn-info btn-sm sgl-btn-pill">
+				<i class="fas fa-stream"></i> Ver Historial de Actividad
+			</a>
+		</div>
+	<?php endif; ?>
 	<div id="wizard" class="wizard-modern">
 		<h3>Datos del Trámite</h3>
 		<section>
