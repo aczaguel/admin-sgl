@@ -243,7 +243,6 @@
 
 			$canQuickDocumentos = has_permission('quick_action_documentos', $detailPerms, $detailRoles);
 			$canQuickBitacora = has_permission('quick_action_bitacora', $detailPerms, $detailRoles);
-			$canQuickHistorialActividad = has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $detailPerms, $detailRoles);
 			$canQuickPagosDerecho = has_permission('quick_action_pagos_derecho', $detailPerms, $detailRoles);
 			$canQuickPagoGestor = has_permission('quick_action_pago_gestor', $detailPerms, $detailRoles);
 			$canQuickEvidenciasFinales = has_permission('quick_action_evidencias_finales', $detailPerms, $detailRoles);
@@ -260,7 +259,6 @@
 			$canSeeAnyQuickAction = (
 				$canQuickDocumentos
 				|| $canQuickBitacora
-				|| $canQuickHistorialActividad
 				|| $canQuickPagosDerecho
 				|| ($canSeeStatusQuickActions && ($canSeePagoGestorBtn || $canSeeEvidenciasFinalesBtn || $canSeeCobroClienteBtn))
 			);
@@ -290,16 +288,6 @@
 							</div>
 							<span class="ribbon-label">Bitácora</span>
 							<?= perm_audit_tag('quick_action_bitacora') ?>
-						</button>
-					<?php endif; ?>
-
-					<?php if ($canQuickHistorialActividad): ?>
-						<button type="button" class="ribbon-btn" onclick="window.location.href='<?= site_url('/deskapp/tramites/audit_timeline/' . (int) $id) ?>'">
-							<div class="ribbon-icon" style="background: linear-gradient(135deg, #5b86e5 0%, #36d1dc 100%);">
-								<i class="fas fa-stream"></i>
-							</div>
-							<span class="ribbon-label">Historial Actividad</span>
-							<?= perm_audit_tag('tramite_detalle_quick_actions_historial_actividad_ver') ?>
 						</button>
 					<?php endif; ?>
 
