@@ -5837,7 +5837,7 @@ class Tramites extends BaseController
         $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly);
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
-            if ($request->isAJAX()) {
+            if ($isApi) {
                 return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'Esta sección está en modo de solo lectura.']);
             }
             return redirect()->to('deskapp/tramites/single_evidencias/' . $tramite_id)->with('error', 'Esta sección está en modo de solo lectura.');
