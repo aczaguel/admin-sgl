@@ -490,7 +490,7 @@ class TramitesMasivos extends BaseController
             $normalized['tipo_tramite_label'] = $catalogs['tra_tipos'][$normalized['tra_tipos_id']];
             $normalized['tipo_tramite'] = $normalized['tipo_tramite_label'];
         } else {
-            $tipoResolution = $this->resolveLookupValue($catalogs['tra_tipos_lookup'], $normalized['tipo_tramite'], 'Tipo de Trámite');
+            $tipoResolution = $this->resolveLookupValue($catalogs['tra_tipos_lookup'], $normalized['tipo_tramite'], 'Tipo de Trámite', true);
             if ($tipoResolution['id'] !== null) {
                 $normalized['tra_tipos_id'] = $tipoResolution['id'];
                 $normalized['tipo_tramite_label'] = $catalogs['tra_tipos'][$tipoResolution['id']] ?? $normalized['tipo_tramite'];
@@ -631,7 +631,7 @@ class TramitesMasivos extends BaseController
         throw new \RuntimeException('No se pudo generar un folio único para el trámite.');
     }
 
-    private function resolveLookupValue(array $lookup, string $value, string $label): array
+    private function resolveLookupValue(array $lookup, string $value, string $label, bool $allowSoundex = false): array
     {
         $key = $this->normalizeKey($value);
         if ($key === '') {
@@ -639,6 +639,10 @@ class TramitesMasivos extends BaseController
         }
 
         $ids = $lookup[$key] ?? [];
+        if ($ids === [] && $allowSoundex) {
+            $ids = $this->findSoundexMatches($lookup, $key);
+        }
+
         if ($ids === []) {
             return ['id' => null, 'error' => $label . ' no válido.'];
         }
@@ -648,6 +652,58 @@ class TramitesMasivos extends BaseController
         }
 
         return ['id' => (int) $ids[0], 'error' => null];
+    }
+
+    private function findSoundexMatches(array $lookup, string $key): array
+    {
+        $targetSoundex = $this->buildSoundexKey($key);
+        if ($targetSoundex === '') {
+            return [];
+        }
+
+        $matches = [];
+        foreach ($lookup as $candidateKey => $candidateIds) {
+            if ($this->buildSoundexKey((string) $candidateKey) !== $targetSoundex) {
+                continue;
+            }
+
+            foreach ((array) $candidateIds as $candidateId) {
+                $candidateId = (int) $candidateId;
+                if ($candidateId > 0 && !in_array($candidateId, $matches, true)) {
+                    $matches[] = $candidateId;
+                }
+            }
+        }
+
+        return $matches;
+    }
+
+    private function buildSoundexKey(string $value): string
+    {
+        $normalized = $this->normalizeKey($value);
+        if ($normalized === '') {
+            return '';
+        }
+
+        $tokens = array_values(array_filter(explode(' ', $normalized), static function ($token) {
+            return $token !== '' && !in_array($token, ['DE', 'DEL', 'LA', 'LAS', 'LOS', 'EL', 'Y'], true);
+        }));
+
+        if ($tokens === []) {
+            $tokens = array_values(array_filter(explode(' ', $normalized)));
+        }
+
+        $codes = [];
+        foreach ($tokens as $token) {
+            if (ctype_digit($token)) {
+                $codes[] = 'N' . $token;
+                continue;
+            }
+
+            $codes[] = soundex($token);
+        }
+
+        return implode('-', $codes);
     }
 
     private function buildLookup(array $options, array $aliases = []): array
@@ -715,6 +771,10 @@ class TramitesMasivos extends BaseController
             'SERIE' => 'Serie',
             'PLACAS' => 'Placas',
             'TIPO DE TRAMITE' => 'Tipo de Trámite',
+            'TIPO TRAMITE' => 'Tipo de Trámite',
+            'TIPO DE SERVICIO' => 'Tipo de Trámite',
+            'TIPO SERVICIO' => 'Tipo de Trámite',
+            'SERVICIO' => 'Tipo de Trámite',
             'CLIENTE' => 'Cliente',
             'EJECUTIVO DE CLIENTE' => 'Ejecutivo de Cliente',
             'ENTIDAD' => 'Entidad',
@@ -739,8 +799,15 @@ class TramitesMasivos extends BaseController
             $value = preg_replace('/^\xEF\xBB\xBF/', '', $value);
         }
 
-        if ($value === '' || mb_check_encoding($value, 'UTF-8')) {
+        $value = str_replace(["\xC2\xA0", "\xA0"], ' ', $value);
+
+        if ($value === '') {
             return $value;
+        }
+
+        if (mb_check_encoding($value, 'UTF-8')) {
+            $value = $this->repairUtf8Mojibake($value);
+            return $stripBom ? preg_replace('/^\xEF\xBB\xBF/', '', $value) : $value;
         }
 
         $detectedEncoding = mb_detect_encoding($value, ['Windows-1252', 'ISO-8859-1', 'UTF-8'], true);
@@ -749,8 +816,38 @@ class TramitesMasivos extends BaseController
         }
 
         $converted = mb_convert_encoding($value, 'UTF-8', $detectedEncoding);
+        $converted = $this->repairUtf8Mojibake($converted);
 
         return $stripBom ? preg_replace('/^\xEF\xBB\xBF/', '', $converted) : $converted;
+    }
+
+    private function repairUtf8Mojibake(string $value): string
+    {
+        if (!$this->looksLikeUtf8Mojibake($value)) {
+            return $value;
+        }
+
+        $candidate = @mb_convert_encoding($value, 'ISO-8859-1', 'UTF-8');
+        if (!is_string($candidate) || $candidate === '' || !mb_check_encoding($candidate, 'UTF-8')) {
+            return $value;
+        }
+
+        if ($this->mojibakeScore($candidate) >= $this->mojibakeScore($value)) {
+            return $value;
+        }
+
+        return $candidate;
+    }
+
+    private function looksLikeUtf8Mojibake(string $value): bool
+    {
+        return preg_match('/(?:Ã.|Â.|â.|ð.|Ð.|ï¿½|�)/u', $value) === 1;
+    }
+
+    private function mojibakeScore(string $value): int
+    {
+        preg_match_all('/(?:Ã.|Â.|â.|ð.|Ð.|ï¿½|�)/u', $value, $matches);
+        return count($matches[0]);
     }
 
     private function normalizeKey(string $value): string
