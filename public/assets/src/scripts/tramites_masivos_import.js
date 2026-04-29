@@ -314,7 +314,23 @@
         $button.prop('disabled', false).html('<i class="fas fa-save"></i> Guardar');
     }
 
+    function setPreviewLoading(loading) {
+        var $button = $('#btnPreviewMassive');
+        var $loader = $('#tmassLoader');
+
+        if (loading) {
+            $button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Procesando datos');
+            $loader.addClass('is-visible');
+            return;
+        }
+
+        $button.prop('disabled', false).html('<i class="fas fa-search"></i> Leer archivo');
+        $loader.removeClass('is-visible');
+    }
+
     function runPreview() {
+        setPreviewLoading(true);
+
         $.ajax({
             url: TRAMITES_MASIVOS_IMPORT.previewUrl,
             method: 'POST',
@@ -322,6 +338,8 @@
             processData: false,
             contentType: false,
             success: function (response) {
+                setPreviewLoading(false);
+
                 if (!response || !response.success) {
                     alert(response && response.message ? response.message : 'No se pudo leer el archivo.');
                     return;
@@ -331,6 +349,7 @@
                 renderRows(response.rows || []);
             },
             error: function () {
+                setPreviewLoading(false);
                 alert('No se pudo leer el archivo.');
             }
         });

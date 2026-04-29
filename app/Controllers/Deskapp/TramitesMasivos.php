@@ -288,6 +288,7 @@ class TramitesMasivos extends BaseController
 
         while (($data = fgetcsv($handle)) !== false) {
             $line++;
+            $data = $this->normalizeCsvRowEncoding($data);
 
             if ($header === null) {
                 $candidate = array_map([$this, 'canonicalizeHeader'], $data);
@@ -721,6 +722,35 @@ class TramitesMasivos extends BaseController
         ];
 
         return $map[$normalized] ?? $value;
+    }
+
+    private function normalizeCsvRowEncoding(array $data): array
+    {
+        foreach ($data as $index => $value) {
+            $data[$index] = $this->normalizeCsvValueEncoding((string) $value, $index === 0);
+        }
+
+        return $data;
+    }
+
+    private function normalizeCsvValueEncoding(string $value, bool $stripBom = false): string
+    {
+        if ($stripBom) {
+            $value = preg_replace('/^\xEF\xBB\xBF/', '', $value);
+        }
+
+        if ($value === '' || mb_check_encoding($value, 'UTF-8')) {
+            return $value;
+        }
+
+        $detectedEncoding = mb_detect_encoding($value, ['Windows-1252', 'ISO-8859-1', 'UTF-8'], true);
+        if ($detectedEncoding === false || $detectedEncoding === 'UTF-8') {
+            $detectedEncoding = 'Windows-1252';
+        }
+
+        $converted = mb_convert_encoding($value, 'UTF-8', $detectedEncoding);
+
+        return $stripBom ? preg_replace('/^\xEF\xBB\xBF/', '', $converted) : $converted;
     }
 
     private function normalizeKey(string $value): string

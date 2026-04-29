@@ -173,7 +173,7 @@
 							</p>
 							<div class="mt-15">
 								<span class="badge" style="background: rgba(255,255,255,0.25); color: white; padding: 8px 15px; font-size: 12px; border-radius: 20px; backdrop-filter: blur(10px);">
-									<i class="fa fa-calendar"></i> <?= strftime('%A, %d de %B de %Y') ?>
+									<i class="fa fa-calendar"></i> <?= esc(sgl_format_local_date(null, 'es_MX', 'America/Mexico_City', \IntlDateFormatter::FULL, \IntlDateFormatter::NONE, 'EEEE, dd \'de\' MMMM \'de\' yyyy')) ?>
 								</span>
 								<span class="badge ml-10" style="background: rgba(255,255,255,0.25); color: white; padding: 8px 15px; font-size: 12px; border-radius: 20px; backdrop-filter: blur(10px);">
 									<i class="fa fa-clock-o"></i> <span id="currentTime"></span>
