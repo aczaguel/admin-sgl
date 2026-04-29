@@ -6,6 +6,10 @@
     .tmass-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px;box-shadow:0 10px 30px rgba(15,23,42,.05)}
     .tmass-title{font-size:1.05rem;font-weight:800;color:#0f172a;margin:0 0 8px 0}
     .tmass-subtitle{color:#64748b;font-size:.9rem;margin-bottom:18px}
+    .tmass-loader{display:none;align-items:center;gap:12px;margin-top:16px;padding:14px 16px;border-radius:12px;border:1px solid #bfdbfe;background:linear-gradient(135deg,#eff6ff,#f8fafc);color:#1d4ed8;font-size:.9rem;font-weight:800}
+    .tmass-loader.is-visible{display:flex}
+    .tmass-loader-spinner{width:18px;height:18px;border-radius:999px;border:2px solid rgba(29,78,216,.2);border-top-color:#1d4ed8;animation:tmass-spin .8s linear infinite;flex:0 0 auto}
+    .tmass-loader-subtitle{display:block;color:#475569;font-size:.78rem;font-weight:600}
     .tmass-summary{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
     .tmass-badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 12px;font-size:.78rem;font-weight:800;background:#eef2ff;color:#1e3a8a;border:1px solid #c7d2fe}
     .tmass-badge.is-success{background:#ecfdf5;color:#166534;border-color:#86efac}
@@ -31,6 +35,7 @@
     .tmass-status.is-saved{background:#ecfdf5;border-color:#86efac;color:#166534}
     .tmass-status.is-saved a{color:#166534}
     .tmass-empty{padding:20px;border:1px dashed #cbd5e1;border-radius:12px;background:#f8fafc;color:#64748b;text-align:center}
+    @keyframes tmass-spin{to{transform:rotate(360deg)}}
     @media (max-width: 991px){
         .tmass-actions{display:flex;justify-content:flex-start}
     }
@@ -57,6 +62,14 @@
                     </div>
                 </div>
             </form>
+
+            <div id="tmassLoader" class="tmass-loader" aria-live="polite">
+                <span class="tmass-loader-spinner" aria-hidden="true"></span>
+                <span>
+                    Procesando datos...
+                    <span class="tmass-loader-subtitle">Esto puede tardar unos segundos dependiendo del tamaño del archivo.</span>
+                </span>
+            </div>
 
             <div id="tmassSummary" class="tmass-summary" style="display:none;"></div>
 
