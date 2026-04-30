@@ -48,6 +48,11 @@ $routes->post('/deskapp/','Deskapp/Dashboard::index',['filter' => 'auth']);
 $routes->get('/deskapp/clientes/dashboard', 'Deskapp/DashboardCliente::index',['filter' => 'auth']);
 $routes->get('/deskapp/clientes/dashboard_data', 'Deskapp/DashboardCliente::data',['filter' => 'auth']);
 
+// ============ DEBUG ROUTES (Remover en producción) ============
+$routes->get('/deskapp/debug/session', 'Deskapp/DebugPermisos::session',['filter' => 'auth']);
+$routes->get('/deskapp/debug/permissions', 'Deskapp/DebugPermisos::permissions',['filter' => 'auth']);
+$routes->get('/deskapp/debug/check-dashboard', 'Deskapp/DebugPermisos::checkDashboard',['filter' => 'auth']);
+
 // Tramites Cliente
 // $routes->get('/deskapp/clientes/tramites', 'Deskapp/ClienteTramites::index',['filter' => 'auth']);
 // $routes->get('/deskapp/clientes/tramites/data', 'Deskapp/ClienteTramites::data',['filter' => 'auth']);
