@@ -781,6 +781,93 @@ class ClienteTramites extends BaseController
             ],
         ];
 
+        // Evidencias del proceso (tra_evidencias) — registro operativo visible al cliente
+        $traEvidencias = [];
+        try {
+            if ($db->tableExists('tra_evidencias')) {
+                $evRows = $db->table('tra_evidencias')
+                    ->select('id, folio_tramite, comentario, costo, file, created_at')
+                    ->where('tramite_id', $tramiteId)
+                    ->where('status', 1)
+                    ->orderBy('created_at', 'ASC')
+                    ->get()
+                    ->getResultArray();
+
+                foreach ($evRows as $evRow) {
+                    $evFile = trim((string)($evRow['file'] ?? ''));
+                    $evUrl  = null;
+                    if ($evFile !== '' && basename($evFile) === $evFile
+                        && strpos($evFile, "\0") === false && strpos($evFile, '..') === false) {
+                        $evPath = FCPATH . 'assets/uploads/evidencias/' . $tramiteId . '/' . $evFile;
+                        if (is_file($evPath)) {
+                            $evUrl = base_url('/assets/uploads/evidencias/' . $tramiteId . '/' . $evFile);
+                        }
+                    }
+                    $evRow['url'] = $evUrl;
+                    $traEvidencias[] = $evRow;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silencioso para el cliente
+        }
+
+        // Pagos de derecho (tra_pago_derechos)
+        $traPagoDerechos = [];
+        try {
+            if ($db->tableExists('tra_pago_derechos')) {
+                $pdRows = $db->table('tra_pago_derechos')
+                    ->select('id, file, comentario, costo, created_at')
+                    ->where('tramite_id', $tramiteId)
+                    ->where('status', 1)
+                    ->orderBy('created_at', 'ASC')
+                    ->get()
+                    ->getResultArray();
+
+                foreach ($pdRows as $pdRow) {
+                    $pdFile = trim((string)($pdRow['file'] ?? ''));
+                    $pdUrl  = null;
+                    if ($pdFile !== '' && basename($pdFile) === $pdFile
+                        && strpos($pdFile, "\0") === false && strpos($pdFile, '..') === false) {
+                        // Siempre generamos la URL; el archivo puede existir en producción aunque no en local
+                        $pdUrl = base_url('/assets/uploads/pago_derechos/' . $tramiteId . '/' . $pdFile);
+                    }
+                    $pdRow['url'] = $pdUrl;
+                    $traPagoDerechos[] = $pdRow;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silencioso para el cliente
+        }
+
+        // Cobros al cliente (tra_cobro_cliente)
+        $traCobros = [];
+        try {
+            if ($db->tableExists('tra_cobro_cliente')) {
+                $coRows = $db->table('tra_cobro_cliente')
+                    ->select('id, file, comentario, costo, cobro_correcto, created_at')
+                    ->where('tramite_id', $tramiteId)
+                    ->where('status', 1)
+                    ->orderBy('created_at', 'ASC')
+                    ->get()
+                    ->getResultArray();
+
+                foreach ($coRows as $coRow) {
+                    $coFile = trim((string)($coRow['file'] ?? ''));
+                    $coUrl  = null;
+                    if ($coFile !== '' && basename($coFile) === $coFile
+                        && strpos($coFile, "\0") === false && strpos($coFile, '..') === false) {
+                        $coPath = FCPATH . 'assets/uploads/cobro_cliente/' . $tramiteId . '/' . $coFile;
+                        // Siempre generamos la URL; el archivo puede existir en producción aunque no en local
+                        $coUrl = base_url('/assets/uploads/cobro_cliente/' . $tramiteId . '/' . $coFile);
+                    }
+                    $coRow['url'] = $coUrl;
+                    $traCobros[] = $coRow;
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silencioso para el cliente
+        }
+
         $data = [
             'session' => \Config\Services::session(),
             'username' => $this->session->get('user_name'),
@@ -794,6 +881,9 @@ class ClienteTramites extends BaseController
             'doc_status_docs' => $docStatusDocs,
             'doc_status_docs_total' => $docStatusDocsTotal,
             'doc_status_docs_uploaded' => $docStatusDocsUploaded,
+            'tra_evidencias' => $traEvidencias,
+            'tra_pago_derechos' => $traPagoDerechos,
+            'tra_cobros' => $traCobros,
         ];
 
         return view('deskapp/clientes/tramites_show', $data);
