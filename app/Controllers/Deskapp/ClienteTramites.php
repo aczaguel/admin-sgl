@@ -197,8 +197,12 @@ class ClienteTramites extends BaseController
             $tramiteCrud->unsetDelete();
             $tramiteCrud->unsetDeleteMultiple();
             $tramiteCrud->unsetClone();
-            $tramiteCrud->unsetExport();
-            $tramiteCrud->unsetPrint();
+            if (!has_permission('export_cliente_tramite', $perms, $roles)) {
+                $tramiteCrud->unsetExport();
+            }
+            if (!has_permission('print_cliente_tramite', $perms, $roles)) {
+                $tramiteCrud->unsetPrint();
+            }
 
             $tramiteCrud->setActionButton('Ver', 'fas fa-eye', function ($row) {
                 return '/deskapp/clientes/ver/' . $row->id;
