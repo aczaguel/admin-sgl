@@ -4,17 +4,17 @@
 
 <style>
     :root {
-        --cs-ink: #1f2933;
-        --cs-muted: #6b7280;
+        --cs-ink: #1e2a38;
+        --cs-muted: #64748b;
         --cs-surface: #ffffff;
-        --cs-panel: #f3efe7;
+        --cs-panel: #f4f6f8;
         --cs-accent: #0f766e;
-        --cs-border: #e7e1d6;
-        --cs-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+        --cs-border: #dde3ea;
+        --cs-shadow: 0 1px 4px rgba(15,23,42,0.07), 0 4px 12px rgba(15,23,42,0.05);
     }
 
     .client-tramite-show {
-        background: radial-gradient(circle at top right, #f7efe1 0%, #f9fafb 55%, #ffffff 100%);
+        background: #f4f6f8;
         min-height: 100vh;
     }
 
@@ -28,44 +28,35 @@
     }
 
     .client-tramite-show .page-header {
-        border-radius: 18px;
-        background: linear-gradient(120deg, #ffffff 0%, #fdf6ea 100%);
+        border-radius: 12px;
+        background: #ffffff;
         border: 1px solid var(--cs-border);
         box-shadow: var(--cs-shadow);
         padding: 18px 20px;
     }
 
     .client-tramite-show .hero {
-        border-radius: 18px;
-        background: linear-gradient(120deg, #0f766e 0%, #1f2933 100%);
+        border-radius: 12px;
+        background: #1e2a38;
         color: #ffffff;
-        padding: 18px 20px;
+        padding: 20px 24px;
         position: relative;
         overflow: hidden;
     }
 
     .client-tramite-show .hero-title {
         margin: 0 0 4px;
-        font-weight: 800;
-        letter-spacing: 0.2px;
+        font-weight: 700;
+        letter-spacing: 0.1px;
     }
 
     .client-tramite-show .hero-subtitle {
         font-size: 12px;
-        opacity: 0.85;
-        margin: 0 0 10px;
+        opacity: 0.7;
+        margin: 0 0 12px;
     }
 
-    .client-tramite-show .hero::after {
-        content: '';
-        position: absolute;
-        top: -60px;
-        right: -60px;
-        width: 180px;
-        height: 180px;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
-        border-radius: 999px;
-    }
+    .client-tramite-show .hero::after { display: none; }
 
     .client-tramite-show .hero-badges {
         display: flex;
@@ -144,12 +135,12 @@
     }
 
     .client-tramite-show .doc-card {
-        width: 118px;
+        width: 110px;
         border: 1px solid var(--cs-border);
-        border-radius: 12px;
+        border-radius: 8px;
         padding: 10px;
         background: #ffffff;
-        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
+        box-shadow: var(--cs-shadow);
         text-align: center;
     }
 
@@ -195,10 +186,10 @@
     }
 
     .client-tramite-show .hero-tile {
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
         padding: 10px 12px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
     .client-tramite-show .hero-tile span {
@@ -213,9 +204,9 @@
     }
 
     .client-tramite-show .quick-actions-ribbon {
-        margin-bottom: 18px;
+        margin-bottom: 16px;
         padding: 12px 16px;
-        border-radius: 16px;
+        border-radius: 10px;
         border: 1px solid var(--cs-border);
         background: #ffffff;
         box-shadow: var(--cs-shadow);
@@ -249,16 +240,22 @@
         justify-content: flex-start;
         gap: 10px;
         padding: 10px 12px;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        background: #f8fafc;
         border: 1px solid var(--cs-border);
-        border-radius: 14px;
-        min-width: 190px;
-        max-width: 320px;
+        border-radius: 8px;
+        min-width: 170px;
+        max-width: 280px;
         text-align: left;
         position: relative;
         overflow: hidden;
         white-space: normal;
         word-break: break-word;
+        transition: background 0.15s, border-color 0.15s;
+    }
+
+    .client-tramite-show .ribbon-btn:hover {
+        background: #f1f5f9;
+        border-color: #b0bac5;
     }
 
     .client-tramite-show .ribbon-btn.is-disabled {
@@ -270,32 +267,18 @@
         display: none;
     }
 
-    .client-tramite-show .ribbon-btn::before {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(135deg, var(--cs-accent) 0%, #2563eb 100%);
-        transform: scaleX(0);
-        transition: transform 0.2s ease;
-    }
-
-    .client-tramite-show .ribbon-btn:hover::before {
-        transform: scaleX(1);
-    }
+    .client-tramite-show .ribbon-btn::before { display: none; }
 
     .client-tramite-show .ribbon-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 14px;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         color: #ffffff;
-        font-size: 16px;
-        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.18);
+        font-size: 15px;
+        flex-shrink: 0;
     }
 
     .client-tramite-show .ribbon-label {
@@ -327,7 +310,7 @@
 
     .client-tramite-show .card-box {
         border: 1px solid var(--cs-border);
-        border-radius: 16px;
+        border-radius: 10px;
         background: var(--cs-surface);
         box-shadow: var(--cs-shadow);
     }
@@ -362,50 +345,38 @@
 
     .client-tramite-show .info-tile {
         border: 1px solid var(--cs-border);
-        border-radius: 14px;
-        padding: 14px;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
-        position: relative;
-        overflow: hidden;
-        min-height: 78px;
+        border-left: 3px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: #ffffff;
+        min-height: 68px;
     }
 
-    .client-tramite-show .info-tile::after {
-        content: '';
-        position: absolute;
-        top: -44px;
-        right: -44px;
-        width: 120px;
-        height: 120px;
-        border-radius: 999px;
-        background: radial-gradient(circle, rgba(15, 118, 110, 0.14) 0%, rgba(15, 118, 110, 0) 70%);
-    }
+    .client-tramite-show .info-tile::after { display: none; }
 
     .client-tramite-show .info-tile span {
         display: block;
-        font-size: 11px;
+        font-size: 10px;
         color: var(--cs-muted);
         text-transform: uppercase;
-        letter-spacing: 0.07em;
-        font-weight: 800;
+        letter-spacing: 0.06em;
+        font-weight: 700;
     }
 
     .client-tramite-show .info-tile strong {
         display: block;
-        margin-top: 6px;
-        font-size: 15px;
+        margin-top: 4px;
+        font-size: 13px;
         color: var(--cs-ink);
-        font-weight: 800;
-        line-height: 1.2;
-        position: relative;
-        z-index: 1;
+        font-weight: 600;
+        line-height: 1.3;
         word-break: break-word;
     }
 
     .client-tramite-show .info-tile strong.is-empty {
-        color: var(--cs-muted);
-        font-weight: 700;
+        color: #94a3b8;
+        font-weight: 400;
+        font-style: italic;
     }
 
     .client-tramite-show .timeline-subtitle {
@@ -433,10 +404,10 @@
         margin-top: 0;
         margin-bottom: 0;
         border: 1px solid var(--cs-border);
-        border-radius: 14px;
-        padding: 12px 14px;
-        background: linear-gradient(135deg, #ffffff 0%, #f8f5ef 100%);
-        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
+        border-radius: 10px;
+        padding: 14px 16px;
+        background: #ffffff;
+        box-shadow: var(--cs-shadow);
     }
 
     .client-tramite-show .timeline-progress-head {
@@ -472,8 +443,8 @@
     .client-tramite-show .timeline-progress-fill {
         height: 100%;
         border-radius: 999px;
-        background: linear-gradient(90deg, #0f766e 0%, #2563eb 55%, #f59e0b 100%);
-        transition: width 0.3s ease;
+        background: #0f766e;
+        transition: width 0.4s ease;
     }
 
     .client-tramite-show .timeline-progress-foot {
@@ -500,21 +471,20 @@
         left: 10px;
         top: 10px;
         bottom: 10px;
-        width: 6px;
+        width: 2px;
         border-radius: 999px;
-        background: linear-gradient(180deg, #0f766e 0%, #38bdf8 50%, #f59e0b 100%);
-        opacity: 0.5;
+        background: #dde3ea;
     }
 
     .client-tramite-show .timeline-item {
         position: relative;
-        padding: 14px 16px 14px 18px;
-        border-radius: 16px;
+        padding: 12px 14px;
+        border-radius: 8px;
         border: 1px solid var(--cs-border);
         background: #ffffff;
-        box-shadow: 0 12px 22px rgba(15, 23, 42, 0.08);
+        box-shadow: var(--cs-shadow);
         display: grid;
-        gap: 8px;
+        gap: 6px;
     }
 
     .client-tramite-show .timeline-item::before {
@@ -608,15 +578,16 @@
     .client-tramite-show .realtime-card {
         margin-top: 0;
         border: 1px solid var(--cs-border);
-        border-radius: 14px;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+        border-radius: 10px;
+        background: #ffffff;
         padding: 14px;
-        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
+        box-shadow: var(--cs-shadow);
     }
 
     .client-tramite-show .realtime-card.is-highlight {
-        background: linear-gradient(135deg, rgba(15, 118, 110, 0.14) 0%, rgba(37, 99, 235, 0.12) 60%, #ffffff 100%);
-        border-color: rgba(15, 118, 110, 0.25);
+        background: #f0faf8;
+        border-color: rgba(15, 118, 110, 0.3);
+        border-left: 3px solid #0f766e;
     }
 
     .client-tramite-show .realtime-kicker {
@@ -656,62 +627,28 @@
         left: 11px;
         top: 4px;
         bottom: 4px;
-        width: 6px;
+        width: 2px;
         border-radius: 999px;
-        background: linear-gradient(180deg, #0f766e 0%, #22c55e 45%, #3b82f6 100%);
-        opacity: 0.35;
+        background: #dde3ea;
     }
 
     .client-tramite-show .activity-item {
         position: relative;
         border: 1px solid var(--cs-border);
-        border-radius: 14px;
+        border-left: 3px solid #94a3b8;
+        border-radius: 8px;
         background: #ffffff;
-        padding: 12px 12px 12px 14px;
-        box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+        padding: 10px 12px 10px 12px;
+        box-shadow: var(--cs-shadow);
         overflow: hidden;
     }
 
-    .client-tramite-show .activity-item::before {
-        content: '';
-        position: absolute;
-        left: -28px;
-        top: 16px;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: #94a3b8;
-        box-shadow: 0 0 0 5px rgba(148, 163, 184, 0.25);
-    }
+    .client-tramite-show .activity-item::before { display: none; }
+    .client-tramite-show .activity-item::after  { display: none; }
 
-    .client-tramite-show .activity-item::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 5px;
-        border-radius: 14px 0 0 14px;
-        background: #94a3b8;
-    }
-
-    .client-tramite-show .activity-item.status_change::before,
-    .client-tramite-show .activity-item.status_change::after {
-        background: #2563eb;
-        box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.2);
-    }
-
-    .client-tramite-show .activity-item.upload::before,
-    .client-tramite-show .activity-item.upload::after {
-        background: #10b981;
-        box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.2);
-    }
-
-    .client-tramite-show .activity-item.update::before,
-    .client-tramite-show .activity-item.update::after {
-        background: #f59e0b;
-        box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.22);
-    }
+    .client-tramite-show .activity-item.status_change { border-left-color: #2563eb; }
+    .client-tramite-show .activity-item.upload        { border-left-color: #10b981; }
+    .client-tramite-show .activity-item.update        { border-left-color: #f59e0b; }
 
     .client-tramite-show .activity-head {
         display: flex;
@@ -835,32 +772,21 @@
         left: 11px;
         top: 6px;
         bottom: 6px;
-        width: 5px;
+        width: 2px;
         border-radius: 999px;
-        background: linear-gradient(180deg, #2563eb 0%, #0ea5e9 100%);
-        opacity: 0.35;
+        background: #dde3ea;
     }
 
     .client-tramite-show .status-ribbon {
         position: relative;
-        border-radius: 14px;
+        border-radius: 8px;
         border: 1px solid var(--cs-border);
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        padding: 11px 12px;
-        box-shadow: 0 8px 15px rgba(15, 23, 42, 0.06);
+        background: #ffffff;
+        padding: 10px 12px;
+        box-shadow: var(--cs-shadow);
     }
 
-    .client-tramite-show .status-ribbon::before {
-        content: '';
-        position: absolute;
-        left: -26px;
-        top: 14px;
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: #2563eb;
-        box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.2);
-    }
+    .client-tramite-show .status-ribbon::before { display: none; }
 
     .client-tramite-show .status-ribbon-head {
         display: flex;
@@ -925,53 +851,35 @@
     }
 
     .client-tramite-show .cost-tile {
-        border-radius: 14px;
+        border-radius: 8px;
         border: 1px solid var(--cs-border);
-        padding: 14px;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.06);
-        position: relative;
-        overflow: hidden;
-        min-height: 84px;
-    }
-
-    .client-tramite-show .cost-tile::after {
-        content: '';
-        position: absolute;
-        top: -44px;
-        right: -44px;
-        width: 120px;
-        height: 120px;
-        border-radius: 999px;
-        background: radial-gradient(circle, rgba(37, 99, 235, 0.14) 0%, rgba(37, 99, 235, 0) 70%);
+        border-left: 3px solid #cbd5e1;
+        padding: 12px 14px;
+        background: #ffffff;
+        min-height: 72px;
     }
 
     .client-tramite-show .cost-tile span {
         display: block;
-        font-size: 11px;
+        font-size: 10px;
         color: var(--cs-muted);
         text-transform: uppercase;
-        letter-spacing: 0.07em;
-        font-weight: 800;
+        letter-spacing: 0.06em;
+        font-weight: 700;
     }
 
     .client-tramite-show .cost-tile strong {
         display: block;
-        margin-top: 6px;
+        margin-top: 4px;
         font-size: 15px;
         color: var(--cs-ink);
-        font-weight: 800;
-        position: relative;
-        z-index: 1;
+        font-weight: 700;
     }
 
     .client-tramite-show .cost-tile.is-total {
-        background: linear-gradient(135deg, rgba(15, 118, 110, 0.14) 0%, rgba(245, 158, 11, 0.12) 65%, #ffffff 100%);
-        border-color: rgba(15, 118, 110, 0.22);
-    }
-
-    .client-tramite-show .cost-tile.is-total::after {
-        background: radial-gradient(circle, rgba(15, 118, 110, 0.18) 0%, rgba(15, 118, 110, 0) 70%);
+        background: #f0faf8;
+        border-color: rgba(15,118,110,0.3);
+        border-left-color: #0f766e;
     }
 
     .client-tramite-show .cost-head {
@@ -1005,52 +913,50 @@
 
     /* ─── Wizard de pasos del trámite (cliente) ─── */
     .client-tramite-show .cs-wizard { margin-bottom: 18px; }
-    .client-tramite-show .cs-wizard-head { font-size: 11px; font-weight: 800; color: var(--cs-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-    .client-tramite-show .cs-step { border: 1px solid var(--cs-border); border-radius: 16px; background: var(--cs-surface); box-shadow: 0 10px 18px rgba(15,23,42,0.06); overflow: hidden; margin-bottom: 10px; transition: box-shadow 0.2s; }
+    .client-tramite-show .cs-wizard-head { font-size: 10px; font-weight: 700; color: var(--cs-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 
-    /* Colores por grupo de pasos */
-    /* Pasos 1-4: azul/índigo */
-    .client-tramite-show .cs-step.step-1,
-    .client-tramite-show .cs-step.step-2,
-    .client-tramite-show .cs-step.step-3,
-    .client-tramite-show .cs-step.step-4 { border-color: rgba(99,102,241,0.25); }
+    /* Paso base */
+    .client-tramite-show .cs-step {
+        border: 1px solid var(--cs-border);
+        border-left: 3px solid #cbd5e1;
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: var(--cs-shadow);
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+
+    /* Acento izquierdo por paso */
+    .client-tramite-show .cs-step.step-1 { border-left-color: #6366f1; }
+    .client-tramite-show .cs-step.step-2 { border-left-color: #6366f1; }
+    .client-tramite-show .cs-step.step-3 { border-left-color: #6366f1; }
+    .client-tramite-show .cs-step.step-4 { border-left-color: #6366f1; }
+    .client-tramite-show .cs-step.step-5 { border-left-color: #f59e0b; }
+
+    /* Número de paso */
     .client-tramite-show .cs-step.step-1 .cs-step-num,
     .client-tramite-show .cs-step.step-2 .cs-step-num,
     .client-tramite-show .cs-step.step-3 .cs-step-num,
-    .client-tramite-show .cs-step.step-4 .cs-step-num { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
-    .client-tramite-show .cs-step.step-1 .cs-step-ribbon,
-    .client-tramite-show .cs-step.step-2 .cs-step-ribbon,
-    .client-tramite-show .cs-step.step-3 .cs-step-ribbon,
-    .client-tramite-show .cs-step.step-4 .cs-step-ribbon { background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%); }
-    .client-tramite-show .cs-step.step-1 .cs-step-body,
-    .client-tramite-show .cs-step.step-2 .cs-step-body,
-    .client-tramite-show .cs-step.step-3 .cs-step-body,
-    .client-tramite-show .cs-step.step-4 .cs-step-body { background: linear-gradient(135deg, #f5f3ff 0%, #fafafa 100%); }
+    .client-tramite-show .cs-step.step-4 .cs-step-num { background: #6366f1; }
+    .client-tramite-show .cs-step.step-5 .cs-step-num { background: #f59e0b; }
+
+    /* Header/ribbon: fondo plano y borde inferior */
+    .client-tramite-show .cs-step .cs-step-ribbon { background: #ffffff; }
+    .client-tramite-show .cs-step .cs-step-body { background: #fafbfc; }
+
+    /* Chips de estado */
     .client-tramite-show .cs-step.step-1 .cs-step-chip,
     .client-tramite-show .cs-step.step-2 .cs-step-chip,
     .client-tramite-show .cs-step.step-3 .cs-step-chip,
-    .client-tramite-show .cs-step.step-4 .cs-step-chip { background: rgba(99,102,241,0.12); color: #3730a3; border: 1px solid rgba(99,102,241,0.25); }
+    .client-tramite-show .cs-step.step-4 .cs-step-chip { background: #eef0fd; color: #3730a3; border: 1px solid #c7d2fe; }
+    .client-tramite-show .cs-step.step-5 .cs-step-chip { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
 
-    /* Paso 5: verde esmeralda */
-    .client-tramite-show .cs-step.step-5 { border-color: rgba(16,185,129,0.3); }
-    .client-tramite-show .cs-step.step-5 .cs-step-num { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-    .client-tramite-show .cs-step.step-5 .cs-step-ribbon { background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%); }
-    .client-tramite-show .cs-step.step-5 .cs-step-body { background: linear-gradient(135deg, #f0fdf4 0%, #fafafa 100%); }
-    .client-tramite-show .cs-step.step-5 .cs-step-chip { background: rgba(16,185,129,0.12); color: #065f46; border: 1px solid rgba(16,185,129,0.25); }
-
-    /* Paso 6: ámbar/dorado */
-    .client-tramite-show .cs-step.step-6 { border-color: rgba(245,158,11,0.35); }
-    .client-tramite-show .cs-step.step-6 .cs-step-num { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-    .client-tramite-show .cs-step.step-6 .cs-step-ribbon { background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%); }
-    .client-tramite-show .cs-step.step-6 .cs-step-body { background: linear-gradient(135deg, #fef3c7 0%, #fafafa 100%); }
-    .client-tramite-show .cs-step.step-6 .cs-step-chip { background: rgba(245,158,11,0.15); color: #92400e; border: 1px solid rgba(245,158,11,0.3); }
-
-    /* Estado is-locked sobreescribe con gris */
-    .client-tramite-show .cs-step.is-locked { opacity: 0.6; }
+    /* Estado is-locked */
+    .client-tramite-show .cs-step.is-locked { opacity: 0.55; border-left-color: #cbd5e1 !important; }
     .client-tramite-show .cs-step.is-locked .cs-step-num { background: #94a3b8 !important; }
     .client-tramite-show .cs-step.is-locked .cs-step-ribbon { background: #f8fafc !important; }
-    .client-tramite-show .cs-step.is-locked .cs-step-body { background: #f1f5f9 !important; }
-    .client-tramite-show .cs-step.is-locked .cs-step-chip { background: rgba(148,163,184,0.15) !important; color: #475569 !important; border-color: rgba(148,163,184,0.2) !important; }
+    .client-tramite-show .cs-step.is-locked .cs-step-body { background: #f8fafc !important; }
+    .client-tramite-show .cs-step.is-locked .cs-step-chip { background: #f1f5f9 !important; color: #64748b !important; border-color: #e2e8f0 !important; }
 
     .client-tramite-show .cs-step-ribbon { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; user-select: none; border: none; width: 100%; text-align: left; }
     .client-tramite-show .cs-step-num { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #ffffff; flex-shrink: 0; }
@@ -1307,14 +1213,6 @@
                         <span class="ribbon-label">Pagos Derecho</span>
                     </button>
 
-                    <!-- Pago al gestor / entrega -->
-                    <button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-entrega-gestor-cliente">
-                        <div class="ribbon-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                            <i class="fas fa-hand-holding-usd"></i>
-                        </div>
-                        <span class="ribbon-label">Pago Gestor</span>
-                    </button>
-
                     <!-- Evidencias finales -->
                     <button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-evidencias-finales-cliente">
                         <div class="ribbon-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
@@ -1334,9 +1232,9 @@
                 </div>
             </div>
 
-            <!-- ═══════════════════════════════════════════════════
-                 WIZARD DE PASOS 1–6 — Vista cliente (solo lectura)
-                 ═══════════════════════════════════════════════════ -->
+              <!-- ═══════════════════════════════════════════════════
+                  WIZARD DE PASOS 1–5 — Vista cliente (solo lectura)
+                  ═══════════════════════════════════════════════════ -->
             <?php
                 /* ─── Cálculo de completitud de cada paso ─── */
 
@@ -1351,7 +1249,6 @@
 
                 // Paso 4: evidencias finales (tramite_recibido + acuse_recibo_cliente)
                 $_pgEvidencias  = [];
-                $_pgGestorDocs  = []; // docs de pago/factura del gestor
                 $_wizHasTramRec = false;
                 $_wizHasAcuse   = false;
                 foreach ($pago_gestor_docs ?? [] as $_pg) {
@@ -1360,29 +1257,21 @@
                         $_pgEvidencias[] = $_pg;
                         if ($_pgTipo === 'tramite_recibido')     $_wizHasTramRec = true;
                         if ($_pgTipo === 'acuse_recibo_cliente') $_wizHasAcuse   = true;
-                    } else {
-                        // 'otro', 'factura_gestor', 'comprobante_pago', NULL, etc → pago gestor
-                        $_pgGestorDocs[] = $_pg;
                     }
                 }
                 $_wiz4Done = $_wizHasTramRec || $_wizHasAcuse || !empty($_pgEvidencias);
 
-                // Paso 5: pago al gestor (hay cualquier doc gestor o datos de factura/depósito)
-                $_wiz5Done = !empty($_pgGestorDocs)
-                    || !empty($tramite['num_factura_gestor'])
-                    || !empty($tramite['deposito_gestor']);
-
-                // Paso 6: cobro y cierre (tramite finalizado)
-                $_wiz6Done = !empty($tramite['finished_at'])
+                // Paso 5: cobro y cierre (tramite finalizado)
+                $_wiz5Done = !empty($tramite['finished_at'])
                     || (!empty($tramite['cobro_status_id']) && ((int)($tramite['cobro_status_id'] ?? 0)) > 1);
 
                 // Paso actual = primer paso sin completar
-                $_wizDoneArr = [$_wiz1Done, $_wiz2Done, $_wiz3Done, $_wiz4Done, $_wiz5Done, $_wiz6Done];
+                $_wizDoneArr = [$_wiz1Done, $_wiz2Done, $_wiz3Done, $_wiz4Done, $_wiz5Done];
                 $_wizCurrent = 0;
                 foreach ($_wizDoneArr as $_wi => $_wd) {
                     if (!$_wd) { $_wizCurrent = $_wi + 1; break; }
                 }
-                if ($_wizCurrent === 0) $_wizCurrent = 7; // todos completos
+                if ($_wizCurrent === 0) $_wizCurrent = 6; // todos completos
 
                 // Retorna la clase CSS del paso según su estado
                 $__stepCls = static function(int $n, array $done, int $cur): string {
@@ -1411,14 +1300,14 @@
             ?>
             <div class="cs-wizard">
                 <div class="cs-wizard-head">
-                    <i class="fas fa-route"></i> Progreso del trámite — Pasos 1 al 6
-                    <?php if ($_wizCurrent === 7): ?>
+                    <i class="fas fa-route"></i> Progreso del trámite — Pasos 1 al 5
+                    <?php if ($_wizCurrent === 6): ?>
                         <span style="font-size:11px;background:rgba(34,197,94,0.15);color:#166534;border:1px solid rgba(34,197,94,0.25);border-radius:999px;padding:3px 10px;">
                             <i class="fas fa-check-circle"></i> Todos los pasos completados
                         </span>
                     <?php else: ?>
                         <span style="font-size:11px;background:rgba(245,158,11,0.12);color:#92400e;border:1px solid rgba(245,158,11,0.22);border-radius:999px;padding:3px 10px;">
-                            Paso actual: <?= esc((string)$_wizCurrent) ?> de 6
+                            Paso actual: <?= esc((string)$_wizCurrent) ?> de 5
                         </span>
                     <?php endif; ?>
                 </div>
@@ -1429,7 +1318,6 @@
                     $_s3cls = $__stepCls(3, $_wizDoneArr, $_wizCurrent);
                     $_s4cls = $__stepCls(4, $_wizDoneArr, $_wizCurrent);
                     $_s5cls = $__stepCls(5, $_wizDoneArr, $_wizCurrent);
-                    $_s6cls = $__stepCls(6, $_wizDoneArr, $_wizCurrent);
                 ?>
 
                 <!-- ── Paso 1: Datos del trámite ── -->
@@ -1674,95 +1562,18 @@
                     </div>
                 </div>
 
-                <!-- ── Paso 5: Pago al gestor ── -->
+                <!-- ── Paso 5: Cobro y cierre ── -->
                 <div class="cs-step step-5 <?= esc($_s5cls) ?>">
                     <button type="button" class="cs-step-ribbon" data-toggle="collapse" data-target="#csWizStep5" aria-expanded="<?= $_s5cls !== 'is-locked' ? 'true' : 'false' ?>" aria-controls="csWizStep5">
                         <span class="cs-step-num">5</span>
                         <span class="cs-step-text">
                             <span class="cs-step-label">Paso 5</span>
-                            <span class="cs-step-title">Pago al gestor</span>
+                            <span class="cs-step-title">Cobro y cierre del trámite</span>
                         </span>
                         <span class="cs-step-chip"><?= esc($__stepChip($_s5cls)) ?></span>
                         <i class="fas fa-chevron-down cs-step-chevron"></i>
                     </button>
                     <div id="csWizStep5" class="collapse <?= $_s5cls !== 'is-locked' ? 'show' : '' ?> cs-step-body">
-                        <div class="info-grid mt-10">
-                            <?php
-                                $_s5rows = [
-                                    ['Gestor',              $tramite['gestor']             ?? null],
-                                    ['No. Factura gestor',  $tramite['num_factura_gestor'] ?? null],
-                                    ['Depósito / referencia', $tramite['deposito_gestor'] ?? null],
-                                    ['Estatus pago',        $tramite['pago_gestor_st']     ?? null],
-                                ];
-                                foreach ($_s5rows as [$_lbl, $_val]):
-                                    if (empty($_val)) continue;
-                                    [$_v, $_empty] = $formatTileValue($_val);
-                            ?>
-                                <div class="info-tile">
-                                    <span><?= esc($_lbl) ?></span>
-                                    <strong class="<?= $_empty ? 'is-empty' : '' ?>"><?= esc($_v) ?></strong>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <?php
-                            // Mostrar TODOS los docs del gestor que no sean evidencias de entrega
-                            $_allGestorDocs = $_pgGestorDocs;
-                            // Si no hay docs separados, mostrar todos los pago_gestor_docs
-                            if (empty($_allGestorDocs) && !empty($pago_gestor_docs)) {
-                                $_allGestorDocs = $pago_gestor_docs;
-                            }
-                        ?>
-                        <?php if (!empty($_allGestorDocs)): ?>
-                            <div class="cs-step-docs">
-                                <div class="cs-step-docs-title"><i class="fas fa-paperclip"></i> Documentos del gestor (<?= esc((string)count($_allGestorDocs)) ?>)</div>
-                                <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                                    <?php foreach ($_allGestorDocs as $_d5):
-                                        $_url5  = (string)($_d5['url']              ?? '');
-                                        $_file5 = basename((string)($_d5['file']    ?? ''));
-                                        $_tipo5 = $__pgDocType($_d5['comprobante_final'] ?? null);
-                                        $_ext5  = strtolower(pathinfo($_file5, PATHINFO_EXTENSION));
-                                        $_isImg5 = in_array($_ext5, ['jpg','jpeg','png','gif','webp'], true);
-                                        $_icoC5  = $_isImg5 ? 'fas fa-image' : 'fas fa-file-alt';
-                                        $_icoBg5 = $_url5 !== '' ? '#2563eb' : '#94a3b8';
-                                    ?>
-                                        <?php if ($_url5 !== ''): ?>
-                                            <a class="cs-doc-pill" href="<?= esc($_url5) ?>" target="_blank" rel="noopener" title="<?= esc($_tipo5 . ($_file5 !== '' ? ' — ' . $_file5 : '')) ?>">
-                                                <span class="cs-doc-icon" style="background:<?= esc($_icoBg5) ?>"><i class="<?= esc($_icoC5) ?>"></i></span>
-                                                <span>
-                                                    <span style="display:block;font-size:10px;color:#6b7280;"><?= esc($_tipo5) ?></span>
-                                                    <?= esc($_file5 !== '' ? $_file5 : 'Documento') ?>
-                                                </span>
-                                            </a>
-                                        <?php else: ?>
-                                            <span class="cs-doc-pill is-pending">
-                                                <span class="cs-doc-icon" style="background:<?= esc($_icoBg5) ?>"><i class="<?= esc($_icoC5) ?>"></i></span>
-                                                <span>
-                                                    <span style="display:block;font-size:10px;color:#6b7280;"><?= esc($_tipo5) ?></span>
-                                                    Pendiente
-                                                </span>
-                                            </span>
-                                        <?php endif; ?>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        <?php else: ?>
-                            <div class="empty-state mt-10">Aún no hay documentos de pago al gestor registrados.</div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- ── Paso 6: Cobro y cierre ── -->
-                <div class="cs-step step-6 <?= esc($_s6cls) ?>">
-                    <button type="button" class="cs-step-ribbon" data-toggle="collapse" data-target="#csWizStep6" aria-expanded="<?= $_s6cls !== 'is-locked' ? 'true' : 'false' ?>" aria-controls="csWizStep6">
-                        <span class="cs-step-num">6</span>
-                        <span class="cs-step-text">
-                            <span class="cs-step-label">Paso 6</span>
-                            <span class="cs-step-title">Cobro y cierre del trámite</span>
-                        </span>
-                        <span class="cs-step-chip"><?= esc($__stepChip($_s6cls)) ?></span>
-                        <i class="fas fa-chevron-down cs-step-chevron"></i>
-                    </button>
-                    <div id="csWizStep6" class="collapse <?= $_s6cls !== 'is-locked' ? 'show' : '' ?> cs-step-body">
                         <div class="info-grid mt-10">
                             <?php
                                 $_s6rows = [
