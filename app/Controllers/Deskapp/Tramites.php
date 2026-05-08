@@ -4364,7 +4364,7 @@ class Tramites extends BaseController
             "numero_factura" => "required",
             "numero_refactura" => "permit_empty",
             "cobro_status_id" => "required|integer",
-            "evidencia_cobro_txt" => "permit_empty|max_length[255]",
+            "evidencia_cobro_txt" => "permit_empty",
             "costo_pago_cliente" => "required|decimal",
             "comision_derechos" => "required|decimal",
             "costo_total" => "permit_empty|decimal"

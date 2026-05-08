@@ -331,17 +331,18 @@
 
         var $evidenciaTxt = $('#evidencia_cobro_txt');
         if ($evidenciaTxt.length) {
-            var evidenciaLimit = 255;
-            $evidenciaTxt.attr('maxlength', String(evidenciaLimit));
-            if (!$evidenciaTxt.next('.sgl-limit-note').length) {
-                $evidenciaTxt.after('<small class="text-muted sgl-limit-note">Limite: ' + evidenciaLimit + ' caracteres.</small>');
-            }
-            $evidenciaTxt.on('input', function () {
-                var current = String($evidenciaTxt.val() || '');
-                if (current.length > evidenciaLimit) {
-                    $evidenciaTxt.val(current.slice(0, evidenciaLimit));
+            var evidenciaLimit = parseInt(String($evidenciaTxt.attr('maxlength') || ''), 10);
+            if (Number.isFinite(evidenciaLimit) && evidenciaLimit > 0) {
+                if (!$evidenciaTxt.next('.sgl-limit-note').length) {
+                    $evidenciaTxt.after('<small class="text-muted sgl-limit-note">Limite: ' + evidenciaLimit + ' caracteres.</small>');
                 }
-            });
+                $evidenciaTxt.on('input', function () {
+                    var current = String($evidenciaTxt.val() || '');
+                    if (current.length > evidenciaLimit) {
+                        $evidenciaTxt.val(current.slice(0, evidenciaLimit));
+                    }
+                });
+            }
         }
 
         groupMoneyFields();
