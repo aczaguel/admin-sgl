@@ -61,6 +61,7 @@
     z-index: 10;
     background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    text-transform: capitalize !important;
 }
 
 .grocery-crud-body table.table tbody tr:last-child td {
@@ -267,6 +268,21 @@
     font-weight: 600;
     color: var(--gc-text-primary);
     font-size: 14px;
+}
+
+/* Solo filtros de Grocery CRUD */
+.grocery-crud-body .dataTables_filter label,
+.grocery-crud-body .dataTables_length label,
+.grocery-crud-body .dataTables_filter input,
+.grocery-crud-body .dataTables_length select,
+.grocery-crud-body .floatL input[type="text"],
+.grocery-crud-body .search-field input[type="text"],
+.grocery-crud-body .search-box input[type="text"],
+.grocery-crud-body select,
+.grocery-crud-body select option,
+.grocery-crud-body .select2-selection__rendered,
+.grocery-crud-body .select2-results__option {
+    text-transform: capitalize;
 }
 
 /* Required indicator */

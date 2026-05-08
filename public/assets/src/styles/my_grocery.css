@@ -11,6 +11,21 @@
     background-color: #f8f9fa; /* Color de fondo de los encabezados */
     color: #333; /* Color de texto de los encabezados */
     padding: 12px; /* Espaciado (padding) dentro de las celdas del encabezado */
+    text-transform: capitalize;
+}
+
+/* Solo encabezados y filtros de Grocery CRUD: formato visual uniforme */
+.grocery-crud .dataTables_filter label,
+.grocery-crud .dataTables_length label,
+.grocery-crud .dataTables_filter input,
+.grocery-crud .dataTables_length select,
+.grocery-crud .floatL input[type="text"],
+.grocery-crud .search-field input[type="text"],
+.grocery-crud .search-box input[type="text"],
+.grocery-crud .form-control,
+.grocery-crud select,
+.grocery-crud select option {
+    text-transform: capitalize;
 }
 
 /* Personalizar las celdas de datos */

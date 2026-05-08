@@ -12,6 +12,36 @@ class ClienteTramites extends BaseController
 {
     protected $session;
 
+    private function normalizeDisplayLabel(?string $value): string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return '';
+        }
+
+        $lower = function_exists('mb_strtolower')
+            ? mb_strtolower($value, 'UTF-8')
+            : strtolower($value);
+
+        if (function_exists('mb_convert_case')) {
+            return mb_convert_case($lower, MB_CASE_TITLE, 'UTF-8');
+        }
+
+        return ucwords($lower);
+    }
+
+    private function normalizeFieldInRows(array $rows, string $field): array
+    {
+        foreach ($rows as &$row) {
+            if (isset($row[$field]) && is_string($row[$field])) {
+                $row[$field] = $this->normalizeDisplayLabel($row[$field]);
+            }
+        }
+        unset($row);
+
+        return $rows;
+    }
+
     public function __construct()
     {
         helper(['form', 'url', 'cliente_filter', 'cliente_context', 'permissions', 'audit', 'acl_guard']);
@@ -68,27 +98,32 @@ class ClienteTramites extends BaseController
         }
 
         $builder->orderBy('cd.razon_social', 'ASC');
-        return $builder->get()->getResultArray();
+        $rows = $builder->get()->getResultArray();
+        return $this->normalizeFieldInRows($rows, 'razon_social');
     }
 
     private function getTiposList(): array
     {
         $db = Database::connect();
-        return $db->table('tra_tipos')
+        $rows = $db->table('tra_tipos')
             ->select('id, tipo_tramite')
             ->orderBy('tipo_tramite', 'ASC')
             ->get()
             ->getResultArray();
+
+        return $this->normalizeFieldInRows($rows, 'tipo_tramite');
     }
 
     private function getStatusList(): array
     {
         $db = Database::connect();
-        return $db->table('tra_status')
+        $rows = $db->table('tra_status')
             ->select('id, tra_status')
             ->orderBy('tra_status', 'ASC')
             ->get()
             ->getResultArray();
+
+        return $this->normalizeFieldInRows($rows, 'tra_status');
     }
 
     private function getFiltersFromRequest(): array
@@ -404,6 +439,9 @@ class ClienteTramites extends BaseController
         $builder->limit($perPage, $offset);
 
         $rows = $builder->get()->getResultArray();
+        $rows = $this->normalizeFieldInRows($rows, 'tipo_tramite');
+        $rows = $this->normalizeFieldInRows($rows, 'tra_status');
+        $rows = $this->normalizeFieldInRows($rows, 'cliente_directo');
 
         $countBuilder = $db->table('tramite t');
         $countBuilder->select('COUNT(*) as total');
