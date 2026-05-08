@@ -747,6 +747,7 @@
 		<?php }
 	}
 	?>
+	<script src="<?= base_url('/public/assets/src/scripts/my_scripts.js') ?>"></script>
 	
 	<!-- Additional JavaScript for enhanced functionality -->
 	<script>

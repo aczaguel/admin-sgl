@@ -156,4 +156,65 @@ $(document).ready(function() {
     }
   });
 
+  // ─── Normaliza a Title Case los filtros de Grocery CRUD Enterprise ───
+  // GC Enterprise renderiza sus dropdowns con React (react-select), por lo que
+  // los valores aparecen como <div role="option"> y no como <option> nativas.
+  // Se usa MutationObserver para interceptarlos cuando aparecen en el DOM.
+
+  function toTitleCase(text) {
+    if (!text || !text.trim()) return text;
+    return text.toLowerCase().replace(
+      /(^|[\s\u00A0])([\wáéíóúüñÁÉÍÓÚÜÑ])/g,
+      function (m, sep, letter) { return sep + letter.toUpperCase(); }
+    );
+  }
+
+  function normalizeGcNode(node) {
+    if (!node || node.nodeType !== 1) return;
+    // Opciones del dropdown abierto (react-select)
+    if (node.getAttribute('role') === 'option' || node.getAttribute('role') === 'listbox') {
+      var opts = (node.getAttribute('role') === 'option') ? [node] : node.querySelectorAll('[role="option"]');
+      opts.forEach(function (opt) {
+        if (opt.dataset.gcNormalized) return;
+        var t = opt.textContent.trim();
+        if (t) opt.textContent = toTitleCase(t);
+        opt.dataset.gcNormalized = '1';
+      });
+      return;
+    }
+    // Valor seleccionado actualmente (singleValue o placeholder de react-select)
+    var singleValues = node.querySelectorAll
+      ? node.querySelectorAll('[class*="singleValue"], [class*="placeholder"]')
+      : [];
+    singleValues.forEach(function (el) {
+      if (el.dataset.gcNormalized) return;
+      var t = el.textContent.trim();
+      if (t && t !== '…') el.textContent = toTitleCase(t);
+      el.dataset.gcNormalized = '1';
+    });
+    // Selects nativos (fallback)
+    var selects = node.querySelectorAll ? node.querySelectorAll('.grocery-crud select, .grocery-crud-body select') : [];
+    selects.forEach(function (select) {
+      Array.prototype.forEach.call(select.options, function (option) {
+        if (option.dataset.gcNormalized) return;
+        var t = option.text;
+        if (t.trim()) option.text = toTitleCase(t);
+        option.dataset.gcNormalized = '1';
+      });
+    });
+  }
+
+  // Pasada inicial (por si algo ya está en el DOM).
+  normalizeGcNode(document.body);
+
+  // Observer: actúa solo sobre nodos añadidos dentro de zonas GC.
+  var gcObserver = new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
+      mutation.addedNodes.forEach(function (node) {
+        if (node.nodeType === 1) normalizeGcNode(node);
+      });
+    });
+  });
+  gcObserver.observe(document.body, { childList: true, subtree: true });
+
 });

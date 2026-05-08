@@ -67,13 +67,13 @@ if (!function_exists('render_form_fields')) {
                 switch ($field_info['type']) {
                     case 'text':
                     case 'number':
-                        $formHtml .= render_input($field_name, $field_info['type'], $value, $required, $readonly, $disabled);
+                        $formHtml .= render_input($field_name, $field_info['type'], $value, $required, $readonly, $disabled, $field_info);
                         break;
                     case 'select':
                         $formHtml .= render_select($field_name, $field_info, $value, $readonly, $disabled);
                         break;
                     case 'textarea':
-                        $formHtml .= render_textarea($field_name, $value, $required, $readonly, $disabled);
+                        $formHtml .= render_textarea($field_name, $value, $required, $readonly, $disabled, $field_info);
                         break;
                     case 'checkbox':
                         $formHtml .= render_checkbox($field_name, $value, $readonly, $disabled);
@@ -101,10 +101,11 @@ if (!function_exists('render_form_fields')) {
     }
 
     // Funciones auxiliares para renderizar los diferentes tipos de campos
-    function render_input(string $name, string $type, string $value, string $required, string $readonly, string $disabled): string
+    function render_input(string $name, string $type, string $value, string $required, string $readonly, string $disabled, array $field_info = []): string
     {
         $step = $type === 'number' ? 'step="any"' : '';
-        return "<input type=\"{$type}\" class=\"form-control {$name}\" id=\"{$name}\" name=\"{$name}\" value=\"{$value}\" {$step} {$required} {$readonly} {$disabled}>";
+        $maxlength = isset($field_info['maxlength']) ? 'maxlength="' . (int) $field_info['maxlength'] . '"' : '';
+        return "<input type=\"{$type}\" class=\"form-control {$name}\" id=\"{$name}\" name=\"{$name}\" value=\"{$value}\" {$step} {$maxlength} {$required} {$readonly} {$disabled}>";
     }
 
     function render_select(string $name, array $field_info, string $value, string $readonly, string $disabled): string
@@ -125,9 +126,10 @@ if (!function_exists('render_form_fields')) {
         return $selectHtml;
     }
 
-    function render_textarea(string $name, string $value, string $required, string $readonly, string $disabled): string
+    function render_textarea(string $name, string $value, string $required, string $readonly, string $disabled, array $field_info = []): string
     {
-        return "<textarea class=\"form-control {$name}\" id=\"{$name}\" name=\"{$name}\" {$required} {$readonly} {$disabled}>{$value}</textarea>";
+        $maxlength = isset($field_info['maxlength']) ? 'maxlength="' . (int) $field_info['maxlength'] . '"' : '';
+        return "<textarea class=\"form-control {$name}\" id=\"{$name}\" name=\"{$name}\" {$maxlength} {$required} {$readonly} {$disabled}>{$value}</textarea>";
     }
 
     function render_checkbox(string $name, string $value, string $readonly, string $disabled): string

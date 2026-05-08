@@ -331,14 +331,15 @@
 
         var $evidenciaTxt = $('#evidencia_cobro_txt');
         if ($evidenciaTxt.length) {
-            $evidenciaTxt.attr('maxlength', '100');
+            var evidenciaLimit = 255;
+            $evidenciaTxt.attr('maxlength', String(evidenciaLimit));
             if (!$evidenciaTxt.next('.sgl-limit-note').length) {
-                $evidenciaTxt.after('<small class="text-muted sgl-limit-note">Limite: 100 caracteres.</small>');
+                $evidenciaTxt.after('<small class="text-muted sgl-limit-note">Limite: ' + evidenciaLimit + ' caracteres.</small>');
             }
             $evidenciaTxt.on('input', function () {
                 var current = String($evidenciaTxt.val() || '');
-                if (current.length > 100) {
-                    $evidenciaTxt.val(current.slice(0, 100));
+                if (current.length > evidenciaLimit) {
+                    $evidenciaTxt.val(current.slice(0, evidenciaLimit));
                 }
             });
         }
