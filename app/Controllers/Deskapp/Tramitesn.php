@@ -2683,7 +2683,6 @@ class Tramitesn extends Tramites
                 'label' => 'Evidencia de cobro',
                 'type' => 'textarea',
                 'value' => $tramite['evidencia_cobro_txt'] ?? '',
-                'maxlength' => 255,
             ],
             'separador_costos2' => [
                 'type' => 'hr',
