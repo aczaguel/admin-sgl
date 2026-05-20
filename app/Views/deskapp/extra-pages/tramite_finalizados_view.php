@@ -309,7 +309,7 @@ if (isset($tra_status_id)) {
 								</div>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+							<?php if (can_access_cobro_cliente_surface($session->get('user_roles'), $session->get('user_permissions'))): ?>
 								<!-- Step 7: Se cobra al cliente -->
 								<h3>Cobro a Cliente</h3>
 								<section>

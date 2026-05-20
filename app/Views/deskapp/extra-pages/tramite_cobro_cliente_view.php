@@ -15,7 +15,8 @@
 <style>
 	.sgl-step-form-ribbon{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:#f8f9fa;border:1px solid #e9ecef;margin:0 0 10px 0}
 	.sgl-step-form-ribbon .sgl-icon{width:22px;height:22px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
-	.sgl-step-form-ribbon .sgl-text{font-size:11px;font-weight:700;color:#495057;line-height:1.2}
+	.sgl-step-form-ribbon .sgl-text{flex:1 1 auto;min-width:0;font-size:11px;font-weight:700;color:#495057;line-height:1.2}
+	.sgl-step-form-ribbon .sgl-btn-icon{margin-left:auto;flex:0 0 auto}
 	.sgl-soft-panel{background:#fff;border:1px solid #e9ecef;border-radius:12px;padding:12px 12px 8px 12px}
 	.sgl-soft-panel-title{font-size:.82rem;font-weight:700;color:#374151;margin:0 0 8px 0}
 	.sgl-info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}

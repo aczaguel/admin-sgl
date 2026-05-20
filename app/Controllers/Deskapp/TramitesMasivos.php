@@ -210,10 +210,12 @@ class TramitesMasivos extends BaseController
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
 
-            $docs = $db->table('tra_tipo_documentos')
-                ->where(['tra_tipos_id' => (int) $validated['tra_tipos_id']])
-                ->get()
-                ->getResultArray();
+            $docsQuery = $db->table('tra_tipo_documentos')
+                ->where(['tra_tipos_id' => (int) $validated['tra_tipos_id']]);
+            if (in_array('es_obligatorio', $db->getFieldNames('tra_tipo_documentos'), true)) {
+                $docsQuery->where('es_obligatorio', 1);
+            }
+            $docs = $docsQuery->get()->getResultArray();
 
             foreach ($docs as $doc) {
                 $traDocStatusModel->insert([

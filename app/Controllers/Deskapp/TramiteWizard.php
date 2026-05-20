@@ -3,6 +3,7 @@
 namespace App\Controllers\Deskapp;
 
 use App\Controllers\BaseController;
+use App\Services\ExternalTramiteService;
 use App\Models\TramitesModel;
 use App\Models\TraTiposModel;
 use App\Models\EntidadesModel;
@@ -158,74 +159,12 @@ class TramiteWizard extends BaseController
             return $this->response->setJSON($validacion);
         }
 
-        try {
-            // Preparar datos del trámite
-            $datosTramite = [
-                'folio' => $this->request->getPost('folio'),
-                'contrato' => $this->request->getPost('contrato'),
-                'unidad' => $this->request->getPost('unidad'),
-                'serie' => $this->request->getPost('serie'),
-                'placas' => $this->request->getPost('placas'),
-                'tra_tipos_id' => $this->request->getPost('tra_tipos_id'),
-                'ent_municipio_id' => $this->request->getPost('ent_municipio_id'),
-                'cli_directo_id' => $this->request->getPost('cli_directo_id'),
-                'cli_directo_ejecutivo_id' => $this->request->getPost('cli_directo_ejecutivo_id') ?: null,
-                'empresa_gestora_id' => $this->request->getPost('empresa_gestora_id') ?: null,
-                'gestor_id' => $this->request->getPost('gestor_id') ?: null,
-                'tra_status_id' => SGL_TRA_STATUS_DCTOS_COMPLETOS,
-                'cobro_status_id' => SGL_COBRO_STATUS_PENDIENTE_ALTA,
-                'observaciones' => $this->request->getPost('observaciones'),
-                'user_id' => $userId,
-                'created_at' => date('Y-m-d H:i:s'),
-                'started_at' => date('Y-m-d H:i:s')
-            ];
+        $service = new ExternalTramiteService($this->db);
+        $result = $service->createFromWizardPayload($this->request->getPost(), $this->request->getFiles(), $userId);
+        $statusCode = (int) ($result['statusCode'] ?? 200);
+        unset($result['statusCode']);
 
-            // Validar multi-tenancy
-            if (!$this->validarAccesoCliente($userId, $datosTramite['cli_directo_id'])) {
-                // Mantener status 200 como antes; forzar JSON.
-                return acl_deny('No tiene permisos para crear trámites para este cliente', 200, null, true);
-            }
-
-            // Iniciar transacción
-            $this->db->transStart();
-
-            // Insertar trámite
-            $builder = $this->db->table('tramite');
-            $builder->insert($datosTramite);
-            $tramiteId = $this->db->insertID();
-
-            if (!$tramiteId) {
-                throw new \Exception('Error al crear el trámite');
-            }
-
-            // Guardar archivos si existen
-            $archivos = $this->request->getFiles();
-            if (!empty($archivos['documentos'])) {
-                $this->guardarArchivos($tramiteId, $archivos['documentos']);
-            }
-
-            // Registrar en bitácora
-            $this->registrarBitacora($tramiteId, 'Trámite creado mediante wizard', $userId);
-
-            $this->db->transComplete();
-
-            if ($this->db->transStatus() === false) {
-                throw new \Exception('Error en la transacción');
-            }
-
-            return $this->response->setJSON([
-                'success' => true,
-                'message' => 'Trámite creado exitosamente',
-                'tramite_id' => $tramiteId,
-                'folio' => $datosTramite['folio']
-            ]);
-
-        } catch (\Exception $e) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Error al guardar: ' . $e->getMessage()
-            ]);
-        }
+        return $this->response->setStatusCode($statusCode)->setJSON($result);
     }
 
     /**

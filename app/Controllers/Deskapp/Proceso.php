@@ -319,8 +319,8 @@ class Proceso extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+            if (has_permission('editar_tramite', $perms, $roles) || has_permission('read_tramite', $perms, $roles)){
+                $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
@@ -335,12 +335,6 @@ class Proceso extends BaseController
 
             if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
-            }
-
-            if (has_permission('read_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramites/update/' . $row->id;
-                }, false);
             }
 
             if (!has_permission('clone_tramite', $perms, $roles)){
@@ -642,7 +636,7 @@ class Proceso extends BaseController
                 $stateParameters->data['updated_at'] = date('Y-m-d H:i:s');
                 return $stateParameters;
             });
-            $crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+            $crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
                 return '/deskapp/tramites/update/' . $row->id;
             }, false);
             $salida = $crud->render();

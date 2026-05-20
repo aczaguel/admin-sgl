@@ -362,7 +362,7 @@
             var formData = new FormData(this);
 
             $.ajax({
-                url: '/deskapp/tramites/update_final_save/' + tramite_id,
+                url: '/deskapp/tramitesn/update_final_save/' + tramite_id,
                 type: 'POST',
                 data: formData,
                 processData: false,

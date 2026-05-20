@@ -389,9 +389,9 @@ if (isset($tra_status_id)) {
 								</div>
 								</section>
 							<?php endif; ?>
-							<?php if (has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles')) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
+							<?php if (can_access_cobro_cliente_surface($session->get('user_roles'), $session->get('user_permissions')) && ($tra_status_id == 23 || $tra_status_id == 28)): ?>
 								<!-- Step 7: Se cobra al cliente -->
-								<h3>Cobro a Cliente <?= perm_audit_tag('can_upload_dropzone_cobro_cliente', $session) ?></h3>
+								<h3>Cobro a Cliente <?= perm_audit_tag('section_final_costos', $session) ?><?= perm_audit_tag('list_cobro_cliente', $session) ?></h3>
 								<section>
 									<div class="min-height-200px">
 										

@@ -57,6 +57,33 @@ class Tramitesn extends Tramites
         ]);
     }
 
+    protected function getTramiteRowWithStatuses(int $tramiteId): array
+    {
+        $db = \Config\Database::connect();
+
+        return $db->table('tramite')
+            ->select('id, tra_status_id, reembolso_status_id, cobro_status_id')
+            ->where('id', $tramiteId)
+            ->get(1)
+            ->getRowArray() ?? [];
+    }
+
+    protected function requireJsonTenantAccess(int $tramiteId, int $userId, array $roles)
+    {
+        return acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true);
+    }
+
+    protected function getTramiteRowWithFolioAndStatuses(int $tramiteId): array
+    {
+        $db = \Config\Database::connect();
+
+        return $db->table('tramite')
+            ->select('id, folio, tra_status_id, reembolso_status_id, cobro_status_id')
+            ->where('id', $tramiteId)
+            ->get(1)
+            ->getRowArray() ?? [];
+    }
+
     private function requireCanEditTramiteJson(array $roles, array $perms)
     {
         if (!can_edit_tramite($roles, $perms)) {
@@ -178,15 +205,11 @@ class Tramitesn extends Tramites
             $maxBusinessStep = 5;
         }
 
-        if ($maxBusinessStep >= 5) {
-            $canViewStep5 = has_permission('list_cobro_cliente', $perms, $roles)
-                || has_permission('section_final_costos', $perms, $roles);
-            if ($canViewStep5) {
-                return 'deskapp/extra-pages/tramite_cobro_cliente_view';
-            }
-        }
-
-        if ($maxBusinessStep >= 4 && has_permission('section_pago_gestor', $perms, $roles)) {
+        if (
+            $maxBusinessStep >= 4
+            && has_permission('section_pago_gestor', $perms, $roles)
+            && has_permission('important_ir_pago_gestor', $perms, $roles)
+        ) {
 			return 'deskapp/extra-pages/tramite_update_view_evidencias_finales';
         }
 
@@ -198,10 +221,10 @@ class Tramitesn extends Tramites
         helper(['permissions', 'cliente_filter', 'acl_guard']);
 
         $session = session();
-        $userId = (int) ($session->get('id') ?? 0);
-        if ($userId <= 0) {
-            return redirect()->to('/')->with('error', 'Sesión expirada.');
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', false)) {
+            return $resp;
         }
+        $userId = (int) ($session->get('id') ?? 0);
 
         [$roles, $perms] = $this->normalizeRolesPermsFromSession();
         $canSearch = has_permission('search_tramite', $perms, $roles);
@@ -267,7 +290,7 @@ class Tramitesn extends Tramites
             return acl_deny('ID inválido.', 400, null, true);
         }
 
-        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+        if ($resp = $this->requireJsonTenantAccess($tramiteId, $userId, $roles)) {
             return $resp;
         }
 
@@ -316,7 +339,7 @@ class Tramitesn extends Tramites
             return $resp;
         }
 
-        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+        if ($resp = $this->requireJsonTenantAccess($tramiteId, $userId, $roles)) {
             return $resp;
         }
 
@@ -391,7 +414,7 @@ class Tramitesn extends Tramites
             return $this->denyJson(400, 'Datos insuficientes.');
         }
 
-        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+        if ($resp = $this->requireJsonTenantAccess($tramiteId, $userId, $roles)) {
             return $resp;
         }
         if (!has_permission('editar_tramite_asociado', $perms, $roles)) {
@@ -479,7 +502,7 @@ class Tramitesn extends Tramites
             return $this->denyJson(400, 'Datos insuficientes.');
         }
 
-        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+        if ($resp = $this->requireJsonTenantAccess($tramiteId, $userId, $roles)) {
             return $resp;
         }
         if (!has_permission('delete_tramite_asociado', $perms, $roles)) {
@@ -538,7 +561,7 @@ class Tramitesn extends Tramites
             return $this->denyJson(400, 'Datos insuficientes.');
         }
 
-        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+        if ($resp = $this->requireJsonTenantAccess($tramiteId, $userId, $roles)) {
             return $resp;
         }
         if (!has_permission('editar_tramite_principal', $perms, $roles)) {
@@ -1528,9 +1551,7 @@ class Tramitesn extends Tramites
             }
 
             $redirectUrl = '/deskapp/tramitesn/update/' . $id;
-            if ($targetStatus === SGL_TRA_STATUS_COBRO_CLIENTE && (has_permission('list_cobro_cliente', $perms, $roles) || has_permission('section_final_costos', $perms, $roles))) {
-                $redirectUrl = '/deskapp/tramitesn/ver_seccion_cobro_cliente/' . $id;
-            } elseif (has_permission('section_pago_gestor', $perms, $roles)) {
+            if ($targetStatus !== SGL_TRA_STATUS_COBRO_CLIENTE && has_permission('section_pago_gestor', $perms, $roles)) {
                 $redirectUrl = '/deskapp/tramitesn/ver_seccion_pago_gestor/' . $id;
             }
 
@@ -1599,20 +1620,15 @@ class Tramitesn extends Tramites
 
         [$roles, $perms] = $this->normalizeRolesPermsFromSession();
 
-        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+        if ($resp = $this->requireJsonTenantAccess($tramiteId, $userId, $roles)) {
             return $resp;
         }
 
-        if ($resp = acl_require_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-            return $resp;
+        if (!can_edit_cobro_cliente_surface($roles, $perms)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
         }
 
-        $db = \Config\Database::connect();
-        $tramiteRow = $db->table('tramite')
-            ->select('id, tra_status_id, reembolso_status_id, cobro_status_id')
-            ->where('id', $tramiteId)
-            ->get(1)
-            ->getRowArray();
+        $tramiteRow = $this->getTramiteRowWithStatuses($tramiteId);
 
         if (empty($tramiteRow)) {
             return $this->response->setStatusCode(404)->setJSON([
@@ -1691,13 +1707,6 @@ class Tramitesn extends Tramites
             $tramite_crud->unsetRead();
             $tramite_crud->unsetDeleteMultiple();
 
-            // Botón Editar → nuevo flujo
-            if (can_edit_tramite($roles, $perms)){
-                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
-                    return '/deskapp/tramitesn/update/' . $row->id;
-                }, false);
-            }
-
             $tramite_crud->unsetDelete();
 
             if (!has_permission('export_tramite', $perms, $roles)){
@@ -1708,9 +1717,9 @@ class Tramitesn extends Tramites
                 $tramite_crud->unsetPrint();
             }
 
-            // Botón Ver → también al nuevo flujo
-            if (has_permission('read_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
+            // Entrada única al flujo: el detalle decide si es lectura o edición.
+            if (can_edit_tramite($roles, $perms) || has_permission('read_tramite', $perms, $roles)){
+                $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramitesn/update/' . $row->id;
                 }, false);
             }
@@ -1880,171 +1889,20 @@ class Tramitesn extends Tramites
      */
     public function cobro_cliente()
     {
-        try {
-            helper(['permissions', 'cliente_filter', 'acl_guard']);
-
-            if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
-                return $resp;
-            }
-
-            $session = session();
-            $data['session'] = \Config\Services::session();
-            $data['username'] = $session->get('user_name');
-            $myid = $session->get('id');
-            [$roles, $perms] = $this->normalizeRolesPermsFromSession();
-
-            // Validación de acceso al listado (no basta con ocultar el botón).
-            // Permiso específico del listado de Cobro a Cliente.
-            $canAccessList = has_permission('list_cobro_cliente', $perms, $roles);
-            if (!$canAccessList) {
-                return redirect()->to('/deskapp/dashboard')
-                    ->with('error', 'No tienes permisos para acceder a Cobro a Cliente');
-            }
-
-            $tramite_crud = $this->_getGroceryCrudEnterprise();
-            $paidStatusIds = $this->getPaidPagoGestorStatusIds();
-
-            // $filterSql = get_tramite_filter_sql($myid);
-            // $tramite_crud->where($filterSql);
-            if (!empty($paidStatusIds)) {
-                $tramite_crud->where(
-                    '(tramite.tra_status_id = ' . SGL_TRA_STATUS_COBRO_CLIENTE . ' OR (tramite.tra_status_id = ' . SGL_TRA_STATUS_PAGO_GESTOR . ' AND tramite.cobrar_cliente = 1 AND tramite.pago_gestor_st_id IN (' . implode(',', $paidStatusIds) . ')))'
-                );
-            } else {
-                $tramite_crud->where('tramite.tra_status_id = ' . SGL_TRA_STATUS_COBRO_CLIENTE);
-            }
-
-            // El listado muestra trámites ya en paso 5 y también los del paso 4 que ya están listos para cierre.
-
-            $tramite_crud->unsetAdd();
-            $tramite_crud->unsetEdit();
-            $tramite_crud->unsetRead();
-            $tramite_crud->unsetDeleteMultiple();
-
-            if (has_permission('list_cobro_cliente', $perms, $roles)) {
-                $tramite_crud->setActionButton('Cobro a Cliente', 'fas fa-receipt', function ($row) {
-                    return '/deskapp/tramitesn/cobro_cliente/' . $row->id;
-                }, false);
-            }
-
-            $tramite_crud->unsetDelete();
-
-            if (!has_permission('export_tramite', $perms, $roles)){
-                $tramite_crud->unsetExport();
-            }
-
-            if (!has_permission('print_tramite', $perms, $roles)){
-                $tramite_crud->unsetPrint();
-            }
-
-            if (!has_permission('clone_tramite', $perms, $roles)){
-                $tramite_crud->unsetClone();
-            }
-
-            $tramite_crud->setCsrfTokenName(csrf_token());
-            $tramite_crud->setCsrfTokenValue(csrf_hash());
-
-            $tramite_crud->setTable('tramite');
-            $tramite_crud->setSubject('tramite', 'Cobro a Cliente');
-            $tramite_crud->defaultOrdering('tramite.id', 'desc');
-
-            $tramite_crud->where([
-                'tramite.created_at >= ?' => ['2026-01-01 00:00:00']
-            ]);
-
-            $tramite_crud->columns([
-                'id', 'cobro_status_id', 'created_at', 'started_at', 'tra_status_id', 'folio', 'contrato', 'unidad', 'serie',
-                'placas', 'tra_tipos_id', 'entidad_id', 'ent_municipio_id', 'cli_directo_id',
-                'cli_directo_ejecutivo_id', 'empresa_gestora_id', 'gestor_id',
-                'user_id',
-                'observaciones'
-            ]);
-
-            $tramite_crud->displayAs('started_at', 'Desde Asignacion');
-            $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
-            $tramite_crud->displayAs('user_id', 'Ejecutivo');
-            $tramite_crud->displayAs('cobro_status_id', 'Cierre de Pago a Gestor');
-
-            $db = \Config\Database::connect();
-            $tramite_crud->callbackColumn('cobro_status_id', function ($value, $row) use ($db) {
-                $tramiteRow = $db->table('tramite')
-                    ->select('tra_status_id, pago_gestor_st_id, cobrar_cliente')
-                    ->where('id', (int) $row->id)
-                    ->get(1)
-                    ->getRowArray();
-
-                $isReady = $this->isReadyForCobroCliente($tramiteRow ?? []);
-                $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
-
-                if ($statusId === SGL_TRA_STATUS_COBRO_CLIENTE && $isReady) {
-                    return '<span class="badge badge-primary">En Paso 5</span>';
-                }
-                if ($statusId === SGL_TRA_STATUS_PAGO_GESTOR && $isReady) {
-                    return '<span class="badge badge-success">Listo para Cierre</span>';
-                }
-                return '<span class="badge badge-secondary">Pendiente</span>';
-            });
-
-            $tramite_crud->fields([
-                'folio','contrato','unidad','serie',
-                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
-                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
-                'tra_status_id','cobro_status_id',
-                'observaciones', 'user_id'
-            ]);
-
-            $tramite_crud->displayAs('created_at', 'Creacion');
-
-            $tramite_crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
-            $tramite_crud->displayAs('tra_tipos_id','Tipo de Tramite');
-
-            $tramite_crud->setRelation('tra_status_id', 'tra_status', 'tra_status');
-            $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
-
-            $clienteRelationFilter = get_cliente_relation_filter($myid);
-            if ($clienteRelationFilter !== null) {
-                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social', $clienteRelationFilter);
-            } else {
-                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
-            }
-            $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
-
-            $tramite_crud->setRelation('cli_directo_ejecutivo_id', 'cli_directo_ejecutivo', 'nombre');
-            $tramite_crud->displayAs('cli_directo_ejecutivo_id','Ejecutivo del Cliente');
-            $tramite_crud->setDependentRelation('cli_directo_ejecutivo_id','cli_directo_id','cli_directo_id');
-
-            $tramite_crud->setRelation('entidad_id', 'entidad', 'entidad');
-            $tramite_crud->displayAs('entidad_id','Entidad');
-
-            $tramite_crud->setRelation('ent_municipio_id', 'rel_ent_municipio', 'ent_municipality');
-            $tramite_crud->displayAs('ent_municipio_id','Municipio');
-
-            $tramite_crud->setRelation('empresa_gestora_id', 'ges_empresa_gestora', 'razon_social');
-            $tramite_crud->displayAs('empresa_gestora_id','Empresa Gestora');
-
-            $tramite_crud->setRelation('gestor_id', 'ges_gestor', 'nombre');
-            $tramite_crud->displayAs('gestor_id','Gestor');
-            $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
-
-            $tramite_salida = $tramite_crud->render();
-
-            $salida_total = array_merge((array)$tramite_salida, $data);
-            helper(['permissions']);
-            [$rolesAcl, $permsAcl] = session_roles_perms($session ?? session());
-            $salida_total['insert_button_url'] = can_create_tramite($rolesAcl, $permsAcl) ? '/public/deskapp/tramites/add' : '';
-
-            echo $this->_example_output($salida_total);
-
-        } catch (\Exception $e) {
-            exit($e->getMessage());
+        $queryString = (string) $this->request->getServer('QUERY_STRING');
+        $target = '/deskapp/cobranza';
+        if ($queryString !== '') {
+            $target .= '?' . $queryString;
         }
+
+        return redirect()->to($target);
     }
 
     public function cobro_cliente_ver($id)
     {
         helper(['permissions', 'cliente_filter', 'acl_guard']);
 
-        if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', false)) {
             return $resp;
         }
 
@@ -2064,12 +1922,9 @@ class Tramitesn extends Tramites
             return $resp;
         }
 
-        $canViewCobroCliente = has_permission('list_cobro_cliente', $perms, $roles);
-        if (!$canViewCobroCliente) {
-            // No tiene permiso del flujo/listado de cobro: permitir ver el trámite en update (si aplica)
-            // en lugar de mandarlo al listado al que tampoco debería poder entrar.
+        if (!has_permission('list_cobro_cliente', $perms, $roles)) {
             return redirect()->to('/deskapp/tramitesn/update/' . (int) $id)
-                ->with('error', 'No tienes permisos para acceder a Cobro a Cliente');
+            ->with('error', 'No tienes permisos para acceder a Cobranza');
         }
 
         // Asegurar que solo se muestre esta vista cuando el trámite está en Cobro a Cliente (28)
@@ -2080,7 +1935,7 @@ class Tramitesn extends Tramites
             return redirect()->to('/deskapp/tramitesn/update/' . (int) $id);
         }
 
-        return $this->update($id, 'deskapp/extra-pages/tramite_cobro_cliente_view');
+        return redirect()->to('/deskapp/tramitesn/ver_seccion_cobro_cliente/' . (int) $id);
     }
 
     // =====================================================================
@@ -2105,7 +1960,7 @@ class Tramitesn extends Tramites
     {
         helper(['permissions', 'cliente_filter', 'acl_guard']);
 
-        if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', false)) {
             return $resp;
         }
 
@@ -2143,7 +1998,7 @@ class Tramitesn extends Tramites
     {
         helper(['permissions', 'cliente_filter', 'acl_guard']);
 
-        if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', false)) {
             return $resp;
         }
 
@@ -2162,22 +2017,19 @@ class Tramitesn extends Tramites
             return $resp;
         }
 
-        $canNavigateCobroCliente = (has_permission('list_cobro_cliente', $perms, $roles)
-                || has_permission('section_final_costos', $perms, $roles))
-            && has_permission('important_ir_cobro_cliente', $perms, $roles);
-        if (!$canNavigateCobroCliente) {
+        if (!has_permission('list_cobro_cliente', $perms, $roles)) {
             return redirect()->to('/deskapp/tramitesn/update/' . (int) $id)
-                ->with('error', 'No tienes permisos para acceder a Cobro a Cliente');
+            ->with('error', 'No tienes permisos para acceder a Cobranza');
         }
 
-        return $this->update($id, 'deskapp/extra-pages/tramite_update_view_cobro_cliente');
+        return $this->update($id, 'deskapp/extra-pages/tramite_cobro_cliente_view');
     }
 
     /**
      * Versión nueva del update del trámite sin Grocery CRUD para el wizard.
      * Mantiene la misma lógica de negocio, pero la vista es 100% custom.
      */
-    public function update($id, $viewName = null)
+    public function update($id, $viewName = null, ?string $onlySection = null)
     {
         helper(['permissions', 'cliente_filter', 'acl_guard']);
 
@@ -2185,7 +2037,7 @@ class Tramitesn extends Tramites
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
 
-        if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', false)) {
             return $resp;
         }
 
@@ -2250,16 +2102,13 @@ class Tramitesn extends Tramites
         }
 
         $statusId = (int) ($tramite['tra_status_id'] ?? 0);
-        if ($viewName === null) {
+        if ($viewName === null && ($onlySection === null || $onlySection === '')) {
             $targetAdvancedView = $this->resolveAdvancedStepView($statusId, $roles, $perms);
 			if ($targetAdvancedView === 'deskapp/extra-pages/tramite_update_view_evidencias_finales') {
 				return redirect()->to('/deskapp/tramitesn/ver_seccion_evidencias_finales/' . $id);
 			}
             if ($targetAdvancedView === 'deskapp/extra-pages/tramite_update_view_pago_gestor') {
                 return redirect()->to('/deskapp/tramitesn/ver_seccion_pago_gestor/' . $id);
-            }
-            if ($targetAdvancedView === 'deskapp/extra-pages/tramite_cobro_cliente_view') {
-                return redirect()->to('/deskapp/tramitesn/ver_seccion_cobro_cliente/' . $id);
             }
         }
 
@@ -2734,8 +2583,7 @@ class Tramitesn extends Tramites
         $canSectionFinalCostos = has_permission('section_final_costos', $perms, $roles);
         $canNavigatePagoGestor = $canSectionPagoGestor
             && has_permission('important_ir_pago_gestor', $perms, $roles);
-        $canNavigateCobroCliente = (has_permission('list_cobro_cliente', $perms, $roles) || $canSectionFinalCostos)
-            && has_permission('important_ir_cobro_cliente', $perms, $roles);
+        $canNavigateCobroCliente = has_permission('list_cobro_cliente', $perms, $roles);
 
         $canEditPagoGestor = $canEditTramite
             && $canSectionPagoGestor
@@ -2747,6 +2595,7 @@ class Tramitesn extends Tramites
             && has_permission('editar_pago_gestor', $perms, $roles)
             && ($canKeepStep4Editable || puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'upload_pago_gestor', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 4));
         $canEditFinalForm = $canSectionFinalCostos
+            && has_permission('editar_final', $perms, $roles)
             && puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'botones', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 5);
         $canUploadFinalDocs = $canSectionFinalCostos
             && puede_editar_modulo($roles, (int) $tramite['tra_status_id'], 'upload_cobro_cliente', (int) $tramite['reembolso_status_id'], (int) $tramite['cobro_status_id'], 5);
@@ -2802,11 +2651,7 @@ class Tramitesn extends Tramites
         // Los permisos finos de escritura se resuelven dentro de cada endpoint single_*.
         $isLocked = $isLockedByStatus;
 
-        $isCobroClienteSectionView = in_array($viewName, [
-            'deskapp/extra-pages/tramite_cobro_cliente_view',
-            'deskapp/extra-pages/tramite_update_view_cobro_cliente',
-        ], true);
-        $historyCrudBasePath = ($isLocked || $isCobroClienteSectionView) ? '/deskapp/concluido' : '/deskapp/tramites';
+        $historyCrudBasePath = $isLocked ? '/deskapp/concluido' : '/deskapp/tramites';
 
         $cruddocstatus = $this->_getGroceryCrudEnterprise();
         $cruddocstatus->setApiUrlPath($historyCrudBasePath . '/single_documentostatus/' . $id);
@@ -2902,6 +2747,10 @@ class Tramitesn extends Tramites
         $viewData['can_edit_final_form'] = $canEditFinalForm;
         $viewData['can_upload_final_docs'] = $canUploadFinalDocs;
         $viewData['can_upload_dropzone_cobro_cliente'] = $canUploadDropzoneCobroCliente;
+        $viewData['has_pending_pago_conciliation'] = $this->hasPendingPagoConciliation($id);
+        if ($onlySection !== null && $onlySection !== '') {
+            $viewData['only_section'] = $onlySection;
+        }
 
         $targetView = $viewName ?: 'deskapp/extra-pages/tramite_update_view_nuevo';
         return view($targetView, $viewData);
@@ -2925,7 +2774,7 @@ class Tramitesn extends Tramites
             return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Parámetros inválidos.']);
         }
 
-        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+        if ($resp = $this->requireJsonTenantAccess($tramiteId, $userId, $roles)) {
             return $resp;
         }
 
@@ -2934,11 +2783,7 @@ class Tramitesn extends Tramites
         }
 
         $db = \Config\Database::connect();
-        $tramiteRow = $db->table('tramite')
-            ->select('id, folio, tra_status_id, reembolso_status_id, cobro_status_id')
-            ->where('id', $tramiteId)
-            ->get(1)
-            ->getRowArray();
+        $tramiteRow = $this->getTramiteRowWithFolioAndStatuses($tramiteId);
         if (empty($tramiteRow)) {
             return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => 'Trámite no encontrado.']);
         }
@@ -3061,7 +2906,7 @@ class Tramitesn extends Tramites
             return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Parámetros inválidos.']);
         }
 
-        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+        if ($resp = $this->requireJsonTenantAccess($tramiteId, $userId, $roles)) {
             return $resp;
         }
 
@@ -3070,11 +2915,7 @@ class Tramitesn extends Tramites
         }
 
         $db = \Config\Database::connect();
-        $tramiteRow = $db->table('tramite')
-            ->select('id, tra_status_id, reembolso_status_id, cobro_status_id')
-            ->where('id', $tramiteId)
-            ->get(1)
-            ->getRowArray();
+        $tramiteRow = $this->getTramiteRowWithStatuses($tramiteId);
         if (empty($tramiteRow)) {
             return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => 'Trámite no encontrado.']);
         }

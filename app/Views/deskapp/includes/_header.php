@@ -32,6 +32,8 @@
 	$qs = $_GET ?? [];
 ?>
 
+<link rel="stylesheet" href="<?= base_url('/public/assets/src/styles/sgl_layout_2026.css') ?>">
+
 
 <style>
     .pre-loader {

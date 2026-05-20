@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Test App",
+			"type": "shell",
+			"command": "composer",
+			"args": [
+				"run",
+				"test:app"
+			],
+			"isBackground": false,
+			"group": "test"
+		}
+	]
+}

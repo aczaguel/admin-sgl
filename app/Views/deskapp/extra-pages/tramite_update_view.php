@@ -34,6 +34,7 @@ $canViewPagoGestor = in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true)
 	&& has_permission('section_pago_gestor', $session->get('user_permissions'), $session->get('user_roles'));
 $canViewCobroCliente = in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true)
 	&& has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles'));
+$hasPendingPagoConciliation = !empty($has_pending_pago_conciliation);
 
 if (has_permission('section_inicial_datos', $session->get('user_permissions'), $session->get('user_roles'))) {
 	$wizardVisibleSteps[] = 1;
@@ -363,12 +364,18 @@ if ($wizardTargetIndex !== false) {
 					<?php endif; ?>
 
 				<?php if (has_permission('important_concluir_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-					<?php if (in_array($tra_status_id, array(28))) : ?>
+					<?php if (in_array($tra_status_id, array(28)) && !$hasPendingPagoConciliation) : ?>
 						<button type="button" class="btn-modern btn-success" onclick="concluirTramite(<?php echo $id;?>, 20)">
 							<i class="fas fa-check-circle"></i>
 							Concluir Trámite
 						</button>
 						<?= perm_audit_tag('important_concluir_tramite', $session) ?>
+					<?php endif; ?>
+					<?php if (in_array($tra_status_id, array(28)) && $hasPendingPagoConciliation) : ?>
+						<div class="alert alert-warning mb-0" role="alert" style="padding:10px 14px;">
+							<i class="fas fa-exclamation-triangle"></i>
+							Este trámite todavía tiene pagos pendientes de conciliación. Confirma o resuelve esos pagos antes de concluirlo.
+						</div>
 					<?php endif; ?>
 				<?php endif; ?>
 				</div>
@@ -386,6 +393,7 @@ if ($wizardTargetIndex !== false) {
 				[$detailRoles, $detailPerms] = session_roles_perms($session);
 				$canSectionPagoGestor = has_permission('section_pago_gestor', $detailPerms, $detailRoles);
 				$canSectionFinalCostos = has_permission('section_final_costos', $detailPerms, $detailRoles);
+				$canCobroClienteSurface = can_access_cobro_cliente_surface($detailRoles, $detailPerms);
 
 				// Permisos por botón (ideal: asignar por rol).
 				$canQuickDocumentos = has_permission('quick_action_documentos', $detailPerms, $detailRoles);
@@ -397,7 +405,7 @@ if ($wizardTargetIndex !== false) {
 
 				$canSeePagoGestorBtn = $canQuickPagoGestor && $canSectionPagoGestor;
 				$canSeeEvidenciasFinalesBtn = $canQuickEvidenciasFinales && $canSectionFinalCostos;
-				$canSeeCobroClienteBtn = $canQuickCobrosCliente && $canSectionFinalCostos;
+				$canSeeCobroClienteBtn = $canQuickCobrosCliente && $canCobroClienteSurface;
 
 				$canSeeAnyQuickAction = (
 					$canQuickDocumentos
@@ -780,9 +788,9 @@ if ($wizardTargetIndex !== false) {
 									</div> <!-- Cierra form-dropzone-grid -->
 									</section>
 								<?php endif; ?>
-								<?php if (has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles')) ): ?>
+								<?php if (!empty($canCobroClienteSurface)): ?>
 									<!-- Step 5: Se cobra al cliente -->
-									<h3>Cobro a Cliente <?= perm_audit_tag('section_final_costos', $session) ?></h3>
+									<h3>Cobro a Cliente <?= perm_audit_tag('section_final_costos', $session) ?><?= perm_audit_tag('list_cobro_cliente', $session) ?></h3>
 									<section>
 									<!-- Grid 70/30: Formulario | Dropzone -->
 									<div class="form-dropzone-grid">

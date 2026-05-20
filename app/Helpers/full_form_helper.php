@@ -50,7 +50,7 @@ if (!function_exists('render_full_form')) {
         $canSubmitForm = false;
         if (puede_editar_modulo($session->get('user_roles'), $tra_status_id, 'botones', $reembolso_status_id, $cobro_status_id, $step)) {
             if ((int) $step === 5 && $submit_permission === 'editar_final') {
-                $canSubmitForm = has_permission('section_final_costos', $session->get('user_permissions'), $session->get('user_roles'));
+                $canSubmitForm = can_edit_cobro_cliente_surface($session->get('user_roles'), $session->get('user_permissions'));
             } else {
                 $canSubmitForm = $canWriteStep && has_permission($submit_permission, $session->get('user_permissions'), $session->get('user_roles'));
             }

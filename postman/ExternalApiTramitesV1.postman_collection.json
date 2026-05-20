@@ -1,0 +1,505 @@
+{
+  "info": {
+    "_postman_id": "fd1ad0e1-2325-46c6-be7f-01eaaf690957",
+    "name": "Admin SGL - API Externa Tramites V1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Coleccion derivada del contrato OpenAPI vigente de la API externa de tramites.\n\nIncluye:\n- Requests para los endpoints implementados\n- Una variante JSON y una variante multipart para alta\n- Requests de ejemplo para simular la recepcion de webhooks salientes"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost"
+    },
+    {
+      "key": "apiKey",
+      "value": "reemplazar-por-api-key"
+    },
+    {
+      "key": "bearerToken",
+      "value": "reemplazar-por-bearer-token"
+    },
+    {
+      "key": "sourceSystem",
+      "value": "erp_principal"
+    },
+    {
+      "key": "idempotencyKey",
+      "value": "idem-{{timestamp}}"
+    },
+    {
+      "key": "externalReference",
+      "value": "ERP-TRX-{{timestamp}}"
+    },
+    {
+      "key": "tramiteId",
+      "value": "1234"
+    },
+    {
+      "key": "contratoDemo",
+      "value": "CTR-001"
+    },
+    {
+      "key": "unidadDemo",
+      "value": "Unidad 45"
+    },
+    {
+      "key": "serieDemo",
+      "value": "SERIE123456"
+    },
+    {
+      "key": "placasDemo",
+      "value": "ABC123A"
+    },
+    {
+      "key": "traTiposId",
+      "value": "7"
+    },
+    {
+      "key": "entidadId",
+      "value": "14"
+    },
+    {
+      "key": "entMunicipioId",
+      "value": "266"
+    },
+    {
+      "key": "cliDirectoId",
+      "value": "22"
+    },
+    {
+      "key": "cliDirectoEjecutivoId",
+      "value": "18"
+    },
+    {
+      "key": "empresaGestoraId",
+      "value": "3"
+    },
+    {
+      "key": "gestorId",
+      "value": "9"
+    },
+    {
+      "key": "webhookReceiverUrl",
+      "value": "https://example.test/webhooks/tramites"
+    },
+    {
+      "key": "timestamp",
+      "value": "1710000000000"
+    }
+  ],
+  "item": [
+    {
+      "name": "API",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const readVar = (key, placeholder) => {",
+              "  const value = pm.variables.get(key);",
+              "  if (!value) return '';",
+              "  const normalized = String(value).trim();",
+              "  if (normalized === '' || normalized === placeholder || normalized.includes('{{')) return '';",
+              "  return normalized;",
+              "};",
+              "const apiKey = readVar('apiKey', 'reemplazar-por-api-key');",
+              "const bearerToken = readVar('bearerToken', 'reemplazar-por-bearer-token');",
+              "if (!apiKey && !bearerToken) {",
+              "  throw new Error('Configura apiKey o bearerToken en el environment activo antes de enviar requests de la API.');",
+              "}",
+              "if (apiKey) {",
+              "  pm.request.headers.upsert({ key: 'X-API-Key', value: apiKey });",
+              "  pm.request.headers.remove('Authorization');",
+              "} else {",
+              "  pm.request.headers.remove('X-API-Key');",
+              "  pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + bearerToken });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Crear tramite externo - JSON",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ts = String(Date.now());",
+                  "pm.collectionVariables.set('timestamp', ts);",
+                  "pm.collectionVariables.set('idempotencyKey', 'idem-' + ts);",
+                  "pm.collectionVariables.set('externalReference', 'ERP-TRX-' + ts);",
+                  "pm.collectionVariables.set('serieDemo', 'SERIE' + ts);",
+                  "pm.collectionVariables.set('contratoDemo', 'CTR-' + ts);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201 o replay 200/201\", function () {",
+                  "  pm.expect([200, 201]).to.include(pm.response.code);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Respuesta success\", function () {",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "});",
+                  "if (json.tramite_id) pm.collectionVariables.set(\"tramiteId\", String(json.tramite_id));",
+                  "if (json.external_reference) pm.collectionVariables.set(\"externalReference\", String(json.external_reference));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotencyKey}}"
+              },
+              {
+                "key": "X-Source-System",
+                "value": "{{sourceSystem}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_reference\": \"{{externalReference}}\",\n  \"contrato\": \"{{contratoDemo}}\",\n  \"unidad\": \"{{unidadDemo}}\",\n  \"serie\": \"{{serieDemo}}\",\n  \"placas\": \"{{placasDemo}}\",\n  \"tra_tipos_id\": \"{{traTiposId}}\",\n  \"entidad_id\": \"{{entidadId}}\",\n  \"ent_municipio_id\": \"{{entMunicipioId}}\",\n  \"cli_directo_id\": \"{{cliDirectoId}}\",\n  \"cli_directo_ejecutivo_id\": \"{{cliDirectoEjecutivoId}}\",\n  \"empresa_gestora_id\": \"{{empresaGestoraId}}\",\n  \"gestor_id\": \"{{gestorId}}\",\n  \"observaciones\": \"Alta desde Postman derivada del OpenAPI\",\n  \"statuses\": {\n    \"tra_status_id\": 22,\n    \"cobro_status_id\": 22,\n    \"reembolso_status_id\": null,\n    \"pago_gestor_st_id\": null\n  },\n  \"documentos\": [\n    {\n      \"nombre\": \"identificacion.pdf\",\n      \"mime_type\": \"application/pdf\",\n      \"contenido_base64\": \"JVBERi0xLjQK...\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tramites",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tramites"
+              ]
+            },
+            "description": "Alta principal usando application/json y los headers actuales de la API."
+          },
+          "response": [
+
+          ]
+        },
+        {
+          "name": "Crear tramite externo - multipart",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ts = String(Date.now());",
+                  "pm.collectionVariables.set('timestamp', ts);",
+                  "pm.collectionVariables.set('idempotencyKey', 'idem-multipart-' + ts);",
+                  "pm.collectionVariables.set('externalReference', 'ERP-MULTIPART-' + ts);",
+                  "pm.collectionVariables.set('serieDemo', 'SERIEMULTI' + ts);",
+                  "pm.collectionVariables.set('contratoDemo', 'CTR-MULTI-' + ts);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idempotencyKey}}"
+              },
+              {
+                "key": "X-Source-System",
+                "value": "{{sourceSystem}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "external_reference",
+                  "value": "{{externalReference}}",
+                  "type": "text"
+                },
+                {
+                  "key": "contrato",
+                  "value": "{{contratoDemo}}",
+                  "type": "text"
+                },
+                {
+                  "key": "unidad",
+                  "value": "{{unidadDemo}}",
+                  "type": "text"
+                },
+                {
+                  "key": "serie",
+                  "value": "{{serieDemo}}",
+                  "type": "text"
+                },
+                {
+                  "key": "placas",
+                  "value": "{{placasDemo}}",
+                  "type": "text"
+                },
+                {
+                  "key": "tra_tipos_id",
+                  "value": "{{traTiposId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "entidad_id",
+                  "value": "{{entidadId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "ent_municipio_id",
+                  "value": "{{entMunicipioId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "cli_directo_id",
+                  "value": "{{cliDirectoId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "cli_directo_ejecutivo_id",
+                  "value": "{{cliDirectoEjecutivoId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "empresa_gestora_id",
+                  "value": "{{empresaGestoraId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "gestor_id",
+                  "value": "{{gestorId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "observaciones",
+                  "value": "Alta multipart desde Postman derivada del OpenAPI",
+                  "type": "text"
+                },
+                {
+                  "key": "documentos[]",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tramites",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tramites"
+              ]
+            },
+            "description": "Variante multipart/form-data. Adjunta uno o varios archivos en documentos[]."
+          },
+          "response": [
+
+          ]
+        },
+        {
+          "name": "Consultar tramite por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Respuesta success\", function () { pm.expect(json.success).to.eql(true); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tramites/{{tramiteId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tramites",
+                "{{tramiteId}}"
+              ]
+            },
+            "description": "Consulta el snapshot actual del trámite por id interno."
+          },
+          "response": [
+
+          ]
+        },
+        {
+          "name": "Consultar tramite por referencia externa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test(\"Respuesta success\", function () { pm.expect(json.success).to.eql(true); });",
+                  "pm.test(\"Referencia devuelta\", function () { pm.expect(json.data.external_reference).to.eql(pm.collectionVariables.get(\"externalReference\")); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              },
+              {
+                "key": "X-Source-System",
+                "value": "{{sourceSystem}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/tramites/referencia/{{externalReference}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tramites",
+                "referencia",
+                "{{externalReference}}"
+              ]
+            },
+            "description": "Consulta el snapshot usando la referencia externa y el sistema origen."
+          },
+          "response": [
+
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Webhook Examples",
+      "item": [
+        {
+          "name": "Simular webhook tramite.created",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "admin-sgl-external-api/1.0"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"tramite.created\",\n  \"source_system\": \"{{sourceSystem}}\",\n  \"external_reference\": \"{{externalReference}}\",\n  \"tramite\": {\n    \"id\": \"{{tramiteId}}\",\n    \"folio\": \"TR-2026-001234\",\n    \"contrato\": \"{{contratoDemo}}\",\n    \"tra_status_id\": 22,\n    \"tra_status\": \"DCTOS COMPLETOS\",\n    \"cobro_status_id\": 22,\n    \"cobro_status\": \"En Proceso\",\n    \"reembolso_status_id\": null,\n    \"reembolso_status\": null,\n    \"pago_gestor_st_id\": null,\n    \"pago_status\": null,\n    \"cli_directo_id\": \"{{cliDirectoId}}\",\n    \"empresa_solicitante\": \"Cliente Demo\",\n    \"cli_directo_ejecutivo_id\": \"{{cliDirectoEjecutivoId}}\",\n    \"ejecutivo\": \"Ejecutivo Demo\",\n    \"created_at\": \"2026-05-14 10:30:00\",\n    \"updated_at\": \"2026-05-14 10:30:00\",\n    \"documentos_registrados\": 2,\n    \"external_reference\": \"{{externalReference}}\",\n    \"source_system\": \"{{sourceSystem}}\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{webhookReceiverUrl}}",
+              "host": [
+                "{{webhookReceiverUrl}}"
+              ]
+            },
+            "description": "Request de apoyo para simular en Postman el payload saliente del evento tramite.created."
+          },
+          "response": [
+
+          ]
+        },
+        {
+          "name": "Simular webhook tramite.status_changed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "admin-sgl-external-api/1.0"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"tramite.status_changed\",\n  \"source_system\": \"{{sourceSystem}}\",\n  \"external_reference\": \"{{externalReference}}\",\n  \"tramite\": {\n    \"id\": \"{{tramiteId}}\",\n    \"folio\": \"TR-2026-001234\",\n    \"contrato\": \"{{contratoDemo}}\",\n    \"tra_status_id\": 25,\n    \"tra_status\": \"PAGO DERECHOS COTIZACION\",\n    \"cobro_status_id\": 22,\n    \"cobro_status\": \"En Proceso\",\n    \"reembolso_status_id\": null,\n    \"reembolso_status\": null,\n    \"pago_gestor_st_id\": null,\n    \"pago_status\": null,\n    \"cli_directo_id\": \"{{cliDirectoId}}\",\n    \"empresa_solicitante\": \"Cliente Demo\",\n    \"cli_directo_ejecutivo_id\": \"{{cliDirectoEjecutivoId}}\",\n    \"ejecutivo\": \"Ejecutivo Demo\",\n    \"created_at\": \"2026-05-14 10:30:00\",\n    \"updated_at\": \"2026-05-14 10:45:00\",\n    \"documentos_registrados\": 2,\n    \"external_reference\": \"{{externalReference}}\",\n    \"source_system\": \"{{sourceSystem}}\"\n  },\n  \"previous_status\": {\n    \"id\": 22,\n    \"name\": \"DCTOS COMPLETOS\"\n  },\n  \"current_status\": {\n    \"id\": 25,\n    \"name\": \"PAGO DERECHOS COTIZACION\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{webhookReceiverUrl}}",
+              "host": [
+                "{{webhookReceiverUrl}}"
+              ]
+            },
+            "description": "Request de apoyo para simular en Postman el payload saliente del evento tramite.status_changed."
+          },
+          "response": [
+
+          ]
+        }
+      ]
+    }
+  ]
+}

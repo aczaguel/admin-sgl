@@ -727,6 +727,10 @@
 							</div>
 						<?php endif; ?>
 
+						<?php if (!empty($pre_output_html)): ?>
+							<?= $pre_output_html ?>
+						<?php endif; ?>
+
 					<?php
 							if (!empty($output)) {
 								echo $output;

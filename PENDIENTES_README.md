@@ -74,6 +74,18 @@ Puntos detectados (a retomar):
 - [ ] En el bloque de Paso 4 agregar un botón visible: "Revisar pasos anteriores para editar"
 - [ ] Validar qué permisos y rutas deben usarse para que el botón de revisión no rompa el flujo actual ni los bloqueos por estatus
 
+### Cobranza / permisos / legacy
+- [ ] Quitar bypass por rol o usuario especial en permisos y visibilidad; todo debe resolverse por permisos efectivos asignados
+- [ ] Mantener que Super Admin vea todo por tener todos los checks y roles asignados, no por bypass implícito en helpers
+- [ ] Revisar y simplificar el acceso a Cobro a Cliente para que no dependa de combinaciones legacy como `section_final_costos` o permisos de navegación redundantes
+- [ ] Eliminar consideraciones extra de acceso en cobranza y trámite final; solo se debe ver y operar lo permitido por permisos
+- [ ] Retirar legacy de autorización y navegación relacionado con cobranza conforme se migre al módulo nuevo
+- [ ] Definir y ejecutar pruebas end-to-end del flujo operativo desde creación de trámite hasta entrada a cobranza
+- [ ] Cubrir con pruebas los puntos mínimos del flujo: creación, avance de estatus, condición de listo para cobranza, visibilidad en bandeja y acceso al expediente de cobranza
+
+### Auth / redirects Deskapp
+- [ ] Extender el barrido de redirects de sesión expirada y redirects legacy al resto de controladores Deskapp fuera del slice ya corregido (Cobranza, Tramites, Tramitesn)
+
 ### 1) Bug: estatus de usuario no se actualiza bien
 - Pendiente de investigar:
   - Dónde se escribe el estatus (DB/modelo).
@@ -118,6 +130,13 @@ Estrategia propuesta (a validar):
 - PR #2: aliases/redirects de rutas legacy hacia `/deskapp/...`.
 - PR #3: endurecer/limitar AutoRoute (si aplica).
 - PR #4: limpieza final de demos/huérfanas.
+
+### 5) Plan de limpieza de permisos y acceso
+Estrategia propuesta (a validar):
+- PR pequeño #1: quitar bypass de `has_permission()` y helpers de cliente para que la autorización dependa solo de permisos y alcance asignado
+- PR #2: unificar acceso de cobranza en una sola regla reutilizable para controller, vistas y acciones
+- PR #3: retirar dependencias legacy de `section_final_costos`, permisos de navegación y condiciones especiales del wizard para entrar a cobranza
+- PR #4: agregar pruebas integrales del flujo desde alta de trámite hasta bandeja/expediente de cobranza
 
 ## Decisiones pendientes (cuando pase el demo)
 - Política para rutas legacy sin `/deskapp`:

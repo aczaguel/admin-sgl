@@ -23,9 +23,9 @@
 		<div class="sgl-sidebar-collapse-btn sgl-sidebar-collapse-btn--sidebar" role="button" tabindex="0" aria-label="Contraer/expandir menú" title="Contraer/expandir menú">
 			<i class="dw dw-left-arrow" aria-hidden="true"></i>
 		</div>
-		<a href="<?php echo base_url('deskapp/dashboard'); ?>" style="display: flex; justify-content: center; align-items: center; width: 100%; padding: 10px 0;">
-			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="Logo SGT" class="dark-logo" style="max-width: 150px; height: auto;">
-			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt_white.png" alt="Logo SGT" class="light-logo" style="max-width: 150px; height: auto;">
+		<a href="<?php echo base_url('deskapp/dashboard'); ?>" class="sgl-brand-link" style="display: flex; justify-content: center; align-items: center; padding: 10px 0;">
+			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sgl_bicolor.png" alt="Logo SGL" class="dark-logo sgl-brand-image" style="max-width: 150px; height: auto;">
+			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sgl_bicolor.png" alt="Logo SGL" class="light-logo sgl-brand-image" style="max-width: 150px; height: auto;">
 		</a>
 		<div class="close-sidebar" data-toggle="left-sidebar-close">
 			<i class="ion-close-round"></i>
@@ -65,7 +65,7 @@
 						<li><a href="<?php echo base_url('deskapp/dashboardadmin/por_cliente'); ?>">
 							<i class="fas fa-building"></i> Trámites por Cliente
 						</a></li>
-						<li class="submenu-title">Histórico por Año</li>
+						<li class="submenu-title sgl-submenu-title"><span style="display:block;color:rgba(255,255,255,.58);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;">Histórico por Año</span></li>
 						<li><a href="<?php echo base_url('deskapp/dashboardadmin?anio=2025'); ?>">
 							<i class="fas fa-calendar-alt"></i> 2025
 						</a></li>
@@ -133,6 +133,19 @@
 						</ul>
 					</li>
 				<?php endif; ?>
+
+				<?php if (has_permission('list_cobro_cliente', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+					<li class="menu-section-title">
+						<span><i class="fas fa-hand-holding-usd me-2"></i> Cobranza</span>
+						<?= perm_audit_tag('list_cobro_cliente', $session) ?>
+					</li>
+					<li>
+						<a href="<?php echo base_url('deskapp/cobranza'); ?>" class="dropdown-toggle no-arrow">
+							<span class="micon"><i class="fas fa-receipt"></i></span>
+							<span class="mtext">Centro de Cobranza</span>
+						</a>
+					</li>
+				<?php endif; ?>
 				
 				<!-- SECCIÓN: WIZARD TRÁMITES
 				<li class="menu-section-title">
@@ -171,12 +184,6 @@
 									<?= perm_audit_tag('read_final_tramite', $session) ?>
 								</a></li>
 							<?php endif; ?>	
-							<?php if (has_permission('list_cobro_cliente', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-								<li><a href="<?php echo base_url('deskapp/tramitesn/cobro_cliente'); ?>">
-									<i class="fas fa-receipt text-success"></i> Cobro a Cliente
-									<?= perm_audit_tag('list_cobro_cliente', $session) ?>
-								</a></li>
-							<?php endif; ?>
 							<?php if (has_permission('listar_tramites_cancelado', $session->get('user_permissions'), $session->get('user_roles'))): ?>
 								<li><a href="<?php echo base_url('deskapp/tramites/cancelados'); ?>">
 									<i class="fas fa-times-circle text-danger"></i> Cancelados

@@ -48,10 +48,17 @@ $routes->post('/deskapp/','Deskapp/Dashboard::index',['filter' => 'auth']);
 $routes->get('/deskapp/clientes/dashboard', 'Deskapp/DashboardCliente::index',['filter' => 'auth']);
 $routes->get('/deskapp/clientes/dashboard_data', 'Deskapp/DashboardCliente::data',['filter' => 'auth']);
 
+
+
 // ============ DEBUG ROUTES (Remover en producción) ============
 $routes->get('/deskapp/debug/session', 'Deskapp/DebugPermisos::session',['filter' => 'auth']);
 $routes->get('/deskapp/debug/permissions', 'Deskapp/DebugPermisos::permissions',['filter' => 'auth']);
 $routes->get('/deskapp/debug/check-dashboard', 'Deskapp/DebugPermisos::checkDashboard',['filter' => 'auth']);
+
+// API externa versionada
+$routes->post('/api/v1/tramites', 'Api\\V1\\Tramites::create', ['filter' => 'externalapiauth']);
+$routes->get('/api/v1/tramites/referencia/(:segment)', 'Api\\V1\\Tramites::showByReference/$1', ['filter' => 'externalapiauth']);
+$routes->get('/api/v1/tramites/(:num)', 'Api\\V1\\Tramites::show/$1', ['filter' => 'externalapiauth']);
 
 // Tramites Cliente
 // $routes->get('/deskapp/clientes/tramites', 'Deskapp/ClienteTramites::index',['filter' => 'auth']);
@@ -368,6 +375,15 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 
 	$routes->get('/deskapp/tramites/getGestoresByEmpresaId/(:num)', 'Tramites::getGestoresByEmpresaId/$1');
 	$routes->post('/deskapp/tramites/getGestoresByEmpresaId/(:num)', 'Tramites::getGestoresByEmpresaId/$1');
+
+	// Centro de Cobranza
+	$routes->get('/deskapp/cobranza', 'Deskapp/Cobranza::index');
+	$routes->get('/deskapp/cobranza/expediente/(:num)', 'Deskapp/Cobranza::expediente/$1');
+	$routes->post('/deskapp/cobranza/expediente/(:num)/abrir', 'Deskapp/Cobranza::abrirExpediente/$1');
+	$routes->post('/deskapp/cobranza/expediente/(:num)/gestiones', 'Deskapp/Cobranza::registrarGestion/$1');
+	$routes->post('/deskapp/cobranza/expediente/(:num)/promesas', 'Deskapp/Cobranza::registrarPromesa/$1');
+	$routes->post('/deskapp/cobranza/expediente/(:num)/pagos', 'Deskapp/Cobranza::registrarPago/$1');
+	$routes->post('/deskapp/cobranza/expediente/(:num)/pagos/(:num)/confirmar', 'Deskapp/Cobranza::confirmarPago/$1/$2');
 });
 
 
@@ -401,8 +417,8 @@ $routes->get('/proceso/concluido_pago_derechos/(:id)', 'Deskapp/Proceso::conclui
 $routes->post('/proceso/concluido_pago_derechos/(:id)', 'Deskapp/Proceso::concluido_pago_derechos/$1',['filter' => 'auth']);
 
 
-$routes->get('/cancelado/cancelado', 'Deskapp/Cancelado::cancelado',['filter' => 'auth']);
-$routes->post('/cancelado/cancelado', 'Deskapp/Cancelado::cancelado',['filter' => 'auth']);
+$routes->get('/cancelado/cancelado', 'Deskapp/Tramites::cancelados',['filter' => 'auth']);
+$routes->post('/cancelado/cancelado', 'Deskapp/Tramites::cancelados',['filter' => 'auth']);
 
 $routes->get('/cancelado/cancelado_documentostatus/(:id)', 'Deskapp/Cancelado::cancelado_documentostatus/$1',['filter' => 'auth']);
 $routes->post('/cancelado/cancelado_documentostatus/(:id)', 'Deskapp/Cancelado::cancelado_documentostatus/$1',['filter' => 'auth']);
