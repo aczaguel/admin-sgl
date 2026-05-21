@@ -33,7 +33,7 @@
 <body>
 	<div class="pre-loader">
 		<div class="pre-loader-box">
-			<div class="loader-logo"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.jpg" alt=""></div>
+			<div class="loader-logo"><img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="Logo SASGL"></div>
 			<div class='loader-progress' id="progress_div">
 				<div class='bar' id='bar1'></div>
 			</div>
@@ -246,11 +246,11 @@
 		</div>
 	</div>
 
-	<div class="left-side-bar">
+	<div class="left-side-bar" data-sidebar-version="2026-04-06-1">
 		<div class="brand-logo">
-			<a href="index.html">
-				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo">
-				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt_white.png" alt="" class="light-logo">
+			<a href="index.html" class="sgl-brand-link" style="display: flex; justify-content: center; align-items: center; padding: 10px 0;">
+				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="Logo SASGL" class="dark-logo sgl-brand-image">
+				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="Logo SASGL" class="light-logo sgl-brand-image">
 			</a>
 			<div class="close-sidebar" data-toggle="left-sidebar-close">
 				<i class="ion-close-round"></i>

@@ -23,10 +23,9 @@
  * - Cada cliente tiene sus propios ejecutivos operando exclusivamente sus trámites
  * - Se protege la confidencialidad entre clientes competidores
  * 
- * MODO ADMINISTRADOR:
- * - Usuarios con roles 'admin' o 'superadmin' tienen acceso COMPLETO
- * - No se aplica filtro de clientes a estos usuarios
- * - Pueden ver TODOS los trámites de TODOS los clientes
+ * REGLA ACTUAL:
+ * - No existe acceso global implícito por rol.
+ * - Todos los usuarios, incluidos Admin/Super Admin, deben operar por relaciones explícitas usuario-cliente.
  * 
  * ============================================================================
  */
@@ -86,9 +85,8 @@ if (!function_exists('user_is_admin')) {
 
 if (!function_exists('user_has_global_cliente_access')) {
     /**
-     * Determina si un admin tiene acceso global a todos los clientes.
-     * - Admin sin clientes asignados => acceso global
-     * - Admin con clientes asignados => acceso limitado
+     * El acceso global implícito por rol fue retirado.
+     * La visibilidad de clientes depende de asignaciones explícitas en cliente_user.
      */
     function user_has_global_cliente_access($userId = null)
     {
@@ -98,29 +96,11 @@ if (!function_exists('user_has_global_cliente_access')) {
             $userId = $session->get('id');
         }
 
-        if (!user_is_admin($userId)) {
-            return false;
-        }
-
-        if (!is_numeric($userId) || (int) $userId <= 0) {
-            return false;
-        }
-
-        $db = \Config\Database::connect();
-        $row = $db->table('cliente_user')
-            ->select('cliente_id')
-            ->where('user_id', (int) $userId)
-            ->limit(1)
-            ->get()
-            ->getRowArray();
-
-        $isGlobal = empty($row);
-
         if ($session->get('id') == $userId) {
-            $session->set('admin_global_client_access', $isGlobal);
+            $session->set('admin_global_client_access', false);
         }
 
-        return $isGlobal;
+        return false;
     }
 }
 
@@ -128,12 +108,8 @@ if (!function_exists('get_user_cliente_ids')) {
     /**
      * Obtiene los IDs de clientes asignados al usuario actual
      * 
-     * IMPORTANTE - MODO ADMINISTRADOR:
-     * Si el usuario tiene rol 'admin' o 'superadmin', retorna NULL
-     * indicando que tiene acceso completo sin restricciones.
-     *
      * @param int|null $userId ID del usuario (null = usuario en sesión)
-     * @return array|null Array de IDs de clientes, o NULL si es admin (acceso total)
+    * @return array Array de IDs de clientes asignados.
      */
     function get_user_cliente_ids($userId = null)
     {
@@ -142,11 +118,6 @@ if (!function_exists('get_user_cliente_ids')) {
         // Si no se proporciona userId, usar el de la sesión
         if ($userId === null) {
             $userId = $session->get('id');
-        }
-        
-        // Admin con acceso global ve todos los clientes
-        if (user_has_global_cliente_access($userId)) {
-            return null; // NULL = acceso a TODOS los clientes
         }
         
         // Verificar si ya está en sesión (optimización)
@@ -388,9 +359,6 @@ if (!function_exists('validate_tramite_access')) {
      * Esta función verifica que el trámite pertenezca a uno de los
      * clientes asignados al usuario.
      * 
-     * MODO ADMINISTRADOR:
-     * Los administradores siempre tienen acceso (retorna true)
-     *
      * @param int $tramiteId ID del trámite
      * @param int|null $userId ID del usuario (null = usuario en sesión)
      * @return bool True si tiene acceso, false en caso contrario
@@ -401,13 +369,8 @@ if (!function_exists('validate_tramite_access')) {
             return false;
         }
 
-        // Si tiene acceso global, permite todo
-        if (user_has_global_cliente_access($userId)) {
-            return true;
-        }
-        
         $db = \Config\Database::connect();
-        $builder = $db->table('tramite as t');
+        $builder = $db->table('tramite');
         
         $clienteIds = get_user_cliente_ids($userId);
         
@@ -423,11 +386,11 @@ if (!function_exists('validate_tramite_access')) {
             return false;
         }
         
-        $builder->select('t.id');
-        $builder->join('cli_directo cd', 'cd.id = t.cli_directo_id', 'inner');
-        $builder->join('cliente c', 'c.id = cd.cliente_id', 'inner');
-        $builder->where('t.id', $tramiteId);
-        $builder->whereIn('c.id', $clienteIds);
+        $builder->select('tramite.id');
+        $builder->join('cli_directo', 'cli_directo.id = tramite.cli_directo_id', 'inner');
+        $builder->join('cliente', 'cliente.id = cli_directo.cliente_id', 'inner');
+        $builder->where('tramite.id', $tramiteId);
+        $builder->whereIn('cliente.id', $clienteIds);
         
         $result = $builder->get()->getRowArray();
         

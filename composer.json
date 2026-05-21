@@ -54,7 +54,9 @@
 			"bash admin/setup.sh"
 		],
 		"analyze": "phpstan analyze",
-		"test": "phpunit"
+		"test": "phpunit",
+		"test:app": "php vendor/phpunit/phpunit/phpunit --bootstrap system/Test/bootstrap.php tests/app",
+		"test:deskapp": "php vendor/phpunit/phpunit/phpunit --bootstrap system/Test/bootstrap.php tests/app/Controllers/Deskapp"
 	},
 	"support": {
 		"forum": "http://forum.codeigniter.com/",

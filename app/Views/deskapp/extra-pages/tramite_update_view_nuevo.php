@@ -67,6 +67,7 @@
 	};
 	$folioValue = $folio ?? ($fields['folio']['value'] ?? null);
 	$contratoValue = $fields['contrato']['value'] ?? ($contrato ?? null);
+	$hasPendingPagoConciliation = !empty($has_pending_pago_conciliation);
 
 	// Soporte para vistas separadas: los wrappers definen $only_section.
 	// Mapeo sección -> step (para current_step y endpoints de guardado).
@@ -79,6 +80,7 @@
 			'asigna_gestor' => 2,
 			'pago_derechos' => 3,
 			'pago_gestor' => 5,
+			'cobro_cliente' => 6,
 		];
 		$onlySectionStep = (int) ($map[$only_section] ?? 0);
 	}
@@ -169,12 +171,18 @@
 					<?php endif; ?>
 
 					<?php if (has_permission('important_concluir_tramite', $user_permissions ?? [], $user_roles ?? [])): ?>
-						<?php if (in_array((int) ($tra_status_id ?? 0), [28], true)): ?>
+						<?php if (in_array((int) ($tra_status_id ?? 0), [28], true) && !$hasPendingPagoConciliation): ?>
 							<button type="button" class="btn-modern btn-success" onclick="concluirTramite(<?= (int) ($id ?? 0) ?>, 20)">
 								<i class="fas fa-check-circle"></i>
 								Concluir Tramite
 							</button>
 							<?= perm_audit_tag('important_concluir_tramite') ?>
+						<?php endif; ?>
+						<?php if (in_array((int) ($tra_status_id ?? 0), [28], true) && $hasPendingPagoConciliation): ?>
+							<div class="alert alert-warning mb-0" role="alert" style="padding:10px 14px;">
+								<i class="fas fa-exclamation-triangle"></i>
+								Este tramite todavia tiene pagos pendientes de conciliacion. Confirma o resuelve esos pagos antes de concluirlo.
+							</div>
 						<?php endif; ?>
 					<?php endif; ?>
 				</div>
@@ -240,6 +248,7 @@
 			$detailPerms = !empty($user_permissions) ? $user_permissions : ($session->get('user_permissions') ?? []);
 			$canSectionPagoGestor = !empty($can_section_pago_gestor) || has_permission('section_pago_gestor', $detailPerms, $detailRoles);
 			$canSectionFinalCostos = !empty($can_section_final_costos) || has_permission('section_final_costos', $detailPerms, $detailRoles);
+			$canCobroClienteSurface = can_access_cobro_cliente_surface($detailRoles, $detailPerms);
 
 			$canQuickDocumentos = has_permission('quick_action_documentos', $detailPerms, $detailRoles);
 			$canQuickBitacora = has_permission('quick_action_bitacora', $detailPerms, $detailRoles);
@@ -251,9 +260,8 @@
 
 			$canSeePagoGestorBtn = $canQuickPagoGestor && $canSectionPagoGestor;
 			$canSeeEvidenciasFinalesBtn = $canQuickEvidenciasFinales && $canSectionFinalCostos;
-			// Para ver el CRUD en modal basta con `section_final_costos`.
 			// `quick_action_cobros_cliente` es requerido para add/edit/delete, pero no necesariamente para ver.
-			$canSeeCobroClienteBtn = $canSectionFinalCostos && ($canQuickCobrosCliente || $canListCobroCliente);
+			$canSeeCobroClienteBtn = $canCobroClienteSurface && ($canQuickCobrosCliente || $canListCobroCliente);
 			$canSeeStatusQuickActions = (!empty($tra_status_id) && in_array((int) $tra_status_id, [23, 27, 28, 20, 21], true));
 
 			$canSeeAnyQuickAction = (
@@ -350,6 +358,97 @@
 					<?php include APPPATH . 'Views/deskapp/extra-pages/tramitesn/partials/steps_readonly_1_3.php'; ?>
 				</div>
 				<?php include APPPATH . 'Views/deskapp/extra-pages/tramitesn/partials/step_5_pago_gestor.php'; ?>
+			<?php elseif (!empty($isOnlySectionView) && $onlySectionStep === 6): ?>
+				<?php // Paso 6 dedicado: mostrar 1-3 readonly y el modulo legacy de Cobro a Cliente. ?>
+				<div class="sgl-readonly-mode">
+					<?php $showSection = $readonlySectionsForAdvancedView; ?>
+					<?php include APPPATH . 'Views/deskapp/extra-pages/tramitesn/partials/steps_readonly_1_3.php'; ?>
+				</div>
+				<?php
+					helper(['full_form', 'permissions']);
+					$canCobroClienteSurfaceOnly = can_access_cobro_cliente_surface($user_roles ?? [], $user_permissions ?? []);
+					$canUploadCobroClienteOnly = !empty($can_upload_dropzone_cobro_cliente) && !empty($can_upload_final_docs);
+				?>
+				<?php if (!empty($canCobroClienteSurfaceOnly)): ?>
+					<div class="sgl-step-center mt-3">
+						<?php if (has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $user_permissions ?? [], $user_roles ?? [])): ?>
+							<div class="d-flex justify-content-end mb-3">
+								<a href="<?= site_url('/deskapp/tramites/audit_timeline/' . (int) ($id ?? 0)) ?>" class="btn btn-info btn-sm sgl-btn-pill">
+									<i class="fas fa-stream"></i> Ver Historial de Actividad
+								</a>
+							</div>
+						<?php endif; ?>
+
+						<div class="form-dropzone-grid">
+							<div class="form-column">
+								<div class="sgl-step-form-ribbon" data-form-id="finalForm" aria-live="polite">
+									<div class="sgl-icon"><i class="fas fa-money-check-alt"></i></div>
+									<div class="sgl-text">Cobro a Cliente</div>
+								</div>
+								<?php
+									$prefix_form = 'final';
+									$form_action = '/deskapp/tramitesn/update_final_save/' . (int) ($id ?? 0);
+									$form_id = 'finalForm';
+									$cancel_url = '/deskapp/tramitesn/update/' . (int) ($id ?? 0);
+									$submit_permission = 'editar_final';
+									$field_values = $final_campos ?? [];
+									echo render_full_form($prefix_form, $form_action, $form_id, $cancel_url, $submit_permission, $field_values, $session, $tra_status_id, $reembolso_status_id, $cobro_status_id, 5);
+								?>
+							</div>
+
+							<div class="dropzone-column">
+								<div class="dropzone-sticky">
+									<h5 class="dropzone-title">
+										<i class="fas fa-cloud-upload-alt"></i> Documentos
+										<?= perm_audit_tag('can_upload_dropzone_cobro_cliente', $session) ?>
+									</h5>
+									<?php if ($canUploadCobroClienteOnly): ?>
+										<div class="form-group mb-2">
+											<label for="cobro_correcto" class="mb-1">Tipo de cobro</label>
+											<select id="cobro_correcto" class="form-control form-control-sm sgl-important-select">
+												<option value="otro" selected>Otro</option>
+												<option value="parcial">Parcial</option>
+												<option value="completo">Completo</option>
+											</select>
+										</div>
+										<div class="dropzone-container">
+											<form class="dropzone dropzone-cliente dropzone-compact" id="miDropzoneCliente">
+												<div class="dz-default dz-message">
+													<button class="dz-button" type="button">
+														<img src="/public/assets/src/images/upload.svg" class="dz-icon" alt="Subir Archivo">
+														<p class="dz-text">Arrastra archivos aqui o haz clic</p>
+														<p class="dz-subtext">Documentos de cobro al cliente</p>
+													</button>
+												</div>
+											</form>
+										</div>
+										<button id="btnSubirCliente" class="btnSubir" type="button">
+											<i class="fas fa-cloud-upload-alt"></i> Subir Archivos
+										</button>
+										<div class="delete-notice">
+											<i class="fas fa-info-circle"></i>
+											<h6>Para eliminar un archivo, solicitalo al administrador</h6>
+										</div>
+									<?php endif; ?>
+
+									<div id="cobro-status-chips" class="sgl-status-row" style="margin-bottom:12px;"></div>
+									<div class="gallery-preview" id="cliente-container"></div>
+								</div>
+							</div>
+						</div>
+
+						<?php if (!empty($output_cobro_cliente)): ?>
+							<div class="sgl-soft-panel mt-3">
+								<p class="sgl-soft-panel-title">Historial de cobros registrados</p>
+								<div class="pd-10">
+									<?= $output_cobro_cliente ?>
+								</div>
+							</div>
+						<?php else: ?>
+							<div class="alert alert-info mt-3"><i class="fas fa-info-circle"></i> No hay registros de cobros al cliente.</div>
+						<?php endif; ?>
+					</div>
+				<?php endif; ?>
 			<?php else: ?>
 				<form id="tramiteNuevoForm" method="post" action="<?= site_url('/deskapp/tramitesn/update_save/' . (int) ($id ?? 0)) ?>">
 					<input type="hidden" id="current_step" name="current_step" value="<?= (int) ($isOnlySectionView ? $onlySectionStep : ($step ?? ($step_actual ?? 1))) ?>">
@@ -709,4 +808,10 @@
 </script>
 <script src="<?= $assets ?>/src/scripts/tramitesn_update_v2.js?v=<?= time(); ?>"></script>
 <script src="<?= $assets ?>/src/scripts/tramitesn_update_view_nuevo_post.js?v=<?= time(); ?>"></script>
+<?php if (!empty($isOnlySectionView) && $onlySectionStep === 6): ?>
+<script>
+	var tramite_id = <?= (int) ($id ?? 0) ?>;
+</script>
+<script src="<?= $assets ?>/src/scripts/tramitesn_cobro_cliente.js?v=<?= time(); ?>"></script>
+<?php endif; ?>
 <?= $this->endSection() ?>

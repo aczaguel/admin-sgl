@@ -24,14 +24,23 @@
 
 	<style>
 		:root {
-			--primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-			--primary-color: #667eea;
-			--primary-dark: #5568d3;
-			--secondary-color: #764ba2;
+			--sgl-navy: #0b3778;
+			--sgl-navy-deep: #071f46;
+			--sgl-orange: #ff6a13;
+			--sgl-orange-soft: #ff9a53;
+			--sgl-ink: #10294f;
+			--sgl-muted: #6b7b91;
+			--primary-gradient: linear-gradient(135deg, #0b3778 0%, #1456a9 55%, #ff6a13 100%);
+			--primary-color: #0b3778;
+			--primary-dark: #071f46;
+			--secondary-color: #ff6a13;
 		}
 
 		body.login-page {
-			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			background:
+				radial-gradient(circle at top left, rgba(255, 106, 19, 0.18), transparent 24%),
+				radial-gradient(circle at top right, rgba(255, 255, 255, 0.12), transparent 22%),
+				linear-gradient(135deg, #071a39 0%, #0b3778 48%, #1456a9 100%);
 			min-height: 100vh;
 			position: relative;
 			overflow-x: hidden;
@@ -60,12 +69,13 @@
 		}
 
 		.login-header {
-			background: rgba(255, 255, 255, 0.95);
+			background: rgba(255, 255, 255, 0.92);
 			backdrop-filter: blur(10px);
 			padding: 20px 0;
-			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+			box-shadow: 0 12px 28px rgba(7, 26, 57, 0.16);
 			position: relative;
 			z-index: 10;
+			border-bottom: 1px solid rgba(11, 55, 120, 0.08);
 		}
 
 		.brand-logo {
@@ -82,7 +92,7 @@
 		}
 
 		.brand-logo img {
-			max-height: 80px;
+			max-height: 84px;
 			width: auto;
 			object-fit: contain;
 			filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
@@ -90,7 +100,7 @@
 		}
 
 		.brand-logo a:hover img {
-			filter: drop-shadow(0 4px 12px rgba(102, 126, 234, 0.3));
+			filter: drop-shadow(0 10px 18px rgba(11, 55, 120, 0.2));
 		}
 
 		.login-wrap {
@@ -102,11 +112,23 @@
 		.login-box {
 			background: rgba(255, 255, 255, 0.98) !important;
 			backdrop-filter: blur(20px);
-			border-radius: 20px !important;
+			border-radius: 24px !important;
 			padding: 40px;
-			box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-			border: 1px solid rgba(255, 255, 255, 0.3);
+			box-shadow: 0 26px 60px rgba(7, 26, 57, 0.26);
+			border: 1px solid rgba(11, 55, 120, 0.08);
 			animation: slideUp 0.6s ease-out;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.login-box::before {
+			content: '';
+			position: absolute;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 5px;
+			background: linear-gradient(90deg, var(--sgl-navy) 0%, var(--sgl-orange) 100%);
 		}
 
 		@keyframes slideUp {
@@ -135,7 +157,7 @@
 		}
 
 		.login-title p {
-			color: #64748b;
+			color: var(--sgl-muted);
 			font-size: 15px;
 			margin: 0;
 		}
@@ -146,18 +168,18 @@
 		}
 
 		.input-group.custom .form-control {
-			border: 2px solid #e2e8f0;
+			border: 2px solid rgba(11, 55, 120, 0.12);
 			border-radius: 12px;
 			padding: 14px 20px 14px 50px;
 			font-size: 15px;
 			transition: all 0.3s ease;
-			background: #f8fafc;
+			background: #f8fbff;
 		}
 
 		.input-group.custom .form-control:focus {
 			border-color: var(--primary-color);
 			background: white;
-			box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+			box-shadow: 0 0 0 4px rgba(255, 106, 19, 0.12);
 		}
 
 		.input-group.custom .input-group-append {
@@ -175,26 +197,26 @@
 			padding: 0 0 0 18px;
 			display: flex;
 			align-items: center;
-			color: var(--primary-color);
+			color: var(--sgl-orange);
 			font-size: 20px;
 		}
 
 		.btn-primary {
 			background: var(--primary-gradient) !important;
 			border: none !important;
-			border-radius: 12px;
+			border-radius: 14px;
 			padding: 14px 20px;
 			font-size: 16px;
 			font-weight: 600;
 			text-transform: uppercase;
 			letter-spacing: 0.5px;
 			transition: all 0.3s ease;
-			box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+			box-shadow: 0 14px 28px rgba(11, 55, 120, 0.22);
 		}
 
 		.btn-primary:hover {
 			transform: translateY(-2px);
-			box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+			box-shadow: 0 18px 30px rgba(11, 55, 120, 0.28);
 		}
 
 		.btn-primary:active {
@@ -241,7 +263,32 @@
 		}
 
 		.login-image-container img {
-			filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
+			filter: drop-shadow(0 22px 44px rgba(7, 26, 57, 0.22));
+		}
+
+		.login-menu,
+		.login-menu a,
+		.login-footer {
+			color: rgba(255, 255, 255, 0.88);
+		}
+
+		.login-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 14px;
+			border-radius: 999px;
+			background: rgba(255, 106, 19, 0.12);
+			color: var(--sgl-orange);
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			margin-bottom: 16px;
+		}
+
+		.login-chip i {
+			font-size: 11px;
 		}
 
 		/* Responsive */
@@ -289,12 +336,12 @@
 		.login-footer {
 			text-align: center;
 			margin-top: 30px;
-			color: white;
+			color: rgba(255, 255, 255, 0.88);
 			font-size: 14px;
 		}
 
 		.login-footer a {
-			color: white;
+			color: #fff;
 			text-decoration: underline;
 		}
 	</style>
@@ -304,7 +351,7 @@
 		<div class="container-fluid d-flex justify-content-between align-items-center">
 			<div class="brand-logo">
 				<a href="login">
-					<img width="85%" src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.jpg" alt="">
+					<img width="85%" src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="SASGL">
 				</a>
 			</div>
 			<div class="login-menu">
@@ -329,6 +376,7 @@
 					
 					<div class="login-box bg-white box-shadow border-radius-10">
 						<div class="login-title">
+							<div class="login-chip"><i class="fas fa-shield-alt"></i> Plataforma SGL</div>
 							<h2 class="text-center">Bienvenido</h2>
 							<p class="text-center">Ingresa tus credenciales para continuar</p>
 						</div>
@@ -344,7 +392,7 @@
 								<div class="input-group-append custom">
 									<span class="input-group-text"><i class="fas fa-lock"></i></span>
 								</div>
-								<button type="button" id="togglePassword" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #667eea; z-index: 11; cursor: pointer;">
+								<button type="button" id="togglePassword" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #0b3778; z-index: 11; cursor: pointer;">
 									<i class="fas fa-eye" id="eyeIcon"></i>
 								</button>
 							</div>

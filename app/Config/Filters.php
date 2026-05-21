@@ -22,6 +22,7 @@ class Filters extends BaseConfig
 		'auth'     => \App\Filters\Auth::class,
 		'aclrefresh' => \App\Filters\AclRefreshFilter::class,
 		'apilog' => \App\Filters\ApiLogFilter::class,
+		'externalapiauth' => \App\Filters\ExternalApiAuth::class,
 	];
 
 	/**
@@ -34,8 +35,8 @@ class Filters extends BaseConfig
 		'before' => [
 			// 'honeypot',
 			// 'csrf' => ['except' => ['api/*']],
-			'auth',
-			'aclrefresh',
+			'auth' => ['except' => ['api/v1/*']],
+			'aclrefresh' => ['except' => ['api/v1/*']],
 			
 		],
 		'after'  => [

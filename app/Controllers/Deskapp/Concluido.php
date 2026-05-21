@@ -2456,8 +2456,8 @@ class Concluido extends BaseController
             return $resp;
         }
 
-        if ($resp = acl_require_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', '/deskapp/dashboard', 403, $isApi)) {
-            return $resp;
+        if (!can_access_cobro_cliente_surface($roles, $perms)) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/dashboard', $isApi);
         }
 
         $tramiteModel = new TramitesModel($db2);
@@ -2466,7 +2466,7 @@ class Concluido extends BaseController
         $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
         $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
 
-        $canWrite = has_permission('section_final_costos', $perms, $roles)
+        $canWrite = can_access_cobro_cliente_surface($roles, $perms)
             && puede_editar_modulo($roles, $statusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5);
 
         $canQuickAction = has_permission('quick_action_cobros_cliente', $perms, $roles);
@@ -3032,6 +3032,9 @@ class Concluido extends BaseController
                 return $resp;
             }
 
+            $tramiteRow = $db->table('tramite')->select('tra_status_id')->where('id', $tramiteId)->get(1)->getRowArray();
+            $oldStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+
             // Actualizar el estatus del trámite
             $builder->where('id', $tramiteId);
             $builder->update(['tra_status_id' => $statusId]);
@@ -3046,6 +3049,10 @@ class Concluido extends BaseController
             ];
 
             $tra_user_log->insert($logData, 'tra_user_log');
+
+            if ($oldStatusId > 0 && $oldStatusId !== $statusId) {
+                log_tramite_status_change($tramiteId, $oldStatusId, $statusId);
+            }
 
             return $this->response->setJSON(['success' => true]);
         } catch (\Exception $e) {
@@ -3103,6 +3110,9 @@ class Concluido extends BaseController
                 return $resp;
             }
 
+            $tramiteRow = $db->table('tramite')->select('tra_status_id')->where('id', $tramiteId)->get(1)->getRowArray();
+            $oldStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+
             // Actualizar el estatus del trámite
 
             $builder->where('id', $tramiteId);
@@ -3129,6 +3139,10 @@ class Concluido extends BaseController
             ];
 
             $tra_user_log->insert($logData, 'tra_user_log');
+
+            if ($oldStatusId > 0 && $oldStatusId !== $statusId) {
+                log_tramite_status_change($tramiteId, $oldStatusId, $statusId);
+            }
 
             return $this->response->setJSON(['success' => true]);
         } catch (\Exception $e) {
@@ -3185,6 +3199,9 @@ class Concluido extends BaseController
                 return $resp;
             }
 
+            $tramiteRow = $db->table('tramite')->select('tra_status_id')->where('id', $tramiteId)->get(1)->getRowArray();
+            $oldStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+
             // Actualizar el estatus del trámite
 
             $builder->where('id', $tramiteId);
@@ -3203,6 +3220,10 @@ class Concluido extends BaseController
             ];
 
             $tra_user_log->insert($logData, 'tra_user_log');
+
+            if ($oldStatusId > 0 && $oldStatusId !== $statusId) {
+                log_tramite_status_change($tramiteId, $oldStatusId, $statusId);
+            }
 
             return $this->response->setJSON(['success' => true]);
         } catch (\Exception $e) {

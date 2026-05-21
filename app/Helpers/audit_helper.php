@@ -174,8 +174,8 @@ if (!function_exists('log_tramite_status_change')) {
         
         $oldName = $oldStatus['tra_status'] ?? "Estatus #$oldStatusId";
         $newName = $newStatus['tra_status'] ?? "Estatus #$newStatusId";
-        
-        return log_tramite_change(
+
+        $logged = log_tramite_change(
             $tramiteId,
             'status_change',
             'tramite',
@@ -184,6 +184,17 @@ if (!function_exists('log_tramite_status_change')) {
             $oldName,
             $newName
         );
+
+        if ($oldStatusId !== $newStatusId) {
+            try {
+                $externalTramiteService = new \App\Services\ExternalTramiteService($db);
+                $externalTramiteService->queueStatusChangedEventIfTracked($tramiteId, $oldStatusId, $newStatusId);
+            } catch (\Throwable $e) {
+                log_message('error', 'No se pudo encolar webhook de cambio de estatus para trámite ' . $tramiteId . ': ' . $e->getMessage());
+            }
+        }
+
+        return $logged;
     }
 }
 

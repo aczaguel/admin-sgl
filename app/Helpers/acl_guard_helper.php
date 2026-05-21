@@ -122,17 +122,12 @@ if (! function_exists('acl_require_tramite_tenant_access')) {
             return false;
         }
 
-        // Bypass controlado por permiso (Super Admin pasa vía has_permission()).
         if ($perms === null) {
             try {
                 $perms = session()->get('user_permissions');
             } catch (\Throwable $e) {
                 $perms = [];
             }
-        }
-
-        if (has_permission('bypass_tramite_tenant_access', $perms, $roles)) {
-            return true;
         }
 
         return (bool) validate_tramite_access($tramiteId, $userId);

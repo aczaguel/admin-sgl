@@ -4,11 +4,11 @@
 		$canDashboardCliente = has_permission('menu_dashboard_cliente', $session->get('user_permissions'), $session->get('user_roles'));
 		$canTramitesCliente = has_permission('menu_tramites_cliente', $session->get('user_permissions'), $session->get('user_roles'));
 	?>
-	<div class="left-side-bar">
+	<div class="left-side-bar" data-sidebar-version="2026-04-06-1">
 		<div class="brand-logo">
-			<a href="<?php echo base_url('deskapp/dashboard'); ?>">
-				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.png" alt="" class="dark-logo" width="150px">
-				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt_white.png" alt="" class="light-logo" width="150px">
+			<a href="<?php echo base_url('deskapp/dashboard'); ?>" class="sgl-brand-link" style="display: flex; justify-content: center; align-items: center; padding: 10px 0;">
+				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="Logo SASGL" class="dark-logo sgl-brand-image" style="max-width: 150px; height: auto;">
+				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="Logo SASGL" class="light-logo sgl-brand-image" style="max-width: 150px; height: auto;">
 			</a>
 			<div class="close-sidebar" data-toggle="left-sidebar-close">
 				<i class="ion-close-round"></i>

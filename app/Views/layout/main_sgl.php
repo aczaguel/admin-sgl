@@ -1,0 +1,1 @@
+<?= $this->include('layout/_main_shell', ['layoutVariant' => 'sgl']) ?>

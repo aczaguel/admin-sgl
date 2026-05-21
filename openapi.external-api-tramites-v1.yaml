@@ -1,0 +1,943 @@
+openapi: 3.0.3
+info:
+  title: API Externa de Tramites
+  version: 1.0.0
+  description: |
+    Primera superficie versionada para integracion externa de tramites.
+
+    Endpoints implementados actualmente:
+    - POST /api/v1/tramites
+    - GET /api/v1/tramites/{id}
+    - GET /api/v1/tramites/referencia/{external_reference}
+
+    La autenticacion acepta cualquiera de estas alternativas:
+    - X-API-Key
+    - Authorization: Bearer <token>
+
+    Notas de contrato vigentes:
+    - Idempotency-Key es obligatorio para crear.
+    - external_reference es obligatoria y unica por source_system.
+    - Se soporta application/json y multipart/form-data.
+    - El payload JSON prefiere statuses anidado; los campos planos equivalentes siguen siendo tolerados por compatibilidad.
+servers:
+  - url: http://localhost
+    description: Ejemplo local
+tags:
+  - name: Tramites
+    description: Alta y consulta de tramites externos
+paths:
+  /api/v1/tramites:
+    post:
+      tags:
+        - Tramites
+      summary: Crear tramite externo
+      description: |
+        Crea un tramite desde un sistema externo.
+
+        Comportamiento de idempotencia:
+        - Si se reenvia la misma solicitud con el mismo Idempotency-Key y el mismo payload, devuelve la misma respuesta y marca idempotent_replay=true.
+        - Si se reutiliza el mismo Idempotency-Key con un payload distinto, devuelve 409.
+      operationId: createExternalTramite
+      security:
+        - ApiKeyHeader: []
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/SourceSystemHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TramiteCreateJsonRequest'
+            examples:
+              altaJson:
+                summary: Alta con documento inline
+                value:
+                  external_reference: ERP-TRX-000145
+                  contrato: CTR-001
+                  unidad: Unidad 45
+                  serie: SERIE123456
+                  placas: ABC123A
+                  tra_tipos_id: 7
+                  entidad_id: 14
+                  ent_municipio_id: 266
+                  cli_directo_id: 22
+                  cli_directo_ejecutivo_id: 18
+                  empresa_gestora_id: 3
+                  gestor_id: 9
+                  observaciones: Alta desde sistema externo
+                  statuses:
+                    tra_status_id: 22
+                    cobro_status_id: 1
+                    reembolso_status_id: 1
+                    pago_gestor_st_id: 2
+                  documentos:
+                    - nombre: identificacion.pdf
+                      mime_type: application/pdf
+                      contenido_base64: JVBERi0xLjQK...
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TramiteCreateMultipartRequest'
+            encoding:
+              documentos:
+                style: form
+                explode: true
+      responses:
+        '201':
+          description: Trámite creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TramiteCreateResponse'
+              examples:
+                creado:
+                  value:
+                    success: true
+                    message: Trámite creado exitosamente.
+                    tramite_id: 1234
+                    folio: TR-2026-001234
+                    external_reference: ERP-TRX-000145
+                    source_system: erp_principal
+                    documentos_registrados: 2
+                    status_snapshot:
+                      id: 1234
+                      folio: TR-2026-001234
+                      contrato: CTR-001
+                      tra_status_id: 22
+                      tra_status: DCTOS COMPLETOS
+                      cobro_status_id: 22
+                      cobro_status: En Proceso
+                      reembolso_status_id: null
+                      reembolso_status: null
+                      pago_gestor_st_id: null
+                      pago_status: null
+                      cli_directo_id: 22
+                      empresa_solicitante: Cliente Demo
+                      cli_directo_ejecutivo_id: 18
+                      ejecutivo: Ejecutivo Demo
+                      created_at: '2026-05-14 10:30:00'
+                      updated_at: '2026-05-14 10:30:00'
+                      documentos_registrados: 2
+                      external_reference: ERP-TRX-000145
+                      source_system: erp_principal
+        '400':
+          description: Error de solicitud o idempotencia faltante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingIdempotency:
+                  value:
+                    success: false
+                    message: El header Idempotency-Key es obligatorio.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Conflicto por idempotencia, referencia externa o duplicado de negocio
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/IdempotencyConflictResponse'
+                  - $ref: '#/components/schemas/ExternalReferenceConflictResponse'
+                  - $ref: '#/components/schemas/DuplicateBusinessConflictResponse'
+              examples:
+                reusedIdempotencyKey:
+                  value:
+                    success: false
+                    message: El Idempotency-Key ya fue utilizado con un payload distinto.
+                duplicateExternalReference:
+                  value:
+                    success: false
+                    message: La referencia externa ya existe para este sistema origen.
+                    existing_tramite_id: 1234
+                    external_reference: ERP-TRX-000145
+                    source_system: erp_principal
+                    data:
+                      id: 1234
+                      folio: TR-2026-001234
+                      contrato: CTR-001
+                      tra_status_id: 22
+                      tra_status: DCTOS COMPLETOS
+                      cobro_status_id: 22
+                      cobro_status: En Proceso
+                      reembolso_status_id: null
+                      reembolso_status: null
+                      pago_gestor_st_id: null
+                      pago_status: null
+                      cli_directo_id: 22
+                      empresa_solicitante: Cliente Demo
+                      cli_directo_ejecutivo_id: 18
+                      ejecutivo: Ejecutivo Demo
+                      created_at: '2026-05-14 10:30:00'
+                      updated_at: '2026-05-14 10:30:00'
+                      documentos_registrados: 2
+                      external_reference: ERP-TRX-000145
+                      source_system: erp_principal
+                duplicateBusiness:
+                  value:
+                    success: false
+                    duplicate: true
+                    confirmable: true
+                    message: El trámite ya fue registrado previamente.
+                    existing_tramite_id: 777
+                    duplicate_details:
+                      id_existente: 777
+                      folio_existente: TR-2026-000777
+                      contrato_existente: CTR-EXISTENTE
+                      serie_existente: SER123
+                      tipo_tramite_existente: TENENCIA
+                      nombre_usuario_existente: Usuario Previo Test
+                      created_at_existente: 13/05/2026 09:55
+                      created_at_existente_raw: '2026-05-13 09:55:00'
+                    existing_data:
+                      id: 777
+                      folio: TR-2026-000777
+                      contrato: CTR-EXISTENTE
+                      serie: SER123
+                      tipo_tramite: TENENCIA
+                      created_at: '2026-05-13 09:55:00'
+                      created_at_formatted: 13/05/2026 09:55
+                      requested_by_user_id: 44
+                      requested_by_name: Usuario Previo Test
+        '422':
+          description: Validacion fallida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              examples:
+                validationError:
+                  value:
+                    success: false
+                    message: Payload inválido.
+                    errors:
+                      contrato: El contrato es obligatorio.
+                      cli_directo_ejecutivo_id: El ejecutivo es obligatorio.
+        '503':
+          description: Servicio no disponible o infraestructura de integración incompleta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseWithStatus'
+              examples:
+                apiDisabled:
+                  value:
+                    success: false
+                    status: error
+                    message: La API externa está deshabilitada.
+                missingTables:
+                  value:
+                    success: false
+                    message: Falta configurar las tablas de integración externa. Ejecuta create_external_api_integration_tables.sql.
+  /api/v1/tramites/{id}:
+    get:
+      tags:
+        - Tramites
+      summary: Consultar trámite por id
+      operationId: getExternalTramiteById
+      security:
+        - ApiKeyHeader: []
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID interno del trámite
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Snapshot del trámite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusSnapshotResponse'
+        '400':
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  value:
+                    success: false
+                    message: ID de trámite inválido.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Trámite no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  value:
+                    success: false
+                    message: Trámite no encontrado.
+        '503':
+          description: API deshabilitada o sin llaves configuradas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponseWithStatus'
+  /api/v1/tramites/referencia/{external_reference}:
+    get:
+      tags:
+        - Tramites
+      summary: Consultar trámite por referencia externa
+      operationId: getExternalTramiteByReference
+      security:
+        - ApiKeyHeader: []
+        - BearerAuth: []
+      parameters:
+        - name: external_reference
+          in: path
+          required: true
+          description: Referencia externa única por sistema origen
+          schema:
+            type: string
+        - $ref: '#/components/parameters/SourceSystemHeader'
+        - name: source_system
+          in: query
+          required: false
+          description: Sistema origen alternativo al header X-Source-System
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Snapshot del trámite ligado a la referencia externa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusSnapshotResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No existe un trámite ligado a esa referencia externa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  value:
+                    success: false
+                    message: No existe un trámite ligado a esa referencia externa.
+        '503':
+          description: API deshabilitada, sin llaves o tabla de referencias no configurada
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ErrorResponseWithStatus'
+                  - $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                apiDisabled:
+                  value:
+                    success: false
+                    status: error
+                    message: La API externa está deshabilitada.
+                missingReferenceTable:
+                  value:
+                    success: false
+                    message: La tabla de referencias externas no está configurada.
+x-webhooks:
+  tramite.created:
+    post:
+      tags:
+        - Tramites
+      summary: Evento emitido al crear un trámite externo
+      description: |
+        Webhook saliente enviado como POST JSON a cada URL configurada en externalApi.webhookUrls.
+
+        En el comportamiento actual:
+        - Se envía con Accept: application/json
+        - Se envía con Content-Type: application/json
+        - Se envía con User-Agent: admin-sgl-external-api/1.0
+        - Se considera entrega exitosa cualquier respuesta HTTP 2xx
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TramiteCreatedWebhookPayload'
+            examples:
+              created:
+                value:
+                  event: tramite.created
+                  source_system: erp_principal
+                  external_reference: ERP-TRX-000145
+                  tramite:
+                    id: 1234
+                    folio: TR-2026-001234
+                    contrato: CTR-001
+                    tra_status_id: 22
+                    tra_status: DCTOS COMPLETOS
+                    cobro_status_id: 22
+                    cobro_status: En Proceso
+                    reembolso_status_id: null
+                    reembolso_status: null
+                    pago_gestor_st_id: null
+                    pago_status: null
+                    cli_directo_id: 22
+                    empresa_solicitante: Cliente Demo
+                    cli_directo_ejecutivo_id: 18
+                    ejecutivo: Ejecutivo Demo
+                    created_at: '2026-05-14 10:30:00'
+                    updated_at: '2026-05-14 10:30:00'
+                    documentos_registrados: 2
+                    external_reference: ERP-TRX-000145
+                    source_system: erp_principal
+      responses:
+        '200':
+          description: El receptor procesó el webhook correctamente.
+        '202':
+          description: El receptor aceptó el webhook para procesamiento asíncrono.
+        '204':
+          description: El receptor confirmó el webhook sin body.
+  tramite.status_changed:
+    post:
+      tags:
+        - Tramites
+      summary: Evento emitido cuando cambia tra_status_id de un trámite rastreado
+      description: |
+        Webhook saliente emitido cuando un trámite creado por integración externa cambia de estatus
+        y ese cambio pasa por los caminos actualmente integrados con la cola de webhooks.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TramiteStatusChangedWebhookPayload'
+            examples:
+              statusChanged:
+                value:
+                  event: tramite.status_changed
+                  source_system: erp_principal
+                  external_reference: ERP-TRX-000145
+                  tramite:
+                    id: 1234
+                    folio: TR-2026-001234
+                    contrato: CTR-001
+                    tra_status_id: 25
+                    tra_status: PAGO DERECHOS COTIZACION
+                    cobro_status_id: 22
+                    cobro_status: En Proceso
+                    reembolso_status_id: null
+                    reembolso_status: null
+                    pago_gestor_st_id: null
+                    pago_status: null
+                    cli_directo_id: 22
+                    empresa_solicitante: Cliente Demo
+                    cli_directo_ejecutivo_id: 18
+                    ejecutivo: Ejecutivo Demo
+                    created_at: '2026-05-14 10:30:00'
+                    updated_at: '2026-05-14 10:45:00'
+                    documentos_registrados: 2
+                    external_reference: ERP-TRX-000145
+                    source_system: erp_principal
+                  previous_status:
+                    id: 22
+                    name: DCTOS COMPLETOS
+                  current_status:
+                    id: 25
+                    name: PAGO DERECHOS COTIZACION
+      responses:
+        '200':
+          description: El receptor procesó el webhook correctamente.
+        '202':
+          description: El receptor aceptó el webhook para procesamiento asíncrono.
+        '204':
+          description: El receptor confirmó el webhook sin body.
+components:
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Llave de API enviada por header.
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key
+      description: Alternativa equivalente a X-API-Key.
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Clave única por intento de alta.
+      schema:
+        type: string
+    SourceSystemHeader:
+      name: X-Source-System
+      in: header
+      required: false
+      description: Sistema origen. Si no viaja, se usa externalApi.defaultSourceSystem.
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Credencial faltante o inválida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponseWithStatus'
+          examples:
+            missingCredential:
+              value:
+                success: false
+                status: error
+                message: Falta credencial de API.
+            invalidCredential:
+              value:
+                success: false
+                status: error
+                message: Credencial de API inválida.
+  schemas:
+    TramiteCreateJsonRequest:
+      type: object
+      required:
+        - external_reference
+        - contrato
+        - serie
+        - tra_tipos_id
+        - entidad_id
+        - ent_municipio_id
+        - cli_directo_id
+        - cli_directo_ejecutivo_id
+      properties:
+        external_reference:
+          type: string
+          description: Referencia externa única por sistema origen.
+        folio:
+          type: string
+          description: Opcional. Si no se envía, el sistema genera uno.
+        contrato:
+          type: string
+        unidad:
+          type: string
+        serie:
+          type: string
+        placas:
+          type: string
+        tra_tipos_id:
+          type: integer
+          minimum: 1
+        entidad_id:
+          type: integer
+          minimum: 1
+        ent_municipio_id:
+          type: integer
+          minimum: 1
+        cli_directo_id:
+          type: integer
+          minimum: 1
+        cli_directo_ejecutivo_id:
+          type: integer
+          minimum: 1
+        empresa_gestora_id:
+          type: integer
+          nullable: true
+        gestor_id:
+          type: integer
+          nullable: true
+        observaciones:
+          type: string
+        statuses:
+          $ref: '#/components/schemas/TramiteStatusOverrides'
+        tra_status_id:
+          type: integer
+          nullable: true
+          deprecated: true
+          description: Alias plano tolerado por compatibilidad. Se recomienda usar statuses.tra_status_id.
+        cobro_status_id:
+          type: integer
+          nullable: true
+          deprecated: true
+          description: Alias plano tolerado por compatibilidad. Se recomienda usar statuses.cobro_status_id.
+        reembolso_status_id:
+          type: integer
+          nullable: true
+          deprecated: true
+          description: Alias plano tolerado por compatibilidad. Se recomienda usar statuses.reembolso_status_id.
+        pago_gestor_st_id:
+          type: integer
+          nullable: true
+          deprecated: true
+          description: Alias plano tolerado por compatibilidad. Se recomienda usar statuses.pago_gestor_st_id.
+        documentos:
+          type: array
+          description: Documentos inline en base64.
+          items:
+            $ref: '#/components/schemas/InlineDocumento'
+    TramiteCreateMultipartRequest:
+      type: object
+      required:
+        - external_reference
+        - contrato
+        - serie
+        - tra_tipos_id
+        - entidad_id
+        - ent_municipio_id
+        - cli_directo_id
+        - cli_directo_ejecutivo_id
+      properties:
+        external_reference:
+          type: string
+        folio:
+          type: string
+        contrato:
+          type: string
+        unidad:
+          type: string
+        serie:
+          type: string
+        placas:
+          type: string
+        tra_tipos_id:
+          type: integer
+        entidad_id:
+          type: integer
+        ent_municipio_id:
+          type: integer
+        cli_directo_id:
+          type: integer
+        cli_directo_ejecutivo_id:
+          type: integer
+        empresa_gestora_id:
+          type: integer
+          nullable: true
+        gestor_id:
+          type: integer
+          nullable: true
+        observaciones:
+          type: string
+        tra_status_id:
+          type: integer
+          nullable: true
+          description: Override opcional de estatus para multipart.
+        cobro_status_id:
+          type: integer
+          nullable: true
+        reembolso_status_id:
+          type: integer
+          nullable: true
+        pago_gestor_st_id:
+          type: integer
+          nullable: true
+        documentos:
+          type: array
+          description: Archivos adjuntos enviados como documentos[].
+          items:
+            type: string
+            format: binary
+    TramiteStatusOverrides:
+      type: object
+      properties:
+        tra_status_id:
+          type: integer
+          nullable: true
+          description: No permite estatus bloqueados.
+        cobro_status_id:
+          type: integer
+          nullable: true
+        reembolso_status_id:
+          type: integer
+          nullable: true
+        pago_gestor_st_id:
+          type: integer
+          nullable: true
+    InlineDocumento:
+      type: object
+      required:
+        - nombre
+        - contenido_base64
+      properties:
+        nombre:
+          type: string
+        mime_type:
+          type: string
+        contenido_base64:
+          type: string
+          description: Contenido del archivo en base64.
+    TramiteCreateResponse:
+      type: object
+      required:
+        - success
+        - message
+        - tramite_id
+        - folio
+        - documentos_registrados
+        - status_snapshot
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        message:
+          type: string
+        tramite_id:
+          type: integer
+        folio:
+          type: string
+        external_reference:
+          type: string
+        source_system:
+          type: string
+        documentos_registrados:
+          type: integer
+        idempotent_replay:
+          type: boolean
+          description: Presente cuando el alta fue respondida desde caché idempotente.
+        status_snapshot:
+          $ref: '#/components/schemas/StatusSnapshot'
+    StatusSnapshotResponse:
+      type: object
+      required:
+        - success
+        - message
+        - data
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/StatusSnapshot'
+    StatusSnapshot:
+      type: object
+      properties:
+        id:
+          type: integer
+        folio:
+          type: string
+        contrato:
+          type: string
+        tra_status_id:
+          type: integer
+          nullable: true
+        tra_status:
+          type: string
+          nullable: true
+        cobro_status_id:
+          type: integer
+          nullable: true
+        cobro_status:
+          type: string
+          nullable: true
+        reembolso_status_id:
+          type: integer
+          nullable: true
+        reembolso_status:
+          type: string
+          nullable: true
+        pago_gestor_st_id:
+          type: integer
+          nullable: true
+        pago_status:
+          type: string
+          nullable: true
+        cli_directo_id:
+          type: integer
+          nullable: true
+        empresa_solicitante:
+          type: string
+          nullable: true
+        cli_directo_ejecutivo_id:
+          type: integer
+          nullable: true
+        ejecutivo:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          nullable: true
+          format: date-time
+        updated_at:
+          type: string
+          nullable: true
+          format: date-time
+        documentos_registrados:
+          type: integer
+        external_reference:
+          type: string
+          nullable: true
+        source_system:
+          type: string
+          nullable: true
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        message:
+          type: string
+    ErrorResponseWithStatus:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            status:
+              type: string
+              example: error
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          required:
+            - errors
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: string
+    IdempotencyConflictResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            message:
+              type: string
+              enum:
+                - El Idempotency-Key ya fue utilizado con un payload distinto.
+    ExternalReferenceConflictResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            existing_tramite_id:
+              type: integer
+            external_reference:
+              type: string
+            source_system:
+              type: string
+            data:
+              $ref: '#/components/schemas/StatusSnapshot'
+    DuplicateBusinessConflictResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          required:
+            - duplicate
+            - confirmable
+            - existing_tramite_id
+          properties:
+            duplicate:
+              type: boolean
+              enum: [true]
+            confirmable:
+              type: boolean
+              enum: [true]
+            existing_tramite_id:
+              type: integer
+            duplicate_details:
+              $ref: '#/components/schemas/DuplicateDetails'
+            existing_data:
+              $ref: '#/components/schemas/DuplicateExistingData'
+            data:
+              $ref: '#/components/schemas/StatusSnapshot'
+    DuplicateDetails:
+      type: object
+      properties:
+        id_existente:
+          type: integer
+        folio_existente:
+          type: string
+        contrato_existente:
+          type: string
+        serie_existente:
+          type: string
+        tipo_tramite_existente:
+          type: string
+        nombre_usuario_existente:
+          type: string
+        created_at_existente:
+          type: string
+        created_at_existente_raw:
+          type: string
+          format: date-time
+    DuplicateExistingData:
+      type: object
+      properties:
+        id:
+          type: integer
+        folio:
+          type: string
+        contrato:
+          type: string
+        serie:
+          type: string
+        tipo_tramite:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        created_at_formatted:
+          type: string
+        requested_by_user_id:
+          type: integer
+        requested_by_name:
+          type: string
+    WebhookStatusTransition:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    TramiteCreatedWebhookPayload:
+      type: object
+      required:
+        - event
+        - source_system
+        - external_reference
+        - tramite
+      properties:
+        event:
+          type: string
+          enum:
+            - tramite.created
+        source_system:
+          type: string
+        external_reference:
+          type: string
+        tramite:
+          $ref: '#/components/schemas/StatusSnapshot'
+    TramiteStatusChangedWebhookPayload:
+      type: object
+      required:
+        - event
+        - source_system
+        - external_reference
+        - tramite
+        - previous_status
+        - current_status
+      properties:
+        event:
+          type: string
+          enum:
+            - tramite.status_changed
+        source_system:
+          type: string
+        external_reference:
+          type: string
+        tramite:
+          $ref: '#/components/schemas/StatusSnapshot'
+        previous_status:
+          $ref: '#/components/schemas/WebhookStatusTransition'
+        current_status:
+          $ref: '#/components/schemas/WebhookStatusTransition'

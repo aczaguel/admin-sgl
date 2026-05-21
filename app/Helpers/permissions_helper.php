@@ -20,7 +20,7 @@
  *
  * Expectativa por rol (lo que “debería” asignarse):
  * - Super Admin:
- *   - has_permission() devuelve true siempre; equivale a acceso total.
+ *   - Debe operar por permisos explicitamente asignados, igual que cualquier otro usuario.
  * - Admin:
  *   - Suele tener acceso amplio por rol (legacy). Idealmente controlarlo solo por permisos.
  *   - Si debe editar, asignar editar_tramite (y los permisos finos/sections que apliquen).
@@ -452,11 +452,6 @@ if (! function_exists('permission_matches_alias')) {
 
 if (! function_exists('has_permission')) {
     function has_permission($required_permission, $user_permissions, $roles) {
-        $roles = normalize_permission_list($roles);
-        if (is_super_admin($roles)) {
-            return true;
-        }
-
         return permission_matches_alias($required_permission, $user_permissions);
     }
 }
@@ -551,7 +546,7 @@ if (! function_exists('can_write_tramite_step')) {
 if (! function_exists('can_create_tramite')) {
     function can_create_tramite($roles, $perms): bool
     {
-        // Control 100% por permisos (Super Admin pasa vía has_permission()).
+        // Control 100% por permisos explícitos.
         return has_permission('create_tramite', $perms, $roles);
     }
 }
@@ -559,10 +554,38 @@ if (! function_exists('can_create_tramite')) {
 if (! function_exists('can_edit_tramite')) {
     function can_edit_tramite($roles, $perms): bool
     {
-        // Para edición, el permiso manda; Super Admin pasa vía has_permission().
+        // Para edición, el permiso manda.
         return has_permission('editar_tramite', $perms, $roles);
     }
 }
+
+if (! function_exists('can_access_cobro_cliente_surface')) {
+    /**
+     * Compatibilidad de transición entre el Centro de Cobranza y el flujo legacy.
+     */
+    function can_access_cobro_cliente_surface($roles, $perms): bool
+    {
+        return has_permission('list_cobro_cliente', $perms, $roles)
+            || has_permission('section_final_costos', $perms, $roles);
+    }
+}
+
+if (! function_exists('can_edit_cobro_cliente_surface')) {
+    function can_edit_cobro_cliente_surface($roles, $perms): bool
+    {
+        return can_access_cobro_cliente_surface($roles, $perms)
+            && has_permission('editar_final', $perms, $roles);
+    }
+}
+
+if (! function_exists('can_upload_cobro_cliente_surface')) {
+    function can_upload_cobro_cliente_surface($roles, $perms): bool
+    {
+        return can_access_cobro_cliente_surface($roles, $perms)
+            && has_permission('can_upload_dropzone_cobro_cliente', $perms, $roles);
+    }
+}
+
 if (! function_exists('is_super_admin')) {
     function is_super_admin($roles)
     {
@@ -653,7 +676,7 @@ if (! function_exists('can_authorize_tramite')) {
     /**
      * Autorizar (pasar a pagos / status 23).
      * - Requiere permiso important_pasar_a_pagos.
-     * - El permiso manda; Super Admin pasa vía has_permission().
+    * - El permiso manda.
      */
     function can_authorize_tramite($roles, $perms): bool
     {
@@ -706,32 +729,9 @@ if (!function_exists('get_editable_fields_by_step')) {
         //     return $editable_fields;
         // }    
         
-        // Mapeo de estados del trámite => steps (para usar estatus_editable)
-        // Si el trámite está concluido (20) o cancelado (21)
-        if (in_array($estado, [SGL_TRA_STATUS_CONCLUIDO], true)) {
-            // Excepción: Reembolso en proceso (22) aunque el trámite esté concluido (20)
-            if (in_array($reembolso_status_id, SGL_REEMBOLSO_STATUS_PENDING_IDS, true) && (int) $estado === SGL_TRA_STATUS_CONCLUIDO) {
-                $editable_fields[] = 'reembolso_status_id';
-                $editable_fields[] = 'deposito_gestor';
-                $editable_fields[] = 'evidencias_finales_gestor';
-                $editable_fields[] = 'upload_pago_gestor';
-                $editable_fields[] = 'botones';
-            }
-
-            // Excepción: Cobro en proceso (21 o 22) aunque el trámite esté concluido (20)
-            if (in_array($cobro_status_id, [21, SGL_COBRO_STATUS_PENDIENTE], true) && (int) $estado === SGL_TRA_STATUS_CONCLUIDO) {
-                $editable_fields[] = 'cobro_status_id';
-                $editable_fields[] = 'evidencias_finales_cliente';
-                $editable_fields[] = 'upload_cobro_cliente';
-                $editable_fields[] = 'botones';
-            }
-
-            // Si está cancelado (21), ningún campo es editable
-            if ((int) $estado === SGL_TRA_STATUS_CANCELADO) {
-                return [];
-            }
-
-            return $editable_fields;
+        // Trámites concluidos/cancelados quedan en solo lectura.
+        if (in_array((int) $estado, SGL_TRA_STATUS_LOCKED_IDS, true)) {
+            return [];
         }
 
         // --- Lógica para trámites NO concluidos/cancelados ---
@@ -790,13 +790,21 @@ if (!function_exists('estatus_editable')) {
 
 if (!function_exists('puede_editar_modulo')) {
     function puede_editar_modulo($roles, $estado, $campo, $reembolso_status_id = null, $cobro_status_id = null, $current_step, $perms = null) {
-        // Override explícito por permisos; Super Admin pasa vía has_permission().
-        if (has_permission('override_puede_editar_modulo', $perms, $roles)) {
-            return true;
+        if ($perms === null) {
+            try {
+                $perms = session()->get('user_permissions');
+            } catch (\Throwable $e) {
+                $perms = [];
+            }
         }
 
-        if ((int) $estado === SGL_TRA_STATUS_CANCELADO) {
+        if (in_array((int) $estado, SGL_TRA_STATUS_LOCKED_IDS, true)) {
             return false;
+        }
+
+        // Override explícito por permisos; aplica solo en estados no bloqueados.
+        if (has_permission('override_puede_editar_modulo', $perms, $roles)) {
+            return true;
         }
 
         // Si el estado no existe en el mapeo, no es editable

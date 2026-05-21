@@ -122,7 +122,7 @@ class CorrecionTramites extends BaseController
                 'user_id'
             ]);
 
-            // Campos editables - SOLO tipo de trámite y estatus
+            // Campos editables del modulo de correccion
             $crud->fields([
                 'folio',
                 'contrato',
@@ -130,7 +130,9 @@ class CorrecionTramites extends BaseController
                 'serie',
                 'placas',
                 'tra_tipos_id',
-                'tra_status_id'
+                'tra_status_id',
+                'empresa_gestora_id',
+                'gestor_id'
             ]);
 
             // Campos de solo lectura
@@ -164,6 +166,8 @@ class CorrecionTramites extends BaseController
             $crud->displayAs('placas', 'Placas');
             $crud->displayAs('tra_tipos_id', 'Tipo de Trámite');
             $crud->displayAs('tra_status_id', 'Estatus del Trámite');
+            $crud->displayAs('empresa_gestora_id', 'Empresa Gestora');
+            $crud->displayAs('gestor_id', 'Gestor');
             $crud->displayAs('cli_directo_id', 'Cliente Directo');
             $crud->displayAs('cli_directo_ejecutivo_id', 'Ejecutivo');
             $crud->displayAs('user_id', 'Asignado a');
@@ -171,6 +175,9 @@ class CorrecionTramites extends BaseController
             // Relaciones
             $crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
             $crud->setRelation('tra_status_id', 'tra_status', 'tra_status');
+            $crud->setRelation('empresa_gestora_id', 'ges_empresa_gestora', 'razon_social');
+            $crud->setRelation('gestor_id', 'ges_gestor', 'nombre');
+            $crud->setDependentRelation('gestor_id', 'empresa_gestora_id', 'empresa_gestora_id');
             $crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
             $crud->setRelation('cli_directo_ejecutivo_id', 'cli_directo_ejecutivo', 'nombre');
             $crud->setRelation('user_id', 'users', '{firstname} {lastname}');
@@ -268,7 +275,7 @@ class CorrecionTramites extends BaseController
                 'tra_tipos_id', 'tra_status_id', 'cli_directo_id', 'cli_directo_ejecutivo_id', 'user_id'
             ]);
 
-            $crud->fields(['folio', 'contrato', 'unidad', 'serie', 'placas', 'tra_tipos_id', 'tra_status_id']);
+            $crud->fields(['folio', 'contrato', 'unidad', 'serie', 'placas', 'tra_tipos_id', 'tra_status_id', 'empresa_gestora_id', 'gestor_id']);
             $crud->readOnlyFields(['folio', 'contrato', 'unidad', 'serie', 'placas']);
             $crud->unsetAdd();
             $crud->unsetDelete();
@@ -290,12 +297,17 @@ class CorrecionTramites extends BaseController
             $crud->displayAs('placas', 'Placas');
             $crud->displayAs('tra_tipos_id', 'Tipo de Trámite');
             $crud->displayAs('tra_status_id', 'Estatus del Trámite');
+            $crud->displayAs('empresa_gestora_id', 'Empresa Gestora');
+            $crud->displayAs('gestor_id', 'Gestor');
             $crud->displayAs('cli_directo_id', 'Cliente Directo');
             $crud->displayAs('cli_directo_ejecutivo_id', 'Ejecutivo');
             $crud->displayAs('user_id', 'Asignado a');
 
             $crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
             $crud->setRelation('tra_status_id', 'tra_status', 'tra_status');
+            $crud->setRelation('empresa_gestora_id', 'ges_empresa_gestora', 'razon_social');
+            $crud->setRelation('gestor_id', 'ges_gestor', 'nombre');
+            $crud->setDependentRelation('gestor_id', 'empresa_gestora_id', 'empresa_gestora_id');
             $crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
             $crud->setRelation('cli_directo_ejecutivo_id', 'cli_directo_ejecutivo', 'nombre');
             $crud->setRelation('user_id', 'users', '{firstname} {lastname}');
@@ -394,6 +406,26 @@ class CorrecionTramites extends BaseController
                 $cambios[] = "Estatus: '{$oldStatus['tra_status']}' → '{$newStatus['tra_status']}'";
                 log_message('debug', 'Cambio detectado en estatus');
             }
+        }
+
+        if (array_key_exists('empresa_gestora_id', $newData) && (int) ($oldData['empresa_gestora_id'] ?? 0) !== (int) $newData['empresa_gestora_id']) {
+            $oldEmpresa = $this->db->table('ges_empresa_gestora')->where('id', $oldData['empresa_gestora_id'] ?? 0)->get()->getRowArray();
+            $newEmpresa = $this->db->table('ges_empresa_gestora')->where('id', $newData['empresa_gestora_id'])->get()->getRowArray();
+
+            $oldEmpresaNombre = $oldEmpresa['razon_social'] ?? 'Sin empresa gestora';
+            $newEmpresaNombre = $newEmpresa['razon_social'] ?? 'Sin empresa gestora';
+            $cambios[] = "Empresa Gestora: '{$oldEmpresaNombre}' → '{$newEmpresaNombre}'";
+            log_message('debug', 'Cambio detectado en empresa gestora');
+        }
+
+        if (array_key_exists('gestor_id', $newData) && (int) ($oldData['gestor_id'] ?? 0) !== (int) $newData['gestor_id']) {
+            $oldGestor = $this->db->table('ges_gestor')->where('id', $oldData['gestor_id'] ?? 0)->get()->getRowArray();
+            $newGestor = $this->db->table('ges_gestor')->where('id', $newData['gestor_id'])->get()->getRowArray();
+
+            $oldGestorNombre = $oldGestor['nombre'] ?? 'Sin gestor';
+            $newGestorNombre = $newGestor['nombre'] ?? 'Sin gestor';
+            $cambios[] = "Gestor: '{$oldGestorNombre}' → '{$newGestorNombre}'";
+            log_message('debug', 'Cambio detectado en gestor');
         }
 
         if (!empty($cambios)) {

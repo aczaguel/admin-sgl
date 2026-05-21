@@ -71,7 +71,7 @@
 					<div class="invoice-box">
 						<div class="invoice-header">
 							<div class="logo text-center">
-								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/deskapp-logo.png" alt="">
+								<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="Logo SASGL">
 							</div>
 						</div>
 						<h4 class="text-center mb-30 weight-600">INVOICE</h4>

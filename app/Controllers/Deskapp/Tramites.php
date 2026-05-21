@@ -179,9 +179,9 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
-                    // Mantener flujo original de edición de Tramites
+            if (has_permission('editar_tramite', $perms, $roles) || has_permission('read_tramite', $perms, $roles)){
+                $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
+                    // Mantener flujo original de detalle de Tramites
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
@@ -196,13 +196,6 @@ class Tramites extends BaseController
 
             if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
-            }
-
-            if (has_permission('read_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
-                    // Mantener flujo original de detalle de Tramites
-                    return '/deskapp/tramites/update/' . $row->id;
-                }, false);
             }
 
             if (!has_permission('clone_tramite', $perms, $roles)){
@@ -405,8 +398,8 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+            if (has_permission('editar_tramite', $perms, $roles) || has_permission('read_tramite', $perms, $roles)){
+                $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramitesn/update/' . $row->id;
                 }, false);
             }
@@ -421,12 +414,6 @@ class Tramites extends BaseController
 
             if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
-            }
-
-            if (has_permission('read_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramitesn/update/' . $row->id;
-                }, false);
             }
 
             if (!has_permission('clone_tramite', $perms, $roles)){
@@ -605,8 +592,8 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+            if (has_permission('editar_tramite', $perms, $roles) || has_permission('read_tramite', $perms, $roles)){
+                $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramitesn/update/' . $row->id;
                 }, false);
             }
@@ -621,12 +608,6 @@ class Tramites extends BaseController
 
             if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
-            }
-
-            if (has_permission('read_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramitesn/update/' . $row->id;
-                }, false);
             }
 
             if (!has_permission('clone_tramite', $perms, $roles)){
@@ -805,8 +786,8 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+            if (has_permission('editar_tramite', $perms, $roles) || has_permission('read_tramite', $perms, $roles)){
+                $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
@@ -821,12 +802,6 @@ class Tramites extends BaseController
 
             if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
-            }
-
-            if (has_permission('read_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramites/update/' . $row->id;
-                }, false);
             }
 
             if (!has_permission('clone_tramite', $perms, $roles)){
@@ -1007,9 +982,9 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
-                    return '/deskapp/tramites/update/' . $row->id;
+            if (has_permission('editar_tramite', $perms, $roles) || has_permission('read_tramite', $perms, $roles)){
+                $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
+                    return '/deskapp/tramitesn/update/' . $row->id;
                 }, false);
             }
 
@@ -1023,12 +998,6 @@ class Tramites extends BaseController
 
             if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
-            }
-
-            if (has_permission('read_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramites/update/' . $row->id;
-                }, false);
             }
 
             if (!has_permission('clone_tramite', $perms, $roles)){
@@ -1607,7 +1576,11 @@ class Tramites extends BaseController
                 // $db = Database::connect();
                 $db2 = $this->_getDbData();
                 $condition = ['tra_tipos_id' => $tra_tipos_id];
-                $query = $db->table('tra_tipo_documentos')->where($condition)->get();
+                $queryBuilder = $db->table('tra_tipo_documentos')->where($condition);
+                if (in_array('es_obligatorio', $db->getFieldNames('tra_tipo_documentos'), true)) {
+                    $queryBuilder->where('es_obligatorio', 1);
+                }
+                $query = $queryBuilder->get();
                 $resultados = $query->getResultArray();
 
                 $session = session();
@@ -1723,7 +1696,7 @@ class Tramites extends BaseController
         helper(['permissions', 'cliente_filter', 'acl_guard']);
 
         $session = session();
-        if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', false)) {
             return $resp;
         }
 
@@ -1932,6 +1905,7 @@ class Tramites extends BaseController
         $data['cliente'] = isset($cli_directo_options[$tramite['cli_directo_id']]) ? $cli_directo_options[$tramite['cli_directo_id']] : 'N/A';
         $data['gestor'] = $gestor_nombre ?? 'Sin asignar';
         $data['empresa_gestora'] = isset($empresa_gestora_options[$tramite['empresa_gestora_id']]) ? $empresa_gestora_options[$tramite['empresa_gestora_id']] : 'Sin asignar';
+        $data['has_pending_pago_conciliation'] = $this->hasPendingPagoConciliation($id);
 
         $form->id = $id;
 
@@ -1991,6 +1965,44 @@ class Tramites extends BaseController
 
         $form = array_merge((array)$form, $data);
         return $this->_example_output_2($form, 'update');
+    }
+
+    protected function hasPendingPagoConciliation(int $tramiteId): bool
+    {
+        if ($tramiteId <= 0) {
+            return false;
+        }
+
+        $db = \Config\Database::connect();
+        if (!$db->tableExists('cobranza_expediente') || !$db->tableExists('cobranza_pago')) {
+            return false;
+        }
+
+        $expediente = $db->table('cobranza_expediente')
+            ->select('id')
+            ->where('tramite_id', $tramiteId)
+            ->where('is_active', 1)
+            ->get(1)
+            ->getRowArray();
+
+        $expedienteId = (int) ($expediente['id'] ?? 0);
+        if ($expedienteId <= 0) {
+            return false;
+        }
+
+        $rows = $db->table('cobranza_pago')
+            ->select('status_code')
+            ->where('expediente_id', $expedienteId)
+            ->get()
+            ->getResultArray();
+
+        foreach ($rows as $row) {
+            if (($row['status_code'] ?? '') !== 'confirmado') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function update_cotizacion($id) {
@@ -3260,12 +3272,12 @@ class Tramites extends BaseController
         $traStatusId = (int) ($tramiteStatusRow['tra_status_id'] ?? 0);
         $reembolsoStatusId = (int) ($tramiteStatusRow['reembolso_status_id'] ?? 0);
         $cobroStatusId = (int) ($tramiteStatusRow['cobro_status_id'] ?? 0);
-        if (in_array($traStatusId, [20, 21], true)) {
+        if (in_array($traStatusId, SGL_TRA_STATUS_LOCKED_IDS, true)) {
             return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está en modo de solo lectura.']);
         }
 
-        if ($resp = acl_require_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-            return $resp;
+        if (!can_upload_cobro_cliente_surface($roles, $perms)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
         }
 
         if (!puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5)) {
@@ -3355,13 +3367,13 @@ class Tramites extends BaseController
             return $resp;
         }
 
-        if ($resp = acl_require_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-            return $resp;
+        if (!can_upload_cobro_cliente_surface($roles, $perms)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
         }
         $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
         $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
         $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
-        if (in_array($traStatusId, [20, 21], true)) {
+        if (in_array($traStatusId, SGL_TRA_STATUS_LOCKED_IDS, true)) {
             return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está en modo de solo lectura.']);
         }
         if (!puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5)) {
@@ -3395,7 +3407,7 @@ class Tramites extends BaseController
             $fileName = $safeBase . '_' . $random . ($extension !== '' ? '.' . $extension : '');
             $targetFile = $targetPath . $fileName;
     
-            if (move_uploaded_file($tempFile, $targetFile)) {
+            if ($this->moveCobroClienteUploadedFile($tempFile, $targetFile)) {
                 // Guardar el registro en la tabla tra_cobro_cliente
                 $db = \Config\Database::connect();
                 $builder = $db->table('tra_cobro_cliente'); // Cambiado a la tabla 'tra_cobro_cliente'
@@ -3423,6 +3435,11 @@ class Tramites extends BaseController
     
         return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
     }
+
+        protected function moveCobroClienteUploadedFile(string $tempFile, string $targetFile): bool
+        {
+            return move_uploaded_file($tempFile, $targetFile);
+        }
     
 
     public function getDependentData($type, $parentId) {
@@ -3531,6 +3548,13 @@ class Tramites extends BaseController
             $existingTramite = $builder->where('id', $id)->get()->getRowArray();
             if (!$existingTramite) {
                 return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.', 'csrfHash' => csrf_hash()]);
+            }
+            if (in_array((int) ($existingTramite['tra_status_id'] ?? 0), SGL_TRA_STATUS_LOCKED_IDS, true)) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite está concluido o cancelado.',
+                    'csrfHash' => csrf_hash(),
+                ]);
             }
 
             // Actualizar datos
@@ -3695,6 +3719,12 @@ class Tramites extends BaseController
             if (!$tramite_base) {
                 return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
             }
+            if (in_array((int) ($tramite_base['tra_status_id'] ?? 0), SGL_TRA_STATUS_LOCKED_IDS, true)) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite está concluido o cancelado.',
+                ]);
+            }
 
             $this->updateTramiteStatus($id, 25);
 
@@ -3835,6 +3865,9 @@ class Tramites extends BaseController
             if (empty($existingTramite)) {
                 return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
             }
+            if ($resp = $this->denyReadonlyStep4Mutation($id, $roles, $perms)) {
+                return $resp;
+            }
     
             // Actualizar con WHERE obligatorio
             $builder->where('id', $id);
@@ -3940,6 +3973,12 @@ class Tramites extends BaseController
             if (!$existingTramite) {
                 return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
             }
+            if (in_array((int) ($existingTramite['tra_status_id'] ?? 0), SGL_TRA_STATUS_LOCKED_IDS, true)) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite está concluido o cancelado.',
+                ]);
+            }
 
             $this->updateTramiteStatus($id, 26);
 
@@ -4008,13 +4047,32 @@ class Tramites extends BaseController
     }
 
     public function update_bancario_save() {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
         $session = session();
-        $myid = $session->get('id');
-        $id = $this->request->uri->getSegment(4);
+        $myid = (int) ($session->get('id') ?? 0);
+        $id = (int) ($this->request->uri->getSegment(4) ?? 0);
+        [$roles, $perms] = session_roles_perms($session);
 
         // Validar ID
-        if (!$id || !is_numeric($id)) {
-            return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        if ($id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, null, true);
+        }
+
+        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('editar_tramite', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('write_tramite_pago_derechos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
         }
 
         $validation = \Config\Services::validation();
@@ -4038,6 +4096,12 @@ class Tramites extends BaseController
             $existingTramite = $builder->where('id', $id)->get()->getRowArray();
             if (!$existingTramite) {
                 return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
+            }
+            if (in_array((int) ($existingTramite['tra_status_id'] ?? 0), SGL_TRA_STATUS_LOCKED_IDS, true)) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite está concluido o cancelado.',
+                ]);
             }
 
             $this->updateTramiteStatus($id, 27);
@@ -4154,7 +4218,7 @@ class Tramites extends BaseController
         $cobroStatusId = (int) ($existingData['cobro_status_id'] ?? 0);
 
         $canOverrideStatus28 = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        if (in_array($traStatusId, [20, 21], true) || ($traStatusId === 28 && !$canOverrideStatus28)) {
+        if (in_array($traStatusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($traStatusId === 28 && !$canOverrideStatus28)) {
             return $this->response->setStatusCode(409)->setJSON([
                 'success' => false,
                 'message' => 'El trámite está en modo de solo lectura.'
@@ -4349,13 +4413,29 @@ class Tramites extends BaseController
 
     public function update_final_save()
     {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
         $session = session();
         $myid = $session->get('id');
         $id = $this->request->uri->getSegment(4);
 
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        [$roles, $perms] = session_roles_perms($session);
+
         // Validar ID
         if (!$id || !is_numeric($id)) {
             return $this->response->setJSON(['success' => false, 'message' => 'ID de trámite inválido.']);
+        }
+
+        if ($resp = acl_require_tramite_tenant_access((int) $id, (int) $myid, $roles, 'Acceso denegado.', null, 403, true, $perms)) {
+            return $resp;
+        }
+
+        if (!can_edit_cobro_cliente_surface($roles, $perms)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
         }
 
         $validation = \Config\Services::validation();
@@ -4385,6 +4465,14 @@ class Tramites extends BaseController
             $existingTramite = $builder->where('id', $id)->get()->getRowArray();
             if (!$existingTramite) {
                 return $this->response->setJSON(['success' => false, 'message' => 'El trámite no existe.']);
+            }
+
+            if (in_array((int) ($existingTramite['tra_status_id'] ?? 0), SGL_TRA_STATUS_LOCKED_IDS, true)) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite está concluido o cancelado.',
+                    'csrfHash' => csrf_hash(),
+                ]);
             }
 
             // Preparar datos
@@ -4436,35 +4524,8 @@ class Tramites extends BaseController
 
             $this->updateTramiteStatus($id, 28);
 
-            $db2 = $this->_getDbData();
-
-            // Agregar registro en bitácora
-            $bitacoraModel = new BitacoraModel($db2);
-            $diferencias = [];
-            foreach ($changes as $field => $values) {
-                $diferencias[$field] = [
-                    'valor_original' => $values['old'] ?? null,
-                    'valor_nuevo' => $values['new'] ?? null,
-                ];
-            }
-            $insert_bitacora = [
-                "id" => null,
-                "tipo" => "update",
-                "origen" => "tramite",
-                "tramite_id" => (int)$id,
-                "cambios" => json_encode($diferencias),
-                "user_id" => (int)$myid
-            ];
-            $bitacoraModel->insert($insert_bitacora, 'bitacora');
-    
-            // Registrar en la tabla tra_user_log
-            $tra_user_log = new TraUserLogModel($db2);
-            $log = [
-                "tramite_id"    => (int)$id,
-                "user_id"       => (int)$myid,
-                "tra_status_id" => 22
-            ];
-            $tra_user_log->insert($log, 'tra_user_log');
+            $this->recordFinalSaveBitacora($changes, (int) $id, (int) $myid);
+            $this->recordFinalSaveUserLog((int) $id, (int) $myid);
     
             // AUDITORÍA: Registrar cambios detectados
             if (!empty($changes)) {
@@ -4497,6 +4558,43 @@ class Tramites extends BaseController
         }
     }
 
+    protected function recordFinalSaveBitacora(array $changes, int $tramiteId, int $userId): void
+    {
+        $db2 = $this->_getDbData();
+        $bitacoraModel = new BitacoraModel($db2);
+        $diferencias = [];
+        foreach ($changes as $field => $values) {
+            $diferencias[$field] = [
+                'valor_original' => $values['old'] ?? null,
+                'valor_nuevo' => $values['new'] ?? null,
+            ];
+        }
+
+        $insertBitacora = [
+            'id' => null,
+            'tipo' => 'update',
+            'origen' => 'tramite',
+            'tramite_id' => $tramiteId,
+            'cambios' => json_encode($diferencias),
+            'user_id' => $userId,
+        ];
+
+        $bitacoraModel->insert($insertBitacora, 'bitacora');
+    }
+
+    protected function recordFinalSaveUserLog(int $tramiteId, int $userId): void
+    {
+        $db2 = $this->_getDbData();
+        $traUserLog = new TraUserLogModel($db2);
+        $log = [
+            'tramite_id' => $tramiteId,
+            'user_id' => $userId,
+            'tra_status_id' => 22,
+        ];
+
+        $traUserLog->insert($log, 'tra_user_log');
+    }
+
     private function _example_output_2($output = null, $page = 'index') {
         return view('/deskapp/extra-pages/tramite_' . $page . '_view', (array)$output);
     }
@@ -4509,6 +4607,9 @@ class Tramites extends BaseController
 
         if (!$tramite_base) {
             return ['success' => false, 'message' => 'Trámite no encontrado'];
+        }
+        if (in_array((int) ($tramite_base['tra_status_id'] ?? 0), SGL_TRA_STATUS_LOCKED_IDS, true)) {
+            return ['success' => false, 'message' => 'El trámite está concluido o cancelado.'];
         }
 
         // Define el flujo de estados válidos
@@ -4532,6 +4633,50 @@ class Tramites extends BaseController
 
         // Si el nuevo estado es anterior, no hacer nada
         return null; // Opcionalmente puedes omitir esta línea si no necesitas retorno
+    }
+
+    private function denyReadonlyStep4Mutation(int $tramiteId, array $roles, array $perms)
+    {
+        $db = \Config\Database::connect();
+        $tramiteRow = $db->table('tramite')
+            ->select('tra_status_id, reembolso_status_id, cobro_status_id, pago_gestor_st_id, status_doctos_gestor')
+            ->where('id', $tramiteId)
+            ->get(1)
+            ->getRowArray();
+
+        if (empty($tramiteRow)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'El trámite no existe.',
+            ]);
+        }
+
+        $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $reembolsoStatusId = (int) ($tramiteRow['reembolso_status_id'] ?? 0);
+        $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
+        $pagoGestorStatusId = (int) ($tramiteRow['pago_gestor_st_id'] ?? 0);
+        $statusDoctosGestor = (string) ($tramiteRow['status_doctos_gestor'] ?? '');
+
+        $canKeepStep4Editable = $this->canKeepStep4Editable(
+            $reembolsoStatusId,
+            $pagoGestorStatusId,
+            null,
+            $statusDoctosGestor
+        );
+        $canOverrideStatus28 = has_permission('override_tramite_status_28_readonly', $perms, $roles);
+
+        if (in_array($traStatusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($traStatusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideStatus28 && !$canKeepStep4Editable)) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'El trámite está en modo de solo lectura.',
+            ]);
+        }
+
+        if (!$canKeepStep4Editable && !puede_editar_modulo($roles, $traStatusId, 'editar_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
+        }
+
+        return null;
     }
 
 
@@ -4702,7 +4847,7 @@ class Tramites extends BaseController
 
             $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
 
-            $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+            $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
                 return '/deskapp/tramites/update/' . $row->id;
             }, false);
 
@@ -4842,7 +4987,7 @@ class Tramites extends BaseController
 
             $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
 
-            $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+            $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
                 return '/deskapp/tramites/update/' . $row->id;
             }, false);
 
@@ -4982,7 +5127,7 @@ class Tramites extends BaseController
 
             $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
 
-            $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+            $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
                 return '/deskapp/tramites/update/' . $row->id;
             }, false);
 
@@ -5120,7 +5265,7 @@ class Tramites extends BaseController
 
             $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
 
-            $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+            $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
                 return '/deskapp/tramites/update/' . $row->id;
             }, false);
 
@@ -5202,6 +5347,69 @@ class Tramites extends BaseController
         $session = session();
         $data['session'] = \Config\Services::session();
         $data['username'] = $session->get('user_name');
+        $data['title'] = 'Tipos de Tramite';
+        $data['description'] = 'Consulta rapido que documentos base requiere cada tipo de tramite y administra la relacion oficial del catalogo.';
+
+        $tiposDocumentosResumen = [];
+        $documentosClasificacionActiva = false;
+        try {
+            $db = \Config\Database::connect();
+            $documentosClasificacionActiva = in_array('es_obligatorio', $db->getFieldNames('tra_tipo_documentos'), true);
+            $rows = $db->table('tra_tipos tt')
+                ->select(
+                    'tt.id, tt.tipo_tramite, tt.descripcion, d.documento_id, d.documento, '
+                    . ($documentosClasificacionActiva ? 'COALESCE(ttd.es_obligatorio, 1)' : '1')
+                    . ' AS es_obligatorio'
+                )
+                ->join('tra_tipo_documentos ttd', 'ttd.tra_tipos_id = tt.id', 'left')
+                ->join('documento d', 'd.documento_id = ttd.documento_id', 'left')
+                ->orderBy('tt.tipo_tramite', 'asc')
+                ->orderBy('d.documento', 'asc')
+                ->get()
+                ->getResultArray();
+
+            foreach ($rows as $row) {
+                $tipoId = (int) ($row['id'] ?? 0);
+                if ($tipoId <= 0) {
+                    continue;
+                }
+
+                if (!isset($tiposDocumentosResumen[$tipoId])) {
+                    $tiposDocumentosResumen[$tipoId] = [
+                        'id' => $tipoId,
+                        'tipo_tramite' => trim((string) ($row['tipo_tramite'] ?? 'Tipo sin nombre')),
+                        'descripcion' => trim((string) ($row['descripcion'] ?? '')),
+                        'documentos_obligatorios' => [],
+                        'documentos_opcionales' => [],
+                    ];
+                }
+
+                $documentoId = (int) ($row['documento_id'] ?? 0);
+                $documentoLabel = trim((string) ($row['documento'] ?? ''));
+                if ($documentoId > 0 && $documentoLabel !== '') {
+                    $bucket = ((int) ($row['es_obligatorio'] ?? 1) === 1)
+                        ? 'documentos_obligatorios'
+                        : 'documentos_opcionales';
+                    $tiposDocumentosResumen[$tipoId][$bucket][$documentoId] = [
+                        'id' => $documentoId,
+                        'documento' => $documentoLabel,
+                    ];
+                }
+            }
+
+            foreach ($tiposDocumentosResumen as &$tipoResumen) {
+                $tipoResumen['documentos_obligatorios'] = array_values($tipoResumen['documentos_obligatorios']);
+                $tipoResumen['documentos_opcionales'] = array_values($tipoResumen['documentos_opcionales']);
+            }
+            unset($tipoResumen);
+        } catch (\Throwable $e) {
+            log_message('error', 'No se pudo construir el resumen visual de tipos de tramite: ' . $e->getMessage());
+        }
+
+        $data['pre_output_html'] = view('deskapp/extra-pages/tramites_tipo_visual', [
+            'tipos_documentos_resumen' => array_values($tiposDocumentosResumen),
+            'documentos_clasificacion_activa' => $documentosClasificacionActiva,
+        ]);
     
         $crud = $this->_getGroceryCrudEnterprise();
 
@@ -5440,9 +5648,9 @@ class Tramites extends BaseController
         $canEdit = $canQuickAction && has_permission('quick_action_documentos_edit', $perms, $roles);
         $canDelete = $canQuickAction && has_permission('quick_action_documentos_delete', $perms, $roles);
 
-        // Bloqueo por estatus (no por rol). Override por permiso.
+        // Bloqueo por estatus (no por rol). El override aplica solo a status 28.
         $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly);
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($statusId === 28 && !$canOverrideReadonly);
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($request->isAJAX()) {
@@ -5834,7 +6042,7 @@ class Tramites extends BaseController
 
         // Bloqueo por estatus (no por rol). Override por permiso.
         $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly);
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($statusId === 28 && !$canOverrideReadonly);
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($isApi) {
@@ -6081,7 +6289,7 @@ class Tramites extends BaseController
             && has_permission('can_upload_dropzone_pago_derechos', $perms, $roles);
 
         $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($request->isAJAX()) {
@@ -6492,7 +6700,7 @@ class Tramites extends BaseController
             && ($canKeepStep4Editable || puede_editar_modulo($roles, $statusId, 'upload_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4));
 
         $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($request->isAJAX()) {
@@ -6769,8 +6977,8 @@ class Tramites extends BaseController
         if ($resp = acl_require_tramite_tenant_access($tramite_id, $userId, $roles, 'Acceso denegado.', '/deskapp/dashboard', 403, $isApi)) {
             return $resp;
         }
-        if ($resp = acl_require_permission('section_final_costos', $roles, $perms, 'Acceso denegado.', '/deskapp/dashboard', 403, $isApi)) {
-            return $resp;
+        if (!can_access_cobro_cliente_surface($roles, $perms)) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/dashboard', $isApi);
         }
 
         $tramiteModel = new TramitesModel($db2);
@@ -6780,11 +6988,11 @@ class Tramites extends BaseController
         $cobroStatusId = (int) ($tramiteRow['cobro_status_id'] ?? 0);
 
         // Independiente de `editar_tramite`: permite subir/gestionar cobro a cliente sin editar datos generales del trámite.
-        $canWrite = has_permission('section_final_costos', $perms, $roles)
+        $canWrite = can_access_cobro_cliente_surface($roles, $perms)
             && puede_editar_modulo($roles, $statusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5);
 
         $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($request->isAJAX()) {
@@ -7088,7 +7296,7 @@ class Tramites extends BaseController
             && puede_editar_modulo($roles, $statusId, 'evidencias_finales_gestor', $reembolsoStatusId, $cobroStatusId, 4);
 
         $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        $isLocked = in_array($statusId, [20, 21], true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($statusId === 28 && !$canOverrideReadonly) || !$canWrite;
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($request->isAJAX()) {
@@ -7316,6 +7524,12 @@ class Tramites extends BaseController
             // Obtener datos actuales para auditoría
             $tramiteActual = $builder->where('id', $tramiteId)->get()->getRowArray();
             $oldStatusId = $tramiteActual['tra_status_id'] ?? null;
+            if (in_array((int) $oldStatusId, SGL_TRA_STATUS_LOCKED_IDS, true)) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite está concluido o cancelado.',
+                ]);
+            }
             
             // Actualizar el estatus del trámite
             $builder->where('id', $tramiteId);
@@ -7444,9 +7658,16 @@ class Tramites extends BaseController
             }
 
             // Multi-tenancy: validar acceso al cliente del trámite
-            $tramiteRow = $db->table('tramite')->select('cli_directo_id')->where('id', $tramiteId)->get(1)->getRowArray();
+            $tramiteRow = $db->table('tramite')->select('cli_directo_id, tra_status_id')->where('id', $tramiteId)->get(1)->getRowArray();
             if (empty($tramiteRow)) {
                 return acl_deny('Trámite no encontrado.', 404, null, true);
+            }
+            $oldStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+            if (in_array((int) ($tramiteRow['tra_status_id'] ?? 0), SGL_TRA_STATUS_LOCKED_IDS, true)) {
+                return $this->response->setStatusCode(409)->setJSON([
+                    'success' => false,
+                    'message' => 'El trámite está concluido o cancelado.',
+                ]);
             }
             $cliDirectoId = (int) ($tramiteRow['cli_directo_id'] ?? 0);
             if ($cliDirectoId > 0) {
@@ -7483,6 +7704,10 @@ class Tramites extends BaseController
             ];
 
             $tra_user_log->insert($logData, 'tra_user_log');
+
+            if ($oldStatusId > 0 && $oldStatusId !== $statusId) {
+                log_tramite_status_change($tramiteId, $oldStatusId, $statusId);
+            }
 
             return $this->response->setJSON(['success' => true]);
         } catch (\Exception $e) {
@@ -7537,6 +7762,15 @@ class Tramites extends BaseController
                 return $resp;
             }
 
+            $tramiteRow = $db->table('tramite')->select('tra_status_id')->where('id', $tramiteId)->get(1)->getRowArray();
+            if (empty($tramiteRow)) {
+                return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => 'Trámite no encontrado.']);
+            }
+            $oldStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+            if (in_array((int) ($tramiteRow['tra_status_id'] ?? 0), SGL_TRA_STATUS_LOCKED_IDS, true)) {
+                return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está concluido o cancelado.']);
+            }
+
             // Actualizar el estatus del trámite
 
             $builder->where('id', $tramiteId);
@@ -7555,6 +7789,10 @@ class Tramites extends BaseController
             ];
 
             $tra_user_log->insert($logData, 'tra_user_log');
+
+            if ($oldStatusId > 0 && $oldStatusId !== $statusId) {
+                log_tramite_status_change($tramiteId, $oldStatusId, $statusId);
+            }
 
             return $this->response->setJSON(['success' => true]);
         } catch (\Exception $e) {
@@ -7642,6 +7880,10 @@ class Tramites extends BaseController
             return $resp;
         }
 
+        if ($resp = $this->denyReadonlyStep4Mutation($tramiteId, $roles, $perms)) {
+            return $resp;
+        }
+
         $model = new TraTramiteAsociadoModel();
         foreach ($services as $serviceId) {
             $model->saveService($tramiteId, $serviceId);
@@ -7693,6 +7935,10 @@ class Tramites extends BaseController
             }
 
             if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+                return $resp;
+            }
+
+            if ($resp = $this->denyReadonlyStep4Mutation($tramiteId, $roles, $perms)) {
                 return $resp;
             }
 
@@ -7809,6 +8055,10 @@ class Tramites extends BaseController
                 return $resp;
             }
 
+            if ($resp = $this->denyReadonlyStep4Mutation($tramiteId, $roles, $perms)) {
+                return $resp;
+            }
+
             // Actualizar
             $data = [
                 'costo_tramite' => $costo_tramite,
@@ -7877,8 +8127,8 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
+            if (has_permission('editar_tramite', $perms, $roles) || has_permission('read_tramite', $perms, $roles)){
+                $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
                     return '/deskapp/tramites/update/' . $row->id;
                 }, false);
             }
@@ -7893,12 +8143,6 @@ class Tramites extends BaseController
 
             if (!has_permission('print_tramite', $perms, $roles)){
                 $tramite_crud->unsetPrint();
-            }
-
-            if (has_permission('read_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramites/update/' . $row->id;
-                }, false);
             }
 
             if (!has_permission('clone_tramite', $perms, $roles)){
@@ -8106,9 +8350,9 @@ class Tramites extends BaseController
             $tramite_crud->unsetRead();
             // $tramite_crud->setTheme('bootstrap-v5');
             $tramite_crud->unsetDeleteMultiple();
-            if (has_permission('editar_tramite_cancelado', $perms, $roles)){
-                $tramite_crud->setActionButton('Editar', 'fas fa-pencil-alt', function ($row) {
-                    return '/deskapp/tramites/update/' . $row->id;
+            if (has_permission('editar_tramite_cancelado', $perms, $roles) || has_permission('read_tramite_cancelado', $perms, $roles)){
+                $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
+                    return '/deskapp/tramitesn/update/' . $row->id;
                 }, false);
             }
 
@@ -8122,12 +8366,6 @@ class Tramites extends BaseController
 
             if (!has_permission('print_tramite_cancelado', $perms, $roles)){
                 $tramite_crud->unsetPrint();
-            }
-
-            if (has_permission('read_tramite_cancelado', $perms, $roles)){
-                $tramite_crud->setActionButton('Ver', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramitesn/update/' . $row->id;
-                }, false);
             }
 
             if (!has_permission('clone_tramite_cancelado', $perms, $roles)){
@@ -8311,7 +8549,7 @@ class Tramites extends BaseController
 
         $session = session();
 
-        if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', false)) {
             return $resp;
         }
 
@@ -8380,7 +8618,7 @@ class Tramites extends BaseController
 
         $session = session();
 
-        if ($resp = acl_require_login('/', 'Sesión expirada.', false)) {
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', false)) {
             return $resp;
         }
         
