@@ -35,7 +35,7 @@
 		<div class="container-fluid d-flex justify-content-between align-items-center">
 			<div class="brand-logo">
 				<a href="login.html">
-					<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.jpg" alt="">
+					<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="Logo SASGL">
 				</a>
 			</div>
 			<div class="login-menu">

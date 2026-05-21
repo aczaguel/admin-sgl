@@ -1,6 +1,6 @@
 <!-- <div class="pre-loader">
 	<div class="pre-loader-box">
-		<div class="loader-logo"><img width="50%" src="<?php echo base_url(); ?>/public/assets/vendors/images/logoes_sgt.jpg" alt=""></div>
+		<div class="loader-logo"><img width="50%" src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="Logo SASGL"></div>
 		<div class='loader-progress' id="progress_div">
 			<div class='bar' id='bar1'></div>
 		</div>

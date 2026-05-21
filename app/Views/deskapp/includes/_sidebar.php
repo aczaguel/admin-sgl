@@ -24,8 +24,8 @@
 			<i class="dw dw-left-arrow" aria-hidden="true"></i>
 		</div>
 		<a href="<?php echo base_url('deskapp/dashboard'); ?>" class="sgl-brand-link" style="display: flex; justify-content: center; align-items: center; padding: 10px 0;">
-			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sgl_bicolor.png" alt="Logo SGL" class="dark-logo sgl-brand-image" style="max-width: 150px; height: auto;">
-			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sgl_bicolor.png" alt="Logo SGL" class="light-logo sgl-brand-image" style="max-width: 150px; height: auto;">
+			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="Logo SASGL" class="dark-logo sgl-brand-image" style="max-width: 150px; height: auto;">
+			<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="Logo SASGL" class="light-logo sgl-brand-image" style="max-width: 150px; height: auto;">
 		</a>
 		<div class="close-sidebar" data-toggle="left-sidebar-close">
 			<i class="ion-close-round"></i>
