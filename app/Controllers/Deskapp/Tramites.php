@@ -1291,6 +1291,9 @@ class Tramites extends BaseController
     protected function _example_output($salida = null) {
         $salida = (object)esc($salida, 'raw');
         if ($salida->isJSONResponse) {
+            if (($salida->output === '' || $salida->output === false || $salida->output === null) && isset($salida->outputAsObject)) {
+                $salida->output = json_encode($salida->outputAsObject, JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+            }
             header('Content-Type: application/json; charset=utf-8');
             echo $salida->output;
             exit;
@@ -1301,6 +1304,9 @@ class Tramites extends BaseController
     private function _simple_output($salida = null) {
         $salida = (object)esc($salida, 'raw');
         if ($salida->isJSONResponse) {
+            if (($salida->output === '' || $salida->output === false || $salida->output === null) && isset($salida->outputAsObject)) {
+                $salida->output = json_encode($salida->outputAsObject, JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+            }
             header('Content-Type: application/json; charset=utf-8');
             echo $salida->output;
             exit;
@@ -6040,9 +6046,8 @@ class Tramites extends BaseController
         $canEdit = $canQuickAction && has_permission('quick_action_bitacora_edit', $perms, $roles);
         $canDelete = $canQuickAction && has_permission('quick_action_bitacora_delete', $perms, $roles);
 
-        // Bloqueo por estatus (no por rol). Override por permiso.
-        $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true) || ($statusId === 28 && !$canOverrideReadonly);
+        // Bitácora debe seguir disponible durante el proceso; sólo se bloquea al cerrar/cancelar.
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true);
         $gcState = (string) ($request->getGet('gc_state') ?? '');
         if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
             if ($isApi) {

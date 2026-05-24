@@ -19,14 +19,414 @@ use App\Models\TraCobroClienteModel;
 use App\Models\TraEvidenciasFinalesModel;
 use App\Models\ClienteDirectoEjecutivoModel;
 use App\Models\BitacoraModel;
+use App\Models\TramitesModel;
 use App\Models\TraUserLogModel;
 use App\Controllers\Deskapp\Tramites;
 
 class Tramitesn extends Tramites
 {
+    private const ATTENTION_LOCAL_WARNING_DAYS = 5;
+    private const ATTENTION_LOCAL_EXPIRED_DAYS = 12;
+    private const ATTENTION_FORANEO_WARNING_DAYS = 10;
+    private const ATTENTION_FORANEO_EXPIRED_DAYS = 16;
+
     private function isLockedStatusId(int $statusId): bool
     {
         return in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true);
+    }
+
+    protected function isAttentionLocalMunicipio(?int $municipioId): bool
+    {
+        $municipioId = (int) ($municipioId ?? 0);
+
+        return ($municipioId >= 266 && $municipioId <= 281)
+            || ($municipioId >= 657 && $municipioId <= 781);
+    }
+
+    protected function resolveAttentionDays(?string $startedAt, ?string $createdAt = null): ?int
+    {
+        $reference = $startedAt;
+        if (empty($reference) || !strtotime((string) $reference)) {
+            $reference = $createdAt;
+        }
+
+        if (empty($reference) || !strtotime((string) $reference)) {
+            return null;
+        }
+
+        $days = (int) floor((time() - strtotime((string) $reference)) / 86400);
+        return max(0, $days);
+    }
+
+    protected function classifyAttentionBucket(int $statusId, ?int $municipioId, ?string $startedAt, ?string $createdAt = null, ?array $trackedStatusIds = null): array
+    {
+        $trackedIds = $trackedStatusIds ?? [];
+        $isTracked = in_array($statusId, $trackedIds, true);
+        $days = $this->resolveAttentionDays($startedAt, $createdAt);
+        $isLocal = $this->isAttentionLocalMunicipio($municipioId);
+
+        if (!$isTracked || $days === null) {
+            return [
+                'bucket' => 'normal',
+                'tracked' => $isTracked,
+                'days' => $days,
+                'scope' => $isLocal ? 'local' : 'foraneo',
+            ];
+        }
+
+        $warningThreshold = $isLocal
+            ? self::ATTENTION_LOCAL_WARNING_DAYS
+            : self::ATTENTION_FORANEO_WARNING_DAYS;
+        $expiredThreshold = $isLocal
+            ? self::ATTENTION_LOCAL_EXPIRED_DAYS
+            : self::ATTENTION_FORANEO_EXPIRED_DAYS;
+
+        if ($days >= $expiredThreshold) {
+            $bucket = 'vencido';
+        } elseif ($days >= $warningThreshold) {
+            $bucket = 'riesgo';
+        } else {
+            $bucket = 'normal';
+        }
+
+        return [
+            'bucket' => $bucket,
+            'tracked' => true,
+            'days' => $days,
+            'scope' => $isLocal ? 'local' : 'foraneo',
+        ];
+    }
+
+    protected function getAttentionTrackedStatusIds(): array
+    {
+        static $trackedIds = null;
+
+        if ($trackedIds !== null) {
+            return $trackedIds;
+        }
+
+        try {
+            $rows = ConfigDatabase::connect()
+                ->table('tra_status')
+                ->select('id')
+                ->where('step >=', 1)
+                ->where('step <=', 3)
+                ->get()
+                ->getResultArray();
+
+            $trackedIds = array_values(array_unique(array_map('intval', array_column($rows, 'id'))));
+        } catch (\Throwable $e) {
+            $trackedIds = [];
+        }
+
+        return $trackedIds;
+    }
+
+    protected function buildAttentionBucketSql(string $bucket = 'attention', string $tableAlias = 'tramite'): string
+    {
+        $trackedSql = sprintf(
+            '%1$s.tra_status_id IN (SELECT ts.id FROM tra_status ts WHERE ts.step BETWEEN 1 AND 3)',
+            $tableAlias
+        );
+        $daysSql = sprintf(
+            'DATEDIFF(CURDATE(), COALESCE(%1$s.started_at, %1$s.created_at))',
+            $tableAlias
+        );
+        $localSql = sprintf(
+            '((%1$s.ent_municipio_id BETWEEN 266 AND 281) OR (%1$s.ent_municipio_id BETWEEN 657 AND 781))',
+            $tableAlias
+        );
+        $foraneoSql = sprintf('NOT (%s)', $localSql);
+
+        $riesgoSql = sprintf(
+            '((%1$s AND %2$s >= %3$d AND %2$s < %4$d) OR (%5$s AND %2$s >= %6$d AND %2$s < %7$d))',
+            $localSql,
+            $daysSql,
+            self::ATTENTION_LOCAL_WARNING_DAYS,
+            self::ATTENTION_LOCAL_EXPIRED_DAYS,
+            $foraneoSql,
+            self::ATTENTION_FORANEO_WARNING_DAYS,
+            self::ATTENTION_FORANEO_EXPIRED_DAYS
+        );
+        $vencidoSql = sprintf(
+            '((%1$s AND %2$s >= %3$d) OR (%4$s AND %2$s >= %5$d))',
+            $localSql,
+            $daysSql,
+            self::ATTENTION_LOCAL_EXPIRED_DAYS,
+            $foraneoSql,
+            self::ATTENTION_FORANEO_EXPIRED_DAYS
+        );
+
+        if ($bucket === 'riesgo') {
+            return sprintf('(%s AND %s)', $trackedSql, $riesgoSql);
+        }
+
+        if ($bucket === 'vencido') {
+            return sprintf('(%s AND %s)', $trackedSql, $vencidoSql);
+        }
+
+        if ($bucket === 'normal') {
+            return sprintf('NOT (%s AND (%s OR %s))', $trackedSql, $riesgoSql, $vencidoSql);
+        }
+
+        return sprintf('(%s AND (%s OR %s))', $trackedSql, $riesgoSql, $vencidoSql);
+    }
+
+    protected function resolveAttentionPresentation(array $daysData, int $statusId): array
+    {
+        if (!empty($daysData['tracked'])) {
+            if (($daysData['bucket'] ?? 'normal') === 'vencido') {
+                return ['label' => 'Vencido', 'class' => 'background-violeta'];
+            }
+
+            if (($daysData['bucket'] ?? 'normal') === 'riesgo') {
+                return ['label' => 'En riesgo', 'class' => 'background-amarillo'];
+            }
+
+            return ['label' => 'Normal', 'class' => 'background-verde'];
+        }
+
+        if ($statusId === SGL_TRA_STATUS_PAGO_GESTOR) {
+            return ['label' => 'Paso 4', 'class' => 'background-azul-claro'];
+        }
+
+        if ($statusId === SGL_TRA_STATUS_COBRO_CLIENTE) {
+            return ['label' => 'Paso 5', 'class' => 'background-azul-cobro-cliente'];
+        }
+
+        if ($statusId === SGL_TRA_STATUS_CONCLUIDO) {
+            return ['label' => 'Concluido', 'class' => 'background-azul'];
+        }
+
+        if ($statusId === SGL_TRA_STATUS_CANCELADO) {
+            return ['label' => 'Cancelado', 'class' => 'background-gris'];
+        }
+
+        return ['label' => 'No aplica', 'class' => 'background-gris'];
+    }
+
+    private function renderTramiteList()
+    {
+        try {
+            $self = $this;
+            $session = session();
+            $data['session'] = \Config\Services::session();
+            $data['username'] = $session->get('user_name');
+            $myid = $session->get('id');
+            [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+            $trackedStatusIds = $this->getAttentionTrackedStatusIds();
+
+            $tramite_crud = $this->_getGroceryCrudEnterprise();
+
+            $tramite_crud->setConfig('remember_state_upon_refresh', false);
+            $tramite_crud->setConfig('remember_filters_upon_refresh', false);
+
+            $filterSql = get_tramite_filter_sql($myid);
+            $tramite_crud->where($filterSql);
+
+            $tramite_crud->unsetAdd();
+            $tramite_crud->unsetEdit();
+            $tramite_crud->unsetRead();
+            $tramite_crud->unsetDeleteMultiple();
+            $tramite_crud->unsetDelete();
+
+            if (!has_permission('export_tramite', $perms, $roles)){
+                $tramite_crud->unsetExport();
+            }
+
+            if (!has_permission('print_tramite', $perms, $roles)){
+                $tramite_crud->unsetPrint();
+            }
+
+            if (can_edit_tramite($roles, $perms) || has_permission('read_tramite', $perms, $roles)){
+                $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
+                    return '/deskapp/tramitesn/update/' . $row->id;
+                }, false);
+            }
+
+            if (!has_permission('clone_tramite', $perms, $roles)){
+                $tramite_crud->unsetClone();
+            }
+
+            $tramite_crud->setCsrfTokenName(csrf_token());
+            $tramite_crud->setCsrfTokenValue(csrf_hash());
+
+            $tramite_crud->setTable('tramite');
+            $tramite_crud->setSubject('tramite', 'Tramites (Nuevo Flujo)');
+            $tramite_crud->defaultOrdering('tramite.id', 'desc');
+
+            $tramite_crud->where([
+                'tramite.created_at >= ?' => ['2026-01-01 00:00:00']
+            ]);
+
+            $tramite_crud->columns([
+                'id', 'created_at', 'started_at', 'tra_status_id', 'folio', 'contrato', 'unidad', 'serie',
+                'placas', 'tra_tipos_id', 'entidad_id', 'ent_municipio_id', 'cli_directo_id',
+                'cli_directo_ejecutivo_id', 'empresa_gestora_id', 'gestor_id',
+                'cobro_status_id', 'user_id',
+                'observaciones'
+            ]);
+
+            $tramite_crud->displayAs('started_at', 'Desde Asignación');
+            $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+            $tramite_crud->displayAs('user_id', 'Ejecutivo');
+
+            $tramite_crud->callbackColumn('started_at', function ($value, $row) use ($trackedStatusIds, $self) {
+                $daysData = $self->classifyAttentionBucket(
+                    (int) ($row->tra_status_id ?? 0),
+                    isset($row->ent_municipio_id) ? (int) $row->ent_municipio_id : null,
+                    $row->started_at ?? null,
+                    $row->created_at ?? null,
+                    $trackedStatusIds
+                );
+                $diasDiferencia = $daysData['days'];
+                if ($diasDiferencia === null) {
+                    return '<span class="background-gris">Sin fecha</span>';
+                }
+
+                $claseVerde = 'background-verde';
+                $claseAmarillo = 'background-amarillo';
+                $claseRojo = 'background-rojo';
+                $claseVioleta = 'background-violeta';
+                $claseGris = 'background-gris';
+                $claseAzulClaro = 'background-azul-claro';
+                $claseAzul = 'background-azul';
+                $claseAzulCobroCliente = 'background-azul-cobro-cliente';
+
+                if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR || $row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
+                    if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR) {
+                        $clase = $claseAzulClaro;
+                    }
+                    $txt_generar_factura = '';
+
+                    $traCobroClienteModel = new TraCobroClienteModel();
+                    $registrosCobroCliente = $traCobroClienteModel->getByTramiteId($row->id);
+
+                    $traEvidenciasFinalesModel = new TraEvidenciasFinalesModel();
+                    $registrosEvidenciasFinales = $traEvidenciasFinalesModel->getByTramiteId($row->id);
+
+                    if (count($registrosCobroCliente) > 0 || count($registrosEvidenciasFinales) > 0) {
+                        $txt_generar_factura = 'Facturar';
+                    }
+
+                    if ($row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
+                        $clase = $claseAzulCobroCliente;
+                        return '<span class="' . $clase . '">' . $txt_generar_factura . '</span>';
+                    }
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CANCELADO) {
+                    $clase = $claseGris;
+                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CONCLUIDO) {
+                    $clase = $claseAzul;
+                } else {
+                    $local = $self->isAttentionLocalMunicipio(isset($row->ent_municipio_id) ? (int) $row->ent_municipio_id : null);
+
+                    if ($local) {
+                        if ($diasDiferencia < 5) {
+                            $clase = $claseVerde;
+                        } elseif ($diasDiferencia < 8) {
+                            $clase = $claseAmarillo;
+                        } elseif ($diasDiferencia < 12) {
+                            $clase = $claseRojo;
+                        } else {
+                            $clase = $claseVioleta;
+                        }
+                    } else {
+                        if ($diasDiferencia < 10) {
+                            $clase = $claseVerde;
+                        } elseif ($diasDiferencia < 13) {
+                            $clase = $claseAmarillo;
+                        } elseif ($diasDiferencia < 16) {
+                            $clase = $claseRojo;
+                        } else {
+                            $clase = $claseVioleta;
+                        }
+                    }
+                }
+
+                $arrFilter = [SGL_TRA_STATUS_CONCLUIDO, SGL_TRA_STATUS_CANCELADO, SGL_TRA_STATUS_PAGO_GESTOR, SGL_TRA_STATUS_COBRO_CLIENTE];
+                if (!in_array($row->tra_status_id, $arrFilter, true)) {
+                    if ($daysData['tracked']) {
+                        $label = $daysData['bucket'] === 'vencido'
+                            ? 'Vencido'
+                            : ($daysData['bucket'] === 'riesgo' ? 'En riesgo' : 'Normal');
+
+                        return '<span class="' . $clase . '">' . $label . ' · ' . $diasDiferencia . ' días</span>';
+                    }
+
+                    return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
+                }
+
+                return '<span class="' . $clase . '"></span>';
+            });
+            $tramite_crud->callbackColumn('cobro_status_id', function ($value, $row) use ($trackedStatusIds, $self) {
+                $daysData = $self->classifyAttentionBucket(
+                    (int) ($row->tra_status_id ?? 0),
+                    isset($row->ent_municipio_id) ? (int) $row->ent_municipio_id : null,
+                    $row->started_at ?? null,
+                    $row->created_at ?? null,
+                    $trackedStatusIds
+                );
+                $presentation = $self->resolveAttentionPresentation($daysData, (int) ($row->tra_status_id ?? 0));
+
+                return '<span class="' . esc($presentation['class']) . '">' . esc($presentation['label']) . '</span>';
+            });
+
+            $tramite_crud->fields([
+                'folio','contrato','unidad','serie',
+                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
+                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
+                'tra_status_id','cobro_status_id',
+                'observaciones', 'user_id'
+            ]);
+
+            $tramite_crud->displayAs('created_at', 'Creación');
+
+            $tramite_crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
+            $tramite_crud->displayAs('tra_tipos_id','Tipo de Tramite');
+
+            $tramite_crud->setRelation('tra_status_id', 'tra_status', 'tra_status');
+            $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
+            $tramite_crud->displayAs('cobro_status_id', 'Seguimiento');
+
+            $clienteRelationFilter = get_cliente_relation_filter($myid);
+            if ($clienteRelationFilter !== null) {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social', $clienteRelationFilter);
+            } else {
+                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
+            }
+            $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
+
+            $tramite_crud->setRelation('cli_directo_ejecutivo_id', 'cli_directo_ejecutivo', 'nombre');
+            $tramite_crud->displayAs('cli_directo_ejecutivo_id','Ejecutivo del Cliente');
+            $tramite_crud->setDependentRelation('cli_directo_ejecutivo_id','cli_directo_id','cli_directo_id');
+
+            $tramite_crud->setRelation('entidad_id', 'entidad', 'entidad');
+            $tramite_crud->displayAs('entidad_id','Entidad');
+
+            $tramite_crud->setRelation('ent_municipio_id', 'rel_ent_municipio', 'ent_municipality');
+            $tramite_crud->displayAs('ent_municipio_id','Municipio');
+
+            $tramite_crud->setRelation('empresa_gestora_id', 'ges_empresa_gestora', 'razon_social');
+            $tramite_crud->displayAs('empresa_gestora_id','Empresa Gestora');
+
+            $tramite_crud->setRelation('gestor_id', 'ges_gestor', 'nombre');
+            $tramite_crud->displayAs('gestor_id','Gestor');
+            $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
+
+            $tramite_salida = $tramite_crud->render();
+
+            $salida_total = array_merge((array)$tramite_salida, $data);
+            $salida_total['title'] = 'Trámites en Flujo Normal';
+            $salida_total['description'] = 'Listado operativo del nuevo flujo.';
+            helper(['permissions']);
+            [$rolesAcl, $permsAcl] = session_roles_perms($session ?? session());
+            $salida_total['insert_button_url'] = can_create_tramite($rolesAcl, $permsAcl) ? '/public/deskapp/tramites/add' : '';
+
+            echo $this->_example_output($salida_total);
+
+        } catch (\Exception $e) {
+            exit($e->getMessage());
+        }
     }
 
     private function isTramiteLocked(int $tramiteId): bool
@@ -1673,214 +2073,7 @@ class Tramitesn extends Tramites
      */
     public function tramite()
     {
-        try {
-            $self = $this;
-            $session = session();
-            $data['session'] = \Config\Services::session();
-            $data['username'] = $session->get('user_name');
-            $myid = $session->get('id');
-            [$roles, $perms] = $this->normalizeRolesPermsFromSession();
-
-            $tramite_crud = $this->_getGroceryCrudEnterprise();
-
-            // Evita que Grocery CRUD restaure busquedas o paginacion previas desde el navegador.
-            $tramite_crud->setConfig('remember_state_upon_refresh', false);
-            $tramite_crud->setConfig('remember_filters_upon_refresh', false);
-
-            // Filtro multi-tenancy
-            $filterSql = get_tramite_filter_sql($myid);
-            $tramite_crud->where($filterSql);
-            $filterSqlDebug = trim((string) preg_replace('/\s+/', ' ', $filterSql));
-
-            $data['audit_payload'] = [
-                'source' => 'Tramitesn::tramite',
-                'user_id' => (int) $myid,
-                'filterSql' => $filterSqlDebug,
-                'owner_only_filter_active' => false,
-                'created_at_min' => '2026-01-01 00:00:00',
-            ];
-
-            // Mostrar todos los estatus en el listado
-
-            $tramite_crud->unsetAdd();
-            $tramite_crud->unsetEdit();
-            $tramite_crud->unsetRead();
-            $tramite_crud->unsetDeleteMultiple();
-
-            $tramite_crud->unsetDelete();
-
-            if (!has_permission('export_tramite', $perms, $roles)){
-                $tramite_crud->unsetExport();
-            }
-
-            if (!has_permission('print_tramite', $perms, $roles)){
-                $tramite_crud->unsetPrint();
-            }
-
-            // Entrada única al flujo: el detalle decide si es lectura o edición.
-            if (can_edit_tramite($roles, $perms) || has_permission('read_tramite', $perms, $roles)){
-                $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramitesn/update/' . $row->id;
-                }, false);
-            }
-
-            if (!has_permission('clone_tramite', $perms, $roles)){
-                $tramite_crud->unsetClone();
-            }
-
-            $tramite_crud->setCsrfTokenName(csrf_token());
-            $tramite_crud->setCsrfTokenValue(csrf_hash());
-
-            $tramite_crud->setTable('tramite');
-            $tramite_crud->setSubject('tramite', 'Tramites (Nuevo Flujo)');
-            $tramite_crud->defaultOrdering('tramite.id', 'desc');
-
-            // Mismo filtro de fecha que el listado principal 2026+
-            $tramite_crud->where([
-                'tramite.created_at >= ?' => ['2026-01-01 00:00:00']
-            ]);
-
-            $tramite_crud->columns([
-                'id', 'created_at', 'started_at', 'tra_status_id', 'folio', 'contrato', 'unidad', 'serie',
-                'placas', 'tra_tipos_id', 'entidad_id', 'ent_municipio_id', 'cli_directo_id',
-                'cli_directo_ejecutivo_id', 'empresa_gestora_id', 'gestor_id',
-                'cobro_status_id', 'user_id',
-                'observaciones'
-            ]);
-
-            $tramite_crud->displayAs('started_at', 'Desde Asignación');
-            $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
-            $tramite_crud->displayAs('user_id', 'Ejecutivo');
-
-            // Callback de color por días / status (copiado del flujo original)
-            $tramite_crud->callbackColumn('started_at', function ($value, $row) {
-                $fechaAsignacion = new \DateTime($row->started_at);
-                $fechaActual = new \DateTime();
-                $diasDiferencia = $fechaAsignacion->diff($fechaActual)->days;
-
-                $claseVerde = 'background-verde';
-                $claseAmarillo = 'background-amarillo';
-                $claseRojo = 'background-rojo';
-                $claseVioleta = 'background-violeta';
-                $claseGris = 'background-gris';
-                $claseAzulClaro = 'background-azul-claro';
-                $claseAzul = 'background-azul';
-                $claseAzulCobroCliente = 'background-azul-cobro-cliente';
-
-                if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR || $row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
-                    if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR) {
-                        $clase = $claseAzulClaro;
-                    }
-                    $txt_generar_factura = '';
-
-                    $traCobroClienteModel = new TraCobroClienteModel();
-                    $registrosCobroCliente = $traCobroClienteModel->getByTramiteId($row->id);
-
-                    $traEvidenciasFinalesModel = new TraEvidenciasFinalesModel();
-                    $registrosEvidenciasFinales = $traEvidenciasFinalesModel->getByTramiteId($row->id);
-
-                    if (count($registrosCobroCliente) > 0 || count($registrosEvidenciasFinales) > 0) {
-                        $txt_generar_factura = 'Facturar';
-                    }
-
-                    if ($row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
-                        $clase = $claseAzulCobroCliente;
-                        return '<span class="' . $clase . '">' . $txt_generar_factura . '</span>';
-                    }
-                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CANCELADO) {
-                    $clase = $claseGris;
-                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CONCLUIDO) {
-                    $clase = $claseAzul;
-                } else {
-                    $local = ($row->ent_municipio_id >= 266 && $row->ent_municipio_id <= 281) ||
-                             ($row->ent_municipio_id >= 657 && $row->ent_municipio_id <= 781);
-
-                    if ($local) {
-                        if ($diasDiferencia < 5) {
-                            $clase = $claseVerde;
-                        } elseif ($diasDiferencia < 8) {
-                            $clase = $claseAmarillo;
-                        } elseif ($diasDiferencia < 12) {
-                            $clase = $claseRojo;
-                        } else {
-                            $clase = $claseVioleta;
-                        }
-                    } else {
-                        if ($diasDiferencia < 10) {
-                            $clase = $claseVerde;
-                        } elseif ($diasDiferencia < 13) {
-                            $clase = $claseAmarillo;
-                        } elseif ($diasDiferencia < 16) {
-                            $clase = $claseRojo;
-                        } else {
-                            $clase = $claseVioleta;
-                        }
-                    }
-                }
-
-                $arrFilter = [SGL_TRA_STATUS_CONCLUIDO, SGL_TRA_STATUS_CANCELADO, SGL_TRA_STATUS_PAGO_GESTOR, SGL_TRA_STATUS_COBRO_CLIENTE];
-                if (!in_array($row->tra_status_id, $arrFilter)) {
-                    return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
-                }
-
-                return '<span class="' . $clase . '"></span>';
-            });
-
-            $tramite_crud->fields([
-                'folio','contrato','unidad','serie',
-                'placas','tra_tipos_id','ent_municipio_id','cli_directo_id',
-                'cli_directo_ejecutivo_id','empresa_gestora_id','gestor_id',
-                'tra_status_id','cobro_status_id',
-                'observaciones', 'user_id'
-            ]);
-
-            $tramite_crud->displayAs('created_at', 'Creación');
-
-            $tramite_crud->setRelation('tra_tipos_id', 'tra_tipos', 'tipo_tramite');
-            $tramite_crud->displayAs('tra_tipos_id','Tipo de Tramite');
-
-            $tramite_crud->setRelation('tra_status_id', 'tra_status', 'tra_status');
-            $tramite_crud->displayAs('tra_status_id','Estatus del Tramite');
-
-            $clienteRelationFilter = get_cliente_relation_filter($myid);
-            if ($clienteRelationFilter !== null) {
-                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social', $clienteRelationFilter);
-            } else {
-                $tramite_crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
-            }
-            $tramite_crud->displayAs('cli_directo_id','Cliente Directo');
-
-            $tramite_crud->setRelation('cli_directo_ejecutivo_id', 'cli_directo_ejecutivo', 'nombre');
-            $tramite_crud->displayAs('cli_directo_ejecutivo_id','Ejecutivo del Cliente');
-            $tramite_crud->setDependentRelation('cli_directo_ejecutivo_id','cli_directo_id','cli_directo_id');
-
-            $tramite_crud->setRelation('entidad_id', 'entidad', 'entidad');
-            $tramite_crud->displayAs('entidad_id','Entidad');
-
-            $tramite_crud->setRelation('ent_municipio_id', 'rel_ent_municipio', 'ent_municipality');
-            $tramite_crud->displayAs('ent_municipio_id','Municipio');
-
-            $tramite_crud->setRelation('empresa_gestora_id', 'ges_empresa_gestora', 'razon_social');
-            $tramite_crud->displayAs('empresa_gestora_id','Empresa Gestora');
-
-            $tramite_crud->setRelation('gestor_id', 'ges_gestor', 'nombre');
-            $tramite_crud->displayAs('gestor_id','Gestor');
-            $tramite_crud->setDependentRelation('gestor_id','empresa_gestora_id','empresa_gestora_id');
-
-            $tramite_salida = $tramite_crud->render();
-
-            $salida_total = array_merge((array)$tramite_salida, $data);
-            $salida_total['audit_payload'] = $data['audit_payload'] ?? null;
-            // El botón de "Nuevo" seguirá usando el alta tradicional si se requiere
-            helper(['permissions']);
-            [$rolesAcl, $permsAcl] = session_roles_perms($session ?? session());
-            $salida_total['insert_button_url'] = can_create_tramite($rolesAcl, $permsAcl) ? '/public/deskapp/tramites/add' : '';
-
-            echo $this->_example_output($salida_total);
-
-        } catch (\Exception $e) {
-            exit($e->getMessage());
-        }
+        return $this->renderTramiteList();
     }
 
     /**
@@ -1944,6 +2137,192 @@ class Tramitesn extends Tramites
     public function ver_seccion_generales($id)
     {
         return $this->update($id, 'deskapp/extra-pages/tramite_update_view_generales');
+    }
+
+    public function single_evidencias()
+    {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        $session = session();
+        $data['session'] = \Config\Services::session();
+        $data['username'] = $session->get('user_name');
+        $db2 = $this->_getDbData();
+        $self = $this;
+        $request = \Config\Services::request();
+
+        $uri = $request->getUri();
+        $tramite_id = (int) $uri->getSegment(4);
+        $isApi = (acl_wants_json($request) || $request->getGet('gc_state') !== null);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', $isApi)) {
+            return $resp;
+        }
+
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($tramite_id <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, '/deskapp/tramitesn/tramite', $isApi);
+        }
+
+        if ($resp = acl_require_tramite_tenant_access($tramite_id, $userId, $roles, 'Acceso denegado.', '/deskapp/tramitesn/update/' . $tramite_id, 403, $isApi)) {
+            return $resp;
+        }
+
+        $canQuickAction = has_permission('quick_action_bitacora', $perms, $roles);
+
+        $tramiteModel = new TramitesModel($db2);
+        $folio_tramite = $tramiteModel->getFolioById($tramite_id);
+        $session->set('folio_tramite_id', $folio_tramite);
+
+        $tramiteRow = $tramiteModel->getTramiteById($tramite_id);
+        $statusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+
+        $canAdd = $canQuickAction && has_permission('quick_action_bitacora_add', $perms, $roles);
+        $canEdit = $canQuickAction && has_permission('quick_action_bitacora_edit', $perms, $roles);
+        $canDelete = $canQuickAction && has_permission('quick_action_bitacora_delete', $perms, $roles);
+
+        // Bitácora debe seguir disponible durante el proceso; sólo se bloquea al cerrar/cancelar.
+        $isLocked = in_array($statusId, SGL_TRA_STATUS_LOCKED_IDS, true);
+        $gcState = (string) ($request->getGet('gc_state') ?? '');
+        if ($isLocked && in_array($gcState, ['add', 'edit', 'insert', 'update', 'delete', 'ajax_insert', 'ajax_update', 'ajax_delete'], true)) {
+            if ($isApi) {
+                return $this->response->setStatusCode(409)->setJSON(['status' => 'error', 'message' => 'Esta sección está en modo de solo lectura.']);
+            }
+            return redirect()->to('/deskapp/tramitesn/update/' . $tramite_id)->with('error', 'Esta sección está en modo de solo lectura.');
+        }
+
+        if (in_array($gcState, ['add', 'insert', 'ajax_insert'], true) && !$canAdd) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/tramitesn/update/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['edit', 'update', 'ajax_update'], true) && !$canEdit) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/tramitesn/update/' . $tramite_id, $isApi);
+        }
+        if (in_array($gcState, ['delete', 'ajax_delete'], true) && !$canDelete) {
+            return acl_deny('Acceso denegado.', 403, '/deskapp/tramitesn/update/' . $tramite_id, $isApi);
+        }
+
+        if (!$folio_tramite) {
+            throw new \Exception('No existe el folio');
+        }
+
+        $crud = $this->_getGroceryCrudEnterprise();
+        $crud->setCsrfTokenName(csrf_token());
+        $crud->setCsrfTokenValue(csrf_hash());
+
+        $crud->setTable('tra_evidencias');
+        $crud->setSubject('Bitacora', 'Bitacora');
+        $crud->defaultOrdering('tra_evidencias.created_at', 'desc');
+
+        if ($isLocked || !$canAdd) {
+            $crud->unsetAdd();
+        }
+        if ($isLocked || !$canEdit) {
+            $crud->unsetEdit();
+        }
+        if ($isLocked || !$canDelete) {
+            $crud->unsetDelete();
+        }
+
+        $crud->fields(['folio_tramite', 'tramite_id', 'comentario', 'user_id']);
+        $crud->columns(['created_at', 'id', 'comentario', 'user_id']);
+        $crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
+        $crud->where(['folio_tramite' => $folio_tramite]);
+        $crud->callbackColumn('comentario', function ($value) {
+            $shortened_value = strlen($value) > 50 ? substr($value, 0, 50) . '...' : $value;
+            return '<span title="' . htmlspecialchars($value, ENT_QUOTES) . '">' . $shortened_value . '</span>';
+        });
+
+        $crud->callbackAfterInsert(function ($stateParameters) use ($self, $crud) {
+            if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
+                $session = session();
+                $db2 = $this->_getDbData();
+                $data = $stateParameters->data;
+                $request = \Config\Services::request();
+                $uri = $request->getUri();
+                $tramite_id = (int) $uri->getSegment(4);
+                $folio_tramite = $session->get('folio_tramite_id');
+                $myid = (int) ($session->get('id') ?? 0);
+
+                $bitacoraModel = new BitacoraModel($db2);
+                $diferencias = $self->encontrarDiferencias($data, []);
+                $bitacoraModel->insert([
+                    'id' => null,
+                    'tipo' => 'insert',
+                    'origen' => 'evidencia',
+                    'folio_tramite' => $folio_tramite,
+                    'tramite_id' => $tramite_id,
+                    'cambios' => json_encode($diferencias),
+                    'user_id' => $myid,
+                ], 'bitacora');
+            }
+
+            return logOperation($stateParameters, $crud->getTable());
+        });
+
+        $crud->callbackAfterUpdate(function ($stateParameters) use ($self, $crud) {
+            $db2 = $this->_getDbData();
+            $session = session();
+            $myid = (int) ($session->get('id') ?? 0);
+
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+            $folio_tramite = $session->get('folio_tramite_id');
+
+            $bitacoraModel = new BitacoraModel($db2);
+            $diferencias = $self->encontrarDiferencias($stateParameters->data, []);
+            $bitacoraModel->insert([
+                'tipo' => 'update',
+                'origen' => 'evidencia',
+                'folio_tramite' => $folio_tramite,
+                'tramite_id' => $tramite_id,
+                'cambios' => json_encode($diferencias),
+                'user_id' => $myid,
+            ], 'bitacora');
+
+            return logOperation($stateParameters, $crud->getTable());
+        });
+
+        $uploadValidations = [
+            'maxUploadSize' => '20M',
+            'minUploadSize' => '1K',
+            'allowedFileTypes' => ['gif', 'jpeg', 'jpg', 'png', 'tiff', 'pdf', 'xml'],
+        ];
+
+        $crud->setFieldUploadMultiple('file', 'assets/uploads/evidencias/', '/assets/uploads/evidencias/', $uploadValidations);
+        $crud->fieldType('user_id', 'hidden');
+        $crud->fieldType('folio_tramite', 'hidden');
+        $crud->fieldType('tramite_id', 'hidden');
+
+        $crud->callbackBeforeInsert(function ($stateParameters) {
+            $session = session();
+            $stateParameters->data['folio_tramite'] = $session->get('folio_tramite_id');
+            return $stateParameters;
+        });
+        $crud->callbackBeforeUpdate(function ($stateParameters) {
+            $session = session();
+            $stateParameters->data['folio_tramite'] = $session->get('folio_tramite_id');
+            return $stateParameters;
+        });
+        $crud->callbackAddForm(function ($data) {
+            $session = session();
+            $request = \Config\Services::request();
+            $uri = $request->getUri();
+            $tramite_id = (int) $uri->getSegment(4);
+
+            $data['user_id'] = (int) ($session->get('id') ?? 0);
+            $data['folio_tramite'] = $session->get('folio_tramite_id');
+            $data['tramite_id'] = $tramite_id;
+            return $data;
+        });
+        $crud->callbackAfterDelete(function ($stateParameters) use ($crud) {
+            return logOperation($stateParameters, $crud->getTable());
+        });
+
+        $salida = $crud->render();
+        $salida2 = array_merge((array) $salida, $data);
+        return $this->_example_output($salida2);
     }
 
     public function ver_seccion_asigna_gestor($id)
@@ -2657,9 +3036,9 @@ class Tramitesn extends Tramites
         $cruddocstatus->setApiUrlPath($historyCrudBasePath . '/single_documentostatus/' . $id);
         $output_docs = $cruddocstatus->render();
 
-        $crudevidencias = $this->_getGroceryCrudEnterprise();
-        $crudevidencias->setApiUrlPath($historyCrudBasePath . '/single_evidencias/' . $id);
-        $outputevidencias = $crudevidencias->render();
+        $crudbitacora = $this->_getGroceryCrudEnterprise();
+        $crudbitacora->setApiUrlPath('/deskapp/tramitesn/single_evidencias/' . $id);
+        $outputbitacora = $crudbitacora->render();
 
         $crud_derechos = $this->_getGroceryCrudEnterprise();
         $crud_derechos->setApiUrlPath($historyCrudBasePath . '/single_pago_derechos/' . $id);
@@ -2698,7 +3077,7 @@ class Tramitesn extends Tramites
         $outputevidencias_finales = $crudevidencias_finales->render();
 
         $form->output_docs = $output_docs->output;
-        $form->output_bitacora = $outputevidencias->output;
+        $form->output_bitacora = $outputbitacora->output;
         $form->outputevidencias_finales = $outputevidencias_finales->output;
         $form->output_derechos = $output_derechos->output;
         $form->output_pago_gestor = $output_pago_gestor->output;
