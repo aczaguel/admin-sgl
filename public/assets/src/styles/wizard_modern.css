@@ -1247,6 +1247,10 @@
     overflow: hidden;
 }
 
+.ribbon-btn-bitacora {
+    margin-left: auto;
+}
+
 .ribbon-btn::before {
     content: '';
     position: absolute;
@@ -1452,6 +1456,10 @@
     .ribbon-btn {
         min-width: 68px;
         padding: 5px 8px;
+    }
+
+    .ribbon-btn-bitacora {
+        margin-left: 0;
     }
     
     .ribbon-icon {

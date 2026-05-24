@@ -289,16 +289,6 @@
 						</button>
 					<?php endif; ?>
 
-					<?php if ($canQuickBitacora): ?>
-						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-bitacora">
-							<div class="ribbon-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-								<i class="fas fa-history"></i>
-							</div>
-							<span class="ribbon-label">Bitácora</span>
-							<?= perm_audit_tag('quick_action_bitacora') ?>
-						</button>
-					<?php endif; ?>
-
 					<?php if ($canQuickPagosDerecho): ?>
 						<button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-pagos-derecho">
 							<div class="ribbon-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
@@ -337,6 +327,16 @@
 							<span class="ribbon-label">Cobros Cliente</span>
 							<?= perm_audit_tag('quick_action_cobros_cliente') ?>
 							<?= perm_audit_tag('list_cobro_cliente') ?>
+						</button>
+					<?php endif; ?>
+
+					<?php if ($canQuickBitacora): ?>
+						<button type="button" class="ribbon-btn ribbon-btn-bitacora" data-toggle="modal" data-target="#modal-bitacora">
+							<div class="ribbon-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+								<i class="fas fa-history"></i>
+							</div>
+							<span class="ribbon-label">Bitácora</span>
+							<?= perm_audit_tag('quick_action_bitacora') ?>
 						</button>
 					<?php endif; ?>
 				</div>

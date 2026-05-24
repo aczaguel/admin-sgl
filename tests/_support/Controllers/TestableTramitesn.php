@@ -80,4 +80,14 @@ class TestableTramitesn extends Tramitesn
     {
         return $this->hasPendingPagoConciliation($tramiteId);
     }
+
+    public function classifyAttentionBucketForTest(int $statusId, ?int $municipioId, ?string $startedAt, ?string $createdAt = null, ?array $trackedStatusIds = null): array
+    {
+        return $this->classifyAttentionBucket($statusId, $municipioId, $startedAt, $createdAt, $trackedStatusIds);
+    }
+
+    public function resolveAttentionPresentationForTest(array $daysData, int $statusId): array
+    {
+        return $this->resolveAttentionPresentation($daysData, $statusId);
+    }
 }

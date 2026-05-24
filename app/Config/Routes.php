@@ -321,6 +321,8 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 
 	$routes->get('tramitesn/update/(:num)', 'Tramitesn::update/$1');
 	$routes->post('tramitesn/update/(:num)', 'Tramitesn::update/$1');
+	$routes->get('tramitesn/single_evidencias/(:num)', 'Tramitesn::single_evidencias/$1');
+	$routes->post('tramitesn/single_evidencias/(:num)', 'Tramitesn::single_evidencias/$1');
 	$routes->get('tramitesn/ver_seccion_evidencias_finales/(:num)', 'Tramitesn::ver_seccion_evidencias_finales/$1');
 	$routes->post('tramitesn/ver_seccion_evidencias_finales/(:num)', 'Tramitesn::ver_seccion_evidencias_finales/$1');
 	$routes->get('tramitesn/ver_seccion_pago_gestor/(:num)', 'Tramitesn::ver_seccion_pago_gestor/$1');
