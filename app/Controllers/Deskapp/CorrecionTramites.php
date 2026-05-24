@@ -131,6 +131,8 @@ class CorrecionTramites extends BaseController
                 'placas',
                 'tra_tipos_id',
                 'tra_status_id',
+                'cli_directo_id',
+                'cli_directo_ejecutivo_id',
                 'empresa_gestora_id',
                 'gestor_id'
             ]);
@@ -180,6 +182,7 @@ class CorrecionTramites extends BaseController
             $crud->setDependentRelation('gestor_id', 'empresa_gestora_id', 'empresa_gestora_id');
             $crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
             $crud->setRelation('cli_directo_ejecutivo_id', 'cli_directo_ejecutivo', 'nombre');
+            $crud->setDependentRelation('cli_directo_ejecutivo_id', 'cli_directo_id', 'cli_directo_id');
             $crud->setRelation('user_id', 'users', '{firstname} {lastname}');
 
             // Callback ANTES de actualizar para capturar datos viejos
@@ -275,7 +278,7 @@ class CorrecionTramites extends BaseController
                 'tra_tipos_id', 'tra_status_id', 'cli_directo_id', 'cli_directo_ejecutivo_id', 'user_id'
             ]);
 
-            $crud->fields(['folio', 'contrato', 'unidad', 'serie', 'placas', 'tra_tipos_id', 'tra_status_id', 'empresa_gestora_id', 'gestor_id']);
+            $crud->fields(['folio', 'contrato', 'unidad', 'serie', 'placas', 'tra_tipos_id', 'tra_status_id', 'cli_directo_id', 'cli_directo_ejecutivo_id', 'empresa_gestora_id', 'gestor_id']);
             $crud->readOnlyFields(['folio', 'contrato', 'unidad', 'serie', 'placas']);
             $crud->unsetAdd();
             $crud->unsetDelete();
@@ -310,6 +313,7 @@ class CorrecionTramites extends BaseController
             $crud->setDependentRelation('gestor_id', 'empresa_gestora_id', 'empresa_gestora_id');
             $crud->setRelation('cli_directo_id', 'cli_directo', 'razon_social');
             $crud->setRelation('cli_directo_ejecutivo_id', 'cli_directo_ejecutivo', 'nombre');
+            $crud->setDependentRelation('cli_directo_ejecutivo_id', 'cli_directo_id', 'cli_directo_id');
             $crud->setRelation('user_id', 'users', '{firstname} {lastname}');
 
             // Callback ANTES de actualizar
@@ -426,6 +430,26 @@ class CorrecionTramites extends BaseController
             $newGestorNombre = $newGestor['nombre'] ?? 'Sin gestor';
             $cambios[] = "Gestor: '{$oldGestorNombre}' → '{$newGestorNombre}'";
             log_message('debug', 'Cambio detectado en gestor');
+        }
+
+        if (array_key_exists('cli_directo_id', $newData) && (int) ($oldData['cli_directo_id'] ?? 0) !== (int) $newData['cli_directo_id']) {
+            $oldClienteDirecto = $this->db->table('cli_directo')->where('id', $oldData['cli_directo_id'] ?? 0)->get()->getRowArray();
+            $newClienteDirecto = $this->db->table('cli_directo')->where('id', $newData['cli_directo_id'])->get()->getRowArray();
+
+            $oldClienteDirectoNombre = $oldClienteDirecto['razon_social'] ?? 'Sin cliente directo';
+            $newClienteDirectoNombre = $newClienteDirecto['razon_social'] ?? 'Sin cliente directo';
+            $cambios[] = "Cliente Directo: '{$oldClienteDirectoNombre}' → '{$newClienteDirectoNombre}'";
+            log_message('debug', 'Cambio detectado en cliente directo');
+        }
+
+        if (array_key_exists('cli_directo_ejecutivo_id', $newData) && (int) ($oldData['cli_directo_ejecutivo_id'] ?? 0) !== (int) $newData['cli_directo_ejecutivo_id']) {
+            $oldEjecutivoCliente = $this->db->table('cli_directo_ejecutivo')->where('id', $oldData['cli_directo_ejecutivo_id'] ?? 0)->get()->getRowArray();
+            $newEjecutivoCliente = $this->db->table('cli_directo_ejecutivo')->where('id', $newData['cli_directo_ejecutivo_id'])->get()->getRowArray();
+
+            $oldEjecutivoClienteNombre = $oldEjecutivoCliente['nombre'] ?? 'Sin ejecutivo';
+            $newEjecutivoClienteNombre = $newEjecutivoCliente['nombre'] ?? 'Sin ejecutivo';
+            $cambios[] = "Ejecutivo del Cliente: '{$oldEjecutivoClienteNombre}' → '{$newEjecutivoClienteNombre}'";
+            log_message('debug', 'Cambio detectado en ejecutivo del cliente');
         }
 
         if (!empty($cambios)) {
