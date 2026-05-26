@@ -145,29 +145,29 @@ $routes->post('/tramites/insert', 'Deskapp/Tramites::insert',['filter' => 'auth'
 $routes->get('/tramites/single_documentostatus', 'Deskapp/Tramites::single_documentostatus',['filter' => 'auth']);
 $routes->post('/tramites/single_documentostatus', 'Deskapp/Tramites::single_documentostatus',['filter' => 'auth']);
 
-$routes->get('/tramites/single_documentostatus/(:id)', 'Deskapp/Tramites::single_documentostatus/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/single_documentostatus/(:id)', 'Deskapp/Tramites::single_documentostatus/(:id)',['filter' => 'auth']);
+$routes->get('/tramites/single_documentostatus/(:id)', 'Deskapp/Tramites::single_documentostatus/$1',['filter' => 'auth']);
+$routes->post('/tramites/single_documentostatus/(:id)', 'Deskapp/Tramites::single_documentostatus/$1',['filter' => 'auth']);
 
-$routes->get('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_comprobante/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_comprobante/(:id)',['filter' => 'auth']);
+$routes->get('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_comprobante/$1',['filter' => 'auth']);
+$routes->post('/tramites/upload_comprobante/(:id)', 'Deskapp/Tramites::upload_comprobante/$1',['filter' => 'auth']);
 
-$routes->get('/tramites/delete_comprobante/(:id)', 'Deskapp/Tramites::delete_comprobante/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/delete_comprobante/(:id)', 'Deskapp/Tramites::delete_comprobante/(:id)',['filter' => 'auth']);
-
-
-$routes->get('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/(:id)',['filter' => 'auth']);
-
-$routes->get('/tramites/single_pago_derechos/(:id)', 'Deskapp/Tramites::single_pago_derechos/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/single_pago_derechos/(:id)', 'Deskapp/Tramites::single_pago_derechos/(:id)',['filter' => 'auth']);
+$routes->get('/tramites/delete_comprobante/(:id)', 'Deskapp/Tramites::delete_comprobante/$1',['filter' => 'auth']);
+$routes->post('/tramites/delete_comprobante/(:id)', 'Deskapp/Tramites::delete_comprobante/$1',['filter' => 'auth']);
 
 
-$routes->get('/tramites/single_pago_gestor/(:id)', 'Deskapp/Tramites::single_pago_gestor/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/single_pago_gestor/(:id)', 'Deskapp/Tramites::single_pago_gestor/(:id)',['filter' => 'auth']);
+$routes->get('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/$1',['filter' => 'auth']);
+$routes->post('/tramites/single_evidencias/(:id)', 'Deskapp/Tramites::single_evidencias/$1',['filter' => 'auth']);
+
+$routes->get('/tramites/single_pago_derechos/(:id)', 'Deskapp/Tramites::single_pago_derechos/$1',['filter' => 'auth']);
+$routes->post('/tramites/single_pago_derechos/(:id)', 'Deskapp/Tramites::single_pago_derechos/$1',['filter' => 'auth']);
 
 
-$routes->get('/tramites/single_cobro_cliente/(:id)', 'Deskapp/Tramites::single_cobro_cliente/(:id)',['filter' => 'auth']);
-$routes->post('/tramites/single_cobro_cliente/(:id)', 'Deskapp/Tramites::single_cobro_cliente/(:id)',['filter' => 'auth']);
+$routes->get('/tramites/single_pago_gestor/(:id)', 'Deskapp/Tramites::single_pago_gestor/$1',['filter' => 'auth']);
+$routes->post('/tramites/single_pago_gestor/(:id)', 'Deskapp/Tramites::single_pago_gestor/$1',['filter' => 'auth']);
+
+
+$routes->get('/tramites/single_cobro_cliente/(:id)', 'Deskapp/Tramites::single_cobro_cliente/$1',['filter' => 'auth']);
+$routes->post('/tramites/single_cobro_cliente/(:id)', 'Deskapp/Tramites::single_cobro_cliente/$1',['filter' => 'auth']);
 
 
 
@@ -235,7 +235,7 @@ $routes->post('/documentos/status', 'Deskapp/Documentos::status',['filter' => 'a
 $routes->get('/documentos/tp_doctos_tramite', 'Deskapp/Documentos::tp_doctos_tramite',['filter' => 'auth']);
 $routes->post('/documentos/tp_doctos_tramite', 'Deskapp/Documentos::tp_doctos_tramite',['filter' => 'auth']);
 
-$routes->get('/gestores/gestores', 'Deskapp/Gestores:gestores',['filter' => 'auth']);
+$routes->get('/gestores/gestores', 'Deskapp/Gestores::gestores',['filter' => 'auth']);
 $routes->post('/gestores/gestor', 'Deskapp/Gestores::gestor',['filter' => 'auth']);
 
 // Gestión de clientes (controlador Deskapp\Cliente)
@@ -246,16 +246,16 @@ $routes->post('/cliente/cliente', 'Deskapp/Cliente::cliente',['filter' => 'auth'
 $routes->get('/deskapp/clientes/cliente', 'Deskapp/Cliente::cliente',['filter' => 'auth']);
 $routes->post('/deskapp/clientes/cliente', 'Deskapp/Cliente::cliente',['filter' => 'auth']);
 
-$routes->get('/clidirecto/clidirecto', 'Deskapp/Clidirecto:clidirecto',['filter' => 'auth']);
+$routes->get('/clidirecto/clidirecto', 'Deskapp/Clidirecto::clidirecto',['filter' => 'auth']);
 $routes->post('/clidirecto/clidirecto', 'Deskapp/Clidirecto::clidirecto',['filter' => 'auth']);
 
-$routes->get('/clidirecto/ejecutivo', 'Deskapp/Clidirecto:ejecutivo',['filter' => 'auth']);
+$routes->get('/clidirecto/ejecutivo', 'Deskapp/Clidirecto::ejecutivo',['filter' => 'auth']);
 $routes->post('/clidirecto/ejecutivo', 'Deskapp/Clidirecto::ejecutivo',['filter' => 'auth']);
 
-$routes->get('/tradocstatus/documento', 'Deskapp/Tradocstatus:documento',['filter' => 'auth']);
+$routes->get('/tradocstatus/documento', 'Deskapp/Tradocstatus::documento',['filter' => 'auth']);
 $routes->post('/tradocstatus/documento', 'Deskapp/Tradocstatus::documento',['filter' => 'auth']);
 
-$routes->get('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora:index',['filter' => 'auth']);
+$routes->get('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora::index/$1',['filter' => 'auth']);
 $routes->post('/bitacora/index/(:tramite_id)', 'Deskapp/Bitacora::index',['filter' => 'auth']);
 $routes->get('/bitacora/search', 'Deskapp/Bitacora::search',['filter' => 'auth']);
 $routes->get('/bitacora/timeline', 'Deskapp/Bitacora::timeline',['filter' => 'auth']);
