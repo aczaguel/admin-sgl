@@ -3,6 +3,31 @@
 use App\Models\ApiLogModel;
 use CodeIgniter\HTTP\IncomingRequest;
 
+if (!function_exists('resolveLogRequestBody')) {
+    function resolveLogRequestBody($request)
+    {
+        $postData = $request->getPost();
+        if (is_array($postData) && $postData !== []) {
+            return $postData;
+        }
+
+        $rawBody = (string) $request->getBody();
+        if ($rawBody === '') {
+            return null;
+        }
+
+        $contentType = strtolower($request->getHeaderLine('Content-Type'));
+        if (strpos($contentType, 'application/json') !== false) {
+            $decoded = json_decode($rawBody, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $decoded;
+            }
+        }
+
+        return $rawBody;
+    }
+}
+
 if (!function_exists('logOperation')) {
     function logOperation($postArray, $tableName)
     {
@@ -48,7 +73,7 @@ if (!function_exists('logOperation')) {
             'action'     => $action,
             'sent_id'    => $sent_id,
             'vista'      => $actionIds,
-            'body'       => json_encode($request->getPost() ?: $request->getJSON(true)),
+            'body'       => json_encode(resolveLogRequestBody($request), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
             'tabla'      => $tableName,
             'response'   => $responseBody,
             'user_id'    => $userId,

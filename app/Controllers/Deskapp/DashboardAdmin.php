@@ -4,6 +4,10 @@ namespace App\Controllers\Deskapp;
 
 use App\Controllers\BaseController;
 use App\Models\DashboardModel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class DashboardAdmin extends BaseController
 {
@@ -12,7 +16,7 @@ class DashboardAdmin extends BaseController
 
     public function __construct()
     {
-        helper(['form', 'url', 'cliente_filter', 'permissions']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context', 'permissions']);
         $this->dashboardModel = new DashboardModel();
         $this->session = session();
     }
@@ -57,25 +61,203 @@ class DashboardAdmin extends BaseController
      */
     private function resolveClienteIdFilter(int $userId): ?int
     {
-        $raw = $this->request->getGet('cliente_id');
-        if ($raw === null || $raw === '') {
-            return null;
-        }
-        if (!is_numeric($raw)) {
-            return null;
+        $requestedClienteId = $this->request->getGet('cliente_id');
+        return resolve_active_cliente_id($userId, $requestedClienteId);
+    }
+
+    private function resolveClienteNombre(?int $clienteId, array $clientesLista): string
+    {
+        if (empty($clienteId)) {
+            return 'Todos los clientes';
         }
 
-        $clienteId = (int) $raw;
-        if ($clienteId <= 0) {
-            return null;
+        foreach ($clientesLista as $cliente) {
+            if ((int) ($cliente['id'] ?? 0) === (int) $clienteId) {
+                return (string) ($cliente['nombre'] ?? ('Cliente #' . $clienteId));
+            }
         }
 
-        // Admin ve todo; usuario normal solo sus clientes
-        if (!has_access_to_cliente($clienteId, $userId)) {
-            return null;
+        return 'Cliente #' . (int) $clienteId;
+    }
+
+    private function buildReportesExportData(int $userId): array
+    {
+        $clienteIdFiltro = $this->resolveClienteIdFilter($userId);
+        $this->dashboardModel->setClienteIdFilter($clienteIdFiltro);
+
+        $anio = (int) ($this->request->getGet('anio') ?? date('Y'));
+        $clientesLista = $this->getClientesLista($userId);
+
+        return [
+            'anio' => $anio,
+            'cliente_id_filtro' => $clienteIdFiltro,
+            'cliente_nombre' => $this->resolveClienteNombre($clienteIdFiltro, $clientesLista),
+            'tramites_por_mes' => $this->dashboardModel->getTramitesPorMes($anio, $userId),
+            'ingresos_por_mes' => $this->dashboardModel->getIngresosPorMes($anio, $userId),
+            'tramites_por_tipo' => $this->dashboardModel->getTramitesPorTipo('anio', $anio, $userId),
+            'top_ejecutivos' => $this->dashboardModel->getTopEjecutivos(10, 'anio', $anio, $userId),
+            'top_gestores' => $this->dashboardModel->getTopGestores(10, 'anio', $anio, $userId),
+            'generated_at' => date('Y-m-d H:i:s'),
+        ];
+    }
+
+    private function populateReportSheet($sheet, array $metaLines, array $headers, array $rows): void
+    {
+        $rowIndex = 1;
+        foreach ($metaLines as $line) {
+            $sheet->setCellValue('A' . $rowIndex, $line);
+            $rowIndex++;
         }
 
-        return $clienteId;
+        $headerRow = $rowIndex + 1;
+        foreach ($headers as $index => $header) {
+            $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($index + 1);
+            $sheet->setCellValue($column . $headerRow, $header);
+        }
+
+        $sheet->getStyle('A1:A' . count($metaLines))->getFont()->setBold(true);
+        $lastHeaderColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+        $sheet->getStyle('A' . $headerRow . ':' . $lastHeaderColumn . $headerRow)->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1F4E78']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+        ]);
+
+        $currentRow = $headerRow + 1;
+        if (empty($rows)) {
+            $sheet->setCellValue('A' . $currentRow, 'Sin datos disponibles');
+            $currentRow++;
+        } else {
+            foreach ($rows as $row) {
+                foreach (array_values($row) as $index => $value) {
+                    $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($index + 1);
+                    $sheet->setCellValue($column . $currentRow, $value);
+                }
+                $currentRow++;
+            }
+        }
+
+        for ($index = 1; $index <= count($headers); $index++) {
+            $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($index);
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+    }
+
+    private function buildReportesSpreadsheet(array $exportData): Spreadsheet
+    {
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getProperties()
+            ->setCreator('SGL')
+            ->setTitle('Reporte anual ' . $exportData['anio'])
+            ->setDescription('Reporte anual de dashboard administrativo');
+
+        $metaLines = [
+            'Reporte anual de dashboard administrativo',
+            'Anio: ' . $exportData['anio'],
+            'Cliente: ' . $exportData['cliente_nombre'],
+            'Generado: ' . $exportData['generated_at'],
+        ];
+
+        $monthNames = [
+            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre',
+        ];
+        $tramitesPorMes = [];
+        foreach ($exportData['tramites_por_mes'] as $row) {
+            $tramitesPorMes[(int) ($row['mes'] ?? 0)] = $row;
+        }
+        $ingresosPorMes = [];
+        foreach ($exportData['ingresos_por_mes'] as $row) {
+            $ingresosPorMes[(int) ($row['mes'] ?? 0)] = $row;
+        }
+
+        $summaryRows = [];
+        foreach ($monthNames as $monthNumber => $monthName) {
+            $tramites = $tramitesPorMes[$monthNumber] ?? [];
+            $ingresos = $ingresosPorMes[$monthNumber] ?? [];
+            $summaryRows[] = [
+                $monthName,
+                (int) ($tramites['total_ingresados'] ?? 0),
+                (int) ($tramites['total_concluidos'] ?? 0),
+                (int) ($tramites['total_cobrados'] ?? 0),
+                (float) ($ingresos['ingresos'] ?? 0),
+            ];
+        }
+
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Resumen anual');
+        $this->populateReportSheet(
+            $sheet,
+            $metaLines,
+            ['Mes', 'Ingresados', 'Concluidos', 'Cobrados', 'Ingresos'],
+            $summaryRows
+        );
+
+        $tiposRows = [];
+        foreach ($exportData['tramites_por_tipo'] as $row) {
+            $cantidad = (int) ($row['cantidad'] ?? 0);
+            $concluidos = (int) ($row['concluidos'] ?? 0);
+            $tiposRows[] = [
+                (string) ($row['tipo_tramite'] ?? 'Sin tipo'),
+                $cantidad,
+                $concluidos,
+                $cantidad > 0 ? round(($concluidos / $cantidad) * 100, 1) . '%': '0%',
+                isset($row['tiempo_promedio']) && $row['tiempo_promedio'] !== null ? round((float) $row['tiempo_promedio'], 1) . ' dias' : 'N/A',
+            ];
+        }
+        $sheetTipos = $spreadsheet->createSheet();
+        $sheetTipos->setTitle('Tipos de tramite');
+        $this->populateReportSheet(
+            $sheetTipos,
+            $metaLines,
+            ['Tipo de tramite', 'Cantidad', 'Concluidos', '% exito', 'Tiempo promedio'],
+            $tiposRows
+        );
+
+        $ejecutivosRows = [];
+        foreach ($exportData['top_ejecutivos'] as $index => $row) {
+            $ejecutivosRows[] = [
+                $index + 1,
+                (string) ($row['ejecutivo'] ?? 'Sin ejecutivo'),
+                (int) ($row['total_tramites'] ?? 0),
+                (int) ($row['tramites_concluidos'] ?? 0),
+                (int) ($row['tramites_cobrados'] ?? 0),
+                (float) ($row['monto_cobrado'] ?? 0),
+                isset($row['tiempo_promedio_dias']) && $row['tiempo_promedio_dias'] !== null ? round((float) $row['tiempo_promedio_dias'], 1) . ' dias' : 'N/A',
+            ];
+        }
+        $sheetEjecutivos = $spreadsheet->createSheet();
+        $sheetEjecutivos->setTitle('Top ejecutivos');
+        $this->populateReportSheet(
+            $sheetEjecutivos,
+            $metaLines,
+            ['#', 'Ejecutivo', 'Total', 'Concluidos', 'Cobrados', 'Monto cobrado', 'Tiempo promedio'],
+            $ejecutivosRows
+        );
+
+        $gestoresRows = [];
+        foreach ($exportData['top_gestores'] as $index => $row) {
+            $gestoresRows[] = [
+                $index + 1,
+                (string) ($row['gestor'] ?? 'Sin gestor'),
+                (string) ($row['empresa_gestora'] ?? 'Sin empresa'),
+                (int) ($row['total_tramites'] ?? 0),
+                (int) ($row['tramites_concluidos'] ?? 0),
+                isset($row['tiempo_promedio_dias']) && $row['tiempo_promedio_dias'] !== null ? round((float) $row['tiempo_promedio_dias'], 1) . ' dias' : 'N/A',
+                (float) ($row['total_pagado_gestor'] ?? 0),
+            ];
+        }
+        $sheetGestores = $spreadsheet->createSheet();
+        $sheetGestores->setTitle('Top gestores');
+        $this->populateReportSheet(
+            $sheetGestores,
+            $metaLines,
+            ['#', 'Gestor', 'Empresa', 'Total', 'Concluidos', 'Tiempo promedio', 'Pagado'],
+            $gestoresRows
+        );
+
+        return $spreadsheet;
     }
 
     /**
@@ -618,12 +800,23 @@ class DashboardAdmin extends BaseController
         if ($resp = $this->requireDashboardAdminAccess()) {
             return $resp;
         }
+        $userId = (int) $this->session->get('id');
         $tipo = $this->request->getGet('tipo') ?? 'metricas';
-        
-        // Aquí se puede implementar la exportación a Excel
-        // usando PhpSpreadsheet u otra librería similar
-        
-        return $this->response->download('reporte_' . $tipo . '_' . date('Y-m-d') . '.xlsx', null);
+
+        if ($tipo !== 'reportes') {
+            return $this->response->setStatusCode(400)->setBody('Tipo de exportacion no soportado.');
+        }
+
+        $exportData = $this->buildReportesExportData($userId);
+        $spreadsheet = $this->buildReportesSpreadsheet($exportData);
+        $writer = new Xlsx($spreadsheet);
+        $tempFile = tempnam(sys_get_temp_dir(), 'sgl-reportes-xlsx-');
+        $writer->save($tempFile);
+        $contents = file_get_contents($tempFile) ?: '';
+        @unlink($tempFile);
+
+        $fileName = 'reporte_reportes_' . $exportData['anio'] . '_' . date('Y-m-d') . '.xlsx';
+        return $this->response->download($fileName, $contents);
     }
 
     /**
@@ -634,11 +827,16 @@ class DashboardAdmin extends BaseController
         if ($resp = $this->requireDashboardAdminAccess()) {
             return $resp;
         }
+        $userId = (int) $this->session->get('id');
         $tipo = $this->request->getGet('tipo') ?? 'metricas';
-        
-        // Aquí se puede implementar la exportación a PDF
-        // usando TCPDF, DOMPDF u otra librería similar
-        
-        return $this->response->download('reporte_' . $tipo . '_' . date('Y-m-d') . '.pdf', null);
+
+        if ($tipo !== 'reportes') {
+            return $this->response->setStatusCode(400)->setBody('Tipo de exportacion no soportado.');
+        }
+
+        $data = $this->buildReportesExportData($userId);
+        return $this->response
+            ->setHeader('Content-Type', 'text/html; charset=UTF-8')
+            ->setBody(view('deskapp/dashboard/reportes_print', $data));
     }
 }

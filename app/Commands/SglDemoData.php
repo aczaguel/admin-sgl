@@ -80,22 +80,6 @@ final class SglDemoData extends BaseCommand
             'status'       => 1,
         ]);
 
-        $ejecutivoYolandaId = $this->ensureCliDirectoEjecutivo($db, [
-            'cli_directo_id'     => $cliDirectoYolandaId,
-            'nombre'             => 'Ejecutivo Yolanda',
-            'correo_electronico' => 'ej.yolanda@demo.local',
-            'telefono'           => '5550000201',
-            'status'             => 1,
-        ]);
-
-        $ejecutivoSofiaId = $this->ensureCliDirectoEjecutivo($db, [
-            'cli_directo_id'     => $cliDirectoSofiaId,
-            'nombre'             => 'Ejecutivo Sofia',
-            'correo_electronico' => 'ej.sofia@demo.local',
-            'telefono'           => '5550000202',
-            'status'             => 1,
-        ]);
-
         // 3) Usuario dummy
         $userId = $this->ensureUser($db, [
             'username'  => 'luisa.flores',
@@ -106,6 +90,24 @@ final class SglDemoData extends BaseCommand
             'phone'     => '5550000301',
             'status'    => 1,
             'password'  => password_hash($passwordPlain, PASSWORD_DEFAULT),
+        ]);
+
+        $ejecutivoYolandaId = $this->ensureCliDirectoEjecutivo($db, [
+            'cli_directo_id'     => $cliDirectoYolandaId,
+            'nombre'             => 'Ejecutivo Yolanda',
+            'correo_electronico' => 'ej.yolanda@demo.local',
+            'telefono'           => '5550000201',
+            'status'             => 1,
+            'user_id'            => $userId,
+        ]);
+
+        $ejecutivoSofiaId = $this->ensureCliDirectoEjecutivo($db, [
+            'cli_directo_id'     => $cliDirectoSofiaId,
+            'nombre'             => 'Ejecutivo Sofia',
+            'correo_electronico' => 'ej.sofia@demo.local',
+            'telefono'           => '5550000202',
+            'status'             => 1,
+            'user_id'            => $userId,
         ]);
 
         // 4) Roles requeridos
@@ -122,8 +124,7 @@ final class SglDemoData extends BaseCommand
         $entidadId = $this->firstId($db, 'entidad') ?? $this->firstId($db, 'entidades') ?? 1;
         $entMunicipioId = $this->firstId($db, 'ent_municipio') ?? 266;
 
-        $empresaGestoraId = $this->firstId($db, 'empresa_gestora');
-        $gestorId = $this->firstId($db, 'ges_gestor');
+        [$empresaGestoraId, $gestorId] = $this->resolveGestoriaPair($db);
 
         $reembolsoStatusId = $this->firstId($db, 'reembolso_status');
         $cobroStatusId = $this->firstId($db, 'cobro_status');
@@ -171,6 +172,8 @@ final class SglDemoData extends BaseCommand
                 'empresa_gestora_id'     => $empresaGestoraId,
                 'gestor_id'              => $gestorId,
                 'derechos_tramite'       => 1500,
+                'derechos_pago_sitio'    => 'online',
+                'derechos_vigencia'      => date('Y-m-d H:i:s', strtotime('+15 days')),
                 'derechos_revol_cliente' => 'revolvente',
                 'derechos_refer_banc'    => 'REF-DEMO-' . $i,
                 'deposito_gestor'        => 500,
@@ -264,13 +267,14 @@ final class SglDemoData extends BaseCommand
     private function ensureCliDirectoEjecutivo($db, array $data): int
     {
         $row = $db->table('cli_directo_ejecutivo')
-            ->select('id')
+            ->select('id, user_id')
             ->where('cli_directo_id', $data['cli_directo_id'])
             ->where('nombre', $data['nombre'])
             ->get(1)
             ->getRowArray();
 
         if ($row && isset($row['id'])) {
+            $this->syncCliDirectoEjecutivoUser($db, (int) $row['id'], $data, $row);
             return (int) $row['id'];
         }
 
@@ -282,6 +286,32 @@ final class SglDemoData extends BaseCommand
 
         $db->table('cli_directo_ejecutivo')->insert($insert);
         return (int) $db->insertID();
+    }
+
+    private function syncCliDirectoEjecutivoUser($db, int $ejecutivoId, array $data, array $row): void
+    {
+        $userId = isset($data['user_id']) ? (int) $data['user_id'] : 0;
+        if ($ejecutivoId <= 0 || $userId <= 0) {
+            return;
+        }
+
+        $currentUserId = isset($row['user_id']) ? (int) $row['user_id'] : 0;
+        if ($currentUserId === $userId) {
+            return;
+        }
+
+        $update = $this->filterToTableColumns($db, 'cli_directo_ejecutivo', [
+            'user_id' => $userId,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        if ($update === []) {
+            return;
+        }
+
+        $db->table('cli_directo_ejecutivo')
+            ->where('id', $ejecutivoId)
+            ->update($update);
     }
 
     private function ensureUser($db, array $data): int
@@ -393,6 +423,21 @@ final class SglDemoData extends BaseCommand
     {
         $row = $db->table('tramite')->select('id')->where('folio', $data['folio'])->get(1)->getRowArray();
         if ($row && isset($row['id'])) {
+            $update = $data;
+            $update['updated_at'] = date('Y-m-d H:i:s');
+
+            $existing = $db->table('tramite')
+                ->select('started_at')
+                ->where('id', (int) $row['id'])
+                ->get(1)
+                ->getRowArray();
+
+            if (empty($existing['started_at'])) {
+                $update['started_at'] = date('Y-m-d H:i:s');
+            }
+
+            $update = $this->filterToTableColumns($db, 'tramite', $update);
+            $db->table('tramite')->where('id', (int) $row['id'])->update($update);
             return (int) $row['id'];
         }
 
@@ -405,6 +450,31 @@ final class SglDemoData extends BaseCommand
 
         $db->table('tramite')->insert($insert);
         return (int) $db->insertID();
+    }
+
+    /** @return array{0:?int,1:?int} */
+    private function resolveGestoriaPair($db): array
+    {
+        try {
+            $row = $db->table('ges_gestor')
+                ->select('id, empresa_gestora_id')
+                ->where('empresa_gestora_id IS NOT NULL', null, false)
+                ->where('empresa_gestora_id !=', 0)
+                ->orderBy('id', 'asc')
+                ->get(1)
+                ->getRowArray();
+
+            if (!empty($row['empresa_gestora_id']) && !empty($row['id'])) {
+                return [(int) $row['empresa_gestora_id'], (int) $row['id']];
+            }
+        } catch (\Throwable $e) {
+            // Fallback abajo.
+        }
+
+        return [
+            $this->firstId($db, 'ges_empresa_gestora'),
+            $this->firstId($db, 'ges_gestor'),
+        ];
     }
 
     private function ensureTramiteAsociado($db, int $tramiteId, int $traTiposId): void

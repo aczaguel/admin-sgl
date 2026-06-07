@@ -1,0 +1,30 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: admin-sgl:php82
+    container_name: admin-sgl-app
+    environment:
+      DOCKER_BASE_URL: ${DOCKER_BASE_URL:-http://localhost:${DOCKER_APP_PORT:-18080}/}
+      DOCKER_DB_HOST: ${DOCKER_DB_HOST:-host.docker.internal}
+    ports:
+      - "${DOCKER_APP_PORT:-18080}:80"
+    volumes:
+      - .:/var/www/html:cached
+    restart: unless-stopped
+
+  php82-spike:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: admin-sgl:php82
+    container_name: admin-sgl-php82-spike
+    profiles:
+      - tools
+    working_dir: /var/www/html
+    command: ["bash", "admin/php82-spike.sh", "php"]
+    environment:
+      DOCKER_DB_HOST: ${DOCKER_DB_HOST:-host.docker.internal}
+    volumes:
+      - .:/var/www/html:cached

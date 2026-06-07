@@ -10,6 +10,8 @@ use CodeIgniter\CLI\CLI;
 
 final class DispatchExternalWebhooks extends BaseCommand
 {
+    private ?ExternalTramiteService $service = null;
+
     protected $group       = 'SGL';
     protected $name        = 'external-api:dispatch-webhooks';
     protected $description = 'Despacha webhooks pendientes de la API externa de trámites.';
@@ -23,7 +25,7 @@ final class DispatchExternalWebhooks extends BaseCommand
     public function run(array $params)
     {
         $limit = (int) ($params['limit'] ?? CLI::getOption('limit') ?? 20);
-        $service = new ExternalTramiteService();
+        $service = $this->createService();
         $result = $service->dispatchPendingWebhookEvents($limit);
 
         if (!($result['success'] ?? false)) {
@@ -35,5 +37,17 @@ final class DispatchExternalWebhooks extends BaseCommand
         CLI::write('Procesados: ' . (int) ($result['processed'] ?? 0));
         CLI::write('Entregados: ' . (int) ($result['delivered'] ?? 0));
         CLI::write('Con error: ' . (int) ($result['failed'] ?? 0));
+    }
+
+    public function setService(ExternalTramiteService $service): self
+    {
+        $this->service = $service;
+
+        return $this;
+    }
+
+    protected function createService(): ExternalTramiteService
+    {
+        return $this->service ?? new ExternalTramiteService();
     }
 }

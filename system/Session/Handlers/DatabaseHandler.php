@@ -318,6 +318,7 @@ class DatabaseHandler extends BaseHandler
 	 *
 	 * @return boolean
 	 */
+	#[\ReturnTypeWillChange]
 	public function gc($maxlifetime): bool
 	{
 		return ($this->db->table($this->table)->delete('timestamp < ' . (time() - $maxlifetime))) ? true : $this->fail();

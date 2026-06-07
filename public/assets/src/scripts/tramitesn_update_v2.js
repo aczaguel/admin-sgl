@@ -858,6 +858,83 @@ console.log('tramitesn_update_v2 loaded');
 			return form ? form.action : '';
 		}
 
+		function appendFieldToFormData(fd, el) {
+			if (!el || !el.name || el.disabled) return;
+			if (el.type === 'radio') {
+				if (el.checked) fd.append(el.name, el.value);
+				return;
+			}
+			if (el.type === 'checkbox') {
+				if (el.checked) fd.append(el.name, el.value || '1');
+				return;
+			}
+			if (el.type === 'file') {
+				Array.prototype.forEach.call(el.files || [], function (file) {
+					fd.append(el.name, file);
+				});
+				return;
+			}
+			fd.append(el.name, el.value);
+		}
+
+		function buildStepSubsetFormData(step, fieldNames) {
+			var fd = new FormData();
+			if (csrfName && csrfHash) {
+				fd.set(csrfName, csrfHash);
+			}
+			fd.set('current_step', String(step));
+			var allowed = {};
+			(fieldNames || []).forEach(function (fieldName) {
+				allowed[fieldName] = true;
+			});
+			var container = document.querySelector('.wizard-section[data-step="' + step + '"]');
+			var fields = container ? container.querySelectorAll('input[name], select[name], textarea[name]') : [];
+			fields.forEach(function (el) {
+				if (!allowed[el.name]) return;
+				appendFieldToFormData(fd, el);
+			});
+			return fd;
+		}
+
+		async function postStepForm(endpoint, formData) {
+			var resp = await fetch(endpoint, {
+				method: 'POST',
+				body: formData,
+				headers: { 'X-Requested-With': 'XMLHttpRequest' }
+			});
+			var data = await resp.json();
+			if (data && data.csrfHash) updateCsrf(data.csrfHash);
+			return data;
+		}
+
+		async function submitCombinedStep23() {
+			var gestorData = buildStepSubsetFormData(2, [
+				'empresa_gestora_id',
+				'gestor_id'
+			]);
+			var gestorResult = await postStepForm(cfg.urls.updateGestorSave, gestorData);
+			if (!(gestorResult && gestorResult.success)) {
+				return gestorResult;
+			}
+
+			var derechosData = buildStepSubsetFormData(2, [
+				'derechos_tramite',
+				'derechos_pago_sitio',
+				'derechos_vigencia',
+				'derechos_revol_cliente',
+				'derechos_refer_banc'
+			]);
+			var derechosResult = await postStepForm(cfg.urls.updateDerechosSave, derechosData);
+			if (!(derechosResult && derechosResult.success)) {
+				return derechosResult;
+			}
+
+			return Object.assign({}, derechosResult, {
+				success: true,
+				message: 'Gestor y pago de derechos guardados correctamente.'
+			});
+		}
+
 		function isApprovedStatus(statusId) {
 			return [23, 27, 28, 20, 21].indexOf(parseInt(statusId || 0, 10)) !== -1;
 		}
@@ -945,16 +1022,15 @@ console.log('tramitesn_update_v2 loaded');
 				isSaving = false;
 				return false;
 			}
-			var endpoint = getEndpointForStep(currentStepValue, form);
-			var formData = buildStepFormData(currentStepValue, form);
 			try {
-				var resp = await fetch(endpoint, {
-					method: 'POST',
-					body: formData,
-					headers: { 'X-Requested-With': 'XMLHttpRequest' }
-				});
-				var data = await resp.json();
-				if (data && data.csrfHash) updateCsrf(data.csrfHash);
+				var data;
+				if (cfg.mergeStep23 && currentStepValue === 2) {
+					data = await submitCombinedStep23();
+				} else {
+					var endpoint = getEndpointForStep(currentStepValue, form);
+					var formData = buildStepFormData(currentStepValue, form);
+					data = await postStepForm(endpoint, formData);
+				}
 				if (data && data.success) {
 					if (requireSavedSteps[currentStepValue] || requireSavedSteps[String(currentStepValue)]) {
 						savedStepSignatures[String(currentStepValue)] = captureStepSignature(currentStepValue);
@@ -962,7 +1038,7 @@ console.log('tramitesn_update_v2 loaded');
 					}
 					var successMessage = data.message || 'Guardado correctamente.';
 					var shouldPersistMessage = false;
-					if (currentStepValue === 3 && !isApprovedStatus(TRA_STATUS_ID)) {
+					if ((currentStepValue === 3 || (cfg.mergeStep23 && currentStepValue === 2)) && !isApprovedStatus(TRA_STATUS_ID)) {
 						successMessage = 'Tramite en espera de autorizacion.';
 						shouldPersistMessage = true;
 					}
@@ -980,7 +1056,7 @@ console.log('tramitesn_update_v2 loaded');
 						notifySuccess('Guardado', successMessage);
 					}
 					validateStep(currentStepValue);
-					if (currentStepValue === 3) {
+					if (currentStepValue === 3 || (cfg.mergeStep23 && currentStepValue === 2)) {
 						updateApprovalBlock();
 					}
 					return true;

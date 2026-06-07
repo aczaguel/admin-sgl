@@ -1,164 +1,29 @@
 <?= $this->extend('layout/main') ?>
 
 <?php $assets = base_url('/public/assets'); ?>
+<?php
+    $tramitesBaseUrl = base_url('/deskapp/tramitesn/tramite');
+    $tramitesNormalUrl = $tramitesBaseUrl;
+    $tramitesAttentionUrl = $tramitesBaseUrl . '?bucket=attention';
+    $tramitesRiesgoUrl = $tramitesBaseUrl . '?bucket=riesgo';
+    $tramitesVencidosUrl = $tramitesBaseUrl . '?bucket=vencido';
+?>
+
+<?= $this->section('additional_css') ?>
 
 <!-- CSS adicionales -->
 <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
-<link rel="stylesheet" href="<?= $assets ?>/vendors/styles/style.css">
 
-<style>
-    /* Dashboard Admin visual refresh (no functional changes) */
-    :root {
-        --da-ink: #1f2933;
-        --da-muted: #637381;
-        --da-surface: #ffffff;
-        --da-panel: #f7f5f0;
-        --da-accent: #0f766e;
-        --da-accent-2: #f59e0b;
-        --da-accent-3: #2563eb;
-        --da-border: #e6e2d9;
-        --da-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
-    }
-
-    .main-container {
-        background: radial-gradient(circle at top left, #f5efe6 0%, #f9fafb 55%, #ffffff 100%);
-    }
-
-    .page-header .title h4 {
-        font-family: "Poppins", "Montserrat", sans-serif;
-        color: var(--da-ink);
-        letter-spacing: 0.2px;
-    }
-
-    .breadcrumb a,
-    .breadcrumb-item {
-        color: var(--da-muted);
-    }
-
-    .card-box,
-    .widget-style3 {
-        border: 1px solid var(--da-border);
-        border-radius: 14px;
-        box-shadow: var(--da-shadow);
-        background: var(--da-surface);
-    }
-
-    .card-box.pd-20 {
-        background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
-    }
-
-    .card-box .h4,
-    .card-box .h5 {
-        font-family: "Poppins", "Montserrat", sans-serif;
-        color: var(--da-ink);
-    }
-
-    .text-blue {
-        color: var(--da-accent) !important;
-    }
-
-    .widget-style3 {
-        background: linear-gradient(135deg, #ffffff 0%, #f7f7f2 100%);
-    }
-
-    .widget-style3 .widget-data .weight-700 {
-        color: var(--da-ink);
-    }
-
-    .widget-style3 .widget-icon .icon-copy {
-        filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.12));
-    }
-
-    .alert {
-        border-radius: 12px;
-        box-shadow: var(--da-shadow);
-    }
-
-    .alert .alert-link {
-        color: inherit;
-        text-decoration: underline;
-    }
-
-    .table thead th {
-        background: var(--da-panel);
-        color: var(--da-ink);
-        border-bottom: 1px solid var(--da-border);
-    }
-
-    .table {
-        color: var(--da-ink);
-    }
-
-    .table td,
-    .table th {
-        border-top: 1px solid var(--da-border);
-    }
-
-    .table tbody tr:hover {
-        background: rgba(15, 118, 110, 0.05);
-    }
-
-    .badge {
-        border-radius: 999px;
-        padding: 6px 10px;
-        font-weight: 600;
-        letter-spacing: 0.2px;
-    }
-
-    .badge.badge-dark {
-        background: #4b5563;
-    }
-
-    .badge.badge-info {
-        background: #38bdf8;
-    }
-
-    .badge.badge-danger {
-        background: #ef4444;
-    }
-
-    .badge.badge-success {
-        background: #22c55e;
-    }
-
-    .btn.btn-primary {
-        background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
-        border: none;
-        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
-    }
-
-    .btn.btn-primary:hover {
-        filter: brightness(0.95);
-    }
-
-    .dropdown-menu {
-        border-radius: 12px;
-        box-shadow: var(--da-shadow);
-    }
-
-    .page-header {
-        background: #ffffff;
-        border: 1px solid var(--da-border);
-        border-radius: 16px;
-        padding: 18px 20px;
-        box-shadow: var(--da-shadow);
-    }
-
-    .page-header .breadcrumb {
-        background: transparent;
-        padding: 0;
-        margin-bottom: 0;
-    }
-</style>
+<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
 <div class="main-container">
     <div class="pd-ltr-20 xs-pd-20-10">
-        <div class="min-height-200px">
+        <div class="min-height-200px dashboard-admin-page">
             
             <!-- Header -->
-            <div class="page-header">
+            <div class="page-header da-page-header">
                 <div class="row">
                     <div class="col-md-6 col-sm-12">
                         <div class="title">
@@ -174,7 +39,7 @@
                     <div class="col-md-6 col-sm-12 text-right">
                         <?php $cliente_qs = !empty($cliente_id_filtro) ? ('cliente_id=' . (int)$cliente_id_filtro) : ''; ?>
 
-                        <div class="d-flex justify-content-end align-items-start flex-wrap" style="gap: 10px;">
+                        <div class="da-toolbar">
                         <div class="dropdown">
                             <a class="btn btn-primary dropdown-toggle" href="#" role="button" data-toggle="dropdown">
                                 <i class="icon-copy dw dw-calendar-1"></i> Año: <?= isset($anio_seleccionado) ? $anio_seleccionado : date('Y') ?>
@@ -226,27 +91,33 @@
                 <!-- Semaforo de atencion -->
                 <div class="row">
                     <div class="col-md-12 mb-30">
-                        <div class="card-box pd-20">
-                            <h4 class="h4 text-blue mb-20">
+                        <div class="card-box pd-20 da-panel">
+                            <h4 class="h4 text-blue mb-20 da-panel-title">
                                 <i class="icon-copy fa fa-traffic-light"></i> Semaforo de atencion (local vs foraneo)
                             </h4>
+                            <div class="da-quick-links mb-20">
+                                <a href="<?= esc($tramitesNormalUrl) ?>" class="btn btn-sm btn-outline-primary">Flujo normal</a>
+                                <a href="<?= esc($tramitesAttentionUrl) ?>" class="btn btn-sm btn-outline-danger">Bandeja de atención</a>
+                                <a href="<?= esc($tramitesRiesgoUrl) ?>" class="btn btn-sm btn-outline-warning">En riesgo</a>
+                                <a href="<?= esc($tramitesVencidosUrl) ?>" class="btn btn-sm btn-outline-dark">Vencidos</a>
+                            </div>
                             <div class="row">
                                 <div class="col-md-6 mb-20">
                                     <h6 class="text-muted mb-10">Locales (CDMX + EdoMex)</h6>
-                                    <div class="d-flex flex-wrap" style="gap: 10px;">
-                                        <span class="badge badge-success">Verde: <?= (int)($semaforo['local_verde'] ?? 0) ?></span>
-                                        <span class="badge badge-info">Amarillo: <?= (int)($semaforo['local_amarillo'] ?? 0) ?></span>
-                                        <span class="badge badge-danger">Rojo: <?= (int)($semaforo['local_rojo'] ?? 0) ?></span>
-                                        <span class="badge badge-dark">Violeta: <?= (int)($semaforo['local_violeta'] ?? 0) ?></span>
+                                    <div class="da-chip-row">
+                                        <span class="badge badge-success da-chip">Verde: <?= (int)($semaforo['local_verde'] ?? 0) ?></span>
+                                        <a href="<?= esc($tramitesRiesgoUrl) ?>" class="badge badge-info da-chip">Amarillo: <?= (int)($semaforo['local_amarillo'] ?? 0) ?></a>
+                                        <a href="<?= esc($tramitesRiesgoUrl) ?>" class="badge badge-danger da-chip">Rojo: <?= (int)($semaforo['local_rojo'] ?? 0) ?></a>
+                                        <a href="<?= esc($tramitesVencidosUrl) ?>" class="badge badge-dark da-chip">Violeta: <?= (int)($semaforo['local_violeta'] ?? 0) ?></a>
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-20">
                                     <h6 class="text-muted mb-10">Foraneos</h6>
-                                    <div class="d-flex flex-wrap" style="gap: 10px;">
-                                        <span class="badge badge-success">Verde: <?= (int)($semaforo['foraneo_verde'] ?? 0) ?></span>
-                                        <span class="badge badge-info">Amarillo: <?= (int)($semaforo['foraneo_amarillo'] ?? 0) ?></span>
-                                        <span class="badge badge-danger">Rojo: <?= (int)($semaforo['foraneo_rojo'] ?? 0) ?></span>
-                                        <span class="badge badge-dark">Violeta: <?= (int)($semaforo['foraneo_violeta'] ?? 0) ?></span>
+                                    <div class="da-chip-row">
+                                        <span class="badge badge-success da-chip">Verde: <?= (int)($semaforo['foraneo_verde'] ?? 0) ?></span>
+                                        <a href="<?= esc($tramitesRiesgoUrl) ?>" class="badge badge-info da-chip">Amarillo: <?= (int)($semaforo['foraneo_amarillo'] ?? 0) ?></a>
+                                        <a href="<?= esc($tramitesRiesgoUrl) ?>" class="badge badge-danger da-chip">Rojo: <?= (int)($semaforo['foraneo_rojo'] ?? 0) ?></a>
+                                        <a href="<?= esc($tramitesVencidosUrl) ?>" class="badge badge-dark da-chip">Violeta: <?= (int)($semaforo['foraneo_violeta'] ?? 0) ?></a>
                                     </div>
                                 </div>
                             </div>
@@ -257,10 +128,10 @@
                 <!-- Sin movimiento mas de 7 dias por criterio -->
                 <div class="row">
                     <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
-                        <div class="card-box pd-20">
+                        <div class="card-box pd-20 da-panel">
                             <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Tipo de Servicio</h5>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
+                            <div class="table-responsive da-grid">
+                                <table class="table table-sm da-table">
                                     <thead>
                                         <tr>
                                             <th>Tipo</th>
@@ -276,7 +147,7 @@
                                                 </tr>
                                             <?php endforeach; ?>
                                         <?php else: ?>
-                                            <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                            <tr><td colspan="2" class="da-empty">Sin datos</td></tr>
                                         <?php endif; ?>
                                     </tbody>
                                 </table>
@@ -285,10 +156,10 @@
                     </div>
 
                     <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
-                        <div class="card-box pd-20">
+                        <div class="card-box pd-20 da-panel">
                             <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Estado</h5>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
+                            <div class="table-responsive da-grid">
+                                <table class="table table-sm da-table">
                                     <thead>
                                         <tr>
                                             <th>Estado</th>
@@ -304,7 +175,7 @@
                                                 </tr>
                                             <?php endforeach; ?>
                                         <?php else: ?>
-                                            <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                            <tr><td colspan="2" class="da-empty">Sin datos</td></tr>
                                         <?php endif; ?>
                                     </tbody>
                                 </table>
@@ -313,10 +184,10 @@
                     </div>
 
                     <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
-                        <div class="card-box pd-20">
+                        <div class="card-box pd-20 da-panel">
                             <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Cliente (Top 10)</h5>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
+                            <div class="table-responsive da-grid">
+                                <table class="table table-sm da-table">
                                     <thead>
                                         <tr>
                                             <th>Cliente</th>
@@ -332,7 +203,7 @@
                                                 </tr>
                                             <?php endforeach; ?>
                                         <?php else: ?>
-                                            <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                            <tr><td colspan="2" class="da-empty">Sin datos</td></tr>
                                         <?php endif; ?>
                                     </tbody>
                                 </table>
@@ -351,56 +222,56 @@
 
             <div class="row">
                 <div class="col-xl-3 col-lg-3 col-md-6 mb-20">
-                    <div class="card-box height-100-p widget-style3">
+                    <div class="card-box height-100-p widget-style3 da-kpi-card da-kpi-card--activos">
                         <div class="d-flex flex-wrap">
                             <div class="widget-data">
                                 <div class="weight-700 font-24 text-dark"><?= isset($kpis['tramites_activos']) ? number_format($kpis['tramites_activos']) : 0 ?></div>
                                 <div class="font-14 text-secondary weight-500">Trámites Activos</div>
                             </div>
                             <div class="widget-icon">
-                                <div class="icon-copy fa fa-tasks" style="font-size: 48px; color: #1b00ff;"></div>
+                                <div class="icon-copy fa fa-tasks da-kpi-icon"></div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="col-xl-3 col-lg-3 col-md-6 mb-20">
-                    <div class="card-box height-100-p widget-style3">
+                    <div class="card-box height-100-p widget-style3 da-kpi-card da-kpi-card--conversion">
                         <div class="d-flex flex-wrap">
                             <div class="widget-data">
                                 <div class="weight-700 font-24 text-dark"><?= isset($kpis['tasa_conversion_mes']) ? $kpis['tasa_conversion_mes'] : 0 ?>%</div>
                                 <div class="font-14 text-secondary weight-500">Tasa de Conversión</div>
                             </div>
                             <div class="widget-icon">
-                                <div class="icon-copy fa fa-chart-line" style="font-size: 48px; color: #00e091;"></div>
+                                <div class="icon-copy fa fa-chart-line da-kpi-icon"></div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="col-xl-3 col-lg-3 col-md-6 mb-20">
-                    <div class="card-box height-100-p widget-style3">
+                    <div class="card-box height-100-p widget-style3 da-kpi-card da-kpi-card--tiempo">
                         <div class="d-flex flex-wrap">
                             <div class="widget-data">
                                 <div class="weight-700 font-24 text-dark"><?= isset($kpis['tiempo_promedio_gestion']) ? round($kpis['tiempo_promedio_gestion'], 1) : 0 ?></div>
                                 <div class="font-14 text-secondary weight-500">Días Promedio de Gestión</div>
                             </div>
                             <div class="widget-icon">
-                                <div class="icon-copy fa fa-clock" style="font-size: 48px; color: #ffc107;"></div>
+                                <div class="icon-copy fa fa-clock da-kpi-icon"></div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="col-xl-3 col-lg-3 col-md-6 mb-20">
-                    <div class="card-box height-100-p widget-style3">
+                    <div class="card-box height-100-p widget-style3 da-kpi-card da-kpi-card--cobro">
                         <div class="d-flex flex-wrap">
                             <div class="widget-data">
                                 <div class="weight-700 font-24 text-dark">$<?= isset($kpis['monto_pendiente_cobro']) ? number_format($kpis['monto_pendiente_cobro'], 2) : 0 ?></div>
                                 <div class="font-14 text-secondary weight-500">Pendiente de Cobro</div>
                             </div>
                             <div class="widget-icon">
-                                <div class="icon-copy fa fa-dollar-sign" style="font-size: 48px; color: #dc3545;"></div>
+                                <div class="icon-copy fa fa-dollar-sign da-kpi-icon"></div>
                             </div>
                         </div>
                     </div>
@@ -410,7 +281,7 @@
             <!-- Métricas por Período -->
             <div class="row">
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-30">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 da-stat-card">
                         <h5 class="h5 text-blue">Hoy</h5>
                         <hr>
                         <div class="font-14">
@@ -435,7 +306,7 @@
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-30">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 da-stat-card">
                         <h5 class="h5 text-blue">Esta Semana</h5>
                         <hr>
                         <div class="font-14">
@@ -460,7 +331,7 @@
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-30">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 da-stat-card">
                         <h5 class="h5 text-blue">Este Mes</h5>
                         <hr>
                         <div class="font-14">
@@ -485,7 +356,7 @@
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12 mb-30">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 da-stat-card">
                         <h5 class="h5 text-blue">Enero a la Fecha</h5>
                         <hr>
                         <div class="font-14">
@@ -513,16 +384,16 @@
             <!-- Embudo de Conversión -->
             <div class="row">
                 <div class="col-xl-8 col-lg-8 col-md-12 mb-30">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 da-chart-card">
                         <h4 class="h4 text-blue mb-20">Embudo de Conversión (Este Mes)</h4>
-                        <div id="embudoChart" style="height: 400px;"></div>
+                        <div id="embudoChart" class="da-chart"></div>
                     </div>
                 </div>
 
                 <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 da-chart-card">
                         <h4 class="h4 text-blue mb-20">Distribución por Estado</h4>
-                        <div id="estadosChart" style="height: 400px;"></div>
+                        <div id="estadosChart" class="da-chart"></div>
                     </div>
                 </div>
             </div>
@@ -530,10 +401,10 @@
             <!-- Top Ejecutivos y Gestores -->
             <div class="row">
                 <div class="col-xl-6 col-lg-6 col-md-12 mb-30">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 da-panel">
                         <h4 class="h4 text-blue mb-20">Top 5 Ejecutivos (Este Mes)</h4>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
+                        <div class="table-responsive da-grid">
+                            <table class="table table-striped da-table">
                                 <thead>
                                     <tr>
                                         <th>Ejecutivo</th>
@@ -554,7 +425,7 @@
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="4" class="text-center">No hay datos disponibles</td>
+                                            <td colspan="4" class="da-empty">No hay datos disponibles</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -564,10 +435,10 @@
                 </div>
 
                 <div class="col-xl-6 col-lg-6 col-md-12 mb-30">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 da-panel">
                         <h4 class="h4 text-blue mb-20">Top 5 Gestores (Este Mes)</h4>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
+                        <div class="table-responsive da-grid">
+                            <table class="table table-striped da-table">
                                 <thead>
                                     <tr>
                                         <th>Gestor</th>
@@ -591,7 +462,7 @@
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="4" class="text-center">No hay datos disponibles</td>
+                                            <td colspan="4" class="da-empty">No hay datos disponibles</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -604,13 +475,13 @@
             <!-- Alertas Recientes -->
             <div class="row">
                 <div class="col-xl-12 col-lg-12 col-md-12 mb-30">
-                    <div class="card-box pd-20 height-100-p">
-                        <div class="d-flex justify-content-between mb-20">
+                    <div class="card-box pd-20 height-100-p da-panel">
+                        <div class="da-panel-header">
                             <h4 class="h4 text-blue">Alertas Críticas</h4>
                             <a href="<?= base_url('/deskapp/dashboardadmin/alertas') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>" class="btn btn-sm btn-primary">Ver Todas</a>
                         </div>
                         
-                        <ul class="nav nav-tabs" role="tablist">
+                        <ul class="nav nav-tabs da-alert-tabs" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" data-toggle="tab" href="#retrasados" role="tab">
                                     Retrasados <span class="badge badge-danger"><?= $count_retrasados ?></span>
@@ -630,8 +501,8 @@
 
                         <div class="tab-content pt-20">
                             <div class="tab-pane fade show active" id="retrasados" role="tabpanel">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
+                                <div class="table-responsive da-grid">
+                                    <table class="table table-hover da-table">
                                         <thead>
                                             <tr>
                                                 <th>Folio</th>
@@ -654,13 +525,13 @@
                                                     <td><?= esc($tramite['ejecutivo']) ?></td>
                                                     <td><span class="badge badge-danger"><?= $tramite['dias_transcurridos'] ?> días</span></td>
                                                     <td>
-                                                        <a href="<?= base_url('/deskapp/tramites/update/' . $tramite['id']) ?>" class="btn btn-sm btn-primary">Ver</a>
+                                                        <a href="<?= base_url('/deskapp/tramites/update/' . $tramite['id']) ?>" class="btn btn-sm btn-primary da-row-action">Ver</a>
                                                     </td>
                                                 </tr>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
                                                 <tr>
-                                                    <td colspan="7" class="text-center">No hay trámites retrasados</td>
+                                                    <td colspan="7" class="da-empty">No hay trámites retrasados</td>
                                                 </tr>
                                             <?php endif; ?>
                                         </tbody>
@@ -669,8 +540,8 @@
                             </div>
 
                             <div class="tab-pane fade" id="pendientes" role="tabpanel">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
+                                <div class="table-responsive da-grid">
+                                    <table class="table table-hover da-table">
                                         <thead>
                                             <tr>
                                                 <th>Folio</th>
@@ -693,13 +564,13 @@
                                                     <td>$<?= number_format($tramite['costo_total'], 2) ?></td>
                                                     <td><span class="badge badge-warning"><?= $tramite['dias_sin_cobrar'] ?> días</span></td>
                                                     <td>
-                                                        <a href="<?= base_url('/deskapp/tramites/update/' . $tramite['id']) ?>" class="btn btn-sm btn-primary">Ver</a>
+                                                        <a href="<?= base_url('/deskapp/tramites/update/' . $tramite['id']) ?>" class="btn btn-sm btn-primary da-row-action">Ver</a>
                                                     </td>
                                                 </tr>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
                                                 <tr>
-                                                    <td colspan="7" class="text-center">No hay trámites pendientes de cobro</td>
+                                                    <td colspan="7" class="da-empty">No hay trámites pendientes de cobro</td>
                                                 </tr>
                                             <?php endif; ?>
                                         </tbody>
@@ -708,8 +579,8 @@
                             </div>
 
                             <div class="tab-pane fade" id="estancados" role="tabpanel">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
+                                <div class="table-responsive da-grid">
+                                    <table class="table table-hover da-table">
                                         <thead>
                                             <tr>
                                                 <th>Folio</th>
@@ -732,13 +603,13 @@
                                                     <td><?= esc($tramite['ejecutivo']) ?></td>
                                                     <td><span class="badge badge-secondary"><?= $tramite['dias_sin_movimiento'] ?> días</span></td>
                                                     <td>
-                                                        <a href="<?= base_url('/deskapp/tramites/update/' . $tramite['id']) ?>" class="btn btn-sm btn-primary">Ver</a>
+                                                        <a href="<?= base_url('/deskapp/tramites/update/' . $tramite['id']) ?>" class="btn btn-sm btn-primary da-row-action">Ver</a>
                                                     </td>
                                                 </tr>
                                                 <?php endforeach; ?>
                                             <?php else: ?>
                                                 <tr>
-                                                    <td colspan="7" class="text-center">No hay trámites estancados</td>
+                                                    <td colspan="7" class="da-empty">No hay trámites estancados</td>
                                                 </tr>
                                             <?php endif; ?>
                                         </tbody>

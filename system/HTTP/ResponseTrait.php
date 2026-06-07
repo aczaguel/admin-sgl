@@ -461,7 +461,7 @@ trait ResponseTrait
 		}
 		else
 		{
-			$this->body = str_replace(['{csp-style-nonce}', '{csp-script-nonce}'], '', $this->body);
+			$this->body = str_replace(['{csp-style-nonce}', '{csp-script-nonce}'], '', (string) $this->body);
 		}
 
 		$this->sendHeaders();

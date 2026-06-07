@@ -81,7 +81,7 @@ if (! function_exists('get_cookie'))
 		$prefix          = isset($_COOKIE[$index]) ? '' : $appCookiePrefix;
 
 		$request = Services::request();
-		$filter  = true === $xssClean ? FILTER_SANITIZE_STRING : null;
+		$filter  = true === $xssClean ? FILTER_SANITIZE_FULL_SPECIAL_CHARS : null;
 
 		return $request->getCookie($prefix . $index, $filter);
 	}

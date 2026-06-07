@@ -701,7 +701,7 @@ if (! function_exists('is_upper_role')) {
     }
 }
 if (!function_exists('puede_modificar')) {
-    function puede_modificar($roles, $estado, $campo, $reembolso_status_id = null, $cobro_status_id = null, $step) {
+    function puede_modificar($roles, $estado, $campo, $reembolso_status_id = null, $cobro_status_id = null, $step = 0) {
         // Falta agregar la logica para los roles que pueden visualizar botones y campos
             
         // Obtener los campos editables
@@ -789,7 +789,7 @@ if (!function_exists('estatus_editable')) {
 }
 
 if (!function_exists('puede_editar_modulo')) {
-    function puede_editar_modulo($roles, $estado, $campo, $reembolso_status_id = null, $cobro_status_id = null, $current_step, $perms = null) {
+    function puede_editar_modulo($roles, $estado, $campo, $reembolso_status_id = null, $cobro_status_id = null, $current_step = 0, $perms = null) {
         if ($perms === null) {
             try {
                 $perms = session()->get('user_permissions');

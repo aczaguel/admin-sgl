@@ -250,7 +250,7 @@ class RouteCollection implements RouteCollectionInterface
 	 */
 	public function setDefaultNamespace(string $value): RouteCollectionInterface
 	{
-		$this->defaultNamespace = filter_var($value, FILTER_SANITIZE_STRING);
+		$this->defaultNamespace = $this->sanitizeString($value);
 		$this->defaultNamespace = rtrim($this->defaultNamespace, '\\') . '\\';
 
 		return $this;
@@ -268,7 +268,7 @@ class RouteCollection implements RouteCollectionInterface
 	 */
 	public function setDefaultController(string $value): RouteCollectionInterface
 	{
-		$this->defaultController = filter_var($value, FILTER_SANITIZE_STRING);
+		$this->defaultController = $this->sanitizeString($value);
 
 		return $this;
 	}
@@ -285,7 +285,7 @@ class RouteCollection implements RouteCollectionInterface
 	 */
 	public function setDefaultMethod(string $value): RouteCollectionInterface
 	{
-		$this->defaultMethod = filter_var($value, FILTER_SANITIZE_STRING);
+		$this->defaultMethod = $this->sanitizeString($value);
 
 		return $this;
 	}
@@ -788,7 +788,7 @@ class RouteCollection implements RouteCollectionInterface
 		// $name value with the name of the new controller.
 		if (isset($options['controller']))
 		{
-			$newName = ucfirst(filter_var($options['controller'], FILTER_SANITIZE_STRING));
+			$newName = ucfirst($this->sanitizeString($options['controller']));
 		}
 
 		// In order to allow customization of allowed id values
@@ -901,7 +901,7 @@ class RouteCollection implements RouteCollectionInterface
 		// $name value with the name of the new controller.
 		if (isset($options['controller']))
 		{
-			$newName = ucfirst(filter_var($options['controller'], FILTER_SANITIZE_STRING));
+			$newName = ucfirst($this->sanitizeString($options['controller']));
 		}
 
 		// In order to allow customization of allowed id values
@@ -1356,7 +1356,7 @@ class RouteCollection implements RouteCollectionInterface
 		$overwrite = false;
 		$prefix    = is_null($this->group) ? '' : $this->group . '/';
 
-		$from = filter_var($prefix . $from, FILTER_SANITIZE_STRING);
+		$from = $this->sanitizeString($prefix . $from);
 
 		// While we want to add a route within a group of '/',
 		// it doesn't work with matching, so remove them...
@@ -1595,5 +1595,17 @@ class RouteCollection implements RouteCollectionInterface
 		}
 
 		return $options;
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Normaliza strings sin depender de FILTER_SANITIZE_STRING.
+	 */
+	protected function sanitizeString(string $value): string
+	{
+		$value = strip_tags($value);
+
+		return preg_replace('/[\x00-\x1F\x7F]/u', '', $value) ?? '';
 	}
 }

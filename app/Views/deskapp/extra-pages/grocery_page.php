@@ -33,6 +33,45 @@
 			opacity: 0.9;
 		}
 
+		.grocery-crud-header__title-row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 16px;
+			flex-wrap: wrap;
+		}
+
+		.grocery-crud-header__badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 14px;
+			border-radius: 999px;
+			font-size: 12px;
+			font-weight: 800;
+			letter-spacing: .04em;
+			text-transform: uppercase;
+			border: 1px solid rgba(255,255,255,.3);
+			background: rgba(255,255,255,.16);
+			color: #fff;
+		}
+
+		.grocery-crud-header__badge--normal {
+			background: rgba(15, 23, 42, 0.22);
+		}
+
+		.grocery-crud-header__badge--attention {
+			background: rgba(127, 29, 29, 0.4);
+		}
+
+		.grocery-crud-header__badge--riesgo {
+			background: rgba(146, 64, 14, 0.45);
+		}
+
+		.grocery-crud-header__badge--vencido {
+			background: rgba(49, 46, 129, 0.5);
+		}
+
 		.grocery-crud-header p {
 			margin: 0;
 			opacity: 0.95;
@@ -384,6 +423,10 @@
 				font-size: 20px;
 			}
 
+			.grocery-crud-header__title-row {
+				align-items: flex-start;
+			}
+
 			.grocery-crud-body {
 				padding: 20px;
 			}
@@ -664,10 +707,17 @@
 				<div class="grocery-crud-wrapper">
 					<!-- Header Section -->
 					<div class="grocery-crud-header">
-						<h2>
-							<i class="fas fa-table"></i>
-							<?= $title ?? 'Gestión de Datos' ?>
-						</h2>
+						<div class="grocery-crud-header__title-row">
+							<h2>
+								<i class="fas fa-table"></i>
+								<?= $title ?? 'Gestión de Datos' ?>
+							</h2>
+							<?php if (!empty($header_badge_label)): ?>
+								<span class="grocery-crud-header__badge grocery-crud-header__badge--<?= esc((string) ($header_badge_tone ?? 'normal')) ?>">
+									<?= esc((string) $header_badge_label) ?>
+								</span>
+							<?php endif; ?>
+						</div>
 						<p><?= $description ?? 'Administra y gestiona la información de forma eficiente' ?></p>
 					</div>
 

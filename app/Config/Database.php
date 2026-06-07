@@ -82,6 +82,12 @@ class Database extends Config
 	{
 		parent::__construct();
 
+		$dockerDbHost = trim((string) env('DOCKER_DB_HOST', ''));
+		if ($dockerDbHost !== '')
+		{
+			$this->default['hostname'] = $dockerDbHost;
+		}
+
 		// Ensure that we always set the database group to 'tests' if
 		// we are currently running an automated test suite, so that
 		// we don't overwrite live data on accident.

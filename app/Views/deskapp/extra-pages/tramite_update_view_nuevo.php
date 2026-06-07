@@ -465,11 +465,6 @@
 							<section>
 								<?= $this->include('deskapp/extra-pages/tramite_update/steps/step_2') ?>
 							</section>
-
-							<h3>Paso 3</h3>
-							<section>
-								<?= $this->include('deskapp/extra-pages/tramite_update/steps/step_3') ?>
-							</section>
 						</div>
 					<?php else: ?>
 						<?php if ($onlySectionStep === 1): ?>
@@ -477,7 +472,7 @@
 						<?php elseif ($onlySectionStep === 2): ?>
 							<?= $this->include('deskapp/extra-pages/tramite_update/steps/step_2') ?>
 						<?php elseif ($onlySectionStep === 3): ?>
-							<?= $this->include('deskapp/extra-pages/tramite_update/steps/step_3') ?>
+							<?= $this->include('deskapp/extra-pages/tramite_update/steps/step_2') ?>
 						<?php endif; ?>
 
 						<div class="d-flex justify-content-end mt-3">
@@ -751,7 +746,8 @@
 	?>
 
 	window.SGL_TRAMITESN_UPDATE_V2 = {
-		maxStep: 3,
+		maxStep: 2,
+		mergeStep23: true,
 		onlySectionStep: <?= (int) ($onlySectionStep ?? 0) ?>,
 		csrfName: '<?= csrf_token() ?>',
 		csrfHash: '<?= csrf_hash() ?>',
@@ -766,8 +762,7 @@
 		requireSavedSteps: { 2: true },
 		savedSteps: {
 			1: <?= !empty($step1_complete) ? 'true' : 'false' ?>,
-			2: <?= !empty($step2_complete) ? 'true' : 'false' ?>,
-			3: <?= !empty($step3_complete) ? 'true' : 'false' ?>
+			2: <?= (!empty($step2_complete) && !empty($step3_complete)) ? 'true' : 'false' ?>
 		},
 		stepActual: <?= (int) ($step ?? ($step_actual ?? 0)) ?>,
 		canEditAsociado: <?= (!empty($can_edit_asociado) && !in_array((int) ($tra_status_id ?? 0), [20, 21], true)) ? 'true' : 'false' ?>,

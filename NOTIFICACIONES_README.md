@@ -28,6 +28,20 @@ public $helpers = ['notification'];
 ### 3. Verificar Rutas
 Las rutas ya están configuradas en `app/Config/Routes.php`
 
+## ✅ Smoke Local PHP 8.2
+
+Para validar login + notificaciones JSON contra el runtime Docker PHP 8.2:
+
+```bash
+DOCKER_APP_PORT=18080 docker compose up -d app
+./admin/internal-json-smoke.sh
+```
+
+El smoke valida sesión real y estas rutas JSON:
+
+- `GET /notifications/api_count`
+- `GET /notifications/api_unread`
+
 ## 💻 Uso en el Código
 
 ### Ejemplo 1: Notificar Trámite Creado

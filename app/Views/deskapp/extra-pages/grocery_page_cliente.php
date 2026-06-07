@@ -20,7 +20,8 @@
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/icon-font.min.css">
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/style.css">
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/forms_styles.css">
-	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/my_grocery.css">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/my_grocery.css?v=20260606-2">
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/grocery-crud-custom.css?v=20260606-2">
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/colResizable.css">
 
 	<!-- Global site tag (gtag.js) - Google Analytics -->

@@ -101,6 +101,32 @@ class TramitesnCobranzaAccessTest extends CIUnitTestCase
         $this->assertSame('No tienes permisos para acceder a Cobranza', session()->getFlashdata('error'));
     }
 
+    public function testUpdateRedirectsPagoGestorStatusToEvidenciasFinalesWithSectionPermissionOnly(): void
+    {
+        $this->seedSession([
+            'section_pago_gestor',
+        ]);
+        $this->seedTramiteWithTenantAccess(123, SGL_TRA_STATUS_PAGO_GESTOR, 99, 1001, 2001);
+
+        $response = $this->executeUpdate(123);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertStringEndsWith('/deskapp/tramitesn/ver_seccion_evidencias_finales/123', $response->getHeaderLine('Location'));
+    }
+
+    public function testUpdateRedirectsCobroClienteStatusToCobroClienteSectionWithListPermission(): void
+    {
+        $this->seedSession([
+            'list_cobro_cliente',
+        ]);
+        $this->seedTramiteWithTenantAccess(123, SGL_TRA_STATUS_COBRO_CLIENTE, 99, 1001, 2001);
+
+        $response = $this->executeUpdate(123);
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertStringEndsWith('/deskapp/tramitesn/ver_seccion_cobro_cliente/123', $response->getHeaderLine('Location'));
+    }
+
     private function executeVerSeccionCobroCliente(int $tramiteId)
     {
         $config = new App();
@@ -150,6 +176,29 @@ class TramitesnCobranzaAccessTest extends CIUnitTestCase
         $controller->initController($request, $response, $logger);
 
         return $controller->cobro_cliente_ver($tramiteId);
+    }
+
+    private function executeUpdate(int $tramiteId)
+    {
+        $config = new App();
+        $_SERVER['REQUEST_URI'] = '/deskapp/tramitesn/update/' . $tramiteId;
+        $_SERVER['SCRIPT_NAME'] = '/index.php';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        $uri = new URI('http://example.com/deskapp/tramitesn/update/' . $tramiteId);
+        $request = new IncomingRequest($config, $uri, null, new UserAgent());
+        $request->setMethod('get');
+
+        $response = new Response($config);
+        $logger = new NullLogger();
+
+        Services::injectMock('request', $request);
+        Services::injectMock('response', $response);
+
+        $controller = new TestableTramitesn();
+        $controller->initController($request, $response, $logger);
+
+        return $controller->update($tramiteId);
     }
 
     private function seedSession(array $permissions): void

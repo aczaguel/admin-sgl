@@ -157,6 +157,14 @@ class PHPExcel_Calculation
     private $debugLog;
 
     /**
+     * Legacy property name used throughout PHPExcel internals.
+     *
+     * @access    private
+     * @var PHPExcel_CalcEngine_Logger
+     */
+    private $_debugLog;
+
+    /**
      * Flag to determine how formula errors should be handled
      *        If true, then a user error will be triggered
      *        If false, then an exception will be thrown

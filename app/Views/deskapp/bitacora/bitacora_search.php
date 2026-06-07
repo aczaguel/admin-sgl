@@ -12,23 +12,10 @@
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/core.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/icon-font.min.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/style.css">
-	<style>
-		.sgl-liston{
-			display:flex;
-			align-items:center;
-			gap:10px;
-			padding:10px 12px;
-			border-radius:10px;
-			font-weight:600;
-			margin:10px 0 20px;
-			border:1px solid #fecaca;
-			background:#fff1f2;
-			color:#991b1b;
-		}
-		.sgl-liston i{font-size:14px;}
-	</style>
+	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/src/styles/sgl_blue_template.css?v=20260606-1">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
-<body class="sidebar-shrink">
+<body class="sidebar-shrink sgl-theme-2026">
 	<?= view('deskapp/includes/_header') ?>
 	<?= view('deskapp/includes/_sidebar') ?>
 
@@ -56,7 +43,7 @@
 			<?php if ($flashError): ?>
 				<div class="sgl-liston" id="bitacoraFlash"><i class="fas fa-exclamation-triangle"></i> <?= esc($flashError) ?></div>
 			<?php else: ?>
-				<div class="sgl-liston" id="bitacoraFlash" style="display:none;"></div>
+				<div class="sgl-liston is-hidden" id="bitacoraFlash"></div>
 			<?php endif; ?>
 
 			<div class="row">
@@ -154,11 +141,11 @@
 			<div class="card-box mb-30">
 				<div class="pd-20">
 					<h5 class="text-blue h5">Ultimos tramites con bitacora</h5>
-					<p class="mb-0">Selecciona uno para abrir su timeline</p>
+					<p class="mb-0">Selecciona uno para abrir su timeline. Se muestran 10 registros por página.</p>
 				</div>
 				<div class="pb-20 px-20">
-					<div class="table-responsive">
-						<table class="table table-striped table-bordered">
+					<div class="table-responsive sgl-data-grid">
+						<table class="table table-striped table-bordered mb-0">
 							<thead>
 								<tr>
 									<th>Tramite ID</th>
@@ -182,11 +169,11 @@
 											<td><?= esc($item['total_changes'] ?? 0) ?></td>
 											<td>
 												<?php if (!empty($item['tramite_id'])): ?>
-													<a class="btn btn-sm btn-outline-primary" href="<?= site_url('/bitacora/timeline') . '?tramite_id=' . urlencode($item['tramite_id']) ?>">
+													<a class="btn btn-sm btn-outline-primary sgl-grid-action" href="<?= site_url('/bitacora/timeline') . '?tramite_id=' . urlencode($item['tramite_id']) ?>">
 														Ver bitacora
 													</a>
 												<?php elseif (!empty($item['folio_tramite'])): ?>
-													<a class="btn btn-sm btn-outline-primary" href="<?= site_url('/bitacora/timeline') . '?folio=' . urlencode($item['folio_tramite']) ?>">
+													<a class="btn btn-sm btn-outline-primary sgl-grid-action" href="<?= site_url('/bitacora/timeline') . '?folio=' . urlencode($item['folio_tramite']) ?>">
 														Ver bitacora
 													</a>
 												<?php else: ?>
@@ -197,12 +184,35 @@
 									<?php endforeach; ?>
 								<?php else: ?>
 									<tr>
-										<td colspan="5" class="text-center">No hay registros</td>
+											<td colspan="6" class="sgl-grid-empty"><i class="fas fa-inbox"></i> No hay registros</td>
 									</tr>
 								<?php endif; ?>
 							</tbody>
 						</table>
 					</div>
+						<?php $pager = $pager ?? ['page' => 1, 'has_prev' => false, 'has_next' => false, 'prev_page' => null, 'next_page' => null, 'token' => '', 'page_links' => [1]]; ?>
+						<div class="sgl-grid-toolbar">
+							<div class="sgl-grid-status">
+								<i class="fas fa-layer-group"></i>
+								Pagina <?= esc((string) ($pager['page'] ?? 1)) ?>
+							</div>
+							<nav aria-label="Paginacion bitacora" class="sgl-pager">
+								<ul class="pagination pagination-sm mb-0">
+									<li class="page-item<?= !empty($pager['has_prev']) && !empty($pager['prev_page']) ? '' : ' disabled' ?>">
+										<a class="page-link" href="<?= !empty($pager['has_prev']) && !empty($pager['prev_page']) ? site_url('/bitacora/search') . '?page=' . urlencode((string) $pager['prev_page']) . '&token=' . urlencode((string) ($pager['token'] ?? '')) : '#' ?>">Anterior</a>
+									</li>
+									<?php foreach (($pager['page_links'] ?? [1]) as $pageLink): ?>
+										<?php $isCurrentPage = (int) $pageLink === (int) ($pager['page'] ?? 1); ?>
+										<li class="page-item<?= $isCurrentPage ? ' active' : '' ?>">
+											<a class="page-link" href="<?= $isCurrentPage ? '#' : site_url('/bitacora/search') . '?page=' . urlencode((string) $pageLink) . '&token=' . urlencode((string) ($pager['token'] ?? '')) ?>"><?= esc((string) $pageLink) ?></a>
+										</li>
+									<?php endforeach; ?>
+									<li class="page-item<?= !empty($pager['has_next']) && !empty($pager['next_page']) ? '' : ' disabled' ?>">
+										<a class="page-link" href="<?= !empty($pager['has_next']) && !empty($pager['next_page']) ? site_url('/bitacora/search') . '?page=' . urlencode((string) $pager['next_page']) . '&token=' . urlencode((string) ($pager['token'] ?? '')) : '#' ?>">Siguiente</a>
+									</li>
+								</ul>
+							</nav>
+						</div>
 				</div>
 			</div>
 
@@ -254,7 +264,7 @@
 			return;
 		}
 		box.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + message;
-		box.style.display = 'flex';
+		box.classList.remove('is-hidden');
 		box.scrollIntoView({ behavior: 'smooth', block: 'start' });
 	}
 	});

@@ -52,6 +52,26 @@ Antes de usar esta API hay que crear las tablas de integracion externa con:
 mysql -u [usuario] -p [base] < create_external_api_integration_tables.sql
 ```
 
+## Smoke Local PHP 8.2
+
+Para validar los endpoints reales contra el runtime Docker PHP 8.2 del repo:
+
+```bash
+DOCKER_APP_PORT=18080 docker compose up -d app
+./admin/external-api-smoke.sh
+```
+
+Ese smoke hace seis checks reales:
+
+- `401` sin credencial sobre `GET /api/v1/tramites/{id}`
+- `401` con API key inválida sobre `GET /api/v1/tramites/{id}`
+- `201` en `POST /api/v1/tramites`
+- `200` en `GET /api/v1/tramites/referencia/{external_reference}`
+- `200` en `GET /api/v1/tramites/{id}`
+- `409` cuando se reutiliza el mismo `Idempotency-Key` con un payload distinto
+
+El script siembra/actualiza datos demo con `php spark sgl:demo-data --count=2`, resuelve IDs válidos desde la base activa y usa la API key definida en `.env`.
+
 ## Endpoints disponibles
 
 ### POST /api/v1/tramites

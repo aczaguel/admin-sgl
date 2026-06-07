@@ -270,7 +270,9 @@ trait RequestTrait
 			{
 				$values[$key] = is_array($value)
 					? $this->fetchGlobal($method, $key, $filter, $flags)
-					: filter_var($value, $filter, $flags);
+					: ($flags === null
+						? filter_var($value, $filter)
+						: filter_var($value, $filter, $flags));
 			}
 
 			return $values;
@@ -323,7 +325,9 @@ trait RequestTrait
 		{
 			// Iterate over array and append filter and flags
 			array_walk_recursive($value, function (&$val) use ($filter, $flags) {
-				$val = filter_var($val, $filter, $flags);
+				$val = $flags === null
+					? filter_var($val, $filter)
+					: filter_var($val, $filter, $flags);
 			});
 
 			return $value;
@@ -335,7 +339,9 @@ trait RequestTrait
 			return $value;
 		}
 
-		return filter_var($value, $filter, $flags);
+		return $flags === null
+			? filter_var($value, $filter)
+			: filter_var($value, $filter, $flags);
 	}
 
 	//--------------------------------------------------------------------

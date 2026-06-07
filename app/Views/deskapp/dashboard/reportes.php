@@ -2,14 +2,11 @@
 
 <?php $assets = base_url('/public/assets'); ?>
 
-<link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
-<link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/responsive.bootstrap4.min.css">
-
 <?= $this->section('content') ?>
 
 <div class="main-container">
     <div class="pd-ltr-20 xs-pd-20-10">
-        <div class="min-height-200px">
+        <div class="min-height-200px dashboard-reportes-page">
             
             <!-- Header -->
             <div class="page-header">
@@ -33,30 +30,32 @@
                             $canExport = has_permission('menu_dashboard_admin', $perms, $roles);
                         ?>
 
-                        <div class="dropdown d-inline-block mr-2">
-                            <a class="btn btn-primary dropdown-toggle" href="#" role="button" data-toggle="dropdown">
-                                <i class="icon-copy dw dw-calendar-1"></i> Año: <?= isset($anio_seleccionado) ? $anio_seleccionado : date('Y') ?>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right">
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>">2026 (Actual)</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2025') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2025</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2024') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2024</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2023') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2023</a>
-                                <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2022') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2022</a>
+                        <div class="da-toolbar re-toolbar">
+                            <div class="dropdown d-inline-block">
+                                <a class="btn btn-primary dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                                    <i class="icon-copy dw dw-calendar-1"></i> Año: <?= isset($anio_seleccionado) ? $anio_seleccionado : date('Y') ?>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>">2026 (Actual)</a>
+                                    <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2025') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2025</a>
+                                    <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2024') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2024</a>
+                                    <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2023') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2023</a>
+                                    <a class="dropdown-item" href="<?= base_url('/deskapp/dashboardadmin/reportes?anio=2022') ?><?= $cliente_qs ? ('&' . $cliente_qs) : '' ?>">2022</a>
+                                </div>
                             </div>
-                        </div>
-                        <div class="btn-group" role="group">
-                            <a href="<?= base_url('/deskapp/dashboardadmin') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>" class="btn btn-primary">
-                                <i class="icon-copy fa fa-arrow-left"></i> Volver
-                            </a>
-                            <?php if ($canExport): ?>
-                                <button class="btn btn-success" onclick="exportarReportePDF()">
-                                    <i class="icon-copy fa fa-file-pdf"></i> Exportar PDF
-                                </button>
-                                <button class="btn btn-info" onclick="exportarReporteExcel()">
-                                    <i class="icon-copy fa fa-file-excel"></i> Exportar Excel
-                                </button>
-                            <?php endif; ?>
+                            <div class="re-toolbar-group" role="group" aria-label="Acciones de reportes">
+                                <a href="<?= base_url('/deskapp/dashboardadmin') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>" class="btn btn-primary">
+                                    <i class="icon-copy fa fa-arrow-left"></i> Volver
+                                </a>
+                                <?php if ($canExport): ?>
+                                    <button class="btn re-export-btn re-export-btn--pdf" onclick="exportarReportePDF()">
+                                        <i class="icon-copy fa fa-file-pdf"></i> Exportar PDF
+                                    </button>
+                                    <button class="btn re-export-btn re-export-btn--excel" onclick="exportarReporteExcel()">
+                                        <i class="icon-copy fa fa-file-excel"></i> Exportar Excel
+                                    </button>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -65,19 +64,19 @@
             <!-- Filtros de Período -->
             <div class="row mb-30">
                 <div class="col-md-12">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel">
                         <h5 class="h5 text-blue mb-20">Filtros de Período</h5>
-                        <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-outline-primary active" onclick="cambiarPeriodo('mes')">
+                        <div class="re-period-switch" role="group" aria-label="Filtros de periodo">
+                            <button type="button" class="btn btn-outline-primary active" onclick="cambiarPeriodo('mes', this)">
                                 Este Mes
                             </button>
-                            <button type="button" class="btn btn-outline-primary" onclick="cambiarPeriodo('trimestre')">
+                            <button type="button" class="btn btn-outline-primary" onclick="cambiarPeriodo('trimestre', this)">
                                 Trimestre
                             </button>
-                            <button type="button" class="btn btn-outline-primary" onclick="cambiarPeriodo('semestre')">
+                            <button type="button" class="btn btn-outline-primary" onclick="cambiarPeriodo('semestre', this)">
                                 Semestre
                             </button>
-                            <button type="button" class="btn btn-outline-primary" onclick="cambiarPeriodo('anio')">
+                            <button type="button" class="btn btn-outline-primary" onclick="cambiarPeriodo('anio', this)">
                                 Este Año
                             </button>
                         </div>
@@ -88,20 +87,20 @@
             <!-- Gráficas de Trámites por Mes -->
             <div class="row">
                 <div class="col-xl-8 col-lg-8 col-md-12 mb-30">
-                    <div class="card-box pd-20 height-100-p">
+                    <div class="card-box pd-20 height-100-p da-panel re-chart-panel">
                         <h4 class="h4 text-blue mb-20">
                             <i class="icon-copy fa fa-chart-line"></i> Evolución de Trámites del Año
                         </h4>
-                        <div id="tramitesMesChart" style="height: 400px;"></div>
+                        <div id="tramitesMesChart" class="re-chart re-chart--line"></div>
                     </div>
                 </div>
 
                 <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
-                    <div class="card-box pd-20 height-100-p">
+                    <div class="card-box pd-20 height-100-p da-panel re-chart-panel">
                         <h4 class="h4 text-blue mb-20">
                             <i class="icon-copy fa fa-chart-pie"></i> Trámites por Tipo
                         </h4>
-                        <div id="tipoTramiteChart" style="height: 400px;"></div>
+                        <div id="tipoTramiteChart" class="re-chart re-chart--pie"></div>
                     </div>
                 </div>
             </div>
@@ -109,11 +108,11 @@
             <!-- Gráfica de Ingresos -->
             <div class="row">
                 <div class="col-xl-12 mb-30">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel re-chart-panel">
                         <h4 class="h4 text-blue mb-20">
                             <i class="icon-copy fa fa-dollar-sign"></i> Ingresos Mensuales del Año
                         </h4>
-                        <div id="ingresosMesChart" style="height: 400px;"></div>
+                        <div id="ingresosMesChart" class="re-chart re-chart--line"></div>
                     </div>
                 </div>
             </div>
@@ -121,12 +120,12 @@
             <!-- Rankings Detallados -->
             <div class="row">
                 <div class="col-xl-6 col-lg-6 col-md-12 mb-30">
-                    <div class="card-box pd-20 height-100-p">
+                    <div class="card-box pd-20 height-100-p da-panel">
                         <h4 class="h4 text-blue mb-20">
                             <i class="icon-copy fa fa-trophy"></i> Top 10 Ejecutivos del Mes
                         </h4>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
+                        <div class="table-responsive da-grid">
+                            <table class="table table-hover rep-rank-table rep-rank-table--ejecutivos">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -150,17 +149,17 @@
                                         ?>
                                         <tr>
                                             <td>
-                                                <span class="badge badge-<?= $badgeColor ?>" style="font-size: 14px;">
+                                                <span class="badge badge-<?= $badgeColor ?> da-chip re-rank-badge">
                                                     <?= $posicion ?>
                                                 </span>
                                             </td>
                                             <td><strong><?= esc($ejecutivo['ejecutivo']) ?></strong></td>
                                             <td class="text-center"><?= $ejecutivo['total_tramites'] ?></td>
                                             <td class="text-center">
-                                                <span class="badge badge-success"><?= $ejecutivo['tramites_concluidos'] ?></span>
+                                                <span class="badge badge-success da-chip"><?= $ejecutivo['tramites_concluidos'] ?></span>
                                             </td>
                                             <td class="text-center">
-                                                <span class="badge badge-info"><?= $ejecutivo['tramites_cobrados'] ?></span>
+                                                <span class="badge badge-info da-chip"><?= $ejecutivo['tramites_cobrados'] ?></span>
                                             </td>
                                             <td class="text-right text-primary">
                                                 <strong>$<?= number_format($ejecutivo['monto_cobrado'], 2) ?></strong>
@@ -175,7 +174,7 @@
                                         ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="7" class="text-center">No hay datos disponibles</td>
+                                            <td colspan="7" class="da-empty">No hay datos disponibles</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -185,12 +184,12 @@
                 </div>
 
                 <div class="col-xl-6 col-lg-6 col-md-12 mb-30">
-                    <div class="card-box pd-20 height-100-p">
+                    <div class="card-box pd-20 height-100-p da-panel">
                         <h4 class="h4 text-blue mb-20">
                             <i class="icon-copy fa fa-user-tie"></i> Top 10 Gestores del Mes
                         </h4>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
+                        <div class="table-responsive da-grid">
+                            <table class="table table-hover rep-rank-table rep-rank-table--gestores">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -214,7 +213,7 @@
                                         ?>
                                         <tr>
                                             <td>
-                                                <span class="badge badge-<?= $badgeColor ?>" style="font-size: 14px;">
+                                                <span class="badge badge-<?= $badgeColor ?> da-chip re-rank-badge">
                                                     <?= $posicion ?>
                                                 </span>
                                             </td>
@@ -222,7 +221,7 @@
                                             <td><small class="text-muted"><?= esc($gestor['empresa_gestora']) ?></small></td>
                                             <td class="text-center"><?= $gestor['total_tramites'] ?></td>
                                             <td class="text-center">
-                                                <span class="badge badge-success"><?= $gestor['tramites_concluidos'] ?></span>
+                                                <span class="badge badge-success da-chip"><?= $gestor['tramites_concluidos'] ?></span>
                                             </td>
                                             <td class="text-center">
                                                 <?= isset($gestor['tiempo_promedio_dias']) && $gestor['tiempo_promedio_dias'] ? round($gestor['tiempo_promedio_dias'], 1) : 'N/A' ?> días
@@ -237,7 +236,7 @@
                                         ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="7" class="text-center">No hay datos disponibles</td>
+                                            <td colspan="7" class="da-empty">No hay datos disponibles</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -250,12 +249,12 @@
             <!-- Análisis por Tipo de Trámite -->
             <div class="row">
                 <div class="col-md-12 mb-30">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel">
                         <h4 class="h4 text-blue mb-20">
                             <i class="icon-copy fa fa-list-alt"></i> Análisis por Tipo de Trámite (Este Mes)
                         </h4>
-                        <div class="table-responsive">
-                            <table class="table table-striped table-bordered">
+                        <div class="table-responsive da-grid">
+                            <table class="table table-striped table-bordered rep-type-table">
                                 <thead>
                                     <tr>
                                         <th>Tipo de Trámite</th>
@@ -278,16 +277,16 @@
                                             <td><strong><?= esc($tipo['tipo_tramite']) ?></strong></td>
                                             <td class="text-center"><?= $tipo['cantidad'] ?></td>
                                             <td class="text-center">
-                                                <span class="badge badge-success"><?= $tipo['concluidos'] ?></span>
+                                                <span class="badge badge-success da-chip"><?= $tipo['concluidos'] ?></span>
                                             </td>
                                             <td class="text-center">
-                                                <span class="badge badge-<?= $badgeEstado ?>"><?= $porcentaje ?>%</span>
+                                                <span class="badge badge-<?= $badgeEstado ?> da-chip"><?= $porcentaje ?>%</span>
                                             </td>
                                             <td class="text-center">
                                                 <?= isset($tipo['tiempo_promedio']) && $tipo['tiempo_promedio'] ? round($tipo['tiempo_promedio'], 1) : 'N/A' ?> días
                                             </td>
                                             <td class="text-center">
-                                                <div class="progress" style="height: 25px;">
+                                                <div class="progress re-progress">
                                                     <div class="progress-bar bg-<?= $badgeEstado ?>" role="progressbar" 
                                                          style="width: <?= $porcentaje ?>%;" 
                                                          aria-valuenow="<?= $porcentaje ?>" 
@@ -301,7 +300,7 @@
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="6" class="text-center">No hay datos disponibles</td>
+                                            <td colspan="6" class="da-empty">No hay datos disponibles</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -315,7 +314,10 @@
     </div>
 </div>
 
-<!-- Scripts -->
+<?= $this->endSection() ?>
+
+<?= $this->section('additional_js') ?>
+
 <script src="<?= $assets ?>/src/plugins/apexcharts/apexcharts.min.js"></script>
 
 <script>
@@ -476,13 +478,15 @@ function exportarReporteExcel() {
 }
 
 function exportarReportePDF() {
-    window.location.href = '<?= base_url('/deskapp/dashboardadmin/exportar_pdf') ?>?tipo=reportes<?= isset($anio_seleccionado) ? ('&anio=' . (int)$anio_seleccionado) : '' ?><?= !empty($cliente_id_filtro) ? ('&cliente_id=' . (int)$cliente_id_filtro) : '' ?>';
+    window.open('<?= base_url('/deskapp/dashboardadmin/exportar_pdf') ?>?tipo=reportes<?= isset($anio_seleccionado) ? ('&anio=' . (int)$anio_seleccionado) : '' ?><?= !empty($cliente_id_filtro) ? ('&cliente_id=' . (int)$cliente_id_filtro) : '' ?>', '_blank', 'noopener');
 }
 
-function cambiarPeriodo(periodo) {
-    // Cambiar estilo de botón activo
-    $('.btn-group button').removeClass('active');
-    event.target.classList.add('active');
+function cambiarPeriodo(periodo, button) {
+    // Cambiar estilo de botón activo solo dentro del selector de periodo
+    $('.re-period-switch button').removeClass('active');
+    if (button) {
+        button.classList.add('active');
+    }
     
     // Aquí puedes implementar la lógica para recargar los datos según el período
     console.log('Cambiando a período:', periodo);

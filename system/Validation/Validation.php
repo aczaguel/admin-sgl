@@ -228,7 +228,7 @@ class Validation implements ValidationInterface
 
 		if (in_array('permit_empty', $rules, true))
 		{
-			if (! in_array('required', $rules, true) && (is_array($value) ? empty($value) : (trim($value) === '')))
+			if (! in_array('required', $rules, true) && (is_array($value) ? empty($value) : ($value === null || trim($value) === '')))
 			{
 				$passed = true;
 

@@ -4,6 +4,11 @@
 <?php
     $qs = $_GET ?? [];
     $baseAlertasUrl = base_url('/deskapp/dashboardadmin/alertas');
+    $tramitesBaseUrl = base_url('/deskapp/tramitesn/tramite');
+    $tramitesNormalUrl = $tramitesBaseUrl;
+    $tramitesAttentionUrl = $tramitesBaseUrl . '?bucket=attention';
+    $tramitesRiesgoUrl = $tramitesBaseUrl . '?bucket=riesgo';
+    $tramitesVencidosUrl = $tramitesBaseUrl . '?bucket=vencido';
     $perPage = (int) ($per_page ?? 50);
     $pageRetrasados = (int) ($page_retrasados ?? 1);
     $pagePendientes = (int) ($page_pendientes ?? 1);
@@ -33,8 +38,8 @@
         $disabledPrev = $currentPage <= 1 ? ' disabled' : '';
         $disabledNext = $currentPage >= $totalPages ? ' disabled' : '';
 
-        return '<nav class="mt-3 d-flex align-items-center justify-content-between">'
-            . '<span class="text-muted">Pagina ' . $currentPage . ' de ' . $totalPages . '</span>'
+        return '<nav class="mt-3 da-pagination">'
+            . '<span class="da-pagination__status">Pagina ' . $currentPage . ' de ' . $totalPages . '</span>'
             . '<ul class="pagination pagination-sm mb-0">'
             . '<li class="page-item' . $disabledPrev . '">'
                 . '<a class="page-link" href="' . esc($disabledPrev ? '#' : $prevUrl) . '">Anterior</a>'
@@ -47,14 +52,18 @@
     };
 ?>
 
+<?= $this->section('additional_css') ?>
+
 <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/responsive.bootstrap4.min.css">
+
+<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
 <div class="main-container">
     <div class="pd-ltr-20 xs-pd-20-10">
-        <div class="min-height-200px">
+        <div class="min-height-200px dashboard-alertas-page">
             
             <!-- Header -->
             <div class="page-header">
@@ -73,12 +82,14 @@
                         </nav>
                     </div>
                     <div class="col-md-6 col-sm-12 text-right">
-                        <span class="badge badge-info mr-2" style="font-size: 12px; padding: 8px 12px;">
+                        <div class="da-toolbar">
+                        <span class="badge badge-info mr-2 da-chip">
                             <i class="icon-copy dw dw-notification"></i> Solo año actual (<?= date('Y') ?>)
                         </span>
                         <a href="<?= base_url('/deskapp/dashboardadmin') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>" class="btn btn-primary">
                             <i class="icon-copy fa fa-arrow-left"></i> Volver al Dashboard
                         </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -86,43 +97,37 @@
             <!-- Resumen de Alertas -->
             <div class="row">
                 <div class="col-xl-4 col-lg-4 col-md-6 mb-20">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 da-summary-card">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="font-20 weight-500 mb-10 text-capitalize">
-                                    <div class="weight-600 font-30 text-danger"><?= $totalRetrasados ?></div>
-                                </h4>
-                                <p class="font-18 max-width-600">Trámites Retrasados</p>
+                                <div class="da-summary-value text-danger"><?= $totalRetrasados ?></div>
+                                <p class="da-summary-label">Trámites Retrasados</p>
                             </div>
-                            <div class="icon-copy fa fa-exclamation-triangle" style="font-size: 48px; color: #dc3545;"></div>
+                            <div class="icon-copy fa fa-exclamation-triangle da-summary-icon da-summary-icon--danger"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xl-4 col-lg-4 col-md-6 mb-20">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 da-summary-card">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="font-20 weight-500 mb-10 text-capitalize">
-                                    <div class="weight-600 font-30 text-warning"><?= $totalPendientes ?></div>
-                                </h4>
-                                <p class="font-18 max-width-600">Pendientes de Cobro</p>
+                                <div class="da-summary-value text-warning"><?= $totalPendientes ?></div>
+                                <p class="da-summary-label">Pendientes de Cobro</p>
                             </div>
-                            <div class="icon-copy fa fa-dollar-sign" style="font-size: 48px; color: #ffc107;"></div>
+                            <div class="icon-copy fa fa-dollar-sign da-summary-icon da-summary-icon--warning"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xl-4 col-lg-4 col-md-6 mb-20">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 da-summary-card">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="font-20 weight-500 mb-10 text-capitalize">
-                                    <div class="weight-600 font-30 text-secondary"><?= $totalEstancados ?></div>
-                                </h4>
-                                <p class="font-18 max-width-600">Trámites Estancados</p>
+                                <div class="da-summary-value text-secondary"><?= $totalEstancados ?></div>
+                                <p class="da-summary-label">Trámites Estancados</p>
                             </div>
-                            <div class="icon-copy fa fa-pause-circle" style="font-size: 48px; color: #6c757d;"></div>
+                            <div class="icon-copy fa fa-pause-circle da-summary-icon da-summary-icon--secondary"></div>
                         </div>
                     </div>
                 </div>
@@ -138,27 +143,33 @@
             <!-- Semaforo de atencion -->
             <div class="row">
                 <div class="col-md-12 mb-30">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel">
                         <h4 class="h4 text-blue mb-20">
                             <i class="icon-copy fa fa-traffic-light"></i> Semaforo de atencion (local vs foraneo)
                         </h4>
+                        <div class="da-quick-links mb-20">
+                            <a href="<?= esc($tramitesNormalUrl) ?>" class="btn btn-sm btn-outline-primary">Flujo normal</a>
+                            <a href="<?= esc($tramitesAttentionUrl) ?>" class="btn btn-sm btn-outline-danger">Bandeja de atención</a>
+                            <a href="<?= esc($tramitesRiesgoUrl) ?>" class="btn btn-sm btn-outline-warning">En riesgo</a>
+                            <a href="<?= esc($tramitesVencidosUrl) ?>" class="btn btn-sm btn-outline-dark">Vencidos</a>
+                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-20">
                                 <h6 class="text-muted mb-10">Locales (CDMX + EdoMex)</h6>
-                                <div class="d-flex flex-wrap" style="gap: 10px;">
-                                    <span class="badge badge-success">Verde: <?= (int)($semaforo['local_verde'] ?? 0) ?></span>
-                                    <span class="badge badge-info">Amarillo: <?= (int)($semaforo['local_amarillo'] ?? 0) ?></span>
-                                    <span class="badge badge-danger">Rojo: <?= (int)($semaforo['local_rojo'] ?? 0) ?></span>
-                                    <span class="badge badge-dark">Violeta: <?= (int)($semaforo['local_violeta'] ?? 0) ?></span>
+                                <div class="da-chip-row">
+                                    <span class="badge badge-success da-chip">Verde: <?= (int)($semaforo['local_verde'] ?? 0) ?></span>
+                                    <a href="<?= esc($tramitesRiesgoUrl) ?>" class="badge badge-info da-chip">Amarillo: <?= (int)($semaforo['local_amarillo'] ?? 0) ?></a>
+                                    <a href="<?= esc($tramitesRiesgoUrl) ?>" class="badge badge-danger da-chip">Rojo: <?= (int)($semaforo['local_rojo'] ?? 0) ?></a>
+                                    <a href="<?= esc($tramitesVencidosUrl) ?>" class="badge badge-dark da-chip">Violeta: <?= (int)($semaforo['local_violeta'] ?? 0) ?></a>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-20">
                                 <h6 class="text-muted mb-10">Foraneos</h6>
-                                <div class="d-flex flex-wrap" style="gap: 10px;">
-                                    <span class="badge badge-success">Verde: <?= (int)($semaforo['foraneo_verde'] ?? 0) ?></span>
-                                    <span class="badge badge-info">Amarillo: <?= (int)($semaforo['foraneo_amarillo'] ?? 0) ?></span>
-                                    <span class="badge badge-danger">Rojo: <?= (int)($semaforo['foraneo_rojo'] ?? 0) ?></span>
-                                    <span class="badge badge-dark">Violeta: <?= (int)($semaforo['foraneo_violeta'] ?? 0) ?></span>
+                                <div class="da-chip-row">
+                                    <span class="badge badge-success da-chip">Verde: <?= (int)($semaforo['foraneo_verde'] ?? 0) ?></span>
+                                    <a href="<?= esc($tramitesRiesgoUrl) ?>" class="badge badge-info da-chip">Amarillo: <?= (int)($semaforo['foraneo_amarillo'] ?? 0) ?></a>
+                                    <a href="<?= esc($tramitesRiesgoUrl) ?>" class="badge badge-danger da-chip">Rojo: <?= (int)($semaforo['foraneo_rojo'] ?? 0) ?></a>
+                                    <a href="<?= esc($tramitesVencidosUrl) ?>" class="badge badge-dark da-chip">Violeta: <?= (int)($semaforo['foraneo_violeta'] ?? 0) ?></a>
                                 </div>
                             </div>
                         </div>
@@ -169,9 +180,9 @@
                 <!-- Sin movimiento mas de 7 dias por criterio -->
             <div class="row">
                 <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel">
                         <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Tipo de Servicio</h5>
-                        <div class="table-responsive">
+                        <div class="table-responsive da-grid">
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
@@ -188,7 +199,7 @@
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                        <tr><td colspan="2" class="da-empty">Sin datos</td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
@@ -197,9 +208,9 @@
                 </div>
 
                 <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel">
                         <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Estado</h5>
-                        <div class="table-responsive">
+                        <div class="table-responsive da-grid">
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
@@ -216,7 +227,7 @@
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                        <tr><td colspan="2" class="da-empty">Sin datos</td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
@@ -225,9 +236,9 @@
                 </div>
 
                 <div class="col-xl-4 col-lg-4 col-md-12 mb-30">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel">
                         <h5 class="h5 text-blue mb-15">Sin movimiento mas de 7 dias por Cliente (Top 10)</h5>
-                        <div class="table-responsive">
+                        <div class="table-responsive da-grid">
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
@@ -244,7 +255,7 @@
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <tr><td colspan="2" class="text-center">Sin datos</td></tr>
+                                        <tr><td colspan="2" class="da-empty">Sin datos</td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
@@ -256,11 +267,11 @@
             <!-- Trámites Retrasados -->
             <div class="row">
                 <div class="col-md-12 mb-30">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel">
                         <h4 class="h4 text-danger mb-20">
                             <i class="icon-copy fa fa-exclamation-triangle"></i> Trámites Retrasados (Más de 30 días)
                         </h4>
-                        <div class="table-responsive">
+                        <div class="table-responsive da-grid">
                             <table class="table table-striped data-table-export nowrap">
                                 <thead>
                                     <tr>
@@ -289,13 +300,13 @@
                                             <td><span class="badge badge-warning"><?= esc($tramite['tra_status']) ?></span></td>
                                             <td><?= date('d/m/Y', strtotime($tramite['started_at'] ?? $tramite['created_at'])) ?></td>
                                             <td>
-                                                <span class="badge badge-pill badge-danger" style="font-size: 14px;">
+                                                <span class="badge badge-pill badge-danger da-chip">
                                                     <?= $tramite['dias_transcurridos'] ?> días
                                                 </span>
                                             </td>
                                             <td>
                                                 <a href="<?= base_url('/deskapp/tramites/update/' . $tramite['id']) ?>" 
-                                                   class="btn btn-sm btn-primary" target="_blank">
+                                                   class="btn btn-sm btn-primary da-row-action" target="_blank">
                                                     <i class="icon-copy fa fa-eye"></i> Ver
                                                 </a>
                                             </td>
@@ -303,7 +314,7 @@
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="10" class="text-center">No hay trámites retrasados</td>
+                                            <td colspan="10" class="da-empty">No hay trámites retrasados</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -317,11 +328,11 @@
             <!-- Pendientes de Cobro -->
             <div class="row">
                 <div class="col-md-12 mb-30">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel">
                         <h4 class="h4 text-warning mb-20">
                             <i class="icon-copy fa fa-dollar-sign"></i> Pendientes de Cobro (Más de 15 días)
                         </h4>
-                        <div class="table-responsive">
+                        <div class="table-responsive da-grid">
                             <table class="table table-striped data-table-export nowrap">
                                 <thead>
                                     <tr>
@@ -352,13 +363,13 @@
                                             <td><?= date('d/m/Y', strtotime($tramite['finished_at'])) ?></td>
                                             <td><strong class="text-primary">$<?= number_format($tramite['costo_total'], 2) ?></strong></td>
                                             <td>
-                                                <span class="badge badge-pill badge-warning" style="font-size: 14px;">
+                                                <span class="badge badge-pill badge-warning da-chip">
                                                     <?= $tramite['dias_sin_cobrar'] ?> días
                                                 </span>
                                             </td>
                                             <td>
                                                 <a href="<?= base_url('/deskapp/tramites/update/' . $tramite['id']) ?>" 
-                                                   class="btn btn-sm btn-primary" target="_blank">
+                                                   class="btn btn-sm btn-primary da-row-action" target="_blank">
                                                     <i class="icon-copy fa fa-eye"></i> Ver
                                                 </a>
                                             </td>
@@ -366,7 +377,7 @@
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="11" class="text-center">No hay trámites pendientes de cobro</td>
+                                            <td colspan="11" class="da-empty">No hay trámites pendientes de cobro</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -380,11 +391,11 @@
             <!-- Trámites Estancados -->
             <div class="row">
                 <div class="col-md-12 mb-30">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel">
                         <h4 class="h4 text-secondary mb-20">
                             <i class="icon-copy fa fa-pause-circle"></i> Trámites Estancados (Sin movimiento por más de 7 días)
                         </h4>
-                        <div class="table-responsive">
+                        <div class="table-responsive da-grid">
                             <table class="table table-striped data-table-export nowrap">
                                 <thead>
                                     <tr>
@@ -413,13 +424,13 @@
                                             <td><span class="badge badge-info"><?= esc($tramite['tra_status']) ?></span></td>
                                             <td><?= date('d/m/Y', strtotime($tramite['created_at'])) ?></td>
                                             <td>
-                                                <span class="badge badge-pill badge-secondary" style="font-size: 14px;">
+                                                <span class="badge badge-pill badge-secondary da-chip">
                                                     <?= $tramite['dias_sin_movimiento'] ?> días
                                                 </span>
                                             </td>
                                             <td>
                                                 <a href="<?= base_url('/deskapp/tramites/update/' . $tramite['id']) ?>" 
-                                                   class="btn btn-sm btn-primary" target="_blank">
+                                                   class="btn btn-sm btn-primary da-row-action" target="_blank">
                                                     <i class="icon-copy fa fa-eye"></i> Ver
                                                 </a>
                                             </td>
@@ -427,7 +438,7 @@
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="10" class="text-center">No hay trámites estancados</td>
+                                            <td colspan="10" class="da-empty">No hay trámites estancados</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>

@@ -122,11 +122,23 @@ class CURLRequest extends Request
 
 		$url = $this->prepareURL($url);
 
-		$method = filter_var($method, FILTER_SANITIZE_STRING);
+		$method = $this->sanitizeString($method);
 
 		$this->send($method, $url);
 
 		return $this->response;
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Normaliza valores simples sin depender de FILTER_SANITIZE_STRING.
+	 */
+	protected function sanitizeString(string $value): string
+	{
+		$value = strip_tags($value);
+
+		return preg_replace('/[\x00-\x1F\x7F]/u', '', $value) ?? '';
 	}
 
 	//--------------------------------------------------------------------

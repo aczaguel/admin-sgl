@@ -3,6 +3,7 @@
 <?= $this->section('additional_css') ?>
 <link rel="stylesheet" href="<?= base_url('/public/assets/src/styles/wizard_modern.css?v=' . time()) ?>">
 <link rel="stylesheet" href="<?= base_url('/public/assets/src/styles/tramite_update_view_nuevo.css?v=' . time()) ?>">
+<link rel="stylesheet" href="<?= base_url('/public/assets/src/styles/cobranza_detail.css?v=20260606-1') ?>">
 <style>
     :root {
         --cob-bg: linear-gradient(180deg, #f6f0e8 0%, #f9f7f2 48%, #ffffff 100%);

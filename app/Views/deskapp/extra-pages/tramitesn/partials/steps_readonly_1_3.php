@@ -1,3 +1,8 @@
+<?php
+$sglReadonlyRibbonStyle = 'position:relative;display:flex;align-items:center;gap:8px;padding:8px 56px 8px 10px;';
+$sglReadonlyTextStyle = 'flex:1 1 auto;min-width:0;';
+$sglReadonlyToggleStyle = 'position:absolute;top:50%;right:10px;left:auto;transform:translateY(-50%);width:28px;min-width:28px;max-width:28px;height:28px;min-height:28px;max-height:28px;padding:0;margin-left:0;display:inline-flex;align-items:center;justify-content:center;line-height:1;border-radius:999px;';
+?>
 <div class="sgl-step-center">
 	<?php if (has_permission('tramite_detalle_quick_actions_historial_actividad_ver', $user_permissions ?? [], $user_roles ?? [])): ?>
 		<div class="d-flex justify-content-end mb-3">
@@ -7,10 +12,10 @@
 		</div>
 	<?php endif; ?>
 	<?php if ($showSection('generales')): ?>
-	<div class="sgl-step-form-ribbon <?= !empty($step1_complete) ? 'is-complete' : 'is-incomplete' ?>" data-ribbon-step="1">
+	<div class="sgl-step-form-ribbon <?= !empty($step1_complete) ? 'is-complete' : 'is-incomplete' ?>" data-ribbon-step="1" style="<?= $sglReadonlyRibbonStyle ?>">
 		<div class="sgl-icon"><i class="<?= !empty($step1_complete) ? 'fas fa-check' : 'fas fa-exclamation' ?>"></i></div>
-		<div class="sgl-text">Paso 1: Datos del tramite</div>
-		<button class="btn btn-sm btn-outline-secondary sgl-btn-icon" type="button" data-toggle="collapse" data-target="#collapsePaso1" aria-expanded="false" aria-controls="collapsePaso1">
+		<div class="sgl-text" style="<?= $sglReadonlyTextStyle ?>">Paso 1: Datos del tramite</div>
+		<button class="btn btn-sm btn-outline-secondary sgl-btn-icon" type="button" data-toggle="collapse" data-target="#collapsePaso1" aria-expanded="false" aria-controls="collapsePaso1" style="<?= $sglReadonlyToggleStyle ?>">
 			<i class="fas fa-chevron-down"></i>
 		</button>
 	</div>
@@ -51,10 +56,10 @@
 	<?php endif; ?>
 
 	<?php if ($showSection('asigna_gestor')): ?>
-	<div class="sgl-step-form-ribbon mt-3 <?= !empty($step2_complete) ? 'is-complete' : 'is-incomplete' ?>" data-ribbon-step="2">
+	<div class="sgl-step-form-ribbon mt-3 <?= !empty($step2_complete) ? 'is-complete' : 'is-incomplete' ?>" data-ribbon-step="2" style="<?= $sglReadonlyRibbonStyle ?>">
 		<div class="sgl-icon"><i class="<?= !empty($step2_complete) ? 'fas fa-check' : 'fas fa-exclamation' ?>"></i></div>
-		<div class="sgl-text">Paso 2: Gestor y Empresa</div>
-		<button class="btn btn-sm btn-outline-secondary sgl-btn-icon" type="button" data-toggle="collapse" data-target="#collapsePaso2" aria-expanded="false" aria-controls="collapsePaso2">
+		<div class="sgl-text" style="<?= $sglReadonlyTextStyle ?>">Paso 2: Gestor y Empresa</div>
+		<button class="btn btn-sm btn-outline-secondary sgl-btn-icon" type="button" data-toggle="collapse" data-target="#collapsePaso2" aria-expanded="false" aria-controls="collapsePaso2" style="<?= $sglReadonlyToggleStyle ?>">
 			<i class="fas fa-chevron-down"></i>
 		</button>
 	</div>
@@ -82,10 +87,10 @@
 	<?php endif; ?>
 
 	<?php if ($showSection('pago_derechos')): ?>
-	<div class="sgl-step-form-ribbon mt-3 <?= !empty($step3_complete) ? 'is-complete' : 'is-incomplete' ?>" data-ribbon-step="3">
+	<div class="sgl-step-form-ribbon mt-3 <?= !empty($step3_complete) ? 'is-complete' : 'is-incomplete' ?>" data-ribbon-step="3" style="<?= $sglReadonlyRibbonStyle ?>">
 		<div class="sgl-icon"><i class="<?= !empty($step3_complete) ? 'fas fa-check' : 'fas fa-exclamation' ?>"></i></div>
-		<div class="sgl-text">Paso 3: Pagos de Derechos</div>
-		<button class="btn btn-sm btn-outline-secondary sgl-btn-icon" type="button" data-toggle="collapse" data-target="#collapsePaso3" aria-expanded="false" aria-controls="collapsePaso3">
+		<div class="sgl-text" style="<?= $sglReadonlyTextStyle ?>">Paso 3: Pagos de Derechos</div>
+		<button class="btn btn-sm btn-outline-secondary sgl-btn-icon" type="button" data-toggle="collapse" data-target="#collapsePaso3" aria-expanded="false" aria-controls="collapsePaso3" style="<?= $sglReadonlyToggleStyle ?>">
 			<i class="fas fa-chevron-down"></i>
 		</button>
 	</div>

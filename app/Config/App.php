@@ -27,6 +27,17 @@ class App extends BaseConfig
 	// public $baseURL = 'http://admin-sgl/';
 
 	public $baseURL = 'http://backend.sglservicio.com.mx/';
+
+	public function __construct()
+	{
+		parent::__construct();
+
+		$dockerBaseURL = trim((string) env('DOCKER_BASE_URL', ''));
+		if ($dockerBaseURL !== '')
+		{
+			$this->baseURL = rtrim($dockerBaseURL, '/') . '/';
+		}
+	}
 	
 	public $displayErrorDetails = true;
 	/**

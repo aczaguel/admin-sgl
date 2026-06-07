@@ -14,29 +14,15 @@
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/core.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/icon-font.min.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/style.css">
-    <style>
-        .sgl-liston{
-            display:flex;
-            align-items:center;
-            gap:10px;
-            padding:10px 12px;
-            border-radius:10px;
-            font-weight:600;
-            margin:10px 0 20px;
-            border:1px solid #fecaca;
-            background:#fff1f2;
-            color:#991b1b;
-        }
-        .sgl-liston i{font-size:14px;}
-    </style>
+    <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/src/styles/sgl_blue_template.css?v=20260606-1">
 </head>
-<body class="sidebar-shrink">
+<body class="sidebar-shrink sgl-theme-2026">
     <?= view('deskapp/includes/_header') ?>
     <?= view('deskapp/includes/_sidebar') ?>
     
     <div class="main-container">
         <div class="pd-ltr-20">
-            <div class="card-box pd-20 height-100-p mb-30">
+            <div class="card-box pd-20 height-100-p mb-30 sgl-search-hero">
                 <div class="row align-items-center">
                     <div class="col-md-4">
                         <img src="<?= base_url('public/assets/vendors/images/banner-img.png') ?>" alt="">
@@ -56,16 +42,16 @@
             <?php if ($flashError): ?>
                 <div class="sgl-liston" id="auditFlash"><i class="fas fa-exclamation-triangle"></i> <?= esc($flashError) ?></div>
             <?php else: ?>
-                <div class="sgl-liston" id="auditFlash" style="display:none;"></div>
+                <div class="sgl-liston is-hidden" id="auditFlash"></div>
             <?php endif; ?>
 
             <!-- Formulario de búsqueda -->
             <div class="row">
                 <div class="col-xl-6 col-lg-8 col-md-10 mx-auto">
-                    <div class="card-box mb-30">
+                    <div class="card-box mb-30 sgl-search-panel">
                         <div class="pb-20 pt-20 pl-30 pr-30">
                             <div class="wizard-content">
-                                <h5 class="text-center mb-30">Buscar Trámite</h5>
+                                <h5 class="text-center mb-30 sgl-search-title">Buscar Trámite</h5>
                                 
                                 <form id="searchAuditForm">
                                     <section>
@@ -99,9 +85,8 @@
                                                     <input type="text" 
                                                            name="folio" 
                                                            id="folio" 
-                                                           class="form-control text-uppercase" 
-                                                           placeholder="Ej: ALD820807"
-                                                           style="text-transform: uppercase;">
+                                                           class="form-control text-uppercase sgl-input-uppercase" 
+                                                           placeholder="Ej: ALD820807">
                                                     <small class="form-text text-muted">
                                                         El folio se mostrará en mayúsculas automáticamente
                                                     </small>
@@ -111,7 +96,7 @@
 
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <div class="form-group text-center mt-30">
+                                                <div class="form-group text-center mt-30 sgl-search-actions">
                                                     <button type="submit" class="btn btn-primary btn-lg">
                                                         <i class="fas fa-search"></i> Buscar Auditoría
                                                     </button>
@@ -199,7 +184,7 @@
                 return;
             }
             box.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + message;
-            box.style.display = 'flex';
+            box.classList.remove('is-hidden');
             box.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     });

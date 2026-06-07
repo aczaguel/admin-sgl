@@ -36,7 +36,8 @@ if (isset($tra_status_id)) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.css">
 	<link rel="stylesheet" href="/public/assets/src/styles/forms_styles.css">
 	<link rel="stylesheet" href="/public/assets/src/styles/my_wizard.scss">
-	<link rel="stylesheet" href="/public/assets/src/styles/my_grocery.css">
+	<link rel="stylesheet" href="/public/assets/src/styles/my_grocery.css?v=20260606-2">
+	<link rel="stylesheet" href="/public/assets/src/styles/grocery-crud-custom.css?v=20260606-2">
 	<!-- jQuery Steps CSS -->
 	<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-steps/1.1.0/jquery.steps.css"> -->
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/src/styles/jquery.steps.css">

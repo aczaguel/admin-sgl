@@ -423,10 +423,15 @@ class Users extends BaseController
                     $hasStatus = $postStatus !== null;
                 }
                 if (!$hasStatus) {
-                    $jsonBody = $request->getJSON(true);
-                    if (is_array($jsonBody) && array_key_exists('status', $jsonBody)) {
-                        $postStatus = $jsonBody['status'];
-                        $hasStatus = true;
+                    $contentType = strtolower($request->getHeaderLine('Content-Type'));
+                    $rawBody = (string) $request->getBody();
+
+                    if (strpos($contentType, 'application/json') !== false && $rawBody !== '') {
+                        $jsonBody = json_decode($rawBody, true);
+                        if (json_last_error() === JSON_ERROR_NONE && is_array($jsonBody) && array_key_exists('status', $jsonBody)) {
+                            $postStatus = $jsonBody['status'];
+                            $hasStatus = true;
+                        }
                     }
                 }
                 

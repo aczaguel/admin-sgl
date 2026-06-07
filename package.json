@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "test:browser:list": "playwright test --list",
-    "test:browser:cobranza": "playwright test tests/browser/cobranza-save.spec.js --project=chromium"
+    "test:browser:cobranza": "playwright test tests/browser/cobranza-save.spec.js --project=chromium",
+    "test:browser:php82-smoke": "playwright test tests/browser/php82-smoke.spec.js --project=chromium"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.2"

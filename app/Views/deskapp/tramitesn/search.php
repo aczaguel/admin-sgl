@@ -10,31 +10,17 @@
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/core.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/icon-font.min.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/vendors/styles/style.css">
+	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/public/assets/src/styles/sgl_blue_template.css?v=20260606-1">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-	<style>
-		.sgl-liston{
-			display:flex;
-			align-items:center;
-			gap:10px;
-			padding:10px 12px;
-			border-radius:10px;
-			font-weight:600;
-			margin:10px 0 20px;
-			border:1px solid #fecaca;
-			background:#fff1f2;
-			color:#991b1b;
-		}
-		.sgl-liston i{font-size:14px;}
-	</style>
 </head>
 
-<body class="sidebar-shrink">
+<body class="sidebar-shrink sgl-theme-2026">
 	<?= view('deskapp/includes/_header') ?>
 	<?= view('deskapp/includes/_sidebar') ?>
 
 	<div class="main-container">
 		<div class="pd-ltr-20">
-			<div class="card-box pd-20 height-100-p mb-30">
+			<div class="card-box pd-20 height-100-p mb-30 sgl-search-hero">
 				<div class="row align-items-center">
 					<div class="col-md-4">
 						<img src="<?= base_url('public/assets/vendors/images/banner-img.png') ?>" alt="">
@@ -54,15 +40,15 @@
 			<?php if ($flashError): ?>
 				<div class="sgl-liston" id="tramiteSearchFlash"><i class="fas fa-exclamation-triangle"></i> <?= esc($flashError) ?></div>
 			<?php else: ?>
-				<div class="sgl-liston" id="tramiteSearchFlash" style="display:none;"></div>
+				<div class="sgl-liston is-hidden" id="tramiteSearchFlash"></div>
 			<?php endif; ?>
 
 			<div class="row">
 				<div class="col-xl-6 col-lg-8 col-md-10 mx-auto">
-					<div class="card-box mb-30">
+					<div class="card-box mb-30 sgl-search-panel">
 						<div class="pb-20 pt-20 pl-30 pr-30">
 							<div class="wizard-content">
-								<h5 class="text-center mb-30">Buscar Trámite</h5>
+								<h5 class="text-center mb-30 sgl-search-title">Buscar Trámite</h5>
 
 								<form method="post" action="<?= site_url('/deskapp/tramitesn/search') ?>">
 									<?= csrf_field() ?>
@@ -79,7 +65,7 @@
 
 										<div class="row">
 											<div class="col-md-12 text-center">
-												<h6 class="mb-0 mt-20 mb-20">O</h6>
+												<h6 class="mb-0 mt-20 mb-20 sgl-search-separator">O</h6>
 											</div>
 										</div>
 
@@ -87,7 +73,7 @@
 											<div class="col-md-12">
 												<div class="form-group">
 													<label>Buscar por Folio:</label>
-													<input type="text" name="folio" id="folio" class="form-control text-uppercase" placeholder="Ej: ALD820807" style="text-transform: uppercase;">
+													<input type="text" name="folio" id="folio" class="form-control text-uppercase sgl-input-uppercase" placeholder="Ej: ALD820807">
 													<small class="form-text text-muted">El folio se convertirá a mayúsculas automáticamente.</small>
 												</div>
 											</div>
@@ -95,7 +81,7 @@
 
 									<div class="row">
 										<div class="col-md-12 text-center">
-											<h6 class="mb-0 mt-20 mb-20">O</h6>
+											<h6 class="mb-0 mt-20 mb-20 sgl-search-separator">O</h6>
 										</div>
 									</div>
 
@@ -103,7 +89,7 @@
 										<div class="col-md-12">
 											<div class="form-group">
 												<label>Buscar por Contrato:</label>
-												<input type="text" name="contrato" id="contrato" class="form-control text-uppercase" placeholder="Ej: ABC12345" style="text-transform: uppercase;">
+												<input type="text" name="contrato" id="contrato" class="form-control text-uppercase sgl-input-uppercase" placeholder="Ej: ABC12345">
 												<small class="form-text text-muted">El contrato se convertirá a mayúsculas automáticamente.</small>
 											</div>
 										</div>
@@ -111,7 +97,7 @@
 
 										<div class="row">
 											<div class="col-md-12">
-												<div class="form-group text-center mt-30">
+												<div class="form-group text-center mt-30 sgl-search-actions">
 													<button type="submit" class="btn btn-primary btn-lg">
 														<i class="fas fa-search"></i> Buscar
 													</button>

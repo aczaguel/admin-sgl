@@ -113,6 +113,7 @@ class ArrayHandler extends BaseHandler
 	 *
 	 * @return boolean
 	 */
+	#[\ReturnTypeWillChange]
 	public function gc($maxlifetime): bool
 	{
 		return true;

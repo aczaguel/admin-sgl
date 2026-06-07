@@ -90,4 +90,24 @@ class TestableTramitesn extends Tramitesn
     {
         return $this->resolveAttentionPresentation($daysData, $statusId);
     }
+
+    public function getAttentionTrackedStatusIdsForTest(): array
+    {
+        return $this->getAttentionTrackedStatusIds();
+    }
+
+    public function resolveAttentionListBucketForTest(?string $bucket): string
+    {
+        return $this->resolveAttentionListBucket($bucket);
+    }
+
+    public function resolveAttentionListMetaForTest(string $bucket): array
+    {
+        return $this->resolveAttentionListMeta($bucket);
+    }
+
+    public function buildAttentionBucketSqlForTest(string $bucket = 'attention', string $tableAlias = 'tramite'): string
+    {
+        return $this->buildAttentionBucketSql($bucket, $tableAlias);
+    }
 }

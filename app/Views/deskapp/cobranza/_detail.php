@@ -53,7 +53,7 @@ $renderPreviewCard = static function (array $file): void {
             <?php if ($isImage): ?>
                 <img src="<?= esc($fileUrl) ?>" alt="<?= esc($fileName) ?>" class="img-thumbnail">
             <?php else: ?>
-                <i class="far fa-file" style="font-size:32px;color:#6b7280;"></i>
+                <i class="far fa-file cobranza-file-fallback-icon"></i>
             <?php endif; ?>
         </a>
         <p><?= esc($fileName) ?></p>
@@ -75,10 +75,10 @@ $renderPreviewCard = static function (array $file): void {
         <span class="cobranza-tone is-<?= esc($selected_expediente['stage_tone']) ?>"><?= esc($selected_expediente['stage_label']) ?></span>
     </div>
 
-    <div class="cobranza-detail-actions" style="margin-bottom:18px;">
+    <div class="cobranza-detail-actions">
         <a class="cobranza-btn is-primary" href="<?= esc($selected_expediente['tramite_url']) ?>">Abrir tramite</a>
         <?php if ($canConcludeTramite && (int) ($selected_expediente['tramite_status_id'] ?? 0) === SGL_TRA_STATUS_COBRO_CLIENTE && !$hasPendingPagoConciliation): ?>
-            <form method="post" action="<?= esc(site_url('deskapp/tramites/change_status')) ?>" style="display:inline-flex;" data-cobranza-ajax-form data-confirm="Se concluira este tramite y saldra de la cartera de cobranza." data-success-redirect="<?= esc(site_url('deskapp/cobranza')) ?>">
+            <form method="post" action="<?= esc(site_url('deskapp/tramites/change_status')) ?>" class="cobranza-inline-form" data-cobranza-ajax-form data-confirm="Se concluira este tramite y saldra de la cartera de cobranza." data-success-redirect="<?= esc(site_url('deskapp/cobranza')) ?>">
                 <?= csrf_field() ?>
                 <input type="hidden" name="tramite_id" value="<?= esc((string) ($selected_expediente['id'] ?? 0)) ?>">
                 <input type="hidden" name="status_id" value="20">
@@ -88,22 +88,22 @@ $renderPreviewCard = static function (array $file): void {
     </div>
 
     <?php if ($canConcludeTramite && (int) ($selected_expediente['tramite_status_id'] ?? 0) === SGL_TRA_STATUS_COBRO_CLIENTE && $hasPendingPagoConciliation): ?>
-        <div class="cobranza-inline-note" style="margin-bottom:18px;background:#fffaeb;border-color:rgba(217,119,6,0.18);color:#92400e;">
+        <div class="cobranza-inline-note cobranza-inline-note--mb-lg cobranza-inline-note--warning">
             Este tramite todavia tiene pagos pendientes de conciliacion. Confirma o resuelve esos pagos antes de concluirlo.
         </div>
     <?php endif; ?>
 
     <?php if ($cobranzaSchemaReady && !empty($selected_expediente['can_open_expediente'])): ?>
-        <form method="post" action="<?= esc(site_url('deskapp/cobranza/expediente/' . (int) $selected_expediente['id'] . '/abrir')) ?>" class="cobranza-form-card" style="margin-bottom:18px;">
+        <form method="post" action="<?= esc(site_url('deskapp/cobranza/expediente/' . (int) $selected_expediente['id'] . '/abrir')) ?>" class="cobranza-form-card cobranza-form-card--spaced">
             <?= csrf_field() ?>
             <h3>Abrir expediente de cobranza</h3>
-            <p style="margin:0;color:#667085;font-size:0.9rem;">Este tramite ya cumple condicion para operar cobranza. Al abrirlo se creara o reactivara su expediente y se registrara la apertura en timeline.</p>
-            <div class="cobranza-actions" style="margin-top:14px;">
+            <p class="cobranza-copy">Este tramite ya cumple condicion para operar cobranza. Al abrirlo se creara o reactivara su expediente y se registrara la apertura en timeline.</p>
+            <div class="cobranza-actions cobranza-actions--spaced">
                 <button type="submit" class="cobranza-btn is-primary">Abrir expediente</button>
             </div>
         </form>
     <?php elseif ($cobranzaSchemaReady && !empty($selected_expediente['has_active_expediente'])): ?>
-        <div class="cobranza-inline-note" style="margin-bottom:18px;background:#ecfdf3;border-color:rgba(2,122,72,0.18);color:#166534;">
+        <div class="cobranza-inline-note cobranza-inline-note--mb-lg cobranza-inline-note--success">
             Expediente activo: <?= esc($selected_expediente['expediente_status_nombre'] !== '' ? $selected_expediente['expediente_status_nombre'] : 'Abierto') ?>.
             <?php if (!empty($selected_expediente['fecha_proximo_seguimiento'])): ?>
                 Siguiente seguimiento: <?= esc($formatDate($selected_expediente['fecha_proximo_seguimiento'])) ?>.
@@ -172,7 +172,7 @@ $renderPreviewCard = static function (array $file): void {
             <div class="ribbon-buttons">
                 <?php if ($canQuickDocumentos): ?>
                     <button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-documentos-cobranza">
-                        <div class="ribbon-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="ribbon-icon sgl-ribbon-icon--documentos">
                             <i class="fas fa-folder-open"></i>
                         </div>
                         <span class="ribbon-label">Documentos</span>
@@ -180,7 +180,7 @@ $renderPreviewCard = static function (array $file): void {
                 <?php endif; ?>
                 <?php if ($canQuickBitacora || $canHeaderHistorialActividad): ?>
                     <button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-bitacora-cobranza">
-                        <div class="ribbon-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="ribbon-icon sgl-ribbon-icon--bitacora">
                             <i class="fas fa-history"></i>
                         </div>
                         <span class="ribbon-label">Bitacora</span>
@@ -188,7 +188,7 @@ $renderPreviewCard = static function (array $file): void {
                 <?php endif; ?>
                 <?php if ($canQuickPagosDerecho): ?>
                     <button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-pagos-derecho-cobranza">
-                        <div class="ribbon-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <div class="ribbon-icon sgl-ribbon-icon--pagos-derecho">
                             <i class="fas fa-receipt"></i>
                         </div>
                         <span class="ribbon-label">Pagos Derecho</span>
@@ -196,7 +196,7 @@ $renderPreviewCard = static function (array $file): void {
                 <?php endif; ?>
                 <?php if ($canSeePagoGestorBtn): ?>
                     <button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-pago-gestor-cobranza">
-                        <div class="ribbon-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <div class="ribbon-icon sgl-ribbon-icon--pago-gestor">
                             <i class="fas fa-hand-holding-usd"></i>
                         </div>
                         <span class="ribbon-label">Pago Gestor</span>
@@ -204,7 +204,7 @@ $renderPreviewCard = static function (array $file): void {
                 <?php endif; ?>
                 <?php if ($canSeeEvidenciasFinalesBtn): ?>
                     <button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-evidencias-finales-cobranza">
-                        <div class="ribbon-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                        <div class="ribbon-icon sgl-ribbon-icon--evidencias-finales">
                             <i class="fas fa-check-double"></i>
                         </div>
                         <span class="ribbon-label">Evidencias Finales</span>
@@ -212,7 +212,7 @@ $renderPreviewCard = static function (array $file): void {
                 <?php endif; ?>
                 <?php if ($canSeeCobroClienteBtn): ?>
                     <button type="button" class="ribbon-btn" data-toggle="modal" data-target="#modal-cobro-cliente-cobranza">
-                        <div class="ribbon-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <div class="ribbon-icon sgl-ribbon-icon--cobro-cliente">
                             <i class="fas fa-money-check-alt"></i>
                         </div>
                         <span class="ribbon-label">Cobros Cliente</span>
@@ -235,7 +235,7 @@ $renderPreviewCard = static function (array $file): void {
                 <?php if (!empty($selected_expediente['servicios_asociados'])): ?>
                     <div class="sgl-soft-panel mt-3">
                         <p class="sgl-soft-panel-title">Tipos de tramite ligados</p>
-                        <div class="d-flex flex-wrap" style="gap:8px;">
+                        <div class="d-flex flex-wrap cobranza-badge-row">
                             <?php foreach ($selected_expediente['servicios_asociados'] as $srv): ?>
                                 <span class="badge badge-success badge-pill sgl-pill">✓ <?= esc((string) ($srv['label'] ?? '')) ?></span>
                             <?php endforeach; ?>
@@ -319,7 +319,7 @@ $renderPreviewCard = static function (array $file): void {
             <div id="cobranzaCollapsePaso4" class="collapse">
                 <div class="sgl-soft-panel mt-3">
                     <p class="sgl-soft-panel-title">Evidencias finales del tramite</p>
-                    <div class="sgl-status-row" style="margin-top:8px;">
+                    <div class="sgl-status-row cobranza-status-row--spaced">
                         <span class="sgl-status-chip <?= !empty($selected_expediente['has_comprobante_tramite_recibido']) ? '' : 'is-muted' ?>">Tramite Entregado por Gestor</span>
                         <span class="sgl-status-chip <?= !empty($selected_expediente['has_comprobante_acuse_recibo']) ? '' : 'is-muted' ?>">Acuse de Recibo del Cliente</span>
                         <?php if (!empty($selected_expediente['has_comprobante_tramite_recibido']) && !empty($selected_expediente['has_comprobante_acuse_recibo'])): ?>
@@ -359,7 +359,7 @@ $renderPreviewCard = static function (array $file): void {
                             </div>
                         <?php endforeach; ?>
                     </div>
-                    <div class="sgl-status-row" style="margin-top:8px;">
+                    <div class="sgl-status-row cobranza-status-row--spaced">
                         <span class="sgl-status-chip <?= !empty($selected_expediente['has_factura_gestor']) ? '' : 'is-muted' ?>">Factura del Gestor</span>
                         <span class="sgl-status-chip <?= !empty($selected_expediente['has_comprobante_pago']) ? '' : 'is-muted' ?>">Comprobante de Pago</span>
                         <?php if (!empty($selected_expediente['has_factura_gestor']) && !empty($selected_expediente['has_comprobante_pago'])): ?>
@@ -387,7 +387,7 @@ $renderPreviewCard = static function (array $file): void {
         <div class="modal fade" id="modal-documentos-cobranza" tabindex="-1" role="dialog" aria-hidden="true" data-cobranza-detached-modal="1">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
                 <div class="modal-content">
-                    <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff;">
+                    <div class="modal-header cobranza-modal-header--documentos">
                         <h4 class="modal-title"><i class="fas fa-folder-open"></i> Documentos</h4>
                         <button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">x</button>
                     </div>
@@ -402,24 +402,24 @@ $renderPreviewCard = static function (array $file): void {
                                                     <?php if (!empty($doc['is_image'])): ?>
                                                         <img src="<?= esc((string) $doc['file_url']) ?>" alt="<?= esc((string) ($doc['documento_nombre'] ?? 'Documento')) ?>" class="img-thumbnail">
                                                     <?php else: ?>
-                                                        <i class="far fa-file" style="font-size:32px;color:#6b7280;"></i>
+                                                        <i class="far fa-file cobranza-file-fallback-icon"></i>
                                                     <?php endif; ?>
                                                 </a>
                                             <?php else: ?>
-                                                <i class="far fa-file" style="font-size:32px;color:#6b7280;"></i>
+                                                <i class="far fa-file cobranza-file-fallback-icon"></i>
                                             <?php endif; ?>
                                             <p><?= esc((string) (($doc['documento_nombre'] ?? '') !== '' ? $doc['documento_nombre'] : 'Documento')) ?></p>
                                             <?php if (!empty($doc['status_nombre'])): ?>
                                                 <span class="doc-badge"><?= esc((string) $doc['status_nombre']) ?></span>
                                             <?php endif; ?>
                                             <?php if (!empty($doc['file'])): ?>
-                                                <span class="doc-badge" style="margin-left:4px;"><?= esc((string) $doc['file']) ?></span>
+                                                <span class="doc-badge cobranza-doc-badge--offset"><?= esc((string) $doc['file']) ?></span>
                                             <?php endif; ?>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
                             <?php else: ?>
-                                <div class="cobranza-inline-note" style="margin-bottom:0;">No hay documentos del tramite disponibles en este expediente.</div>
+                                <div class="cobranza-inline-note cobranza-inline-note--flush">No hay documentos del tramite disponibles en este expediente.</div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -436,7 +436,7 @@ $renderPreviewCard = static function (array $file): void {
         <div class="modal fade" id="modal-bitacora-cobranza" tabindex="-1" role="dialog" aria-hidden="true" data-cobranza-detached-modal="1">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
                 <div class="modal-content">
-                    <div class="modal-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: #fff;">
+                    <div class="modal-header cobranza-modal-header--bitacora">
                         <h4 class="modal-title"><i class="fas fa-history"></i> Bitacora</h4>
                         <button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">x</button>
                     </div>
@@ -452,7 +452,7 @@ $renderPreviewCard = static function (array $file): void {
                                 <?php endforeach; ?>
                             </div>
                         <?php else: ?>
-                            <div class="cobranza-inline-note" style="margin-bottom:0;">No hay registros de bitacora para este expediente.</div>
+                            <div class="cobranza-inline-note cobranza-inline-note--flush">No hay registros de bitacora para este expediente.</div>
                         <?php endif; ?>
                     </div>
                     <div class="modal-footer">
@@ -470,7 +470,7 @@ $renderPreviewCard = static function (array $file): void {
         <div class="modal fade" id="modal-pagos-derecho-cobranza" tabindex="-1" role="dialog" aria-hidden="true" data-cobranza-detached-modal="1">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
                 <div class="modal-content">
-                    <div class="modal-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: #0f172a;">
+                    <div class="modal-header cobranza-modal-header--pagos-derecho">
                         <h4 class="modal-title"><i class="fas fa-receipt"></i> Pagos Derecho</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
                     </div>
@@ -513,7 +513,7 @@ $renderPreviewCard = static function (array $file): void {
         <div class="modal fade" id="modal-pago-gestor-cobranza" tabindex="-1" role="dialog" aria-hidden="true" data-cobranza-detached-modal="1">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
                 <div class="modal-content">
-                    <div class="modal-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #0f172a;">
+                    <div class="modal-header cobranza-modal-header--pago-gestor">
                         <h4 class="modal-title"><i class="fas fa-hand-holding-usd"></i> Pago Gestor</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
                     </div>
@@ -556,7 +556,7 @@ $renderPreviewCard = static function (array $file): void {
         <div class="modal fade" id="modal-evidencias-finales-cobranza" tabindex="-1" role="dialog" aria-hidden="true" data-cobranza-detached-modal="1">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
                 <div class="modal-content">
-                    <div class="modal-header" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #0f172a;">
+                    <div class="modal-header cobranza-modal-header--evidencias-finales">
                         <h4 class="modal-title"><i class="fas fa-check-double"></i> Evidencias Finales</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
                     </div>
@@ -595,13 +595,13 @@ $renderPreviewCard = static function (array $file): void {
         <div class="modal fade" id="modal-cobro-cliente-cobranza" tabindex="-1" role="dialog" aria-hidden="true" data-cobranza-detached-modal="1">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
                 <div class="modal-content">
-                    <div class="modal-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: #fff;">
+                    <div class="modal-header cobranza-modal-header--cobro-cliente">
                         <h4 class="modal-title"><i class="fas fa-money-check-alt"></i> Cobros Cliente</h4>
                         <button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">x</button>
                     </div>
                     <div class="modal-body">
                         <?php if (!empty($selected_expediente['evidencia_cobro_txt'])): ?>
-                            <div class="cobranza-inline-note" style="margin-bottom:16px;">
+                            <div class="cobranza-inline-note cobranza-inline-note--md">
                                 <?= esc((string) $selected_expediente['evidencia_cobro_txt']) ?>
                             </div>
                         <?php endif; ?>
@@ -627,7 +627,7 @@ $renderPreviewCard = static function (array $file): void {
                                 <?php endforeach; ?>
                             </div>
                         <?php else: ?>
-                            <div class="cobranza-inline-note" style="margin-bottom:0;">Aun no hay documentos de cobro registrados para este expediente.</div>
+                            <div class="cobranza-inline-note cobranza-inline-note--flush">Aun no hay documentos de cobro registrados para este expediente.</div>
                         <?php endif; ?>
                     </div>
                     <div class="modal-footer">
@@ -641,10 +641,10 @@ $renderPreviewCard = static function (array $file): void {
     <?php if ($canEditCobroClienteData || $canUploadCobroClienteFiles || !empty($selected_expediente['cobro_cliente_files'])): ?>
         <div class="cobranza-form-card">
             <h3>Ajustes de cobro cliente</h3>
-            <p style="margin:0;color:#667085;font-size:0.9rem;">Aqui puedes ajustar el equivalente operativo del paso 6: estatus, montos, evidencia descriptiva e imagenes de cobro.</p>
+            <p class="cobranza-copy">Aqui puedes ajustar el equivalente operativo del paso 6: estatus, montos, evidencia descriptiva e imagenes de cobro.</p>
 
             <?php if ($canEditCobroClienteData): ?>
-                <form method="post" action="<?= esc(site_url('deskapp/tramitesn/update_final_save/' . (int) $selected_expediente['id'])) ?>" class="cobranza-form-grid" style="margin-top:16px;" data-cobranza-ajax-form>
+                <form method="post" action="<?= esc(site_url('deskapp/tramitesn/update_final_save/' . (int) $selected_expediente['id'])) ?>" class="cobranza-form-grid cobranza-form-grid--top" data-cobranza-ajax-form>
                     <?= csrf_field() ?>
                     <div class="cobranza-field">
                         <label for="id-give-cliente">ID Give Cliente</label>
@@ -708,8 +708,8 @@ $renderPreviewCard = static function (array $file): void {
                 </form>
             <?php endif; ?>
 
-            <div style="margin-top:18px;">
-                <div class="cobranza-detail-stats" style="margin-bottom:12px;">
+            <div class="cobranza-section-top">
+                <div class="cobranza-detail-stats cobranza-detail-stats--tight">
                     <span class="cobranza-chip">ID: <?= esc((string) $selected_expediente['id']) ?></span>
                     <span class="cobranza-chip">Factura: <?= esc((string) ($selected_expediente['numero_factura'] !== '' ? $selected_expediente['numero_factura'] : 'Sin capturar')) ?></span>
                     <span class="cobranza-chip">Refactura: <?= esc((string) ($selected_expediente['numero_refactura'] !== '' ? $selected_expediente['numero_refactura'] : 'Sin capturar')) ?></span>
@@ -774,14 +774,14 @@ $renderPreviewCard = static function (array $file): void {
                         <?php endforeach; ?>
                     </div>
                 <?php else: ?>
-                    <div class="cobranza-empty" style="margin-top:14px;">Aun no hay imagenes o comprobantes de cobro cargados para este tramite.</div>
+                    <div class="cobranza-empty cobranza-empty--top">Aun no hay imagenes o comprobantes de cobro cargados para este tramite.</div>
                 <?php endif; ?>
             </div>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($selected_expediente['promesa_activa'])): ?>
-        <div class="cobranza-inline-note" style="margin-top:18px;background:#fff7ed;border-color:rgba(180,83,9,0.14);color:#9a3412;">
+        <div class="cobranza-inline-note cobranza-inline-note--mt-lg cobranza-inline-note--orange">
             Promesa activa por $<?= esc(number_format((float) ($selected_expediente['promesa_activa']['monto_prometido'] ?? 0), 2)) ?>
             para <?= esc($formatDate($selected_expediente['promesa_activa']['fecha_promesa'] ?? null)) ?>
             vía <?= esc((string) ($selected_expediente['promesa_activa']['medio_pago_nombre'] ?? 'medio no especificado')) ?>.
@@ -789,7 +789,7 @@ $renderPreviewCard = static function (array $file): void {
     <?php endif; ?>
 
     <?php if (!empty($selected_expediente['pago_summary']['count'])): ?>
-        <div class="cobranza-inline-note" style="margin-top:12px;background:#ecfdf3;border-color:rgba(2,122,72,0.18);color:#166534;">
+        <div class="cobranza-inline-note cobranza-inline-note--mt-md cobranza-inline-note--success">
             Total reportado: $<?= esc(number_format((float) ($selected_expediente['pago_summary']['amount_total'] ?? 0), 2)) ?>.
             Pagos parciales: <?= esc((string) ($selected_expediente['pago_summary']['partial_count'] ?? 0)) ?>.
             Confirmados: <?= esc((string) ($selected_expediente['pago_summary']['confirmed_count'] ?? 0)) ?>.
@@ -800,11 +800,11 @@ $renderPreviewCard = static function (array $file): void {
     <?php if (!empty($selected_expediente['pagos_pendientes'])): ?>
         <div class="cobranza-form-card">
             <h3>Pagos pendientes de conciliacion</h3>
-            <p style="margin:0;color:#667085;font-size:0.9rem;">Confirma cada pago reportado para sacarlo de revisión y mover el expediente al siguiente estado operativo.</p>
+            <p class="cobranza-copy">Confirma cada pago reportado para sacarlo de revisión y mover el expediente al siguiente estado operativo.</p>
 
-            <div class="cobranza-timeline" style="margin-top:16px;">
+            <div class="cobranza-timeline cobranza-timeline--top">
                 <?php foreach ($selected_expediente['pagos_pendientes'] as $pagoPendiente): ?>
-                    <article class="cobranza-timeline-item" style="border-left-color:rgba(180,83,9,0.35);">
+                    <article class="cobranza-timeline-item cobranza-timeline-item--warning">
                         <span class="cobranza-tone is-warning"><?= esc($formatDate($pagoPendiente['fecha_pago_reportada'] ?? null)) ?></span>
                         <h4><?= esc(ucfirst((string) ($pagoPendiente['tipo_pago'] ?? 'Pago'))) ?> por $<?= esc(number_format((float) ($pagoPendiente['monto'] ?? 0), 2)) ?></h4>
                         <p>
@@ -812,7 +812,7 @@ $renderPreviewCard = static function (array $file): void {
                             Referencia: <?= esc((string) ($pagoPendiente['referencia_pago'] ?? 'sin referencia')) ?>.
                         </p>
 
-                        <form method="post" action="<?= esc(site_url('deskapp/cobranza/expediente/' . (int) $selected_expediente['id'] . '/pagos/' . (int) $pagoPendiente['id'] . '/confirmar')) ?>" class="cobranza-form-grid" style="margin-top:14px;">
+                        <form method="post" action="<?= esc(site_url('deskapp/cobranza/expediente/' . (int) $selected_expediente['id'] . '/pagos/' . (int) $pagoPendiente['id'] . '/confirmar')) ?>" class="cobranza-form-grid cobranza-form-grid--mid">
                             <?= csrf_field() ?>
                             <div class="cobranza-field">
                                 <label for="fecha-confirmada-<?= (int) $pagoPendiente['id'] ?>">Fecha confirmada</label>
@@ -845,7 +845,7 @@ $renderPreviewCard = static function (array $file): void {
         <form method="post" action="<?= esc(site_url('deskapp/cobranza/expediente/' . (int) $selected_expediente['id'] . '/gestiones')) ?>" class="cobranza-form-card">
             <?= csrf_field() ?>
             <h3>Registrar gestion</h3>
-            <p style="margin:0;color:#667085;font-size:0.9rem;">Registra el ultimo contacto y deja programado el siguiente seguimiento sin salir del centro de cobranza.</p>
+            <p class="cobranza-copy">Registra el ultimo contacto y deja programado el siguiente seguimiento sin salir del centro de cobranza.</p>
 
             <div class="cobranza-form-grid">
                 <div class="cobranza-field">
@@ -893,7 +893,7 @@ $renderPreviewCard = static function (array $file): void {
                 </div>
             </div>
 
-            <div class="cobranza-actions" style="margin-top:14px;">
+            <div class="cobranza-actions cobranza-actions--spaced">
                 <button type="submit" class="cobranza-btn is-primary">Guardar gestion</button>
             </div>
         </form>
@@ -901,7 +901,7 @@ $renderPreviewCard = static function (array $file): void {
         <form method="post" action="<?= esc(site_url('deskapp/cobranza/expediente/' . (int) $selected_expediente['id'] . '/promesas')) ?>" class="cobranza-form-card">
             <?= csrf_field() ?>
             <h3>Registrar promesa de pago</h3>
-            <p style="margin:0;color:#667085;font-size:0.9rem;">La promesa vive como objeto propio del expediente y actualiza el siguiente seguimiento.</p>
+            <p class="cobranza-copy">La promesa vive como objeto propio del expediente y actualiza el siguiente seguimiento.</p>
 
             <div class="cobranza-form-grid">
                 <div class="cobranza-field">
@@ -941,7 +941,7 @@ $renderPreviewCard = static function (array $file): void {
                 </div>
             </div>
 
-            <div class="cobranza-actions" style="margin-top:14px;">
+            <div class="cobranza-actions cobranza-actions--spaced">
                 <button type="submit" class="cobranza-btn is-primary">Guardar promesa</button>
             </div>
         </form>
@@ -949,7 +949,7 @@ $renderPreviewCard = static function (array $file): void {
         <form method="post" action="<?= esc(site_url('deskapp/cobranza/expediente/' . (int) $selected_expediente['id'] . '/pagos')) ?>" class="cobranza-form-card">
             <?= csrf_field() ?>
             <h3>Registrar pago reportado</h3>
-            <p style="margin:0;color:#667085;font-size:0.9rem;">Los pagos parciales y totales quedan registrados como objeto propio del expediente y pasan a revisión.</p>
+            <p class="cobranza-copy">Los pagos parciales y totales quedan registrados como objeto propio del expediente y pasan a revisión.</p>
 
             <div class="cobranza-form-grid">
                 <div class="cobranza-field">
@@ -994,16 +994,16 @@ $renderPreviewCard = static function (array $file): void {
 
             <input type="hidden" name="canal" value="interno">
 
-            <div class="cobranza-actions" style="margin-top:14px;">
+            <div class="cobranza-actions cobranza-actions--spaced">
                 <button type="submit" class="cobranza-btn is-primary">Guardar pago</button>
             </div>
         </form>
     <?php endif; ?>
 
-    <div style="margin-top:18px;">
+    <div class="cobranza-section-top">
         <span class="cobranza-detail-overline">Timeline operativo</span>
         <?php if (empty($selected_expediente['timeline'])): ?>
-            <div class="cobranza-empty" style="margin-top:12px;">
+            <div class="cobranza-empty cobranza-empty--md">
                 Aun no hay eventos relevantes para este expediente.
             </div>
         <?php else: ?>

@@ -134,16 +134,59 @@
 					</li>
 				<?php endif; ?>
 
-				<?php if (has_permission('list_cobro_cliente', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+				<?php
+					$showCobranzaMenu = has_permission('list_cobro_cliente', $session->get('user_permissions'), $session->get('user_roles'));
+					$showProcesoFinalMenu = has_permission('menu_proceso_final', $session->get('user_permissions'), $session->get('user_roles'));
+					$showFaseFinalMenu = $showCobranzaMenu || $showProcesoFinalMenu;
+				?>
+				<?php if ($showFaseFinalMenu): ?>
 					<li class="menu-section-title">
-						<span><i class="fas fa-hand-holding-usd me-2"></i> Cobranza</span>
-						<?= perm_audit_tag('list_cobro_cliente', $session) ?>
+						<span><i class="fas fa-flag-checkered me-2"></i> Fase Final</span>
+						<?= $showCobranzaMenu ? perm_audit_tag('list_cobro_cliente', $session) : '' ?>
+						<?= $showProcesoFinalMenu ? perm_audit_tag('menu_proceso_final', $session) : '' ?>
 					</li>
-					<li>
-						<a href="<?php echo base_url('deskapp/cobranza'); ?>" class="dropdown-toggle no-arrow">
-							<span class="micon"><i class="fas fa-receipt"></i></span>
-							<span class="mtext">Centro de Cobranza</span>
+					<li class="dropdown">
+						<a href="javascript:;" class="dropdown-toggle">
+							<span class="micon"><i class="fas fa-tasks"></i></span>
+							<span class="mtext">Fase Final</span>
 						</a>
+						<ul class="submenu">
+							<?php if ($showCobranzaMenu): ?>
+								<li class="dropdown">
+									<a href="javascript:;" class="dropdown-toggle">
+										<span class="micon"><i class="fas fa-receipt"></i></span>
+										<span class="mtext">Cobranza</span>
+									</a>
+									<ul class="submenu child">
+										<li><a href="<?php echo base_url('deskapp/cobranza'); ?>">
+											<i class="fas fa-hand-holding-usd"></i> Centro de Cobranza
+										</a></li>
+									</ul>
+								</li>
+							<?php endif; ?>
+							<?php if ($showProcesoFinalMenu): ?>
+								<li class="dropdown">
+									<a href="javascript:;" class="dropdown-toggle">
+										<span class="micon"><i class="fas fa-flag-checkered"></i></span>
+										<span class="mtext">Cierre</span>
+									</a>
+									<ul class="submenu child">
+										<?php if (has_permission('read_final_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+											<li><a href="<?php echo base_url('deskapp/proceso/final'); ?>">
+												<i class="fas fa-check-double text-success"></i> Finalizado
+												<?= perm_audit_tag('read_final_tramite', $session) ?>
+											</a></li>
+										<?php endif; ?>
+										<?php if (has_permission('listar_tramites_cancelado', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+											<li><a href="<?php echo base_url('deskapp/tramites/cancelados'); ?>">
+												<i class="fas fa-times-circle text-danger"></i> Cancelados
+												<?= perm_audit_tag('listar_tramites_cancelado', $session) ?>
+											</a></li>
+										<?php endif; ?>
+									</ul>
+								</li>
+							<?php endif; ?>
+						</ul>
 					</li>
 				<?php endif; ?>
 				
@@ -166,124 +209,99 @@
 					</ul>
 				</li> -->
 				
-				<!-- SECCIÓN: PROCESO FINAL -->
-				<?php if (has_permission('menu_proceso_final', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-					<li class="menu-section-title">
-						<span><i class="fas fa-flag-checkered me-2"></i> Cierre de Trámites</span>
-						<?= perm_audit_tag('menu_proceso_final', $session) ?>
-					</li>
-					<li class="dropdown">
-						<a href="javascript:;" class="dropdown-toggle">
-							<span class="micon"><i class="fas fa-tasks"></i></span>
-							<span class="mtext">Cierre</span>
-						</a>
-						<ul class="submenu">
-							<?php if (has_permission('read_final_tramite', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-								<li><a href="<?php echo base_url('deskapp/proceso/final'); ?>">
-									<i class="fas fa-check-double text-success"></i> Finalizado
-									<?= perm_audit_tag('read_final_tramite', $session) ?>
-								</a></li>
-							<?php endif; ?>	
-							<?php if (has_permission('listar_tramites_cancelado', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-								<li><a href="<?php echo base_url('deskapp/tramites/cancelados'); ?>">
-									<i class="fas fa-times-circle text-danger"></i> Cancelados
-									<?= perm_audit_tag('listar_tramites_cancelado', $session) ?>
-								</a></li>
-							<?php endif; ?>	
-						</ul>
-					</li>
-				<?php endif; ?>
-				
-				<!-- SECCIÓN: GESTORES -->
-				<?php if (has_permission('menu_gestores', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-					<li class="menu-section-title">
-						<span><i class="fas fa-handshake me-2"></i> Gestión de Gestores</span>
-						<?= perm_audit_tag('menu_gestores', $session) ?>
-					</li>
-					<li class="dropdown">
-						<a href="javascript:;" class="dropdown-toggle">
-							<span class="micon"><i class="fas fa-handshake"></i></span>
-							<span class="mtext">Gestores</span>
-						</a>
-						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/gestores/gestores'); ?>">
-								<i class="fas fa-building"></i> Empresa Gestora
-							</a></li>
-							<li><a href="<?php echo base_url('deskapp/gestores/gestor'); ?>">
-								<i class="fas fa-user-tie"></i> Gestor
-							</a></li>
-						</ul>
-					</li>
-				<?php endif; ?>
-				
-				<!-- SECCIÓN: CLIENTES -->
-				<?php if (has_permission('menu_clientes', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-					<li class="menu-section-title">
-						<span><i class="fas fa-users me-2"></i> Gestión de Clientes</span>
-						<?= perm_audit_tag('menu_clientes', $session) ?>
-					</li>
-					<li class="dropdown">
-						<a href="javascript:;" class="dropdown-toggle">
-							<span class="micon"><i class="fas fa-user-friends"></i></span>
-							<span class="mtext">Clientes</span>
-						</a>
-						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/clientes/cliente'); ?>">
-								<i class="fas fa-user-circle"></i> Cliente
-							</a></li>
-							<li><a href="<?php echo base_url('deskapp/clidirecto/clidirecto'); ?>">
-								<i class="fas fa-building"></i> Clientes directos
-								</a></li>
-							<li><a href="<?php echo base_url('deskapp/clidirecto/ejecutivo'); ?>">
-								<i class="fas fa-user-tie"></i> Ejecutivos de cliente
-								</a></li>
-							<!-- <li><a href="<?php echo base_url('deskapp/clientes/contactos'); ?>">
-								<i class="fas fa-address-book"></i> Contactos
-							</a></li> -->
-						</ul>
-					</li>
-				<?php endif; ?>
-				
-				<!-- SECCIÓN: CONFIGURACIÓN -->
-				<?php if (has_permission('menu_configuracion', $session->get('user_permissions'), $session->get('user_roles'))): ?>
+				<?php
+					$showGestoresMenu = has_permission('menu_gestores', $session->get('user_permissions'), $session->get('user_roles'));
+					$showClientesMenu = has_permission('menu_clientes', $session->get('user_permissions'), $session->get('user_roles'));
+					$showTiposTramiteMenu = has_permission('menu_configuracion', $session->get('user_permissions'), $session->get('user_roles'));
+					$showDocumentosMenu = has_permission('menu_documentos', $session->get('user_permissions'), $session->get('user_roles'));
+					$showSystemConfigMenu = $showGestoresMenu || $showClientesMenu || $showTiposTramiteMenu || $showDocumentosMenu;
+				?>
+
+				<!-- SECCIÓN: CONFIGURACIÓN DEL SISTEMA -->
+				<?php if ($showSystemConfigMenu): ?>
 					<li class="menu-section-title">
 						<span><i class="fas fa-cog me-2"></i> Configuración del Sistema</span>
-						<?= perm_audit_tag('menu_configuracion', $session) ?>
+						<?= $showGestoresMenu ? perm_audit_tag('menu_gestores', $session) : '' ?>
+						<?= $showClientesMenu ? perm_audit_tag('menu_clientes', $session) : '' ?>
+						<?= $showTiposTramiteMenu ? perm_audit_tag('menu_configuracion', $session) : '' ?>
+						<?= $showDocumentosMenu ? perm_audit_tag('menu_documentos', $session) : '' ?>
 					</li>
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
 							<span class="micon"><i class="fas fa-cogs"></i></span>
-							<span class="mtext">Configuración</span>
+							<span class="mtext">Configuración del Sistema</span>
 						</a>
 						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/tramites/tipo'); ?>">
-								<i class="fas fa-tags"></i> Tipo de Trámite
-							</a></li>
-							<li><a href="<?php echo base_url('deskapp/tramites/status'); ?>">
-								<i class="fas fa-traffic-light"></i> Estatuses de Trámite
-							</a></li>
-						</ul>
-					</li>
-				<?php endif; ?>
-				
-				<!-- SECCIÓN: DOCUMENTOS -->
-				<?php if (has_permission('menu_documentos', $session->get('user_permissions'), $session->get('user_roles'))): ?>
-					<li class="menu-section-title">
-						<span><i class="fas fa-folder me-2"></i> Gestión Documental</span>
-						<?= perm_audit_tag('menu_documentos', $session) ?>
-					</li>
-					<li class="dropdown">
-						<a href="javascript:;" class="dropdown-toggle">
-							<span class="micon"><i class="fas fa-file-alt"></i></span>
-							<span class="mtext">Documentos</span>
-						</a>
-						<ul class="submenu">
-							<li><a href="<?php echo base_url('deskapp/documentos/documento'); ?>">
-								<i class="fas fa-file"></i> Documento
-							</a></li>
-							<li><a href="<?php echo base_url('deskapp/documentos/status'); ?>">
-								<i class="fas fa-info-circle"></i> Status de Documentos
-							</a></li>
+							<?php if ($showGestoresMenu): ?>
+								<li class="dropdown">
+									<a href="javascript:;" class="dropdown-toggle">
+										<span class="micon"><i class="fas fa-handshake"></i></span>
+										<span class="mtext">Gestores</span>
+									</a>
+									<ul class="submenu child">
+										<li><a href="<?php echo base_url('deskapp/gestores/gestores'); ?>">
+											<i class="fas fa-building"></i> Empresa Gestora
+										</a></li>
+										<li><a href="<?php echo base_url('deskapp/gestores/gestor'); ?>">
+											<i class="fas fa-user-tie"></i> Gestor
+										</a></li>
+									</ul>
+								</li>
+							<?php endif; ?>
+							<?php if ($showClientesMenu): ?>
+								<li class="dropdown">
+									<a href="javascript:;" class="dropdown-toggle">
+										<span class="micon"><i class="fas fa-user-friends"></i></span>
+										<span class="mtext">Clientes</span>
+									</a>
+									<ul class="submenu child">
+										<li><a href="<?php echo base_url('deskapp/clientes/cliente'); ?>">
+											<i class="fas fa-user-circle"></i> Cliente
+										</a></li>
+										<li><a href="<?php echo base_url('deskapp/clidirecto/clidirecto'); ?>">
+											<i class="fas fa-building"></i> Clientes directos
+										</a></li>
+										<li><a href="<?php echo base_url('deskapp/clidirecto/ejecutivo'); ?>">
+											<i class="fas fa-user-tie"></i> Ejecutivos de cliente
+										</a></li>
+										<!-- <li><a href="<?php echo base_url('deskapp/clientes/contactos'); ?>">
+											<i class="fas fa-address-book"></i> Contactos
+										</a></li> -->
+									</ul>
+								</li>
+							<?php endif; ?>
+							<?php if ($showTiposTramiteMenu): ?>
+								<li class="dropdown">
+									<a href="javascript:;" class="dropdown-toggle">
+										<span class="micon"><i class="fas fa-tags"></i></span>
+										<span class="mtext">Tipos de Trámites</span>
+									</a>
+									<ul class="submenu child">
+										<li><a href="<?php echo base_url('deskapp/tramites/tipo'); ?>">
+											<i class="fas fa-tags"></i> Tipo de Trámite
+										</a></li>
+										<li><a href="<?php echo base_url('deskapp/tramites/status'); ?>">
+											<i class="fas fa-traffic-light"></i> Estatuses de Trámite
+										</a></li>
+									</ul>
+								</li>
+							<?php endif; ?>
+							<?php if ($showDocumentosMenu): ?>
+								<li class="dropdown">
+									<a href="javascript:;" class="dropdown-toggle">
+										<span class="micon"><i class="fas fa-file-alt"></i></span>
+										<span class="mtext">Documentos</span>
+									</a>
+									<ul class="submenu child">
+										<li><a href="<?php echo base_url('deskapp/documentos/documento'); ?>">
+											<i class="fas fa-file"></i> Documento
+										</a></li>
+										<li><a href="<?php echo base_url('deskapp/documentos/status'); ?>">
+											<i class="fas fa-info-circle"></i> Status de Documentos
+										</a></li>
+									</ul>
+								</li>
+							<?php endif; ?>
 						</ul>
 					</li>
 				<?php endif; ?>
@@ -297,7 +315,7 @@
 					<li class="dropdown">
 						<a href="javascript:;" class="dropdown-toggle">
 							<span class="micon"><i class="fas fa-user-shield"></i></span>
-							<span class="mtext">Roles y Permisos</span>
+							<span class="mtext">Usuarios</span>
 						</a>
 						<ul class="submenu">
 							<li><a href="<?php echo base_url('deskapp/roles/roles'); ?>">

@@ -1,0 +1,11 @@
+.DS_Store
+.git
+.gitignore
+.vscode
+node_modules
+db backup
+writable/cache/*
+writable/debugbar/*
+writable/logs/*
+writable/session/*
+writable/uploads/*

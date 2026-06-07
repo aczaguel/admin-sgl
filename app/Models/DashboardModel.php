@@ -1011,9 +1011,9 @@ class DashboardModel extends Model
                 eg.nombre AS empresa_gestora,
                 COUNT(*) as total_tramites,
                 SUM(CASE WHEN t.tra_status_id = 20 THEN 1 ELSE 0 END) as tramites_concluidos,
-                AVG(CASE WHEN t.finished_at IS NOT NULL AND t.started_at IS NOT NULL 
-                    THEN DATEDIFF(t.finished_at, t.started_at) END) as tiempo_promedio_dias,
-                SUM(t.gestor_total_pago) as total_pagado_gestor
+                COALESCE(AVG(CASE WHEN t.finished_at IS NOT NULL AND t.started_at IS NOT NULL 
+                    THEN DATEDIFF(t.finished_at, t.started_at) END), 0) as tiempo_promedio_dias,
+                COALESCE(SUM(t.gestor_total_pago), 0) as total_pagado_gestor
             FROM tramite t
             LEFT JOIN ges_gestor g ON t.gestor_id = g.id
             LEFT JOIN ges_empresa_gestora eg ON t.empresa_gestora_id = eg.id

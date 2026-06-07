@@ -11,6 +11,10 @@ use CodeIgniter\Controller;
 
 class Bitacora extends BaseController
 {
+    private const SEARCH_PAGE_SIZE = 10;
+    private const SEARCH_SCAN_CHUNK_SIZE = 25;
+    private const SEARCH_PAGER_SESSION_KEY = 'bitacora_search_pager';
+
     public function __construct()
     {
         helper(['cliente_filter', 'permissions', 'acl_guard']);
@@ -169,27 +173,47 @@ class Bitacora extends BaseController
             return $resp;
         }
 
-        $model = new \CodeIgniter\Model();
-        $model->setTable('bitacora');
+        $db = ConfigDatabase::connect();
+        $userId = (int) ($session->get('id') ?? 0);
+        $requestedPage = max(1, (int) $this->request->getGet('page'));
+        $token = trim((string) $this->request->getGet('token'));
 
-        $userId = $session->get('id');
-
-        $builder = $model
-            ->select('bitacora.tramite_id, bitacora.folio_tramite, t.contrato, MAX(bitacora.created_at) AS last_change, COUNT(*) AS total_changes')
-            ->join('tramite t', 't.id = bitacora.tramite_id', 'left')
-            ->groupBy('bitacora.tramite_id, bitacora.folio_tramite, t.contrato')
-            ->orderBy('last_change', 'DESC')
-            ->limit(100);
-
-        if (!user_has_global_cliente_access($userId)) {
-            $builder->where(get_cliente_filter_sql($userId, 't'), null, false);
+        if ($token === '') {
+            $token = bin2hex(random_bytes(16));
+            $requestedPage = 1;
         }
 
-        $bitacoraList = $builder->findAll();
+        $pagerState = $this->getSearchPagerState($session, $token);
+        [$pagerState, $pageData] = $this->resolveSearchPage($db, $userId, $pagerState, $requestedPage);
+        $this->storeSearchPagerState($session, $token, $pagerState);
+
+        $resolvedPage = $requestedPage;
+        if (!isset($pagerState['pages'][$resolvedPage])) {
+            $resolvedPage = empty($pagerState['pages'])
+                ? 1
+                : max(array_map('intval', array_keys($pagerState['pages'])));
+        }
+
+        $pageLinks = array_map('intval', array_keys($pagerState['pages']));
+        sort($pageLinks);
+        if (!empty($pageData['has_next'])) {
+            $pageLinks[] = $resolvedPage + 1;
+            $pageLinks = array_values(array_unique($pageLinks));
+        }
 
         $data = [
             'session' => $session,
-            'bitacora_list' => $bitacoraList,
+            'bitacora_list' => $pageData['items'],
+            'pager' => [
+                'token' => $token,
+                'page' => $resolvedPage,
+                'page_size' => self::SEARCH_PAGE_SIZE,
+                'has_prev' => $resolvedPage > 1,
+                'has_next' => $pageData['has_next'],
+                'prev_page' => $resolvedPage > 1 ? $resolvedPage - 1 : null,
+                'next_page' => $pageData['has_next'] ? $resolvedPage + 1 : null,
+                'page_links' => $pageLinks,
+            ],
         ];
 
         return view('deskapp/bitacora/bitacora_search', $data);
@@ -287,6 +311,250 @@ class Bitacora extends BaseController
             'username' => $displayName,
             'modified_at' => $last['created_at'] ?? null,
         ];
+    }
+
+    private function getSearchPagerState($session, string $token): array
+    {
+        $allStates = $session->get(self::SEARCH_PAGER_SESSION_KEY);
+        if (!is_array($allStates)) {
+            return [
+                'pages' => [],
+                'seen_keys' => [],
+                'next_cursor' => null,
+                'exhausted' => false,
+            ];
+        }
+
+        $state = $allStates[$token] ?? null;
+        if (!is_array($state)) {
+            return [
+                'pages' => [],
+                'seen_keys' => [],
+                'next_cursor' => null,
+                'exhausted' => false,
+            ];
+        }
+
+        $state['pages'] = isset($state['pages']) && is_array($state['pages']) ? $state['pages'] : [];
+        $state['seen_keys'] = isset($state['seen_keys']) && is_array($state['seen_keys']) ? $state['seen_keys'] : [];
+        $state['next_cursor'] = array_key_exists('next_cursor', $state) ? $state['next_cursor'] : null;
+        $state['exhausted'] = !empty($state['exhausted']);
+
+        return $state;
+    }
+
+    private function storeSearchPagerState($session, string $token, array $pagerState): void
+    {
+        $allStates = $session->get(self::SEARCH_PAGER_SESSION_KEY);
+        if (!is_array($allStates)) {
+            $allStates = [];
+        }
+
+        $allStates[$token] = $pagerState;
+
+        if (count($allStates) > 5) {
+            $allStates = array_slice($allStates, -5, null, true);
+        }
+
+        $session->set(self::SEARCH_PAGER_SESSION_KEY, $allStates);
+    }
+
+    private function resolveSearchPage($db, int $userId, array $pagerState, int $requestedPage): array
+    {
+        if ($requestedPage < 1) {
+            $requestedPage = 1;
+        }
+
+        if (isset($pagerState['pages'][$requestedPage])) {
+            return [$pagerState, $pagerState['pages'][$requestedPage]];
+        }
+
+        $maxCachedPage = empty($pagerState['pages']) ? 0 : max(array_map('intval', array_keys($pagerState['pages'])));
+        if ($requestedPage > ($maxCachedPage + 1)) {
+            $requestedPage = $maxCachedPage + 1;
+        }
+
+        while ($maxCachedPage < $requestedPage) {
+            [$pagerState, $pageData] = $this->generateNextSearchPage($db, $userId, $pagerState);
+            $maxCachedPage++;
+            $pagerState['pages'][$maxCachedPage] = $pageData;
+
+            if (empty($pageData['has_next']) && $maxCachedPage < $requestedPage) {
+                break;
+            }
+        }
+
+        if (!isset($pagerState['pages'][$requestedPage])) {
+            $requestedPage = max(1, $maxCachedPage);
+        }
+
+        return [$pagerState, $pagerState['pages'][$requestedPage] ?? ['items' => [], 'has_next' => false]];
+    }
+
+    private function generateNextSearchPage($db, int $userId, array $pagerState): array
+    {
+        if (!empty($pagerState['exhausted'])) {
+            return [$pagerState, ['items' => [], 'has_next' => false]];
+        }
+
+        $selected = [];
+        $seenKeys = array_fill_keys(array_values($pagerState['seen_keys']), true);
+        $cursor = $pagerState['next_cursor'] ?? null;
+        $scannedAnyRow = false;
+        $displayCursor = $cursor;
+        $requiredItems = self::SEARCH_PAGE_SIZE + 1;
+
+        while (count($selected) < $requiredItems) {
+            $rows = $this->fetchSearchChunk($db, $userId, $cursor, self::SEARCH_SCAN_CHUNK_SIZE);
+            if (empty($rows)) {
+                $pagerState['exhausted'] = true;
+                break;
+            }
+
+            foreach ($rows as $row) {
+                $scannedAnyRow = true;
+                $cursor = (int) $row['id'];
+                $key = $this->buildSearchRowKey($row);
+                if ($key === null || isset($seenKeys[$key]) || isset($selected[$key])) {
+                    continue;
+                }
+
+                $selected[$key] = [
+                    '_row_id' => (int) $row['id'],
+                    'tramite_id' => !empty($row['tramite_id']) ? (int) $row['tramite_id'] : null,
+                    'folio_tramite' => $row['folio_tramite'] ?? null,
+                    'contrato' => $row['contrato'] ?? null,
+                    'last_change' => $row['last_change'] ?? null,
+                    'total_changes' => 0,
+                ];
+
+                if (count($selected) <= self::SEARCH_PAGE_SIZE) {
+                    $displayCursor = (int) $row['id'];
+                }
+
+                if (count($selected) >= $requiredItems) {
+                    break;
+                }
+            }
+
+            if (count($rows) < self::SEARCH_SCAN_CHUNK_SIZE) {
+                $pagerState['exhausted'] = true;
+                break;
+            }
+        }
+
+        if (empty($selected)) {
+            $pagerState['next_cursor'] = $cursor;
+            if (!$scannedAnyRow) {
+                $pagerState['exhausted'] = true;
+            }
+            return [$pagerState, ['items' => [], 'has_next' => false]];
+        }
+
+        $hasNext = count($selected) > self::SEARCH_PAGE_SIZE;
+        if ($hasNext) {
+            array_pop($selected);
+        }
+
+        $selected = $this->attachSearchTotals($db, $selected);
+        foreach (array_keys($selected) as $key) {
+            $pagerState['seen_keys'][] = $key;
+        }
+        $pagerState['seen_keys'] = array_values(array_unique($pagerState['seen_keys']));
+        $pagerState['next_cursor'] = $displayCursor;
+
+        if (!$hasNext) {
+            $pagerState['exhausted'] = true;
+        }
+
+        return [$pagerState, ['items' => array_values($selected), 'has_next' => $hasNext]];
+    }
+
+    private function fetchSearchChunk($db, int $userId, ?int $cursor, int $limit): array
+    {
+        $builder = $db->table('bitacora')
+            ->select('bitacora.id, bitacora.tramite_id, bitacora.folio_tramite, bitacora.created_at AS last_change, t.contrato')
+            ->join('tramite t', 't.id = bitacora.tramite_id', 'left')
+            ->orderBy('bitacora.id', 'DESC')
+            ->limit($limit);
+
+        if ($cursor !== null && $cursor > 0) {
+            $builder->where('bitacora.id <', $cursor);
+        }
+
+        if (!user_has_global_cliente_access($userId)) {
+            $builder->where(get_cliente_filter_sql($userId, 't'), null, false);
+        }
+
+        return $builder->get()->getResultArray();
+    }
+
+    private function attachSearchTotals($db, array $selected): array
+    {
+        if (empty($selected)) {
+            return [];
+        }
+
+        $tramiteIds = [];
+        $folios = [];
+        foreach ($selected as $item) {
+            if (!empty($item['tramite_id'])) {
+                $tramiteIds[] = (int) $item['tramite_id'];
+                continue;
+            }
+
+            if (!empty($item['folio_tramite'])) {
+                $folios[] = (string) $item['folio_tramite'];
+            }
+        }
+
+        $countsByKey = [];
+        if (!empty($tramiteIds)) {
+            $countRows = $db->table('bitacora')
+                ->select('tramite_id, COUNT(*) AS total_changes')
+                ->whereIn('tramite_id', array_values(array_unique($tramiteIds)))
+                ->groupBy('tramite_id')
+                ->get()
+                ->getResultArray();
+
+            foreach ($countRows as $countRow) {
+                $countsByKey['id:' . (int) $countRow['tramite_id']] = (int) $countRow['total_changes'];
+            }
+        }
+
+        if (!empty($folios)) {
+            $countRows = $db->table('bitacora')
+                ->select('folio_tramite, COUNT(*) AS total_changes')
+                ->whereIn('folio_tramite', array_values(array_unique($folios)))
+                ->groupBy('folio_tramite')
+                ->get()
+                ->getResultArray();
+
+            foreach ($countRows as $countRow) {
+                $countsByKey['folio:' . (string) $countRow['folio_tramite']] = (int) $countRow['total_changes'];
+            }
+        }
+
+        foreach ($selected as $key => &$item) {
+            $item['total_changes'] = $countsByKey[$key] ?? 0;
+            unset($item['_row_id']);
+        }
+        unset($item);
+
+        return $selected;
+    }
+
+    private function buildSearchRowKey(array $row): ?string
+    {
+        if (!empty($row['tramite_id'])) {
+            return 'id:' . (int) $row['tramite_id'];
+        }
+
+        if (!empty($row['folio_tramite'])) {
+            return 'folio:' . (string) $row['folio_tramite'];
+        }
+
+        return null;
     }
   
 

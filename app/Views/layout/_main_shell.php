@@ -21,14 +21,15 @@ $bodyClasses = trim(($bodyClass ?? '') . ($isSglLayout ? ' sgl-theme-2026' : '')
 
         <!-- CSS -->
         <link rel="stylesheet" href="<?= $assets ?>/src/styles/forms_styles.css">
-        <link rel="stylesheet" href="<?= $assets ?>/src/styles/my_grocery.css">
+        <link rel="stylesheet" href="<?= $assets ?>/src/styles/my_grocery.css?v=20260606-2">
+        <link rel="stylesheet" href="<?= $assets ?>/src/styles/grocery-crud-custom.css?v=20260606-2">
         <link rel="stylesheet" href="<?= $assets ?>/vendors/styles/core.css">
         <link rel="stylesheet" href="<?= $assets ?>/vendors/styles/icon-font.min.css">
         <link rel="stylesheet" href="<?= $assets ?>/src/plugins/select2/dist/css/select2.min.css">
         <!-- <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/dataTables.4.min.css"> -->
         <link rel="stylesheet" href="<?= $assets ?>/vendors/styles/style.css">
         <?php if ($isSglLayout): ?>
-            <link rel="stylesheet" href="<?= $assets ?>/src/styles/sgl_layout_2026.css">
+            <link rel="stylesheet" href="<?= $assets ?>/src/styles/sgl_blue_template.css?v=20260606-1">
         <?php endif; ?>
         <style>
             <?php if ($isSglLayout): ?>
@@ -41,6 +42,16 @@ $bodyClasses = trim(($bodyClass ?? '') . ($isSglLayout ? ' sgl-theme-2026' : '')
             <?php endif; ?>
 
             .sgl-perm-audit{color:#c00;font-size:10px;line-height:1.1;font-weight:700;margin-left:6px;white-space:nowrap}
+
+            .left-side-bar .menu-block{
+                padding-bottom:28px;
+                box-sizing:border-box;
+            }
+
+            .left-side-bar .menu-block .mCSB_container,
+            .left-side-bar .sidebar-menu{
+                padding-bottom:36px;
+            }
 
             .select2-container{
                 width:100% !important;

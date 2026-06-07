@@ -118,6 +118,23 @@ GET /deskapp/dashboardadmin/api_metricas?periodo=mes
 // Obtener alertas
 GET /deskapp/dashboardadmin/api_alertas?tipo=retrasados
 
+// Obtener KPIs
+GET /deskapp/dashboardadmin/api_kpis
+
+
+## Smoke Local PHP 8.2
+
+Para validar el login real y las APIs JSON del dashboard administrativo dentro del runtime Docker PHP 8.2:
+
+```bash
+DOCKER_APP_PORT=18080 docker compose up -d app
+./admin/internal-json-smoke.sh
+```
+
+Ese smoke autentica al usuario demo y valida, entre otras, estas rutas:
+
+- `GET /deskapp/dashboardadmin/api_kpis`
+- `GET /deskapp/dashboardadmin/api_metricas`
 // Obtener gráficas
 GET /deskapp/dashboardadmin/api_graficas?tipo=embudo
 

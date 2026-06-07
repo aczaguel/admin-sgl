@@ -1,0 +1,138 @@
+.cobranza-detail-actions {
+    margin-bottom: 18px;
+}
+
+.cobranza-inline-form {
+    display: inline-flex;
+}
+
+.cobranza-form-card--spaced {
+    margin-bottom: 18px;
+}
+
+.cobranza-copy {
+    margin: 0;
+    color: #667085;
+    font-size: 0.9rem;
+}
+
+.cobranza-actions--spaced {
+    margin-top: 14px;
+}
+
+.cobranza-badge-row {
+    gap: 8px;
+}
+
+.cobranza-status-row--spaced {
+    margin-top: 8px;
+}
+
+.cobranza-file-fallback-icon {
+    font-size: 32px;
+    color: #6b7280;
+}
+
+.cobranza-doc-badge--offset {
+    margin-left: 4px;
+}
+
+.cobranza-inline-note--flush {
+    margin-bottom: 0;
+}
+
+.cobranza-inline-note--md {
+    margin-bottom: 16px;
+}
+
+.cobranza-inline-note--mb-lg {
+    margin-bottom: 18px;
+}
+
+.cobranza-inline-note--mt-md {
+    margin-top: 12px;
+}
+
+.cobranza-inline-note--mt-lg {
+    margin-top: 18px;
+}
+
+.cobranza-inline-note--warning {
+    background: #fffaeb;
+    border-color: rgba(217, 119, 6, 0.18);
+    color: #92400e;
+}
+
+.cobranza-inline-note--success {
+    background: #ecfdf3;
+    border-color: rgba(2, 122, 72, 0.18);
+    color: #166534;
+}
+
+.cobranza-inline-note--orange {
+    background: #fff7ed;
+    border-color: rgba(180, 83, 9, 0.14);
+    color: #9a3412;
+}
+
+.cobranza-form-grid--top {
+    margin-top: 16px;
+}
+
+.cobranza-form-grid--mid {
+    margin-top: 14px;
+}
+
+.cobranza-section-top {
+    margin-top: 18px;
+}
+
+.cobranza-detail-stats--tight {
+    margin-bottom: 12px;
+}
+
+.cobranza-empty--top {
+    margin-top: 14px;
+}
+
+.cobranza-empty--md {
+    margin-top: 12px;
+}
+
+.cobranza-timeline--top {
+    margin-top: 16px;
+}
+
+.cobranza-timeline-item--warning {
+    border-left-color: rgba(180, 83, 9, 0.35);
+}
+
+.cobranza-modal-header--documentos {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+
+.cobranza-modal-header--bitacora {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: #fff;
+}
+
+.cobranza-modal-header--pagos-derecho {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: #0f172a;
+}
+
+.cobranza-modal-header--pago-gestor {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: #0f172a;
+}
+
+.cobranza-modal-header--evidencias-finales {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    color: #0f172a;
+}
+
+.cobranza-modal-header--cobro-cliente {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: #fff;
+}

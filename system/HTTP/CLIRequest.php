@@ -202,23 +202,35 @@ class CLIRequest extends Request
 				}
 				else
 				{
-					$this->segments[] = filter_var($arg, FILTER_SANITIZE_STRING);
+					$this->segments[] = $this->sanitizeString($arg);
 				}
 
 				continue;
 			}
 
-			$arg   = filter_var(ltrim($arg, '-'), FILTER_SANITIZE_STRING);
+			$arg   = $this->sanitizeString(ltrim($arg, '-'));
 			$value = null;
 
 			if (isset($args[$i + 1]) && mb_strpos($args[$i + 1], '-') !== 0)
 			{
-				$value       = filter_var($args[$i + 1], FILTER_SANITIZE_STRING);
+				$value       = $this->sanitizeString($args[$i + 1]);
 				$optionValue = true;
 			}
 
 			$this->options[$arg] = $value;
 		}
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Normaliza argumentos CLI sin depender de FILTER_SANITIZE_STRING.
+	 */
+	protected function sanitizeString(string $value): string
+	{
+		$value = strip_tags($value);
+
+		return preg_replace('/[\x00-\x1F\x7F]/u', '', $value) ?? '';
 	}
 
 	//--------------------------------------------------------------------

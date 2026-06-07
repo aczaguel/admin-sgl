@@ -286,6 +286,7 @@ class MemcachedHandler extends BaseHandler
 	 *
 	 * @return boolean
 	 */
+	#[\ReturnTypeWillChange]
 	public function gc($maxlifetime): bool
 	{
 		// Not necessary, Memcached takes care of that.

@@ -29,8 +29,8 @@
         $disabledPrev = $currentPage <= 1 ? ' disabled' : '';
         $disabledNext = $currentPage >= $totalPages ? ' disabled' : '';
 
-        return '<nav class="mt-3 d-flex align-items-center justify-content-between">'
-            . '<span class="text-muted">Pagina ' . $currentPage . ' de ' . $totalPages . '</span>'
+        return '<nav class="mt-3 da-pagination">'
+            . '<span class="da-pagination__status">Pagina ' . $currentPage . ' de ' . $totalPages . '</span>'
             . '<ul class="pagination pagination-sm mb-0">'
             . '<li class="page-item' . $disabledPrev . '">'
                 . '<a class="page-link" href="' . esc($disabledPrev ? '#' : $prevUrl) . '">Anterior</a>'
@@ -43,14 +43,18 @@
     };
 ?>
 
+<?= $this->section('additional_css') ?>
+
 <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/responsive.bootstrap4.min.css">
+
+<?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
 
 <div class="main-container">
     <div class="pd-ltr-20 xs-pd-20-10">
-        <div class="min-height-200px">
+        <div class="min-height-200px dashboard-financiero-page">
             
             <!-- Header -->
             <div class="page-header">
@@ -69,12 +73,14 @@
                         </nav>
                     </div>
                     <div class="col-md-6 col-sm-12 text-right">
-                        <span class="badge badge-success mr-2" style="font-size: 12px; padding: 8px 12px;">
+                        <div class="da-toolbar">
+                        <span class="badge badge-success da-chip">
                             <i class="icon-copy fa fa-money"></i> Pendientes de cobro (Todos los años)
                         </span>
                         <a href="<?= base_url('/deskapp/dashboardadmin') ?><?= $cliente_qs ? ('?' . $cliente_qs) : '' ?>" class="btn btn-primary">
                             <i class="icon-copy fa fa-arrow-left"></i> Volver al Dashboard
                         </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -82,65 +88,57 @@
             <!-- Resumen Financiero -->
             <div class="row">
                 <div class="col-xl-3 col-lg-6 col-md-6 mb-20">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 fi-summary-card fi-summary-card--pendiente">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="font-20 weight-500 mb-10 text-capitalize">
-                                    <div class="weight-600 font-24 text-primary">
-                                        $<?= isset($proyeccion['pendiente_cobro']) ? number_format($proyeccion['pendiente_cobro'], 2) : '0.00' ?>
-                                    </div>
-                                </h4>
-                                <p class="font-14 max-width-600">Total Pendiente de Cobro</p>
+                                <div class="fi-summary-value text-primary">
+                                    $<?= isset($proyeccion['pendiente_cobro']) ? number_format($proyeccion['pendiente_cobro'], 2) : '0.00' ?>
+                                </div>
+                                <p class="fi-summary-label">Total Pendiente de Cobro</p>
                             </div>
-                            <div class="icon-copy fa fa-money-bill-wave" style="font-size: 40px; color: #1b00ff;"></div>
+                            <div class="icon-copy fa fa-money-bill-wave fi-summary-icon fi-summary-icon--pendiente"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 mb-20">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 fi-summary-card fi-summary-card--cobrado">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="font-20 weight-500 mb-10 text-capitalize">
-                                    <div class="weight-600 font-24 text-success">
-                                        $<?= isset($metricas_mes['monto_cobrado']) ? number_format($metricas_mes['monto_cobrado'], 2) : '0.00' ?>
-                                    </div>
-                                </h4>
-                                <p class="font-14 max-width-600">Cobrado Este Mes</p>
+                                <div class="fi-summary-value text-success">
+                                    $<?= isset($metricas_mes['monto_cobrado']) ? number_format($metricas_mes['monto_cobrado'], 2) : '0.00' ?>
+                                </div>
+                                <p class="fi-summary-label">Cobrado Este Mes</p>
                             </div>
-                            <div class="icon-copy fa fa-check-circle" style="font-size: 40px; color: #00e091;"></div>
+                            <div class="icon-copy fa fa-check-circle fi-summary-icon fi-summary-icon--cobrado"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 mb-20">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 fi-summary-card fi-summary-card--proceso">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="font-20 weight-500 mb-10 text-capitalize">
-                                    <div class="weight-600 font-24 text-info">
-                                        $<?= isset($proyeccion['en_proceso_estimado']) ? number_format($proyeccion['en_proceso_estimado'], 2) : '0.00' ?>
-                                    </div>
-                                </h4>
-                                <p class="font-14 max-width-600">En Proceso (Estimado)</p>
+                                <div class="fi-summary-value text-info">
+                                    $<?= isset($proyeccion['en_proceso_estimado']) ? number_format($proyeccion['en_proceso_estimado'], 2) : '0.00' ?>
+                                </div>
+                                <p class="fi-summary-label">En Proceso (Estimado)</p>
                             </div>
-                            <div class="icon-copy fa fa-hourglass-half" style="font-size: 40px; color: #17a2b8;"></div>
+                            <div class="icon-copy fa fa-hourglass-half fi-summary-icon fi-summary-icon--proceso"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-xl-3 col-lg-6 col-md-6 mb-20">
-                    <div class="card-box height-100-p pd-20">
+                    <div class="card-box height-100-p pd-20 fi-summary-card fi-summary-card--anio">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h4 class="font-20 weight-500 mb-10 text-capitalize">
-                                    <div class="weight-600 font-24 text-warning">
-                                        $<?= isset($metricas_anio['monto_cobrado_anio']) ? number_format($metricas_anio['monto_cobrado_anio'], 2) : '0.00' ?>
-                                    </div>
-                                </h4>
-                                <p class="font-14 max-width-600">Cobrado Este Año</p>
+                                <div class="fi-summary-value text-warning">
+                                    $<?= isset($metricas_anio['monto_cobrado_anio']) ? number_format($metricas_anio['monto_cobrado_anio'], 2) : '0.00' ?>
+                                </div>
+                                <p class="fi-summary-label">Cobrado Este Año</p>
                             </div>
-                            <div class="icon-copy fa fa-chart-line" style="font-size: 40px; color: #ffc107;"></div>
+                            <div class="icon-copy fa fa-chart-line fi-summary-icon fi-summary-icon--anio"></div>
                         </div>
                     </div>
                 </div>
@@ -149,7 +147,7 @@
             <!-- Resumen por Rangos de Días -->
             <div class="row">
                 <div class="col-xl-12 mb-30">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel">
                         <h4 class="h4 text-blue mb-20">
                             <i class="icon-copy fa fa-chart-bar"></i> Cuentas por Cobrar - Resumen por Antigüedad
                         </h4>
@@ -166,14 +164,14 @@
                                 foreach ($resumen_rangos as $rango): 
                                 ?>
                                 <div class="col-xl col-lg-4 col-md-6 col-sm-12 mb-30">
-                                    <div class="card-box pd-30 height-100-p">
-                                        <div class="progress-box text-center">
+                                    <div class="card-box pd-30 height-100-p fi-range-card">
+                                        <div class="progress-box text-center fi-range-content">
                                             <p class="text-muted"><strong><?= esc($rango['rango']) ?></strong></p>
-                                            <h3 class="text-<?= $colores[$rango['rango']] ?? 'primary' ?>">
+                                            <h3 class="fi-range-count text-<?= $colores[$rango['rango']] ?? 'primary' ?>">
                                                 <?= $rango['cantidad_tramites'] ?>
                                             </h3>
                                             <p class="font-14 text-muted">trámites</p>
-                                            <h4 class="text-<?= $colores[$rango['rango']] ?? 'primary' ?>">
+                                            <h4 class="fi-range-amount text-<?= $colores[$rango['rango']] ?? 'primary' ?>">
                                                 $<?= number_format($rango['monto_total'], 2) ?>
                                             </h4>
                                         </div>
@@ -182,7 +180,7 @@
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <div class="col-12">
-                                    <p class="text-center">No hay cuentas por cobrar</p>
+                                    <p class="da-empty mb-0">No hay cuentas por cobrar</p>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -193,9 +191,9 @@
             <!-- Gráfica de Cuentas por Cobrar -->
             <div class="row">
                 <div class="col-xl-12 mb-30">
-                    <div class="card-box pd-20">
+                    <div class="card-box pd-20 da-panel fi-chart-panel">
                         <h4 class="h4 text-blue mb-20">Distribución de Cuentas por Cobrar</h4>
-                        <div id="agingChart" style="height: 350px;"></div>
+                        <div id="agingChart" class="fi-chart"></div>
                     </div>
                 </div>
             </div>
@@ -203,8 +201,8 @@
             <!-- Aging Report Detallado -->
             <div class="row">
                 <div class="col-md-12 mb-30">
-                    <div class="card-box pd-20">
-                        <div class="d-flex justify-content-between mb-20">
+                    <div class="card-box pd-20 da-panel">
+                        <div class="da-panel-header">
                             <h4 class="h4 text-blue">
                                 <i class="icon-copy fa fa-file-invoice-dollar"></i> Aging Report - Detalle Completo
                             </h4>
@@ -213,12 +211,12 @@
                                 $canExport = has_permission('menu_dashboard_admin', $perms, $roles);
                             ?>
                             <?php if ($canExport): ?>
-                                <button class="btn btn-sm btn-success" onclick="exportarExcel()">
+                                <button class="btn btn-sm btn-success fi-export-btn" onclick="exportarExcel()">
                                     <i class="icon-copy fa fa-file-excel"></i> Exportar a Excel
                                 </button>
                             <?php endif; ?>
                         </div>
-                        <div class="table-responsive">
+                        <div class="table-responsive da-grid">
                             <table class="table table-striped data-table-export nowrap" id="aging-table">
                                 <thead>
                                     <tr>
@@ -257,27 +255,27 @@
                                             <td><?= date('d/m/Y', strtotime($item['finished_at'])) ?></td>
                                             <td><strong class="text-primary">$<?= number_format($item['costo_total'], 2) ?></strong></td>
                                             <td>
-                                                <span class="badge badge-pill badge-<?= $badge_color ?>" style="font-size: 13px;">
+                                                <span class="badge badge-pill badge-<?= $badge_color ?> da-chip fi-aging-badge">
                                                     <?= $item['dias_vencidos'] ?> días
                                                 </span>
                                             </td>
-                                            <td><span class="badge badge-<?= $badge_color ?>"><?= esc($item['rango_dias']) ?></span></td>
+                                            <td><span class="badge badge-<?= $badge_color ?> da-chip"><?= esc($item['rango_dias']) ?></span></td>
                                             <td>
                                                 <a href="<?= base_url('/deskapp/tramites/update/' . $item['id']) ?>" 
-                                                   class="btn btn-sm btn-primary" target="_blank">
+                                                   class="btn btn-sm btn-primary da-row-action" target="_blank">
                                                     <i class="icon-copy fa fa-eye"></i> Ver
                                                 </a>
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
                                         <!-- Total -->
-                                        <tr class="bg-light-gray">
+                                        <tr class="fi-total-row">
                                             <td colspan="6" class="text-right"><strong>TOTAL POR COBRAR:</strong></td>
                                             <td colspan="4"><strong class="text-danger font-18">$<?= number_format($total_por_cobrar, 2) ?></strong></td>
                                         </tr>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="10" class="text-center">No hay cuentas por cobrar</td>
+                                            <td colspan="10" class="da-empty">No hay cuentas por cobrar</td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -292,11 +290,10 @@
     </div>
 </div>
 
-<!-- Scripts -->
-<script src="<?= $assets ?>/src/plugins/datatables/js/jquery.dataTables.min.js"></script>
-<script src="<?= $assets ?>/src/plugins/datatables/js/dataTables.bootstrap4.min.js"></script>
-<script src="<?= $assets ?>/src/plugins/datatables/js/dataTables.responsive.min.js"></script>
-<script src="<?= $assets ?>/src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
+<?= $this->endSection() ?>
+
+<?= $this->section('additional_js') ?>
+
 <script src="<?= $assets ?>/src/plugins/datatables/js/dataTables.buttons.min.js"></script>
 <script src="<?= $assets ?>/src/plugins/datatables/js/buttons.bootstrap4.min.js"></script>
 <script src="<?= $assets ?>/src/plugins/datatables/js/buttons.print.min.js"></script>
@@ -437,12 +434,5 @@ function exportarExcel() {
     $('.buttons-excel').click();
 }
 </script>
-
-<style>
-.badge-orange {
-    background-color: #fd7e14;
-    color: white;
-}
-</style>
 
 <?= $this->endSection() ?>

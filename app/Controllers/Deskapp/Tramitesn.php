@@ -81,13 +81,7 @@ class Tramitesn extends Tramites
             ? self::ATTENTION_LOCAL_EXPIRED_DAYS
             : self::ATTENTION_FORANEO_EXPIRED_DAYS;
 
-        if ($days >= $expiredThreshold) {
-            $bucket = 'vencido';
-        } elseif ($days >= $warningThreshold) {
-            $bucket = 'riesgo';
-        } else {
-            $bucket = 'normal';
-        }
+        $bucket = $days >= $expiredThreshold ? 'vencido' : 'normal';
 
         return [
             'bucket' => $bucket,
@@ -106,11 +100,13 @@ class Tramitesn extends Tramites
         }
 
         try {
+            $lockedStatusIds = array_values(array_unique(array_map('intval', SGL_TRA_STATUS_LOCKED_IDS)));
             $rows = ConfigDatabase::connect()
                 ->table('tra_status')
                 ->select('id')
                 ->where('step >=', 1)
                 ->where('step <=', 3)
+                ->whereNotIn('id', $lockedStatusIds)
                 ->get()
                 ->getResultArray();
 
@@ -124,30 +120,24 @@ class Tramitesn extends Tramites
 
     protected function buildAttentionBucketSql(string $bucket = 'attention', string $tableAlias = 'tramite'): string
     {
+        $lockedStatusIds = array_values(array_unique(array_map('intval', SGL_TRA_STATUS_LOCKED_IDS)));
+        $lockedStatusSql = implode(',', $lockedStatusIds);
         $trackedSql = sprintf(
-            '%1$s.tra_status_id IN (SELECT ts.id FROM tra_status ts WHERE ts.step BETWEEN 1 AND 3)',
-            $tableAlias
+            '%1$s.tra_status_id IN (SELECT ts.id FROM tra_status ts WHERE ts.step BETWEEN 1 AND 3 AND ts.id NOT IN (%2$s))',
+            $tableAlias,
+            $lockedStatusSql !== '' ? $lockedStatusSql : '0'
         );
         $daysSql = sprintf(
             'DATEDIFF(CURDATE(), COALESCE(%1$s.started_at, %1$s.created_at))',
             $tableAlias
         );
+        $municipioSql = sprintf('COALESCE(%s.ent_municipio_id, 0)', $tableAlias);
         $localSql = sprintf(
-            '((%1$s.ent_municipio_id BETWEEN 266 AND 281) OR (%1$s.ent_municipio_id BETWEEN 657 AND 781))',
-            $tableAlias
+            '((%1$s BETWEEN 266 AND 281) OR (%1$s BETWEEN 657 AND 781))',
+            $municipioSql
         );
         $foraneoSql = sprintf('NOT (%s)', $localSql);
 
-        $riesgoSql = sprintf(
-            '((%1$s AND %2$s >= %3$d AND %2$s < %4$d) OR (%5$s AND %2$s >= %6$d AND %2$s < %7$d))',
-            $localSql,
-            $daysSql,
-            self::ATTENTION_LOCAL_WARNING_DAYS,
-            self::ATTENTION_LOCAL_EXPIRED_DAYS,
-            $foraneoSql,
-            self::ATTENTION_FORANEO_WARNING_DAYS,
-            self::ATTENTION_FORANEO_EXPIRED_DAYS
-        );
         $vencidoSql = sprintf(
             '((%1$s AND %2$s >= %3$d) OR (%4$s AND %2$s >= %5$d))',
             $localSql,
@@ -156,34 +146,105 @@ class Tramitesn extends Tramites
             $foraneoSql,
             self::ATTENTION_FORANEO_EXPIRED_DAYS
         );
-
-        if ($bucket === 'riesgo') {
-            return sprintf('(%s AND %s)', $trackedSql, $riesgoSql);
-        }
-
         if ($bucket === 'vencido') {
             return sprintf('(%s AND %s)', $trackedSql, $vencidoSql);
         }
 
         if ($bucket === 'normal') {
-            return sprintf('NOT (%s AND (%s OR %s))', $trackedSql, $riesgoSql, $vencidoSql);
+            return sprintf('NOT (%s AND %s)', $trackedSql, $vencidoSql);
         }
 
-        return sprintf('(%s AND (%s OR %s))', $trackedSql, $riesgoSql, $vencidoSql);
+        return sprintf('(%s AND %s)', $trackedSql, $vencidoSql);
+    }
+
+    protected function resolveAttentionListBucket(?string $bucket): string
+    {
+        $bucket = strtolower(trim((string) ($bucket ?? 'normal')));
+        $allowedBuckets = ['normal', 'vencido'];
+
+        return in_array($bucket, $allowedBuckets, true) ? $bucket : 'normal';
+    }
+
+    protected function resolveAttentionListMeta(string $bucket): array
+    {
+        switch ($bucket) {
+            case 'vencido':
+                return [
+                    'title' => 'Trámites Vencidos',
+                    'description' => 'Muestra trámites que ya rebasaron el umbral operativo y requieren atención inmediata.',
+                    'badge_label' => 'Muy tardados',
+                    'badge_tone' => 'vencido',
+                ];
+
+            default:
+                return [
+                    'title' => 'Trámites en Flujo Normal',
+                    'description' => 'Listado operativo del nuevo flujo, excluyendo por defecto los trámites en atención prioritaria.',
+                    'badge_label' => 'Operación normal',
+                    'badge_tone' => 'normal',
+                ];
+        }
+    }
+
+    protected function buildAttentionListUrls(array $queryParams = []): array
+    {
+        $baseUrl = base_url('/deskapp/tramitesn/tramite');
+        unset($queryParams['bucket']);
+
+        $buildUrl = static function (?string $bucket) use ($baseUrl, $queryParams): string {
+            $nextQuery = $queryParams;
+            if (!empty($bucket) && $bucket !== 'normal') {
+                $nextQuery['bucket'] = $bucket;
+            }
+
+            return empty($nextQuery)
+                ? $baseUrl
+                : $baseUrl . '?' . http_build_query($nextQuery);
+        };
+
+        return [
+            'normal_url' => $buildUrl('normal'),
+            'vencido_url' => $buildUrl('vencido'),
+        ];
+    }
+
+    protected function buildAttentionListSummary(int $userId): array
+    {
+        $filterSql = get_tramite_filter_sql($userId);
+        $db = ConfigDatabase::connect();
+
+        $row = $db->table('tramite')
+            ->select(sprintf(
+                'SUM(CASE WHEN %1$s THEN 1 ELSE 0 END) AS vencido_total',
+                $this->buildAttentionBucketSql('vencido')
+            ), false)
+            ->where($filterSql)
+            ->where('tramite.created_at >=', '2026-01-01 00:00:00')
+            ->get()
+            ->getRowArray();
+
+        return [
+            'vencido_total' => (int) ($row['vencido_total'] ?? 0),
+        ];
+    }
+
+    protected function resolveAttentionTrackedPresentation(array $daysData): array
+    {
+        $bucket = (string) ($daysData['bucket'] ?? 'normal');
+        $days = (int) ($daysData['days'] ?? 0);
+        $isLocal = ($daysData['scope'] ?? 'foraneo') === 'local';
+
+        if ($bucket === 'vencido') {
+            return ['label' => 'Vencido', 'class' => 'background-rojo'];
+        }
+
+        return ['label' => 'Normal', 'class' => 'background-verde'];
     }
 
     protected function resolveAttentionPresentation(array $daysData, int $statusId): array
     {
         if (!empty($daysData['tracked'])) {
-            if (($daysData['bucket'] ?? 'normal') === 'vencido') {
-                return ['label' => 'Vencido', 'class' => 'background-violeta'];
-            }
-
-            if (($daysData['bucket'] ?? 'normal') === 'riesgo') {
-                return ['label' => 'En riesgo', 'class' => 'background-amarillo'];
-            }
-
-            return ['label' => 'Normal', 'class' => 'background-verde'];
+            return $this->resolveAttentionTrackedPresentation($daysData);
         }
 
         if ($statusId === SGL_TRA_STATUS_PAGO_GESTOR) {
@@ -213,8 +274,12 @@ class Tramitesn extends Tramites
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
+            $currentBucket = $this->resolveAttentionListBucket((string) $this->request->getGet('bucket'));
             [$roles, $perms] = $this->normalizeRolesPermsFromSession();
             $trackedStatusIds = $this->getAttentionTrackedStatusIds();
+            $attentionSummary = $this->buildAttentionListSummary((int) $myid);
+            $attentionUrls = $this->buildAttentionListUrls((array) $this->request->getGet());
+            $attentionMeta = $this->resolveAttentionListMeta($currentBucket);
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
 
@@ -223,6 +288,12 @@ class Tramitesn extends Tramites
 
             $filterSql = get_tramite_filter_sql($myid);
             $tramite_crud->where($filterSql);
+
+            if ($currentBucket === 'normal') {
+                $tramite_crud->where($this->buildAttentionBucketSql('normal'));
+            } else {
+                $tramite_crud->where($this->buildAttentionBucketSql($currentBucket));
+            }
 
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -284,9 +355,6 @@ class Tramitesn extends Tramites
                     return '<span class="background-gris">Sin fecha</span>';
                 }
 
-                $claseVerde = 'background-verde';
-                $claseAmarillo = 'background-amarillo';
-                $claseRojo = 'background-rojo';
                 $claseVioleta = 'background-violeta';
                 $claseGris = 'background-gris';
                 $claseAzulClaro = 'background-azul-claro';
@@ -318,37 +386,13 @@ class Tramitesn extends Tramites
                 } elseif ($row->tra_status_id == SGL_TRA_STATUS_CONCLUIDO) {
                     $clase = $claseAzul;
                 } else {
-                    $local = $self->isAttentionLocalMunicipio(isset($row->ent_municipio_id) ? (int) $row->ent_municipio_id : null);
-
-                    if ($local) {
-                        if ($diasDiferencia < 5) {
-                            $clase = $claseVerde;
-                        } elseif ($diasDiferencia < 8) {
-                            $clase = $claseAmarillo;
-                        } elseif ($diasDiferencia < 12) {
-                            $clase = $claseRojo;
-                        } else {
-                            $clase = $claseVioleta;
-                        }
-                    } else {
-                        if ($diasDiferencia < 10) {
-                            $clase = $claseVerde;
-                        } elseif ($diasDiferencia < 13) {
-                            $clase = $claseAmarillo;
-                        } elseif ($diasDiferencia < 16) {
-                            $clase = $claseRojo;
-                        } else {
-                            $clase = $claseVioleta;
-                        }
-                    }
+                    $clase = $self->resolveAttentionTrackedPresentation($daysData)['class'];
                 }
 
                 $arrFilter = [SGL_TRA_STATUS_CONCLUIDO, SGL_TRA_STATUS_CANCELADO, SGL_TRA_STATUS_PAGO_GESTOR, SGL_TRA_STATUS_COBRO_CLIENTE];
                 if (!in_array($row->tra_status_id, $arrFilter, true)) {
                     if ($daysData['tracked']) {
-                        $label = $daysData['bucket'] === 'vencido'
-                            ? 'Vencido'
-                            : ($daysData['bucket'] === 'riesgo' ? 'En riesgo' : 'Normal');
+                        $label = $daysData['bucket'] === 'vencido' ? 'Vencido' : 'Normal';
 
                         return '<span class="' . $clase . '">' . $label . ' · ' . $diasDiferencia . ' días</span>';
                     }
@@ -416,8 +460,14 @@ class Tramitesn extends Tramites
             $tramite_salida = $tramite_crud->render();
 
             $salida_total = array_merge((array)$tramite_salida, $data);
-            $salida_total['title'] = 'Trámites en Flujo Normal';
-            $salida_total['description'] = 'Listado operativo del nuevo flujo.';
+            $salida_total['title'] = $attentionMeta['title'];
+            $salida_total['description'] = $attentionMeta['description'];
+            $salida_total['header_badge_label'] = $attentionMeta['badge_label'] ?? null;
+            $salida_total['header_badge_tone'] = $attentionMeta['badge_tone'] ?? 'normal';
+            $salida_total['pre_output_html'] = view('deskapp/extra-pages/tramites_attention_toolbar', array_merge($attentionUrls, [
+                'summary' => $attentionSummary,
+                'mode' => $currentBucket,
+            ]));
             helper(['permissions']);
             [$rolesAcl, $permsAcl] = session_roles_perms($session ?? session());
             $salida_total['insert_button_url'] = can_create_tramite($rolesAcl, $permsAcl) ? '/public/deskapp/tramites/add' : '';
@@ -598,19 +648,18 @@ class Tramitesn extends Tramites
 
     private function resolveAdvancedStepView(int $statusId, array $roles, array $perms): ?string
     {
-        $maxBusinessStep = 0;
-        if ($statusId === SGL_TRA_STATUS_PAGO_GESTOR) {
-            $maxBusinessStep = 4;
-        } elseif (in_array($statusId, [SGL_TRA_STATUS_COBRO_CLIENTE, SGL_TRA_STATUS_CONCLUIDO, SGL_TRA_STATUS_CANCELADO], true)) {
-            $maxBusinessStep = 5;
+        if (
+            $statusId === SGL_TRA_STATUS_PAGO_GESTOR
+            && has_permission('section_pago_gestor', $perms, $roles)
+        ) {
+			return 'deskapp/extra-pages/tramite_update_view_evidencias_finales';
         }
 
         if (
-            $maxBusinessStep >= 4
-            && has_permission('section_pago_gestor', $perms, $roles)
-            && has_permission('important_ir_pago_gestor', $perms, $roles)
+            $statusId === SGL_TRA_STATUS_COBRO_CLIENTE
+            && has_permission('list_cobro_cliente', $perms, $roles)
         ) {
-			return 'deskapp/extra-pages/tramite_update_view_evidencias_finales';
+			return 'deskapp/extra-pages/tramite_cobro_cliente_view';
         }
 
         return null;
@@ -2488,6 +2537,9 @@ class Tramitesn extends Tramites
 			}
             if ($targetAdvancedView === 'deskapp/extra-pages/tramite_update_view_pago_gestor') {
                 return redirect()->to('/deskapp/tramitesn/ver_seccion_pago_gestor/' . $id);
+            }
+            if ($targetAdvancedView === 'deskapp/extra-pages/tramite_cobro_cliente_view') {
+                return redirect()->to('/deskapp/tramitesn/ver_seccion_cobro_cliente/' . $id);
             }
         }
 

@@ -24,7 +24,7 @@ class TramitesnAttentionBucketTest extends CIUnitTestCase
         $this->assertSame('local', $result['scope']);
     }
 
-    public function testTrackedLocalTramiteAtWarningThresholdBecomesRiesgo(): void
+    public function testTrackedLocalTramiteAtWarningThresholdStillStaysNormal(): void
     {
         $controller = new TestableTramitesn();
 
@@ -36,7 +36,7 @@ class TramitesnAttentionBucketTest extends CIUnitTestCase
             [7, 8, 9]
         );
 
-        $this->assertSame('riesgo', $result['bucket']);
+        $this->assertSame('normal', $result['bucket']);
         $this->assertSame(5, $result['days']);
     }
 
@@ -72,19 +72,19 @@ class TramitesnAttentionBucketTest extends CIUnitTestCase
         $this->assertFalse($result['tracked']);
     }
 
-    public function testResolveAttentionPresentationReturnsRiskBadgeForTrackedRiesgo(): void
+    public function testResolveAttentionPresentationReturnsNormalBadgeForTrackedNormal(): void
     {
         $controller = new TestableTramitesn();
 
         $presentation = $controller->resolveAttentionPresentationForTest([
-            'bucket' => 'riesgo',
+            'bucket' => 'normal',
             'tracked' => true,
             'days' => 6,
             'scope' => 'local',
         ], 7);
 
-        $this->assertSame('En riesgo', $presentation['label']);
-        $this->assertSame('background-amarillo', $presentation['class']);
+        $this->assertSame('Normal', $presentation['label']);
+        $this->assertSame('background-verde', $presentation['class']);
     }
 
     public function testResolveAttentionPresentationReturnsConcluidoForLockedStatus(): void
@@ -100,5 +100,60 @@ class TramitesnAttentionBucketTest extends CIUnitTestCase
 
         $this->assertSame('Concluido', $presentation['label']);
         $this->assertSame('background-azul', $presentation['class']);
+    }
+
+    public function testResolveAttentionPresentationReturnsRedBadgeForTrackedVencido(): void
+    {
+        $controller = new TestableTramitesn();
+
+        $presentation = $controller->resolveAttentionPresentationForTest([
+            'bucket' => 'vencido',
+            'tracked' => true,
+            'days' => 12,
+            'scope' => 'local',
+        ], 7);
+
+        $this->assertSame('Vencido', $presentation['label']);
+        $this->assertSame('background-rojo', $presentation['class']);
+    }
+
+    public function testTrackedStatusIdsExcludeLockedStatusesEvenIfDatabaseStepIsInRange(): void
+    {
+        $controller = new TestableTramitesn();
+
+        $trackedIds = $controller->getAttentionTrackedStatusIdsForTest();
+
+        $this->assertNotContains(SGL_TRA_STATUS_CONCLUIDO, $trackedIds);
+        $this->assertNotContains(SGL_TRA_STATUS_CANCELADO, $trackedIds);
+    }
+
+    public function testResolveAttentionListBucketFallsBackToNormalForUnknownValues(): void
+    {
+        $controller = new TestableTramitesn();
+
+        $this->assertSame('normal', $controller->resolveAttentionListBucketForTest('desconocido'));
+        $this->assertSame('vencido', $controller->resolveAttentionListBucketForTest('vencido'));
+        $this->assertSame('normal', $controller->resolveAttentionListBucketForTest('attention'));
+        $this->assertSame('normal', $controller->resolveAttentionListBucketForTest('riesgo'));
+    }
+
+    public function testResolveAttentionListMetaReturnsExpectedTitleForVencidoBucket(): void
+    {
+        $controller = new TestableTramitesn();
+
+        $meta = $controller->resolveAttentionListMetaForTest('vencido');
+
+        $this->assertSame('Trámites Vencidos', $meta['title']);
+        $this->assertSame('Muy tardados', $meta['badge_label']);
+        $this->assertSame('vencido', $meta['badge_tone']);
+    }
+
+    public function testBuildAttentionBucketSqlTreatsNullMunicipioAsForaneo(): void
+    {
+        $controller = new TestableTramitesn();
+
+        $sql = $controller->buildAttentionBucketSqlForTest('vencido');
+
+        $this->assertStringContainsString('COALESCE(tramite.ent_municipio_id, 0)', $sql);
     }
 }
