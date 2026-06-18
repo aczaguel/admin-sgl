@@ -29,6 +29,101 @@ class Tramitesn extends Tramites
     private const ATTENTION_LOCAL_EXPIRED_DAYS = 12;
     private const ATTENTION_FORANEO_WARNING_DAYS = 10;
     private const ATTENTION_FORANEO_EXPIRED_DAYS = 16;
+    private const TRA_EVIDENCIA_TIPO_GENERAL = 1;
+    private const TRA_EVIDENCIA_TIPO_PAGO_GESTOR = 2;
+    private const TRA_EVIDENCIA_TIPO_COBRO_CLIENTE = 3;
+    private const PROTOTYPE_STEP4_NOTE_ORIGIN = 'gestor';
+    private const PROTOTYPE_STEP4_NOTE_FIELD = 'Nota paso 4';
+    private const PROTOTYPE_STEP5_NOTE_ORIGIN = 'cliente';
+    private const PROTOTYPE_STEP5_NOTE_FIELD = 'Nota paso 5';
+
+    private function traEvidenciasSupportsTipo(): bool
+    {
+        static $supportsTipo = null;
+
+        if ($supportsTipo !== null) {
+            return $supportsTipo;
+        }
+
+        try {
+            $db = ConfigDatabase::connect();
+            $supportsTipo = $db->tableExists('tra_evidencias')
+                && $db->fieldExists('tipo_evidencia', 'tra_evidencias');
+        } catch (\Throwable $e) {
+            $supportsTipo = false;
+        }
+
+        return $supportsTipo;
+    }
+
+    private function applyTraEvidenciaTipoFilter($builder, int $tipoEvidencia, string $tableAlias = 'tra_evidencias'): void
+    {
+        if (!$this->traEvidenciasSupportsTipo()) {
+            return;
+        }
+
+        $builder->where($tableAlias . '.tipo_evidencia', $tipoEvidencia);
+    }
+
+    private function withTraEvidenciaTipo(array $data, int $tipoEvidencia): array
+    {
+        if ($this->traEvidenciasSupportsTipo()) {
+            $data['tipo_evidencia'] = $tipoEvidencia;
+        }
+
+        return $data;
+    }
+
+    protected function recordUpdateSaveSideEffects(int $tramiteId, ?string $folio, int $userId, int $statusUpdatedTo, array $changes): void
+    {
+        $db2 = $this->_getDbData();
+
+        $bitacoraModel = new BitacoraModel($db2);
+        $diferencias = [];
+        try {
+            $diferencias = $this->buildBitacoraChanges($changes);
+        } catch (\Throwable $e) {
+            log_message('error', 'Error en buildBitacoraChanges (Tramitesn::update_save): ' . $e->getMessage());
+        }
+        $insert_bitacora = [
+            'id' => null,
+            'tipo' => 'update',
+            'origen' => 'tramite',
+            'folio_tramite' => $folio,
+            'tramite_id' => (int) $tramiteId,
+            'cambios' => json_encode($diferencias),
+            'user_id' => (int) $userId,
+        ];
+        $bitacoraModel->insert($insert_bitacora, 'bitacora');
+
+        $tra_user_log = new TraUserLogModel($db2);
+        $log = [
+            'tramite_id' => (int) $tramiteId,
+            'user_id' => (int) $userId,
+            'tra_status_id' => $statusUpdatedTo > 0 ? $statusUpdatedTo : SGL_TRA_STATUS_RECOLECCION_DCTOS,
+        ];
+        $tra_user_log->insert($log, 'tra_user_log');
+
+        if (!empty($changes)) {
+            try {
+                $changeCount = log_tramite_bulk_changes($tramiteId, $changes, 'tramite', [
+                    'form_name' => 'Datos Generales',
+                    'form_step' => 1,
+                    'form_section' => 'update_save',
+                ]);
+                log_message('info', "[Tramitesn::update_save] Registrados {$changeCount} cambios para trámite ID: {$tramiteId}");
+            } catch (\Throwable $e) {
+                log_message('error', 'Error en log_tramite_bulk_changes (Tramitesn::update_save): ' . $e->getMessage());
+            }
+
+            try {
+                $cambiosTexto = implode(', ', array_keys($changes));
+                notify_tramite_actualizado($tramiteId, $folio ?? "Trámite #{$tramiteId}", $cambiosTexto, $userId);
+            } catch (\Throwable $e) {
+                log_message('error', 'Error en notify_tramite_actualizado (Tramitesn::update_save): ' . $e->getMessage());
+            }
+        }
+    }
 
     private function isLockedStatusId(int $statusId): bool
     {
@@ -155,6 +250,1025 @@ class Tramitesn extends Tramites
         }
 
         return sprintf('(%s AND %s)', $trackedSql, $vencidoSql);
+    }
+
+    private function formatPrototypeEvidenceUserName(array $row): string
+    {
+        $parts = array_filter([
+            trim((string) ($row['firstname'] ?? '')),
+            trim((string) ($row['midname'] ?? '')),
+            trim((string) ($row['lastname'] ?? '')),
+        ], static fn ($value): bool => $value !== '');
+
+        return !empty($parts) ? implode(' ', $parts) : 'Sistema';
+    }
+
+    private function formatPrototypeEvidenceDateLabel(?string $createdAt): string
+    {
+        $createdAt = trim((string) $createdAt);
+        if ($createdAt === '' || strtotime($createdAt) === false) {
+            return 'Sin fecha';
+        }
+
+        return date('d/m/Y · H:i', strtotime($createdAt));
+    }
+
+    private function buildPrototypeEvidenceItem(array $row): array
+    {
+        $comment = trim((string) ($row['comentario'] ?? ''));
+
+        return [
+            'id' => (int) ($row['id'] ?? 0),
+            'comment' => $comment,
+            'author' => $this->formatPrototypeEvidenceUserName($row),
+            'createdAt' => (string) ($row['created_at'] ?? ''),
+            'createdAtLabel' => $this->formatPrototypeEvidenceDateLabel((string) ($row['created_at'] ?? '')),
+        ];
+    }
+
+    private function getPrototypeEvidencias(int $tramiteId): array
+    {
+        if ($tramiteId <= 0) {
+            return [];
+        }
+
+        try {
+            $db = ConfigDatabase::connect();
+            if (!$db->tableExists('tra_evidencias')) {
+                return [];
+            }
+
+            $builder = $db->table('tra_evidencias')
+                ->select('tra_evidencias.id, tra_evidencias.comentario, tra_evidencias.created_at, tra_evidencias.user_id, users.firstname, users.midname, users.lastname')
+                ->join('users', 'users.id = tra_evidencias.user_id', 'left')
+                ->where('tra_evidencias.tramite_id', $tramiteId)
+                ->where('tra_evidencias.status', 1);
+
+            $this->applyTraEvidenciaTipoFilter($builder, self::TRA_EVIDENCIA_TIPO_GENERAL);
+
+            $rows = $builder
+                ->orderBy('tra_evidencias.created_at', 'DESC')
+                ->orderBy('tra_evidencias.id', 'DESC')
+                ->limit(40)
+                ->get()
+                ->getResultArray();
+
+            return array_map(fn (array $row): array => $this->buildPrototypeEvidenceItem($row), $rows);
+        } catch (\Throwable $e) {
+            log_message('error', 'Error loading prototype evidencias for tramite ' . $tramiteId . ': ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    private function extractPrototypeBitacoraComment($rawChanges): string
+    {
+        if (is_string($rawChanges)) {
+            $decoded = json_decode($rawChanges, true);
+            $rawChanges = is_array($decoded) ? $decoded : [];
+        }
+
+        if (!is_array($rawChanges)) {
+            return '';
+        }
+
+        foreach ($rawChanges as $values) {
+            if (!is_array($values)) {
+                continue;
+            }
+
+            $candidate = trim((string) ($values['valor_nuevo'] ?? $values['comment'] ?? ''));
+            if ($candidate !== '') {
+                return $candidate;
+            }
+        }
+
+        return '';
+    }
+
+    private function getPrototypeStep4Notes(int $tramiteId): array
+    {
+        if ($tramiteId <= 0) {
+            return [];
+        }
+
+        try {
+            $db = ConfigDatabase::connect();
+            if ($db->tableExists('tra_evidencias') && $this->traEvidenciasSupportsTipo()) {
+                $builder = $db->table('tra_evidencias')
+                    ->select('tra_evidencias.id, tra_evidencias.comentario, tra_evidencias.created_at, tra_evidencias.user_id, users.firstname, users.midname, users.lastname')
+                    ->join('users', 'users.id = tra_evidencias.user_id', 'left')
+                    ->where('tra_evidencias.tramite_id', $tramiteId)
+                    ->where('tra_evidencias.status', 1);
+
+                $this->applyTraEvidenciaTipoFilter($builder, self::TRA_EVIDENCIA_TIPO_PAGO_GESTOR);
+
+                $rows = $builder
+                    ->orderBy('tra_evidencias.created_at', 'DESC')
+                    ->orderBy('tra_evidencias.id', 'DESC')
+                    ->limit(40)
+                    ->get()
+                    ->getResultArray();
+
+                return array_map(fn (array $row): array => $this->buildPrototypeEvidenceItem($row), $rows);
+            }
+
+            $bitacoraDb = $this->_getDbData();
+            if (!is_object($bitacoraDb) || !method_exists($bitacoraDb, 'tableExists') || !$bitacoraDb->tableExists('bitacora')) {
+                return [];
+            }
+
+            $rows = $bitacoraDb->table('bitacora')
+                ->select('bitacora.id, bitacora.cambios, bitacora.created_at, bitacora.user_id, users.firstname, users.midname, users.lastname')
+                ->join('users', 'users.id = bitacora.user_id', 'left')
+                ->where('bitacora.tramite_id', $tramiteId)
+                ->where('bitacora.origen', self::PROTOTYPE_STEP4_NOTE_ORIGIN)
+                ->orderBy('bitacora.created_at', 'DESC')
+                ->orderBy('bitacora.id', 'DESC')
+                ->limit(40)
+                ->get()
+                ->getResultArray();
+
+            $items = [];
+            foreach ($rows as $row) {
+                $comment = $this->extractPrototypeBitacoraComment($row['cambios'] ?? []);
+                if ($comment === '') {
+                    continue;
+                }
+
+                $items[] = $this->buildPrototypeEvidenceItem([
+                    'id' => (int) ($row['id'] ?? 0),
+                    'comentario' => $comment,
+                    'created_at' => (string) ($row['created_at'] ?? ''),
+                    'user_id' => (int) ($row['user_id'] ?? 0),
+                    'firstname' => (string) ($row['firstname'] ?? ''),
+                    'midname' => (string) ($row['midname'] ?? ''),
+                    'lastname' => (string) ($row['lastname'] ?? ''),
+                ]);
+            }
+
+            return $items;
+        } catch (\Throwable $e) {
+            log_message('error', 'Error loading prototype step4 notes for tramite ' . $tramiteId . ': ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    private function getPrototypeStep5Notes(int $tramiteId): array
+    {
+        if ($tramiteId <= 0) {
+            return [];
+        }
+
+        try {
+            $db = ConfigDatabase::connect();
+            if ($db->tableExists('tra_evidencias') && $this->traEvidenciasSupportsTipo()) {
+                $builder = $db->table('tra_evidencias')
+                    ->select('tra_evidencias.id, tra_evidencias.comentario, tra_evidencias.created_at, tra_evidencias.user_id, users.firstname, users.midname, users.lastname')
+                    ->join('users', 'users.id = tra_evidencias.user_id', 'left')
+                    ->where('tra_evidencias.tramite_id', $tramiteId)
+                    ->where('tra_evidencias.status', 1);
+
+                $this->applyTraEvidenciaTipoFilter($builder, self::TRA_EVIDENCIA_TIPO_COBRO_CLIENTE);
+
+                $rows = $builder
+                    ->orderBy('tra_evidencias.created_at', 'DESC')
+                    ->orderBy('tra_evidencias.id', 'DESC')
+                    ->limit(40)
+                    ->get()
+                    ->getResultArray();
+
+                return array_map(fn (array $row): array => $this->buildPrototypeEvidenceItem($row), $rows);
+            }
+
+            $bitacoraDb = $this->_getDbData();
+            if (!is_object($bitacoraDb) || !method_exists($bitacoraDb, 'tableExists') || !$bitacoraDb->tableExists('bitacora')) {
+                return [];
+            }
+
+            $rows = $bitacoraDb->table('bitacora')
+                ->select('bitacora.id, bitacora.cambios, bitacora.created_at, bitacora.user_id, users.firstname, users.midname, users.lastname')
+                ->join('users', 'users.id = bitacora.user_id', 'left')
+                ->where('bitacora.tramite_id', $tramiteId)
+                ->where('bitacora.origen', self::PROTOTYPE_STEP5_NOTE_ORIGIN)
+                ->orderBy('bitacora.created_at', 'DESC')
+                ->orderBy('bitacora.id', 'DESC')
+                ->limit(40)
+                ->get()
+                ->getResultArray();
+
+            $items = [];
+            foreach ($rows as $row) {
+                $comment = $this->extractPrototypeBitacoraComment($row['cambios'] ?? []);
+                if ($comment === '') {
+                    continue;
+                }
+
+                $items[] = $this->buildPrototypeEvidenceItem([
+                    'id' => (int) ($row['id'] ?? 0),
+                    'comentario' => $comment,
+                    'created_at' => (string) ($row['created_at'] ?? ''),
+                    'user_id' => (int) ($row['user_id'] ?? 0),
+                    'firstname' => (string) ($row['firstname'] ?? ''),
+                    'midname' => (string) ($row['midname'] ?? ''),
+                    'lastname' => (string) ($row['lastname'] ?? ''),
+                ]);
+            }
+
+            return $items;
+        } catch (\Throwable $e) {
+            log_message('error', 'Error loading prototype step5 notes for tramite ' . $tramiteId . ': ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    private function getPrototypeServiceRowsRaw(int $tramiteId, int $principalTipoId): array
+    {
+        if ($tramiteId <= 0) {
+            return [];
+        }
+
+        try {
+            $db = ConfigDatabase::connect();
+            $serviceRows = $db->table('tra_tramite_asociado')
+                ->select('tra_tramite_asociado.id, tra_tramite_asociado.tra_tipos_id, tra_tramite_asociado.costo_tramite, tra_tipos.tipo_tramite')
+                ->join('tra_tipos', 'tra_tipos.id = tra_tramite_asociado.tra_tipos_id', 'left')
+                ->where('tra_tramite_asociado.tramite_id', $tramiteId)
+                ->orderBy('tra_tramite_asociado.id', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            $serviceRowsRaw = [];
+            foreach ($serviceRows as $serviceRow) {
+                $serviceTipoId = (int) ($serviceRow['tra_tipos_id'] ?? 0);
+                $serviceLabel = trim((string) ($serviceRow['tipo_tramite'] ?? ('Tipo #' . $serviceTipoId)));
+                if ($serviceTipoId <= 0 || $serviceLabel === '') {
+                    continue;
+                }
+
+                $serviceRowsRaw[] = [
+                    'asociado_id' => (int) ($serviceRow['id'] ?? 0),
+                    'tra_tipos_id' => $serviceTipoId,
+                    'label' => $serviceLabel,
+                    'costo_tramite' => is_numeric($serviceRow['costo_tramite'] ?? null)
+                        ? (float) $serviceRow['costo_tramite']
+                        : 0.0,
+                    'is_principal' => $serviceTipoId === $principalTipoId,
+                ];
+            }
+
+            if ($principalTipoId > 0) {
+                $hasPrincipal = false;
+                foreach ($serviceRowsRaw as $serviceRow) {
+                    if ((int) ($serviceRow['tra_tipos_id'] ?? 0) === $principalTipoId) {
+                        $hasPrincipal = true;
+                        break;
+                    }
+                }
+
+                if (!$hasPrincipal) {
+                    $principalRow = $db->table('tra_tipos')
+                        ->select('id, tipo_tramite')
+                        ->where('id', $principalTipoId)
+                        ->get()
+                        ->getRowArray();
+                    $principalLabel = trim((string) ($principalRow['tipo_tramite'] ?? ('Tipo #' . $principalTipoId)));
+                    if ($principalLabel !== '') {
+                        array_unshift($serviceRowsRaw, [
+                            'asociado_id' => 0,
+                            'tra_tipos_id' => $principalTipoId,
+                            'label' => $principalLabel,
+                            'costo_tramite' => 0.0,
+                            'is_principal' => true,
+                        ]);
+                    }
+                }
+            }
+
+            return $serviceRowsRaw;
+        } catch (\Throwable $e) {
+            log_message('error', 'Error loading service rows for prototype tramite ' . $tramiteId . ': ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    private function buildPrototypeStep1DocumentState(int $tramiteId, int $principalTipoId, ?array $serviceRowsRaw = null): array
+    {
+        $defaultState = [
+            'documents' => [],
+            'documentOptions' => [],
+            'documentOptionMeta' => [],
+            'summary' => [
+                'requiredTotal' => 0,
+                'uploadedRequired' => 0,
+                'uploadedTotal' => 0,
+            ],
+            'allowedDocIds' => [],
+        ];
+
+        if ($tramiteId <= 0) {
+            return $defaultState;
+        }
+
+        try {
+            $db = ConfigDatabase::connect();
+            $serviceRowsRaw = is_array($serviceRowsRaw)
+                ? array_values($serviceRowsRaw)
+                : $this->getPrototypeServiceRowsRaw($tramiteId, $principalTipoId);
+
+            $tipoLabelsById = [];
+            foreach ($serviceRowsRaw as $serviceRow) {
+                $tipoId = (int) ($serviceRow['tra_tipos_id'] ?? 0);
+                $tipoLabel = trim((string) ($serviceRow['label'] ?? ''));
+                if ($tipoId > 0 && $tipoLabel !== '') {
+                    $tipoLabelsById[$tipoId] = $tipoLabel;
+                }
+            }
+
+            if ($principalTipoId > 0 && !isset($tipoLabelsById[$principalTipoId])) {
+                $principalRow = $db->table('tra_tipos')
+                    ->select('id, tipo_tramite')
+                    ->where('id', $principalTipoId)
+                    ->get()
+                    ->getRowArray();
+                $principalLabel = trim((string) ($principalRow['tipo_tramite'] ?? ''));
+                if ($principalLabel !== '') {
+                    $tipoLabelsById[$principalTipoId] = $principalLabel;
+                }
+            }
+
+            $tipoIds = array_values(array_unique(array_filter(array_map('intval', array_keys($tipoLabelsById)))));
+            $docCatalogPk = $db->fieldExists('documento_id', 'documento') ? 'documento_id' : 'id';
+            $hasOptionalFlag = $db->tableExists('tra_tipo_documentos') && $db->fieldExists('es_obligatorio', 'tra_tipo_documentos');
+            $documentsById = [];
+
+            if ($db->tableExists('documento')) {
+                $catalogRows = $db->table('documento')
+                    ->select($docCatalogPk . ' AS documento_id, documento AS documento_nombre')
+                    ->orderBy('documento', 'ASC')
+                    ->get()
+                    ->getResultArray();
+
+                foreach ($catalogRows as $row) {
+                    $documentoId = (int) ($row['documento_id'] ?? 0);
+                    if ($documentoId <= 0) {
+                        continue;
+                    }
+
+                    $documentsById[$documentoId] = [
+                        'documento_id' => $documentoId,
+                        'documento_nombre' => trim((string) ($row['documento_nombre'] ?? ('Documento #' . $documentoId))) ?: ('Documento #' . $documentoId),
+                        'is_required' => false,
+                        'is_configured' => false,
+                        'source_origin' => 'catalog',
+                        'source_badge' => 'Catálogo general',
+                        'source_tone' => 'neutral',
+                        'source_types' => [],
+                        'source_types_label' => '',
+                        'has_file' => false,
+                        'file' => '',
+                        'file_url' => '',
+                        'status_label' => 'Pendiente',
+                        'comentario' => '',
+                    ];
+                }
+            }
+
+            if ($tipoIds !== [] && $db->tableExists('tra_tipo_documentos')) {
+                $query = $db->table('tra_tipo_documentos ttd')
+                    ->select('ttd.tra_tipos_id, ttd.documento_id, d.documento AS documento_nombre' . ($hasOptionalFlag ? ', ttd.es_obligatorio' : ''))
+                    ->join('documento d', 'd.' . $docCatalogPk . ' = ttd.documento_id', 'left')
+                    ->whereIn('ttd.tra_tipos_id', $tipoIds)
+                    ->orderBy('d.documento', 'ASC')
+                    ->get()
+                    ->getResultArray();
+
+                foreach ($query as $row) {
+                    $documentoId = (int) ($row['documento_id'] ?? 0);
+                    if ($documentoId <= 0) {
+                        continue;
+                    }
+
+                    if (!isset($documentsById[$documentoId])) {
+                        $documentsById[$documentoId] = [
+                            'documento_id' => $documentoId,
+                            'documento_nombre' => trim((string) ($row['documento_nombre'] ?? ('Documento #' . $documentoId))) ?: ('Documento #' . $documentoId),
+                            'is_required' => !$hasOptionalFlag || (int) ($row['es_obligatorio'] ?? 1) === 1,
+                            'is_configured' => true,
+                            'source_origin' => 'configured',
+                            'source_badge' => 'Ligado al tipo',
+                            'source_tone' => 'success',
+                            'source_types' => [],
+                            'source_types_label' => '',
+                            'has_file' => false,
+                            'file' => '',
+                            'file_url' => '',
+                            'status_label' => 'Pendiente',
+                            'comentario' => '',
+                        ];
+                    }
+
+                    $documentsById[$documentoId]['is_configured'] = true;
+                    $documentsById[$documentoId]['source_origin'] = 'configured';
+                    $documentsById[$documentoId]['source_badge'] = 'Ligado al tipo';
+                    $documentsById[$documentoId]['source_tone'] = 'success';
+
+                    if ($hasOptionalFlag && (int) ($row['es_obligatorio'] ?? 0) === 1) {
+                        $documentsById[$documentoId]['is_required'] = true;
+                    }
+
+                    $tipoId = (int) ($row['tra_tipos_id'] ?? 0);
+                    $tipoLabel = $tipoLabelsById[$tipoId] ?? '';
+                    if ($tipoLabel !== '' && !in_array($tipoLabel, $documentsById[$documentoId]['source_types'], true)) {
+                        $documentsById[$documentoId]['source_types'][] = $tipoLabel;
+                    }
+                }
+            }
+
+            if ($db->tableExists('tra_doc_status')) {
+                $statusQuery = $db->table('tra_doc_status tds')
+                    ->select('tds.documento_id, tds.file, tds.comentario, tds.updated_at, tds.created_at, ds.st_documento AS status_documento_label, d.documento AS documento_nombre')
+                    ->join('doc_statuses ds', 'ds.id = tds.status_documento_id', 'left')
+                    ->join('documento d', 'd.' . $docCatalogPk . ' = tds.documento_id', 'left')
+                    ->where('tds.tramite_id', $tramiteId)
+                    ->orderBy('tds.updated_at', 'DESC')
+                    ->orderBy('tds.created_at', 'DESC')
+                    ->orderBy('tds.id', 'DESC')
+                    ->get()
+                    ->getResultArray();
+
+                foreach ($statusQuery as $row) {
+                    $documentoId = (int) ($row['documento_id'] ?? 0);
+                    if ($documentoId <= 0) {
+                        continue;
+                    }
+
+                    if (!isset($documentsById[$documentoId])) {
+                        $documentsById[$documentoId] = [
+                            'documento_id' => $documentoId,
+                            'documento_nombre' => trim((string) ($row['documento_nombre'] ?? ('Documento #' . $documentoId))) ?: ('Documento #' . $documentoId),
+                            'is_required' => false,
+                            'is_configured' => false,
+                            'source_origin' => 'direct',
+                            'source_badge' => 'Histórico del trámite',
+                            'source_tone' => 'neutral',
+                            'source_types' => ['Ligado directo al tramite'],
+                            'source_types_label' => 'Ligado directo al tramite',
+                            'has_file' => false,
+                            'file' => '',
+                            'file_url' => '',
+                            'status_label' => 'Pendiente',
+                            'comentario' => '',
+                        ];
+                    }
+
+                    $fileName = trim((string) ($row['file'] ?? ''));
+                    $existingFile = trim((string) ($documentsById[$documentoId]['file'] ?? ''));
+                    if ($fileName !== '' || $existingFile === '') {
+                        $documentsById[$documentoId]['file'] = $fileName;
+                        $documentsById[$documentoId]['has_file'] = $fileName !== '';
+                        $documentsById[$documentoId]['file_url'] = $fileName !== ''
+                            ? base_url('/assets/uploads/documentostatus/' . rawurlencode($fileName))
+                            : '';
+                        $documentsById[$documentoId]['status_label'] = trim((string) ($row['status_documento_label'] ?? '')) ?: ($fileName !== '' ? 'Cargado' : 'Pendiente');
+                        $documentsById[$documentoId]['comentario'] = trim((string) ($row['comentario'] ?? ''));
+                    }
+                }
+            }
+
+            $documents = array_values($documentsById);
+            foreach ($documents as &$document) {
+                $document['source_types_label'] = !empty($document['source_types'])
+                    ? implode(', ', $document['source_types'])
+                    : '';
+
+                if (!empty($document['is_configured']) && $document['source_types_label'] === '') {
+                    $document['source_types_label'] = 'Configurado para los tipos ligados actualmente';
+                }
+            }
+            unset($document);
+
+            usort($documents, static function (array $left, array $right): int {
+                $configuredCompare = ((int) !empty($right['is_configured'])) <=> ((int) !empty($left['is_configured']));
+                if ($configuredCompare !== 0) {
+                    return $configuredCompare;
+                }
+
+                $requiredCompare = ((int) !empty($right['is_required'])) <=> ((int) !empty($left['is_required']));
+                if ($requiredCompare !== 0) {
+                    return $requiredCompare;
+                }
+
+                return strcasecmp((string) ($left['documento_nombre'] ?? ''), (string) ($right['documento_nombre'] ?? ''));
+            });
+
+            $documentOptions = [];
+            $documentOptionMeta = [];
+            foreach ($documents as $document) {
+                $documentoId = (int) ($document['documento_id'] ?? 0);
+                if ($documentoId <= 0) {
+                    continue;
+                }
+
+                $label = trim((string) ($document['documento_nombre'] ?? ('Documento #' . $documentoId)));
+                if (empty($document['is_required'])) {
+                    $label .= ' (opcional)';
+                }
+                $documentOptions[$documentoId] = $label;
+                $documentOptionMeta[$documentoId] = [
+                    'documento_nombre' => trim((string) ($document['documento_nombre'] ?? ('Documento #' . $documentoId))) ?: ('Documento #' . $documentoId),
+                    'isConfigured' => !empty($document['is_configured']),
+                    'isRequired' => !empty($document['is_required']),
+                    'sourceBadge' => (string) ($document['source_badge'] ?? 'Catálogo general'),
+                    'sourceTone' => (string) ($document['source_tone'] ?? 'neutral'),
+                ];
+            }
+
+            $requiredTotal = 0;
+            $uploadedRequired = 0;
+            $uploadedTotal = 0;
+            foreach ($documents as $document) {
+                $hasFile = !empty($document['has_file']);
+                if ($hasFile) {
+                    $uploadedTotal++;
+                }
+                if (!empty($document['is_required'])) {
+                    $requiredTotal++;
+                    if ($hasFile) {
+                        $uploadedRequired++;
+                    }
+                }
+            }
+
+            return [
+                'documents' => $documents,
+                'documentOptions' => $documentOptions,
+                'documentOptionMeta' => $documentOptionMeta,
+                'summary' => [
+                    'requiredTotal' => $requiredTotal,
+                    'uploadedRequired' => $uploadedRequired,
+                    'uploadedTotal' => $uploadedTotal,
+                ],
+                'allowedDocIds' => array_values(array_map('intval', array_keys($documentOptions))),
+            ];
+        } catch (\Throwable $e) {
+            log_message('error', 'Error loading step1 document state for prototype tramite ' . $tramiteId . ': ' . $e->getMessage());
+            return $defaultState;
+        }
+    }
+
+    public function prototype_evidencias_add($tramiteId = null)
+    {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
+        $tramiteId = (int) ($tramiteId ?? $this->request->uri->getSegment(4) ?? 0);
+
+        if ($tramiteId <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, null, true);
+        }
+
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        $canQuickAction = has_permission('quick_action_bitacora', $perms, $roles);
+        $canAdd = $canQuickAction && has_permission('quick_action_bitacora_add', $perms, $roles);
+        if (!$canAdd) {
+            return acl_deny('Acceso denegado.', 403, null, true);
+        }
+
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'comentario' => 'required|min_length[3]|max_length[2000]',
+        ]);
+
+        if ($validation->withRequest($this->request)->run() === false) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'success' => false,
+                'message' => implode(' ', $validation->getErrors()),
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $db = ConfigDatabase::connect();
+        $tramiteRow = $db->table('tramite')
+            ->select('id, folio, tra_status_id')
+            ->where('id', $tramiteId)
+            ->get()
+            ->getRowArray();
+
+        if (empty($tramiteRow)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'No se encontró el trámite solicitado.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        if ($this->isLockedStatusId((int) ($tramiteRow['tra_status_id'] ?? 0))) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'Esta sección está en modo de solo lectura.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $comment = trim((string) $this->request->getPost('comentario'));
+        $insertData = $this->withTraEvidenciaTipo([
+            'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
+            'tramite_id' => $tramiteId,
+            'comentario' => $comment,
+            'user_id' => $userId,
+            'status' => 1,
+        ], self::TRA_EVIDENCIA_TIPO_GENERAL);
+
+        try {
+            $db->table('tra_evidencias')->insert($insertData);
+            $insertId = (int) $db->insertID();
+
+            $db2 = $this->_getDbData();
+            $bitacoraModel = new BitacoraModel($db2);
+            $diferencias = $this->encontrarDiferencias($insertData, []);
+            $bitacoraModel->insert([
+                'tipo' => 'insert',
+                'origen' => 'evidencia',
+                'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
+                'tramite_id' => $tramiteId,
+                'cambios' => json_encode($diferencias),
+                'user_id' => $userId,
+            ], 'bitacora');
+
+            $insertedRow = $db->table('tra_evidencias')
+                ->select('tra_evidencias.id, tra_evidencias.comentario, tra_evidencias.created_at, tra_evidencias.user_id, users.firstname, users.midname, users.lastname')
+                ->join('users', 'users.id = tra_evidencias.user_id', 'left')
+                ->where('tra_evidencias.id', $insertId)
+                ->get()
+                ->getRowArray();
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Comentario guardado correctamente.',
+                'item' => $this->buildPrototypeEvidenceItem($insertedRow ?: $insertData),
+                'csrfHash' => csrf_hash(),
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'Error en Tramitesn::prototype_evidencias_add: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'No se pudo guardar el comentario.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+    }
+
+    public function prototype_step4_notes_add($tramiteId = null)
+    {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
+        $tramiteId = (int) ($tramiteId ?? $this->request->uri->getSegment(4) ?? 0);
+
+        if ($tramiteId <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, null, true);
+        }
+
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        $canQuickAction = has_permission('quick_action_bitacora', $perms, $roles);
+        $canAdd = $canQuickAction && has_permission('quick_action_bitacora_add', $perms, $roles);
+        $canSectionPagoGestor = has_permission('section_pago_gestor', $perms, $roles);
+        if (!$canAdd || !$canSectionPagoGestor) {
+            return acl_deny('Acceso denegado.', 403, null, true);
+        }
+
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'comentario' => 'required|min_length[3]|max_length[2000]',
+        ]);
+
+        if ($validation->withRequest($this->request)->run() === false) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'success' => false,
+                'message' => implode(' ', $validation->getErrors()),
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $db = ConfigDatabase::connect();
+        $tramiteRow = $db->table('tramite')
+            ->select('id, folio, tra_status_id, reembolso_status_id, cobro_status_id, pago_gestor_st_id, status_doctos_gestor')
+            ->where('id', $tramiteId)
+            ->get()
+            ->getRowArray();
+
+        if (empty($tramiteRow)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'No se encontró el trámite solicitado.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $db2 = $this->_getDbData();
+        $pagoGestorStatusModel = new PagoGestorStatusModel($db2);
+        $canKeepStep4Editable = $this->canKeepStep4Editable(
+            (int) ($tramiteRow['reembolso_status_id'] ?? 0),
+            (int) ($tramiteRow['pago_gestor_st_id'] ?? 0),
+            $pagoGestorStatusModel->getPagoGestorStatusOptions(),
+            (string) ($tramiteRow['status_doctos_gestor'] ?? '')
+        );
+        $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $step4ReadOnly = $this->isLockedStatusId($traStatusId);
+        if ($step4ReadOnly) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'Pago a gestor está en modo de solo lectura para este trámite.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $comment = trim((string) $this->request->getPost('comentario'));
+
+        try {
+            if ($this->traEvidenciasSupportsTipo()) {
+                $insertData = $this->withTraEvidenciaTipo([
+                    'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
+                    'tramite_id' => $tramiteId,
+                    'comentario' => $comment,
+                    'user_id' => $userId,
+                    'status' => 1,
+                ], self::TRA_EVIDENCIA_TIPO_PAGO_GESTOR);
+
+                $db->table('tra_evidencias')->insert($insertData);
+                $insertId = (int) $db->insertID();
+
+                $db2 = $this->_getDbData();
+                $bitacoraModel = new BitacoraModel($db2);
+                $diferencias = $this->encontrarDiferencias($insertData, []);
+                $bitacoraModel->insert([
+                    'tipo' => 'insert',
+                    'origen' => self::PROTOTYPE_STEP4_NOTE_ORIGIN,
+                    'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
+                    'tramite_id' => $tramiteId,
+                    'cambios' => json_encode($diferencias),
+                    'user_id' => $userId,
+                ], 'bitacora');
+
+                $insertedRow = $db->table('tra_evidencias')
+                    ->select('tra_evidencias.id, tra_evidencias.comentario, tra_evidencias.created_at, tra_evidencias.user_id, users.firstname, users.midname, users.lastname')
+                    ->join('users', 'users.id = tra_evidencias.user_id', 'left')
+                    ->where('tra_evidencias.id', $insertId)
+                    ->get()
+                    ->getRowArray();
+
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Nota interna guardada correctamente.',
+                    'item' => $this->buildPrototypeEvidenceItem($insertedRow ?: $insertData),
+                    'csrfHash' => csrf_hash(),
+                ]);
+            }
+
+            $changes = [
+                self::PROTOTYPE_STEP4_NOTE_FIELD => [
+                    'valor_original' => '',
+                    'valor_nuevo' => $comment,
+                ],
+            ];
+
+            $bitacoraDb = $this->_getDbData();
+            if (!is_object($bitacoraDb) || !method_exists($bitacoraDb, 'table') || !method_exists($bitacoraDb, 'insertID')) {
+                throw new \RuntimeException('La conexión legacy de bitácora no está disponible.');
+            }
+
+            $bitacoraDb->table('bitacora')->insert([
+                'tipo' => 'insert',
+                'origen' => self::PROTOTYPE_STEP4_NOTE_ORIGIN,
+                'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
+                'tramite_id' => $tramiteId,
+                'cambios' => json_encode($changes),
+                'user_id' => $userId,
+                'status' => 1,
+            ]);
+            $insertId = (int) $bitacoraDb->insertID();
+
+            $insertedRow = $bitacoraDb->table('bitacora')
+                ->select('bitacora.id, bitacora.cambios, bitacora.created_at, bitacora.user_id, users.firstname, users.midname, users.lastname')
+                ->join('users', 'users.id = bitacora.user_id', 'left')
+                ->where('bitacora.id', $insertId)
+                ->get()
+                ->getRowArray();
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Nota interna guardada correctamente.',
+                'item' => $this->buildPrototypeEvidenceItem([
+                    'id' => (int) ($insertedRow['id'] ?? $insertId),
+                    'comentario' => $this->extractPrototypeBitacoraComment($insertedRow['cambios'] ?? $changes),
+                    'created_at' => (string) ($insertedRow['created_at'] ?? date('Y-m-d H:i:s')),
+                    'user_id' => (int) ($insertedRow['user_id'] ?? $userId),
+                    'firstname' => (string) ($insertedRow['firstname'] ?? ''),
+                    'midname' => (string) ($insertedRow['midname'] ?? ''),
+                    'lastname' => (string) ($insertedRow['lastname'] ?? ''),
+                ]),
+                'csrfHash' => csrf_hash(),
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'Error en Tramitesn::prototype_step4_notes_add: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'No se pudo guardar la nota interna de Pago a gestor.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+    }
+
+    public function prototype_step5_notes_add($tramiteId = null)
+    {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
+        $tramiteId = (int) ($tramiteId ?? $this->request->uri->getSegment(4) ?? 0);
+
+        if ($tramiteId <= 0) {
+            return acl_deny('ID de trámite inválido.', 400, null, true);
+        }
+
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        $canQuickAction = has_permission('quick_action_bitacora', $perms, $roles);
+        $canAdd = $canQuickAction && has_permission('quick_action_bitacora_add', $perms, $roles);
+        $canAccessCobroCliente = can_access_cobro_cliente_surface($roles, $perms);
+        $canEditCobroCliente = can_edit_cobro_cliente_surface($roles, $perms);
+        if (!$canAdd || !$canAccessCobroCliente || !$canEditCobroCliente) {
+            return acl_deny('Acceso denegado.', 403, null, true);
+        }
+
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'comentario' => 'required|min_length[3]|max_length[2000]',
+        ]);
+
+        if ($validation->withRequest($this->request)->run() === false) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'success' => false,
+                'message' => implode(' ', $validation->getErrors()),
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $db = ConfigDatabase::connect();
+        $tramiteRow = $db->table('tramite')
+            ->select('id, folio, tra_status_id, reembolso_status_id, cobro_status_id')
+            ->where('id', $tramiteId)
+            ->get()
+            ->getRowArray();
+
+        if (empty($tramiteRow)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'No se encontró el trámite solicitado.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $step5ReadOnly = $this->isLockedStatusId($traStatusId);
+        if ($step5ReadOnly) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'Cobro a cliente está en modo de solo lectura para este trámite.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        if (!puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', (int) ($tramiteRow['reembolso_status_id'] ?? 0), (int) ($tramiteRow['cobro_status_id'] ?? 0), 5)) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'Cobro a cliente no está editable para este estatus y este perfil.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        $comment = trim((string) $this->request->getPost('comentario'));
+
+        try {
+            if ($this->traEvidenciasSupportsTipo()) {
+                $insertData = $this->withTraEvidenciaTipo([
+                    'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
+                    'tramite_id' => $tramiteId,
+                    'comentario' => $comment,
+                    'user_id' => $userId,
+                    'status' => 1,
+                ], self::TRA_EVIDENCIA_TIPO_COBRO_CLIENTE);
+
+                $db->table('tra_evidencias')->insert($insertData);
+                $insertId = (int) $db->insertID();
+
+                $db2 = $this->_getDbData();
+                $bitacoraModel = new BitacoraModel($db2);
+                $diferencias = $this->encontrarDiferencias($insertData, []);
+                $bitacoraModel->insert([
+                    'tipo' => 'insert',
+                    'origen' => self::PROTOTYPE_STEP5_NOTE_ORIGIN,
+                    'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
+                    'tramite_id' => $tramiteId,
+                    'cambios' => json_encode($diferencias),
+                    'user_id' => $userId,
+                ], 'bitacora');
+
+                $insertedRow = $db->table('tra_evidencias')
+                    ->select('tra_evidencias.id, tra_evidencias.comentario, tra_evidencias.created_at, tra_evidencias.user_id, users.firstname, users.midname, users.lastname')
+                    ->join('users', 'users.id = tra_evidencias.user_id', 'left')
+                    ->where('tra_evidencias.id', $insertId)
+                    ->get()
+                    ->getRowArray();
+
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Nota interna guardada correctamente.',
+                    'item' => $this->buildPrototypeEvidenceItem($insertedRow ?: $insertData),
+                    'csrfHash' => csrf_hash(),
+                ]);
+            }
+
+            $changes = [
+                self::PROTOTYPE_STEP5_NOTE_FIELD => [
+                    'valor_original' => '',
+                    'valor_nuevo' => $comment,
+                ],
+            ];
+
+            $bitacoraDb = $this->_getDbData();
+            if (!is_object($bitacoraDb) || !method_exists($bitacoraDb, 'table') || !method_exists($bitacoraDb, 'insertID')) {
+                throw new \RuntimeException('La conexión legacy de bitácora no está disponible.');
+            }
+
+            $bitacoraDb->table('bitacora')->insert([
+                'tipo' => 'insert',
+                'origen' => self::PROTOTYPE_STEP5_NOTE_ORIGIN,
+                'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
+                'tramite_id' => $tramiteId,
+                'cambios' => json_encode($changes),
+                'user_id' => $userId,
+                'status' => 1,
+            ]);
+            $insertId = (int) $bitacoraDb->insertID();
+
+            $insertedRow = $bitacoraDb->table('bitacora')
+                ->select('bitacora.id, bitacora.cambios, bitacora.created_at, bitacora.user_id, users.firstname, users.midname, users.lastname')
+                ->join('users', 'users.id = bitacora.user_id', 'left')
+                ->where('bitacora.id', $insertId)
+                ->get()
+                ->getRowArray();
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Nota interna guardada correctamente.',
+                'item' => $this->buildPrototypeEvidenceItem([
+                    'id' => (int) ($insertedRow['id'] ?? $insertId),
+                    'comentario' => $this->extractPrototypeBitacoraComment($insertedRow['cambios'] ?? $changes),
+                    'created_at' => (string) ($insertedRow['created_at'] ?? date('Y-m-d H:i:s')),
+                    'user_id' => (int) ($insertedRow['user_id'] ?? $userId),
+                    'firstname' => (string) ($insertedRow['firstname'] ?? ''),
+                    'midname' => (string) ($insertedRow['midname'] ?? ''),
+                    'lastname' => (string) ($insertedRow['lastname'] ?? ''),
+                ]),
+                'csrfHash' => csrf_hash(),
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'Error en Tramitesn::prototype_step5_notes_add: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON([
+                'success' => false,
+                'message' => 'No se pudo guardar la nota interna de Cobro a cliente.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
     }
 
     protected function resolveAttentionListBucket(?string $bucket): string
@@ -1326,14 +2440,19 @@ class Tramitesn extends Tramites
                 }
             }
 
-            $shouldValidateDuplicates = $currentStep <= 1
-                || array_key_exists('serie', $data)
-                || array_key_exists('tra_tipos_id', $data);
-            if ($shouldValidateDuplicates) {
-                $duplicateSerie = trim((string) ($data['serie'] ?? ($existingTramite['serie'] ?? '')));
-                $duplicateTipoId = (int) ($data['tra_tipos_id'] ?? ($existingTramite['tra_tipos_id'] ?? 0));
+            $duplicateSerie = trim((string) ($data['serie'] ?? ($existingTramite['serie'] ?? '')));
+            $existingSerie = trim((string) ($existingTramite['serie'] ?? ''));
+            $duplicateTipoId = (int) ($data['tra_tipos_id'] ?? ($existingTramite['tra_tipos_id'] ?? 0));
+            $existingTipoId = (int) ($existingTramite['tra_tipos_id'] ?? 0);
+            $shouldValidateDuplicates = (
+                array_key_exists('serie', $data)
+                && $duplicateSerie !== $existingSerie
+            ) || (
+                array_key_exists('tra_tipos_id', $data)
+                && $duplicateTipoId !== $existingTipoId
+            );
 
-                if ($duplicateSerie !== '' && $duplicateTipoId > 0) {
+            if ($shouldValidateDuplicates && $duplicateSerie !== '' && $duplicateTipoId > 0) {
                     $duplicateBuilder = $db->table('tramite');
                     $duplicateBuilder->where('tra_tipos_id', $duplicateTipoId);
                     $duplicateBuilder->where('serie', $duplicateSerie);
@@ -1348,7 +2467,6 @@ class Tramitesn extends Tramites
                             'csrfHash' => csrf_hash(),
                         ]);
                     }
-                }
             }
 
             $changes = [];
@@ -1427,53 +2545,7 @@ class Tramitesn extends Tramites
             }
 
             $folio = $data['folio'] ?? null;
-            $db2 = $this->_getDbData();
-
-            $bitacoraModel = new BitacoraModel($db2);
-            $diferencias = [];
-            try {
-                $diferencias = $this->buildBitacoraChanges($changes);
-            } catch (\Throwable $e) {
-                log_message('error', 'Error en buildBitacoraChanges (Tramitesn::update_save): ' . $e->getMessage());
-            }
-            $insert_bitacora = [
-                'id' => null,
-                'tipo' => 'update',
-                'origen' => 'tramite',
-                'folio_tramite' => $folio,
-                'tramite_id' => (int) $id,
-                'cambios' => json_encode($diferencias),
-                'user_id' => (int) $myid,
-            ];
-            $bitacoraModel->insert($insert_bitacora, 'bitacora');
-
-            $tra_user_log = new TraUserLogModel($db2);
-            $log = [
-                'tramite_id' => (int) $id,
-                'user_id' => (int) $myid,
-                'tra_status_id' => $statusUpdatedTo > 0 ? $statusUpdatedTo : SGL_TRA_STATUS_RECOLECCION_DCTOS,
-            ];
-            $tra_user_log->insert($log, 'tra_user_log');
-
-            if (!empty($changes)) {
-                try {
-                    $changeCount = log_tramite_bulk_changes($id, $changes, 'tramite', [
-                        'form_name' => 'Datos Generales',
-                        'form_step' => 1,
-                        'form_section' => 'update_save',
-                    ]);
-                    log_message('info', "[Tramitesn::update_save] Registrados {$changeCount} cambios para trámite ID: {$id}");
-                } catch (\Throwable $e) {
-                    log_message('error', 'Error en log_tramite_bulk_changes (Tramitesn::update_save): ' . $e->getMessage());
-                }
-
-                try {
-                    $cambiosTexto = implode(', ', array_keys($changes));
-                    notify_tramite_actualizado($id, $folio ?? "Trámite #{$id}", $cambiosTexto, $myid);
-                } catch (\Throwable $e) {
-                    log_message('error', 'Error en notify_tramite_actualizado (Tramitesn::update_save): ' . $e->getMessage());
-                }
-            }
+            $this->recordUpdateSaveSideEffects((int) $id, $folio, (int) $myid, (int) $statusUpdatedTo, $changes);
 
             return $this->response->setJSON([
                 'success' => true,
@@ -1887,9 +2959,7 @@ class Tramitesn extends Tramites
             null,
             (string) ($existingTramite['status_doctos_gestor'] ?? '')
         );
-        $canOverrideStatus28 = has_permission('override_tramite_status_28_readonly', $perms, $roles);
-
-        if ($this->isLockedStatusId($traStatusId) || ($traStatusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideStatus28 && !$canKeepStep4Editable)) {
+        if ($this->isLockedStatusId($traStatusId)) {
             return $this->response->setStatusCode(409)->setJSON([
                 'success' => false,
                 'message' => 'El trámite está en modo de solo lectura.',
@@ -1951,6 +3021,27 @@ class Tramitesn extends Tramites
                 $data[$campo] = null;
             }
         }
+
+        // Saldo financiero inteligente: Pago total vs Deposito a gestor.
+        $toMoney = static function ($value): float {
+            if ($value === null || $value === '') {
+                return 0.0;
+            }
+            return round((float) $value, 2);
+        };
+
+        $costoTramite = $toMoney($data['costo_tramite'] ?? ($existingTramite['costo_tramite'] ?? 0));
+        $impuestoGestoria = $toMoney($data['impuesto_gestoria'] ?? ($existingTramite['impuesto_gestoria'] ?? 0));
+        $gestoriaComision = $toMoney($data['gestoria_comision'] ?? ($existingTramite['gestoria_comision'] ?? 0));
+        $costoPaqueteria = $toMoney($data['costo_paqueteria'] ?? ($existingTramite['costo_paqueteria'] ?? 0));
+
+        $totalPagoCalculado = round($costoTramite + $impuestoGestoria + $gestoriaComision + $costoPaqueteria, 2);
+        $depositoGestor = $toMoney($data['deposito_gestor'] ?? ($existingTramite['deposito_gestor'] ?? 0));
+        $saldoCalculado = round($totalPagoCalculado - $depositoGestor, 2);
+
+        $data['gestor_total_pago'] = number_format($totalPagoCalculado, 2, '.', '');
+        $data['col_a_favor'] = number_format($saldoCalculado, 2, '.', '');
+        $data['reembolso_status_id'] = abs($saldoCalculado) > 0.0001 ? 22 : 24;
 
         try {
             try {
@@ -2125,6 +3216,1329 @@ class Tramitesn extends Tramites
         return $this->renderTramiteList();
     }
 
+    public function prototipo_layout($activeStep = null)
+    {
+        helper(['permissions', 'acl_guard', 'tramite_status']);
+        if (is_string($activeStep)) {
+            $activeStep = trim($activeStep);
+
+            if ($activeStep !== '' && preg_match('/^paso-(\d+)$/', $activeStep, $matches)) {
+                $activeStep = (int) ($matches[1] ?? 0);
+            }
+        }
+
+        $activeStep = $activeStep !== null && $activeStep !== ''
+            ? (int) $activeStep
+            : (int) ($this->request->getGet('step') ?? 2);
+        $prototypeTramiteId = (int) ($this->request->getGet('tramite_id') ?? 12454);
+        $session = session();
+        $myid = (int) ($session->get('id') ?? 0);
+
+        if ($activeStep < 1 || $activeStep > 5) {
+            $activeStep = 2;
+        }
+
+        $prototypeReadOnlyTramite = null;
+        if ($activeStep <= 5 && $prototypeTramiteId > 0) {
+            $prototypeReadOnlyTramite = $this->loadPrototypeReadOnlyTramite($prototypeTramiteId);
+        }
+
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+        $prototypeCanApproveStep2 = false;
+        $prototypeEvidenceForm = [
+            'canView' => false,
+            'canAdd' => false,
+            'blockedReason' => null,
+            'csrfName' => csrf_token(),
+            'csrfHash' => csrf_hash(),
+            'tramiteId' => $prototypeTramiteId,
+            'urls' => [
+                'create' => site_url('/deskapp/tramitesn/prototype_evidencias_add/' . $prototypeTramiteId),
+            ],
+            'items' => !empty($prototypeReadOnlyTramite['process_notes']) && is_array($prototypeReadOnlyTramite['process_notes'])
+                ? $prototypeReadOnlyTramite['process_notes']
+                : [],
+        ];
+        $prototypeStep4NotesForm = [
+            'canView' => false,
+            'canAdd' => false,
+            'blockedReason' => null,
+            'csrfName' => csrf_token(),
+            'csrfHash' => csrf_hash(),
+            'tramiteId' => $prototypeTramiteId,
+            'urls' => [
+                'create' => site_url('/deskapp/tramitesn/prototype_step4_notes_add/' . $prototypeTramiteId),
+            ],
+            'items' => $this->getPrototypeStep4Notes($prototypeTramiteId),
+        ];
+        $prototypeStep5NotesForm = [
+            'canView' => false,
+            'canAdd' => false,
+            'blockedReason' => null,
+            'csrfName' => csrf_token(),
+            'csrfHash' => csrf_hash(),
+            'tramiteId' => $prototypeTramiteId,
+            'urls' => [
+                'create' => site_url('/deskapp/tramitesn/prototype_step5_notes_add/' . $prototypeTramiteId),
+            ],
+            'items' => $this->getPrototypeStep5Notes($prototypeTramiteId),
+        ];
+        $prototypeStep1Form = [
+            'canEdit' => false,
+            'blockedReason' => null,
+            'csrfName' => csrf_token(),
+            'csrfHash' => csrf_hash(),
+            'urls' => [
+                'updateSave' => site_url('/deskapp/tramitesn/update_save/' . $prototypeTramiteId),
+                'getEjecutivosByClienteIdBase' => site_url('/deskapp/tramites/getEjecutivosByClienteId'),
+            ],
+            'options' => [
+                'cliente' => [],
+                'ejecutivo' => [],
+                'entidad' => [],
+            ],
+            'values' => [
+                'folio' => (string) ($prototypeReadOnlyTramite['folio'] ?? ''),
+                'cli_directo_id' => (int) ($prototypeReadOnlyTramite['cli_directo_id'] ?? 0),
+                'cli_directo_ejecutivo_id' => (int) ($prototypeReadOnlyTramite['cli_directo_ejecutivo_id'] ?? 0),
+                'contrato' => (string) ($prototypeReadOnlyTramite['contrato'] ?? ''),
+                'unidad' => (string) ($prototypeReadOnlyTramite['fields']['unidad'] ?? ''),
+                'serie' => (string) ($prototypeReadOnlyTramite['fields']['serie'] ?? ''),
+                'placas' => (string) ($prototypeReadOnlyTramite['fields']['placas'] ?? ''),
+                'entidad_id' => (int) ($prototypeReadOnlyTramite['entidad_id'] ?? 0),
+                'observaciones' => (string) ($prototypeReadOnlyTramite['fields']['observaciones'] ?? ''),
+                'current_step' => 1,
+            ],
+        ];
+        $prototypeStep1ServicesForm = [
+            'canManageBase' => false,
+            'canEditPrincipal' => false,
+            'canEditAsociado' => false,
+            'canDeleteAsociado' => false,
+            'blockedReason' => null,
+            'csrfName' => csrf_token(),
+            'csrfHash' => csrf_hash(),
+            'urls' => [
+                'principalUpdate' => site_url('/deskapp/tramitesn/principal/update_tipo'),
+                'add' => site_url('/deskapp/tramitesn/services/add'),
+                'update' => site_url('/deskapp/tramitesn/services/update'),
+                'delete' => site_url('/deskapp/tramitesn/services/delete'),
+            ],
+            'tramiteId' => $prototypeTramiteId,
+            'principalTipoId' => (int) ($prototypeReadOnlyTramite['principal_tipo_id'] ?? 0),
+            'options' => [
+                'traTipos' => [],
+            ],
+            'services' => !empty($prototypeReadOnlyTramite['service_rows_raw']) && is_array($prototypeReadOnlyTramite['service_rows_raw'])
+                ? $prototypeReadOnlyTramite['service_rows_raw']
+                : [],
+        ];
+        $prototypeStep1DocsForm = [
+            'canView' => !empty($prototypeReadOnlyTramite),
+            'canUpload' => false,
+            'canDelete' => false,
+            'blockedReason' => null,
+            'deleteBlockedReason' => null,
+            'csrfName' => csrf_token(),
+            'csrfHash' => csrf_hash(),
+            'tramiteId' => $prototypeTramiteId,
+            'fileBaseUrl' => base_url('/assets/uploads/documentostatus/'),
+            'urls' => [
+                'upload' => site_url('/deskapp/tramitesn/upload_step1_doc/' . $prototypeTramiteId),
+                'delete' => site_url('/deskapp/tramitesn/delete_step1_doc'),
+            ],
+            'options' => [
+                'documentTypes' => !empty($prototypeReadOnlyTramite['step1_document_options']) && is_array($prototypeReadOnlyTramite['step1_document_options'])
+                    ? $prototypeReadOnlyTramite['step1_document_options']
+                    : [],
+            ],
+            'documents' => !empty($prototypeReadOnlyTramite['step1_documents']) && is_array($prototypeReadOnlyTramite['step1_documents'])
+                ? $prototypeReadOnlyTramite['step1_documents']
+                : [],
+            'summary' => !empty($prototypeReadOnlyTramite['step1_doc_summary']) && is_array($prototypeReadOnlyTramite['step1_doc_summary'])
+                ? $prototypeReadOnlyTramite['step1_doc_summary']
+                : [
+                    'requiredTotal' => 0,
+                    'uploadedRequired' => 0,
+                    'uploadedTotal' => 0,
+                ],
+        ];
+        $prototypeStep2Form = [
+            'canEdit' => false,
+            'canUploadDocs' => false,
+            'canDeleteDocs' => false,
+            'currentStatusId' => 0,
+            'currentStep' => 0,
+            'isApprovedLock' => false,
+            'isLockedStatus' => false,
+            'blockedReason' => null,
+            'docsBlockedReason' => null,
+            'deleteBlockedReason' => null,
+            'csrfName' => csrf_token(),
+            'csrfHash' => csrf_hash(),
+            'urls' => [
+                'updateGestorSave' => site_url('/deskapp/tramitesn/update_gestor_save/' . $prototypeTramiteId),
+                'updateDerechosSave' => site_url('/deskapp/tramitesn/update_derechos_save/' . $prototypeTramiteId),
+                'getGestoresByEmpresaIdBase' => site_url('/deskapp/tramites/getGestoresByEmpresaId'),
+                'uploadDoc' => site_url('/deskapp/tramites/upload_comprobante/' . $prototypeTramiteId),
+                'deleteDoc' => site_url('/deskapp/tramites/delete_comprobante/' . $prototypeTramiteId),
+                'authorize' => site_url('/deskapp/tramites/autorizar'),
+                'afterApprove' => site_url('/deskapp/tramitesn/prototipo-layout/paso-4?tramite_id=' . $prototypeTramiteId),
+            ],
+            'approvalStatusId' => 23,
+            'tramiteId' => $prototypeTramiteId,
+            'fileBaseUrl' => base_url('/assets/uploads/pago_derechos/' . $prototypeTramiteId . '/'),
+            'options' => [
+                'empresaGestora' => [],
+                'gestor' => [],
+                'derechosPagoSitio' => [
+                    'online' => 'En Linea',
+                    'ventanilla' => 'En Ventanilla',
+                ],
+                'derechosRevolCliente' => [
+                    'revolvente' => 'Fondo Revolvente',
+                    'cliente' => 'Pago Cliente',
+                ],
+            ],
+            'values' => [
+                'empresa_gestora_id' => (int) ($prototypeReadOnlyTramite['empresa_gestora_id'] ?? 0),
+                'gestor_id' => (int) ($prototypeReadOnlyTramite['gestor_id'] ?? 0),
+                'derechos_tramite' => (string) ($prototypeReadOnlyTramite['fields']['derechos_tramite'] ?? ''),
+                'derechos_pago_sitio' => (string) ($prototypeReadOnlyTramite['fields']['derechos_pago_sitio'] ?? ''),
+                'derechos_vigencia' => (string) ($prototypeReadOnlyTramite['fields']['derechos_vigencia'] ?? ''),
+                'derechos_revol_cliente' => (string) ($prototypeReadOnlyTramite['fields']['derechos_revol_cliente'] ?? ''),
+                'derechos_refer_banc' => (string) ($prototypeReadOnlyTramite['fields']['derechos_refer_banc'] ?? ''),
+            ],
+            'docs' => !empty($prototypeReadOnlyTramite['pago_derechos_docs']) && is_array($prototypeReadOnlyTramite['pago_derechos_docs'])
+                ? array_map(static function ($fileName): array {
+                    return ['file' => (string) $fileName];
+                }, $prototypeReadOnlyTramite['pago_derechos_docs'])
+                : [],
+        ];
+        $prototypeStep3Form = [
+            'canUpload' => false,
+            'canDelete' => false,
+            'blockedReason' => null,
+            'deleteBlockedReason' => null,
+            'csrfName' => csrf_token(),
+            'csrfHash' => csrf_hash(),
+            'urls' => [
+                'upload' => site_url('/deskapp/tramitesn/upload_pago_gestor/' . $prototypeTramiteId),
+                'delete' => site_url('/deskapp/tramitesn/delete_pago_gestor'),
+                'openPagoGestor' => site_url('/deskapp/tramitesn/prototipo-layout/paso-4?tramite_id=' . $prototypeTramiteId),
+            ],
+            'tramiteId' => $prototypeTramiteId,
+            'fileBaseUrl' => base_url('/assets/uploads/pago_gestor/' . $prototypeTramiteId . '/'),
+            'options' => [
+                'comprobanteFinal' => [
+                    'tramite_recibido' => 'Tramite Entregado por Gestor',
+                    'acuse_recibo_cliente' => 'Acuse de Recibo del Cliente',
+                ],
+            ],
+            'docs' => !empty($prototypeReadOnlyTramite['evidence_docs_raw']) && is_array($prototypeReadOnlyTramite['evidence_docs_raw'])
+                ? $prototypeReadOnlyTramite['evidence_docs_raw']
+                : [],
+            'hasTramiteRecibido' => !empty($prototypeReadOnlyTramite['has_tramite_recibido']),
+            'hasAcuseRecibo' => !empty($prototypeReadOnlyTramite['has_acuse_recibo']),
+        ];
+        $prototypeStep4Form = [
+            'canView' => false,
+            'canEdit' => false,
+            'canUploadDocs' => false,
+            'canDeleteDocs' => false,
+            'blockedReason' => null,
+            'uploadBlockedReason' => null,
+            'deleteBlockedReason' => null,
+            'csrfName' => csrf_token(),
+            'csrfHash' => csrf_hash(),
+            'tramiteId' => $prototypeTramiteId,
+            'fileBaseUrl' => base_url('/assets/uploads/pago_gestor/' . $prototypeTramiteId . '/'),
+            'url' => site_url('/deskapp/tramitesn/update_pago_gestor/' . $prototypeTramiteId),
+            'urls' => [
+                'upload' => site_url('/deskapp/tramitesn/upload_pago_gestor/' . $prototypeTramiteId),
+                'delete' => site_url('/deskapp/tramitesn/delete_pago_gestor'),
+                'getServiceCosts' => site_url('/deskapp/tramitesn/get_service_costs_by_tramite/' . $prototypeTramiteId),
+                'updateServiceCost' => site_url('/deskapp/tramitesn/update_service_cost'),
+            ],
+            'options' => [
+                'pagoGestorStatus' => [],
+                'statusDoctosGestor' => [
+                    'en proceso' => 'En Proceso',
+                    'entregados' => 'Entregados',
+                ],
+                'reembolsoStatus' => [],
+                'comprobanteFinal' => [
+                    'factura_gestor' => 'Factura del Gestor',
+                    'comprobante_pago' => 'Comprobante de Pago',
+                ],
+            ],
+            'docs' => !empty($prototypeReadOnlyTramite['payment_docs_raw']) && is_array($prototypeReadOnlyTramite['payment_docs_raw'])
+                ? $prototypeReadOnlyTramite['payment_docs_raw']
+                : [],
+            'values' => [
+                'costo_tramite' => (string) ($prototypeReadOnlyTramite['fields']['costo_tramite'] ?? ''),
+                'deposito_gestor' => (string) ($prototypeReadOnlyTramite['fields']['deposito_gestor'] ?? ''),
+                'col_a_favor' => (string) ($prototypeReadOnlyTramite['fields']['col_a_favor'] ?? ''),
+                'num_factura_gestor' => (string) ($prototypeReadOnlyTramite['fields']['num_factura_gestor'] ?? ''),
+                'impuesto_gestoria' => (string) ($prototypeReadOnlyTramite['fields']['impuesto_gestoria'] ?? ''),
+                'gestoria_comision' => (string) ($prototypeReadOnlyTramite['fields']['gestoria_comision'] ?? ''),
+                'costo_paqueteria' => (string) ($prototypeReadOnlyTramite['fields']['costo_paqueteria'] ?? ''),
+                'gestor_total_pago' => (string) ($prototypeReadOnlyTramite['fields']['gestor_total_pago'] ?? ''),
+                'pago_gestor_st_id' => (int) ($prototypeReadOnlyTramite['pago_gestor_st_id'] ?? 0),
+                'status_doctos_gestor' => (string) ($prototypeReadOnlyTramite['status_doctos_gestor'] ?? 'en proceso'),
+                'reembolso_status_id' => (int) ($prototypeReadOnlyTramite['reembolso_status_id'] ?? 0),
+            ],
+        ];
+        $prototypeStep5Form = [
+            'canView' => false,
+            'canEdit' => false,
+            'canUploadDocs' => false,
+            'canDeleteDocs' => false,
+            'blockedReason' => null,
+            'uploadBlockedReason' => null,
+            'deleteBlockedReason' => null,
+            'csrfName' => csrf_token(),
+            'csrfHash' => csrf_hash(),
+            'tramiteId' => $prototypeTramiteId,
+            'fileBaseUrl' => base_url('/assets/uploads/cobro_cliente/' . $prototypeTramiteId . '/'),
+            'url' => site_url('/deskapp/tramitesn/update_final_save/' . $prototypeTramiteId),
+            'urls' => [
+                'getFiles' => site_url('/deskapp/tramitesn/getCobroClienteFiles/' . $prototypeTramiteId),
+                'upload' => site_url('/deskapp/tramitesn/upload_cobro_cliente/' . $prototypeTramiteId),
+                'delete' => site_url('/deskapp/tramitesn/delete_cobro_cliente'),
+            ],
+            'options' => [
+                'cobroStatus' => [],
+                'cobroCorrecto' => [
+                    'parcial' => 'Cobro parcial',
+                    'completo' => 'Cobro completo',
+                    'otro' => 'Otro soporte',
+                ],
+            ],
+            'docs' => !empty($prototypeReadOnlyTramite['cobro_cliente_docs_raw']) && is_array($prototypeReadOnlyTramite['cobro_cliente_docs_raw'])
+                ? $prototypeReadOnlyTramite['cobro_cliente_docs_raw']
+                : [],
+            'values' => [
+                'id_give_cliente' => (string) ($prototypeReadOnlyTramite['fields']['id_give_cliente'] ?? ''),
+                'numero_factura' => (string) ($prototypeReadOnlyTramite['fields']['numero_factura'] ?? ''),
+                'numero_refactura' => (string) ($prototypeReadOnlyTramite['fields']['numero_refactura'] ?? ''),
+                'cobro_status_id' => (int) ($prototypeReadOnlyTramite['cobro_status_id'] ?? 0),
+                'evidencia_cobro_txt' => (string) ($prototypeReadOnlyTramite['fields']['evidencia_cobro_txt'] ?? ''),
+                'costo_gestoria' => (string) ($prototypeReadOnlyTramite['fields']['costo_gestoria'] ?? '0.00'),
+                'costo_gestoria_hidden' => (string) ($prototypeReadOnlyTramite['fields']['costo_gestoria'] ?? '0.00'),
+                'costo_pago_cliente' => (string) ($prototypeReadOnlyTramite['fields']['costo_pago_cliente'] ?? '0'),
+                'comision_derechos' => (string) ($prototypeReadOnlyTramite['fields']['comision_derechos'] ?? '0'),
+                'iva' => (string) ($prototypeReadOnlyTramite['fields']['iva'] ?? '0.00'),
+                'costo_total' => (string) ($prototypeReadOnlyTramite['fields']['costo_total'] ?? '0.00'),
+            ],
+        ];
+        if (!empty($prototypeReadOnlyTramite)) {
+            $arrStatus = [
+                11 => 1, 22 => 2, 25 => 3, 26 => 3, 27 => 3,
+                23 => 4, 28 => 5, 20 => 6, 21 => 7, 29 => 1,
+            ];
+            $traStatusId = (int) ($prototypeReadOnlyTramite['tra_status_id'] ?? 0);
+            $reembolsoStatusId = (int) ($prototypeReadOnlyTramite['reembolso_status_id'] ?? 0);
+            $cobroStatusId = (int) ($prototypeReadOnlyTramite['cobro_status_id'] ?? 0);
+            $stepActual = $arrStatus[$traStatusId] ?? 1;
+
+            // Pantalla unificada: no redirigir, se muestran todos los pasos
+
+            $hasTenantAccess = $myid > 0 && acl_has_tramite_tenant_access($prototypeTramiteId, $myid, $roles, $perms);
+            $canEditTramite = can_edit_tramite($roles, $perms);
+            $canWriteDatosTramite = has_permission('write_tramite_datos_tramite', $perms, $roles);
+            $canEditPrincipal = has_permission('editar_tramite_principal', $perms, $roles);
+            $canEditAsociado = has_permission('editar_tramite_asociado', $perms, $roles);
+            $canDeleteAsociado = has_permission('delete_tramite_asociado', $perms, $roles);
+            $canWriteGestor = has_permission('write_tramite_asigna_gestor', $perms, $roles);
+            $canWriteDerechos = has_permission('write_tramite_pago_derechos', $perms, $roles);
+            $canSectionPagoDerechos = has_permission('section_pago_derechos', $perms, $roles);
+            $canSectionFinalCostos = has_permission('section_final_costos', $perms, $roles);
+            $canQuickActionBitacora = has_permission('quick_action_bitacora', $perms, $roles);
+            $canAddBitacora = $canQuickActionBitacora && has_permission('quick_action_bitacora_add', $perms, $roles);
+            $canAccessCobroCliente = can_access_cobro_cliente_surface($roles, $perms);
+            $canEditCobroClienteSurface = can_edit_cobro_cliente_surface($roles, $perms);
+            $canUploadCobroClienteSurface = can_upload_cobro_cliente_surface($roles, $perms);
+            $step5ReadOnly = $this->isLockedStatusId($traStatusId);
+            $approvedLock = !has_permission('override_tramite_approved_lock', $perms, $roles)
+                && tramite_is_aprobado_por_status($traStatusId);
+            $isLocked = in_array($traStatusId, [20, 21], true);
+            $prototypeEvidenceForm['canView'] = !empty($prototypeReadOnlyTramite);
+            $prototypeEvidenceForm['canAdd'] = $hasTenantAccess
+                && $canAddBitacora;
+            if (!$prototypeEvidenceForm['canAdd']) {
+                if (!$hasTenantAccess) {
+                    $prototypeEvidenceForm['blockedReason'] = 'Puedes consultar la bitácora, pero no agregar comentarios sobre un trámite fuera de tu contexto de acceso.';
+                } elseif (!$canQuickActionBitacora || !$canAddBitacora) {
+                    $prototypeEvidenceForm['blockedReason'] = 'Tu perfil no tiene permiso para registrar comentarios en este carril.';
+                }
+            }
+            $prototypeStep2Form['currentStatusId'] = $traStatusId;
+            $prototypeStep2Form['currentStep'] = $stepActual;
+            $prototypeStep2Form['isApprovedLock'] = $approvedLock;
+            $prototypeStep2Form['isLockedStatus'] = $isLocked;
+            $canUploadDerechos = $hasTenantAccess
+                && $canEditTramite
+                && $canSectionPagoDerechos
+                && has_permission('can_upload_dropzone_pago_derechos', $perms, $roles)
+                && !$approvedLock
+                && !$isLocked
+                && puede_editar_modulo($roles, $traStatusId, 'step3_upload', $reembolsoStatusId, $cobroStatusId, 3);
+            $canDeleteDerechos = $canUploadDerechos
+                && has_permission('quick_action_pagos_derecho_delete', $perms, $roles);
+
+            $prototypeStep1Form['canEdit'] = $hasTenantAccess
+                && $canEditTramite
+                && $canWriteDatosTramite
+                && !$approvedLock
+                && !$isLocked;
+
+            if (!$prototypeStep1Form['canEdit']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep1Form['blockedReason'] = 'Este tramite demo no pertenece a tu contexto de acceso actual. El prototipo puede verse, pero no guardar sobre ese expediente.';
+                } elseif ($approvedLock) {
+                    $prototypeStep1Form['blockedReason'] = 'Este tramite ya fue aprobado. En el flujo real, los pasos 1-3 ya no deberian modificarse.';
+                } elseif (!$canEditTramite) {
+                    $prototypeStep1Form['blockedReason'] = 'Tu perfil no tiene permiso general para editar tramites.';
+                } elseif (!$canWriteDatosTramite) {
+                    $prototypeStep1Form['blockedReason'] = 'Tu perfil no tiene permiso para editar los datos base del tramite.';
+                } elseif ($isLocked) {
+                    $prototypeStep1Form['blockedReason'] = 'El tramite esta concluido o cancelado y no admite cambios en este tramo.';
+                }
+            }
+
+            $prototypeStep2Form['canEdit'] = $hasTenantAccess
+                && $canEditTramite
+                && $canWriteGestor
+                && $canWriteDerechos
+                && !$approvedLock
+                && !$isLocked;
+
+            if (!$prototypeStep2Form['canEdit']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep2Form['blockedReason'] = 'Este tramite demo no pertenece a tu contexto de acceso actual. El prototipo puede verse, pero no guardar sobre ese expediente.';
+                } elseif ($approvedLock) {
+                    $prototypeStep2Form['blockedReason'] = 'Este tramite ya fue aprobado. En el flujo real, los pasos 1-3 ya no deberian modificarse.';
+                } elseif (!$canEditTramite) {
+                    $prototypeStep2Form['blockedReason'] = 'Tu perfil no tiene permiso general para editar tramites.';
+                } elseif (!$canWriteGestor || !$canWriteDerechos) {
+                    $prototypeStep2Form['blockedReason'] = 'Tu perfil no tiene permisos completos para asignacion de gestor y pago de derechos.';
+                } elseif ($isLocked) {
+                    $prototypeStep2Form['blockedReason'] = 'El tramite esta concluido o cancelado y no admite cambios en este tramo.';
+                }
+            }
+
+            $prototypeStep2Form['canUploadDocs'] = $canUploadDerechos;
+            $prototypeStep2Form['canDeleteDocs'] = $canDeleteDerechos;
+            if (!$prototypeStep2Form['canUploadDocs']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep2Form['docsBlockedReason'] = 'Este tramite demo no pertenece a tu contexto de acceso actual. El prototipo puede verse, pero no subir comprobantes sobre ese expediente.';
+                } elseif (!$canEditTramite) {
+                    $prototypeStep2Form['docsBlockedReason'] = 'Tu perfil no tiene permiso general para editar tramites.';
+                } elseif (!$canSectionPagoDerechos) {
+                    $prototypeStep2Form['docsBlockedReason'] = 'Tu perfil no puede entrar a la seccion de pago de derechos.';
+                } elseif (!has_permission('can_upload_dropzone_pago_derechos', $perms, $roles)) {
+                    $prototypeStep2Form['docsBlockedReason'] = 'Tu perfil no tiene permiso para subir comprobantes de pago de derechos.';
+                } elseif ($approvedLock || $isLocked) {
+                    $prototypeStep2Form['docsBlockedReason'] = 'El tramite ya no admite cambios documentales en pago de derechos.';
+                } else {
+                    $prototypeStep2Form['docsBlockedReason'] = 'El flujo normal no permite subir comprobantes en este estatus.';
+                }
+            }
+            if (!$prototypeStep2Form['canDeleteDocs']) {
+                if (!$prototypeStep2Form['canUploadDocs']) {
+                    $prototypeStep2Form['deleteBlockedReason'] = $prototypeStep2Form['docsBlockedReason'];
+                } elseif (!has_permission('quick_action_pagos_derecho_delete', $perms, $roles)) {
+                    $prototypeStep2Form['deleteBlockedReason'] = 'Tu perfil no tiene permiso para eliminar comprobantes de pago de derechos.';
+                }
+            }
+
+            $prototypeStep1ServicesForm['canManageBase'] = $prototypeStep1Form['canEdit'];
+            $prototypeStep1ServicesForm['canEditPrincipal'] = $prototypeStep1Form['canEdit'] && $canEditPrincipal;
+            $prototypeStep1ServicesForm['canEditAsociado'] = $prototypeStep1Form['canEdit'] && $canEditAsociado;
+            $prototypeStep1ServicesForm['canDeleteAsociado'] = $prototypeStep1Form['canEdit'] && $canDeleteAsociado;
+            if (!$prototypeStep1ServicesForm['canManageBase']) {
+                $prototypeStep1ServicesForm['blockedReason'] = $prototypeStep1Form['blockedReason'];
+            } elseif (!$prototypeStep1ServicesForm['canEditPrincipal'] && !$prototypeStep1ServicesForm['canEditAsociado'] && !$prototypeStep1ServicesForm['canDeleteAsociado']) {
+                $prototypeStep1ServicesForm['blockedReason'] = 'Tu perfil solo puede consultar la composicion del servicio en este paso.';
+            }
+
+            $canQuickActionDocs = has_permission('quick_action_documentos', $perms, $roles);
+            $canOverrideStatus28Docs = has_permission('override_tramite_status_28_readonly', $perms, $roles);
+            $docsReadOnly = $this->isLockedStatusId($traStatusId)
+                || ($traStatusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideStatus28Docs);
+            $prototypeStep1DocsForm['canView'] = !empty($prototypeReadOnlyTramite);
+            $prototypeStep1DocsForm['canUpload'] = $hasTenantAccess
+                && $canQuickActionDocs
+                && has_permission('quick_action_documentos_add', $perms, $roles)
+                && !$docsReadOnly;
+            $prototypeStep1DocsForm['canDelete'] = $hasTenantAccess
+                && $canQuickActionDocs
+                && has_permission('quick_action_documentos_delete', $perms, $roles)
+                && !$docsReadOnly;
+            if (!$prototypeStep1DocsForm['canUpload']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep1DocsForm['blockedReason'] = 'Este tramite demo no pertenece a tu contexto de acceso actual. El prototipo puede verse, pero no cargar documentos sobre ese expediente.';
+                } elseif (!$canQuickActionDocs || !has_permission('quick_action_documentos_add', $perms, $roles)) {
+                    $prototypeStep1DocsForm['blockedReason'] = 'Tu perfil no tiene permiso para cargar documentos del expediente en este carril.';
+                } elseif ($docsReadOnly) {
+                    $prototypeStep1DocsForm['blockedReason'] = 'La superficie documental quedó en modo de solo lectura por el estatus actual del tramite.';
+                } else {
+                    $prototypeStep1DocsForm['blockedReason'] = 'Tu perfil solo puede consultar los documentos requeridos de este expediente.';
+                }
+            }
+            if (!$prototypeStep1DocsForm['canDelete']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep1DocsForm['deleteBlockedReason'] = 'Este tramite demo no pertenece a tu contexto de acceso actual. El prototipo puede verse, pero no eliminar documentos sobre ese expediente.';
+                } elseif (!$canQuickActionDocs || !has_permission('quick_action_documentos_delete', $perms, $roles)) {
+                    $prototypeStep1DocsForm['deleteBlockedReason'] = 'Tu perfil no tiene permiso para eliminar documentos del expediente en este carril.';
+                } elseif ($docsReadOnly) {
+                    $prototypeStep1DocsForm['deleteBlockedReason'] = 'La superficie documental quedó en modo de solo lectura por el estatus actual del tramite.';
+                } else {
+                    $prototypeStep1DocsForm['deleteBlockedReason'] = 'Tu perfil solo puede consultar los documentos requeridos de este expediente.';
+                }
+            }
+
+            $prototypeCanApproveStep2 = has_permission('important_pasar_a_pagos', $perms, $roles)
+                && $stepActual <= 3
+                && puede_editar_modulo($roles, $traStatusId, 'boton_aprobar_tramite', $reembolsoStatusId, $cobroStatusId, 3);
+
+            $canSectionPagoGestor = has_permission('section_pago_gestor', $perms, $roles);
+
+            $db2 = $this->_getDbData();
+            $traTiposModel = new TraTiposModel($db2);
+            $prototypeStep1ServicesForm['options']['traTipos'] = $traTiposModel->getTraTiposOptions();
+
+            $clienteDirectoModel = new ClienteDirectoModel($db2);
+            $prototypeStep1Form['options']['cliente'] = $clienteDirectoModel->getClientesDirectosOptions();
+
+            $cliEjecutivoModel = new ClienteDirectoEjecutivoModel($db2);
+            if (!empty($prototypeReadOnlyTramite['cli_directo_id'])) {
+                $prototypeStep1Form['options']['ejecutivo'] = $cliEjecutivoModel->getEjecutivosOptions((int) $prototypeReadOnlyTramite['cli_directo_id']);
+            }
+
+            $entidadesModel = new EntidadesModel($db2);
+            $prototypeStep1Form['options']['entidad'] = $entidadesModel->getEntidades();
+
+            $empGestora = new EmpresaGestoraModel($db2);
+            $prototypeStep2Form['options']['empresaGestora'] = $empGestora->getEmpresasGestorasOptions();
+
+            $gestorModel = new GestorModel($db2);
+            if (!empty($prototypeReadOnlyTramite['empresa_gestora_id'])) {
+                $prototypeStep2Form['options']['gestor'] = $gestorModel->getGestoresOptions((int) $prototypeReadOnlyTramite['empresa_gestora_id']);
+            }
+
+            $pagoGestorStatusModel = new PagoGestorStatusModel($db2);
+            $prototypeStep4Form['options']['pagoGestorStatus'] = $pagoGestorStatusModel->getPagoGestorStatusOptions();
+
+            $reembolsoStatusModel = new ReembolsoStatusModel($db2);
+            $prototypeStep4Form['options']['reembolsoStatus'] = $reembolsoStatusModel->getReembolsoStatusOptions();
+
+            $cobroStatusModel = new CobroStatusModel($db2);
+            $prototypeStep5Form['options']['cobroStatus'] = $cobroStatusModel->getCobroStatusOptions();
+
+            $canKeepStep4Editable = $this->canKeepStep4Editable(
+                $reembolsoStatusId,
+                (int) ($prototypeReadOnlyTramite['pago_gestor_st_id'] ?? 0),
+                $prototypeStep4Form['options']['pagoGestorStatus'],
+                (string) ($prototypeReadOnlyTramite['status_doctos_gestor'] ?? '')
+            );
+            $canUploadPagoGestor = $hasTenantAccess
+                && $canSectionPagoGestor
+                && has_permission('editar_pago_gestor', $perms, $roles)
+                && ($canKeepStep4Editable || puede_editar_modulo($roles, $traStatusId, 'upload_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4));
+            $canUploadDropzoneEvidenciasFinales = $canUploadPagoGestor
+                && has_permission('can_upload_dropzone_evidencias_finales', $perms, $roles);
+            $canUploadDropzonePagoGestorDocumentos = $canUploadPagoGestor
+                && has_permission('can_upload_dropzone_pago_gestor_documentos', $perms, $roles);
+            $step4ReadOnly = $this->isLockedStatusId($traStatusId);
+            $canEditPagoGestor = $myid > 0
+                && acl_has_tramite_tenant_access($prototypeTramiteId, $myid, $roles, $perms)
+                && can_edit_tramite($roles, $perms)
+                && has_permission('section_pago_gestor', $perms, $roles)
+                && has_permission('editar_pago_gestor', $perms, $roles)
+                && !$step4ReadOnly
+                && ($canKeepStep4Editable || puede_editar_modulo($roles, $traStatusId, 'editar_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4));
+
+            $prototypeStep4Form['canEdit'] = $canEditPagoGestor;
+            $prototypeStep4Form['canView'] = $hasTenantAccess && $canSectionPagoGestor;
+            $prototypeStep4Form['canUploadDocs'] = $canUploadDropzonePagoGestorDocumentos;
+            $prototypeStep4Form['canDeleteDocs'] = $canUploadDropzonePagoGestorDocumentos
+                && has_permission('quick_action_pago_gestor_delete', $perms, $roles);
+            $prototypeStep4NotesForm['canView'] = $hasTenantAccess && $canSectionPagoGestor;
+            $prototypeStep4NotesForm['canAdd'] = $hasTenantAccess
+                && $canSectionPagoGestor
+                && $canAddBitacora;
+            if (!$canEditPagoGestor) {
+                if (!($myid > 0 && acl_has_tramite_tenant_access($prototypeTramiteId, $myid, $roles, $perms))) {
+                    $prototypeStep4Form['blockedReason'] = 'Este tramite no pertenece a tu contexto de acceso actual para editar Pago a gestor.';
+                } elseif (!can_edit_tramite($roles, $perms)) {
+                    $prototypeStep4Form['blockedReason'] = 'Tu perfil no tiene permiso general para editar tramites.';
+                } elseif (!has_permission('section_pago_gestor', $perms, $roles) || !has_permission('editar_pago_gestor', $perms, $roles)) {
+                    $prototypeStep4Form['blockedReason'] = 'Tu perfil no tiene permisos completos para editar Pago a gestor.';
+                } elseif ($step4ReadOnly) {
+                    $prototypeStep4Form['blockedReason'] = 'Este tramite esta en modo de solo lectura para Pago a gestor.';
+                } else {
+                    $prototypeStep4Form['blockedReason'] = 'Pago a gestor no esta editable para este estatus y este perfil.';
+                }
+            }
+            if (!$prototypeStep4Form['canUploadDocs']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep4Form['uploadBlockedReason'] = 'Este tramite demo no pertenece a tu contexto de acceso actual. El prototipo puede verse, pero no subir documentos de pago a gestor.';
+                } elseif (!$canSectionPagoGestor || !has_permission('editar_pago_gestor', $perms, $roles)) {
+                    $prototypeStep4Form['uploadBlockedReason'] = 'Tu perfil no tiene permisos completos para subir documentos de pago a gestor.';
+                } elseif (!$canUploadPagoGestor) {
+                    $prototypeStep4Form['uploadBlockedReason'] = 'Los documentos de pago a gestor no estan editables para este estatus y este perfil.';
+                } elseif (!has_permission('can_upload_dropzone_pago_gestor_documentos', $perms, $roles)) {
+                    $prototypeStep4Form['uploadBlockedReason'] = 'Tu perfil no tiene permiso para usar el dropzone de documentos de pago a gestor.';
+                } else {
+                    $prototypeStep4Form['uploadBlockedReason'] = 'Tu perfil solo puede consultar los documentos de pago a gestor en este tramo.';
+                }
+            }
+            if (!$prototypeStep4Form['canDeleteDocs']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep4Form['deleteBlockedReason'] = 'Este tramite demo no pertenece a tu contexto de acceso actual. El prototipo puede verse, pero no eliminar documentos de pago a gestor.';
+                } elseif (!$canSectionPagoGestor || !has_permission('editar_pago_gestor', $perms, $roles)) {
+                    $prototypeStep4Form['deleteBlockedReason'] = 'Tu perfil no tiene permisos completos para eliminar documentos de pago a gestor.';
+                } elseif (!$canUploadPagoGestor) {
+                    $prototypeStep4Form['deleteBlockedReason'] = 'Los documentos de pago a gestor no estan editables para este estatus y este perfil.';
+                } elseif (!has_permission('can_upload_dropzone_pago_gestor_documentos', $perms, $roles)) {
+                    $prototypeStep4Form['deleteBlockedReason'] = 'Tu perfil no tiene permiso para administrar documentos de pago a gestor.';
+                } elseif (!has_permission('quick_action_pago_gestor_delete', $perms, $roles)) {
+                    $prototypeStep4Form['deleteBlockedReason'] = 'Tu perfil no tiene permiso para eliminar documentos de pago a gestor.';
+                } else {
+                    $prototypeStep4Form['deleteBlockedReason'] = 'Tu perfil solo puede consultar los documentos de pago a gestor en este tramo.';
+                }
+            }
+            if (!$prototypeStep4NotesForm['canAdd']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep4NotesForm['blockedReason'] = 'Puedes consultar el seguimiento interno, pero no agregar notas sobre un trámite fuera de tu contexto de acceso.';
+                } elseif (!$canSectionPagoGestor) {
+                    $prototypeStep4NotesForm['blockedReason'] = 'Tu perfil no tiene acceso a la sección de Pago a gestor.';
+                } elseif (!$canQuickActionBitacora || !$canAddBitacora) {
+                    $prototypeStep4NotesForm['blockedReason'] = 'Tu perfil no tiene permiso para registrar notas internas en Pago a gestor.';
+                }
+            }
+
+            $prototypeStep5Form['canView'] = $hasTenantAccess
+                && $canSectionFinalCostos
+                && $canAccessCobroCliente;
+
+            $prototypeStep5Form['canEdit'] = $hasTenantAccess
+                && $canSectionFinalCostos
+                && $canAccessCobroCliente
+                && $canEditCobroClienteSurface
+                && has_permission('editar_final', $perms, $roles)
+                && !$step5ReadOnly
+                && puede_editar_modulo($roles, $traStatusId, 'botones', $reembolsoStatusId, $cobroStatusId, 5);
+
+            $prototypeStep5Form['canUploadDocs'] = $hasTenantAccess
+                && $canSectionFinalCostos
+                && $canUploadCobroClienteSurface
+                && !$step5ReadOnly
+                && puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', $reembolsoStatusId, $cobroStatusId, 5);
+
+            $prototypeStep5Form['canDeleteDocs'] = $prototypeStep5Form['canUploadDocs']
+                && has_permission('quick_action_cobros_cliente_delete', $perms, $roles);
+
+            if (!$prototypeStep5Form['canEdit']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep5Form['blockedReason'] = 'Este tramite no pertenece a tu contexto de acceso actual para editar Cobro a cliente.';
+                } elseif (!$canSectionFinalCostos || !$canAccessCobroCliente) {
+                    $prototypeStep5Form['blockedReason'] = 'Tu perfil no tiene acceso completo a la sección de Cobro a cliente.';
+                } elseif (!$canEditCobroClienteSurface || !has_permission('editar_final', $perms, $roles)) {
+                    $prototypeStep5Form['blockedReason'] = 'Tu perfil no tiene permisos completos para editar Cobro a cliente.';
+                } elseif ($step5ReadOnly) {
+                    $prototypeStep5Form['blockedReason'] = 'Cobro a cliente quedó en modo de solo lectura para este trámite.';
+                } else {
+                    $prototypeStep5Form['blockedReason'] = 'Cobro a cliente no está editable para este estatus y este perfil.';
+                }
+            }
+
+            if (!$prototypeStep5Form['canUploadDocs']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep5Form['uploadBlockedReason'] = 'Este tramite demo no pertenece a tu contexto de acceso actual. El prototipo puede verse, pero no subir evidencias de cobro.';
+                } elseif (!$canSectionFinalCostos || !$canAccessCobroCliente) {
+                    $prototypeStep5Form['uploadBlockedReason'] = 'Tu perfil no tiene acceso completo a la sección de Cobro a cliente.';
+                } elseif (!$canUploadCobroClienteSurface) {
+                    $prototypeStep5Form['uploadBlockedReason'] = 'Tu perfil no tiene permiso para usar el dropzone de Cobro a cliente.';
+                } elseif ($step5ReadOnly) {
+                    $prototypeStep5Form['uploadBlockedReason'] = 'Cobro a cliente quedó en modo de solo lectura para este trámite.';
+                } else {
+                    $prototypeStep5Form['uploadBlockedReason'] = 'Las evidencias de cobro no están editables para este estatus y este perfil.';
+                }
+            }
+
+            if (!$prototypeStep5Form['canDeleteDocs']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep5Form['deleteBlockedReason'] = 'Este tramite demo no pertenece a tu contexto de acceso actual. El prototipo puede verse, pero no eliminar evidencias de cobro.';
+                } elseif (!$canSectionFinalCostos || !$canAccessCobroCliente) {
+                    $prototypeStep5Form['deleteBlockedReason'] = 'Tu perfil no tiene acceso completo a la sección de Cobro a cliente.';
+                } elseif (!$prototypeStep5Form['canUploadDocs']) {
+                    $prototypeStep5Form['deleteBlockedReason'] = $prototypeStep5Form['uploadBlockedReason'];
+                } elseif (!has_permission('quick_action_cobros_cliente_delete', $perms, $roles)) {
+                    $prototypeStep5Form['deleteBlockedReason'] = 'Tu perfil no tiene permiso para eliminar evidencias de cobro.';
+                }
+            }
+
+            $prototypeStep5NotesForm['canView'] = $hasTenantAccess && $canAccessCobroCliente;
+            $prototypeStep5NotesForm['canAdd'] = $hasTenantAccess
+                && $canAccessCobroCliente
+                && $canAddBitacora;
+            if (!$prototypeStep5NotesForm['canAdd']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep5NotesForm['blockedReason'] = 'Puedes consultar el seguimiento interno, pero no agregar notas sobre un trámite fuera de tu contexto de acceso.';
+                } elseif (!$canAccessCobroCliente) {
+                    $prototypeStep5NotesForm['blockedReason'] = 'Tu perfil no tiene acceso a la sección de Cobro a cliente.';
+                } elseif (!$canQuickActionBitacora || !$canAddBitacora) {
+                    $prototypeStep5NotesForm['blockedReason'] = 'Tu perfil no tiene permiso para registrar notas internas en Cobro a cliente.';
+                } else {
+                    $prototypeStep5NotesForm['blockedReason'] = 'Cobro a cliente no está editable para este estatus y este perfil.';
+                }
+            }
+
+            $prototypeStep3Form['canUpload'] = $canUploadDropzoneEvidenciasFinales;
+            $prototypeStep3Form['canDelete'] = $canUploadDropzoneEvidenciasFinales
+                && has_permission('quick_action_evidencias_finales_delete', $perms, $roles);
+            if (!$prototypeStep3Form['canUpload']) {
+                if (!$hasTenantAccess) {
+                    $prototypeStep3Form['blockedReason'] = 'Este tramite demo no pertenece a tu contexto de acceso actual. El prototipo puede verse, pero no subir evidencias sobre ese expediente.';
+                } elseif (!$canSectionPagoGestor || !has_permission('editar_pago_gestor', $perms, $roles)) {
+                    $prototypeStep3Form['blockedReason'] = 'Tu perfil no tiene permisos completos para subir evidencias finales.';
+                } elseif (!$canUploadPagoGestor) {
+                    $prototypeStep3Form['blockedReason'] = 'Las evidencias finales no estan editables para este estatus y este perfil.';
+                } else {
+                    $prototypeStep3Form['blockedReason'] = 'Tu perfil solo puede consultar las evidencias finales en este tramo.';
+                }
+            }
+            if (!$prototypeStep3Form['canDelete']) {
+                if (!$prototypeStep3Form['canUpload']) {
+                    $prototypeStep3Form['deleteBlockedReason'] = $prototypeStep3Form['blockedReason'];
+                } elseif (!has_permission('quick_action_evidencias_finales_delete', $perms, $roles)) {
+                    $prototypeStep3Form['deleteBlockedReason'] = 'Tu perfil no tiene permiso para eliminar evidencias finales.';
+                }
+            }
+        }
+
+        return view('deskapp/extra-pages/tramites_layout_prototipo', [
+            'title' => 'SGL - Detalle de Tramites',
+            'activeStep' => $activeStep,
+            'prototypeTramiteId' => $prototypeTramiteId,
+            'prototypeReadOnlyTramite' => $prototypeReadOnlyTramite,
+            'prototypeCanApproveStep2' => $prototypeCanApproveStep2,
+            'prototypeStep1Form' => $prototypeStep1Form,
+            'prototypeStep1ServicesForm' => $prototypeStep1ServicesForm,
+            'prototypeStep1DocsForm' => $prototypeStep1DocsForm,
+            'prototypeStep2Form' => $prototypeStep2Form,
+            'prototypeStep3Form' => $prototypeStep3Form,
+            'prototypeStep4Form' => $prototypeStep4Form,
+            'prototypeStep5Form' => $prototypeStep5Form,
+            'prototypeStep4NotesForm' => $prototypeStep4NotesForm,
+            'prototypeStep5NotesForm' => $prototypeStep5NotesForm,
+            'prototypeEvidenceForm' => $prototypeEvidenceForm,
+        ]);
+    }
+
+    public function prototipo_layout_paso_1()
+    {
+        return $this->prototipo_layout(1);
+    }
+
+    public function prototipo_layout_paso_2()
+    {
+        return $this->prototipo_layout(2);
+    }
+
+    public function prototipo_layout_paso_3()
+    {
+        return $this->prototipo_layout(3);
+    }
+
+    public function prototipo_layout_paso_4()
+    {
+        return $this->prototipo_layout(4);
+    }
+
+    public function prototipo_layout_paso_5()
+    {
+        return $this->prototipo_layout(5);
+    }
+
+    public function upload_step1_doc($tramiteId = null)
+    {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        $tramiteId = (int) ($tramiteId ?? $this->request->uri->getSegment(4) ?? 0);
+        $documentoId = (int) $this->request->getPost('documento_id');
+
+        if ($tramiteId <= 0 || $documentoId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Parámetros inválidos.', 'csrfHash' => csrf_hash()]);
+        }
+
+        if ($resp = $this->requireJsonTenantAccess($tramiteId, $userId, $roles)) {
+            return $resp;
+        }
+
+        if (!has_permission('quick_action_documentos', $perms, $roles) || !has_permission('quick_action_documentos_add', $perms, $roles)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
+        }
+
+        $db = ConfigDatabase::connect();
+        $tramiteRow = $db->table('tramite')
+            ->select('id, folio, tra_status_id, tra_tipos_id')
+            ->where('id', $tramiteId)
+            ->get()
+            ->getRowArray();
+
+        if (empty($tramiteRow)) {
+            return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => 'Trámite no encontrado.', 'csrfHash' => csrf_hash()]);
+        }
+
+        $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
+        $isLocked = $this->isLockedStatusId($traStatusId)
+            || ($traStatusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideReadonly);
+        if ($isLocked) {
+            return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está en modo de solo lectura.', 'csrfHash' => csrf_hash()]);
+        }
+
+        $documentState = $this->buildPrototypeStep1DocumentState(
+            $tramiteId,
+            (int) ($tramiteRow['tra_tipos_id'] ?? 0)
+        );
+        if (!in_array($documentoId, $documentState['allowedDocIds'] ?? [], true)) {
+            return $this->response->setStatusCode(422)->setJSON(['success' => false, 'message' => 'El documento seleccionado no pertenece al catálogo actual del trámite.', 'csrfHash' => csrf_hash()]);
+        }
+
+        if (empty($_FILES['file']) || empty($_FILES['file']['tmp_name'])) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo.', 'csrfHash' => csrf_hash()]);
+        }
+
+        $ds = DIRECTORY_SEPARATOR;
+        $storeFolder = 'assets/uploads/documentostatus';
+        $targetPath = FCPATH . $storeFolder . $ds;
+        if (!is_dir($targetPath)) {
+            mkdir($targetPath, 0777, true);
+        }
+
+        $tempFile = $_FILES['file']['tmp_name'];
+        $originalName = (string) ($_FILES['file']['name'] ?? '');
+        $extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
+        $baseName = (string) pathinfo($originalName, PATHINFO_FILENAME);
+        $safeBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $baseName);
+        $safeBase = trim((string) $safeBase, '_');
+        if ($safeBase === '') {
+            $safeBase = 'documento';
+        }
+        try {
+            $random = bin2hex(random_bytes(8));
+        } catch (\Exception $e) {
+            $random = uniqid();
+        }
+        $fileName = $safeBase . '_' . $tramiteId . '_' . $documentoId . '_' . $random . ($extension !== '' ? '.' . $extension : '');
+        $targetFile = $targetPath . $fileName;
+
+        if (!move_uploaded_file($tempFile, $targetFile)) {
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo.', 'csrfHash' => csrf_hash()]);
+        }
+
+        try {
+            $existingRows = $db->table('tra_doc_status')
+                ->select('id, file')
+                ->where('tramite_id', $tramiteId)
+                ->where('documento_id', $documentoId)
+                ->where('status', 1)
+                ->get()
+                ->getResultArray();
+
+            foreach ($existingRows as $existing) {
+                $existingFile = trim((string) ($existing['file'] ?? ''));
+                if ($existingFile !== '' && $existingFile === basename($existingFile) && strpos($existingFile, '..') === false) {
+                    $existingPath = $targetPath . $existingFile;
+                    if (is_file($existingPath)) {
+                        @unlink($existingPath);
+                    }
+                }
+            }
+
+            $db->table('tra_doc_status')
+                ->where('tramite_id', $tramiteId)
+                ->where('documento_id', $documentoId)
+                ->delete();
+
+            $db->table('tra_doc_status')->insert([
+                'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
+                'tramite_id' => $tramiteId,
+                'documento_id' => $documentoId,
+                'status_documento_id' => defined('SGL_TRA_STATUS_RECOLECCION_DCTOS') ? (int) SGL_TRA_STATUS_RECOLECCION_DCTOS : 11,
+                'file' => $fileName,
+                'comentario' => 'se sube documento desde prototipo paso 1',
+                'user_id' => $userId,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+                'status' => 1,
+            ]);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Documento subido correctamente.',
+                'fileName' => $fileName,
+                'documento_id' => $documentoId,
+                'filePath' => base_url('/assets/uploads/documentostatus/' . rawurlencode($fileName)),
+                'csrfHash' => csrf_hash(),
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'Error en upload_step1_doc: ' . $e->getMessage());
+            @unlink($targetFile);
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Error al guardar el documento.', 'csrfHash' => csrf_hash()]);
+        }
+    }
+
+    public function delete_step1_doc()
+    {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login('/', 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        $tramiteId = (int) $this->request->getPost('tramite_id');
+        $documentoId = (int) $this->request->getPost('documento_id');
+        $fileName = trim((string) $this->request->getPost('file'));
+
+        if ($tramiteId <= 0 || $documentoId <= 0 || $fileName === '') {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Parámetros inválidos.', 'csrfHash' => csrf_hash()]);
+        }
+
+        if ($resp = $this->requireJsonTenantAccess($tramiteId, $userId, $roles)) {
+            return $resp;
+        }
+
+        if (!has_permission('quick_action_documentos', $perms, $roles) || !has_permission('quick_action_documentos_delete', $perms, $roles)) {
+            return acl_deny('Acceso denegado.', 403, null, true);
+        }
+
+        $db = ConfigDatabase::connect();
+        $tramiteRow = $db->table('tramite')
+            ->select('id, tra_status_id, tra_tipos_id')
+            ->where('id', $tramiteId)
+            ->get()
+            ->getRowArray();
+
+        if (empty($tramiteRow)) {
+            return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => 'Trámite no encontrado.', 'csrfHash' => csrf_hash()]);
+        }
+
+        $traStatusId = (int) ($tramiteRow['tra_status_id'] ?? 0);
+        $canOverrideReadonly = has_permission('override_tramite_status_28_readonly', $perms, $roles);
+        $isLocked = $this->isLockedStatusId($traStatusId)
+            || ($traStatusId === SGL_TRA_STATUS_COBRO_CLIENTE && !$canOverrideReadonly);
+        if ($isLocked) {
+            return $this->response->setStatusCode(409)->setJSON(['success' => false, 'message' => 'El trámite está en modo de solo lectura.', 'csrfHash' => csrf_hash()]);
+        }
+
+        $documentState = $this->buildPrototypeStep1DocumentState(
+            $tramiteId,
+            (int) ($tramiteRow['tra_tipos_id'] ?? 0)
+        );
+        if (!in_array($documentoId, $documentState['allowedDocIds'] ?? [], true)) {
+            return $this->response->setStatusCode(422)->setJSON(['success' => false, 'message' => 'El documento seleccionado no pertenece al catálogo actual del trámite.', 'csrfHash' => csrf_hash()]);
+        }
+
+        if ($fileName !== basename($fileName) || strpos($fileName, '..') !== false || strpos($fileName, "\0") !== false) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'Nombre de archivo inválido.', 'csrfHash' => csrf_hash()]);
+        }
+
+        try {
+            $rows = $db->table('tra_doc_status')
+                ->where('tramite_id', $tramiteId)
+                ->where('documento_id', $documentoId)
+                ->where('file', $fileName)
+                ->get()
+                ->getResultArray();
+            if (empty($rows)) {
+                return $this->response->setJSON(['success' => false, 'message' => 'No se encontró documento para eliminar.', 'csrfHash' => csrf_hash()]);
+            }
+
+            $targetPath = FCPATH . 'assets/uploads/documentostatus' . DIRECTORY_SEPARATOR;
+            foreach ($rows as $row) {
+                $file = trim((string) ($row['file'] ?? ''));
+                if ($file !== '' && $file === basename($file) && strpos($file, '..') === false) {
+                    $fullPath = $targetPath . $file;
+                    if (is_file($fullPath)) {
+                        @unlink($fullPath);
+                    }
+                }
+            }
+
+            $db->table('tra_doc_status')
+                ->where('tramite_id', $tramiteId)
+                ->where('documento_id', $documentoId)
+                ->where('file', $fileName)
+                ->delete();
+
+            return $this->response->setJSON(['success' => true, 'message' => 'Documento eliminado correctamente.', 'csrfHash' => csrf_hash()]);
+        } catch (\Throwable $e) {
+            log_message('error', 'Error en delete_step1_doc: ' . $e->getMessage());
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Error al eliminar documento.', 'csrfHash' => csrf_hash()]);
+        }
+    }
+
+    private function loadPrototypeReadOnlyTramite(int $id): ?array
+    {
+        if ($id <= 0) {
+            return null;
+        }
+
+        try {
+            $db = ConfigDatabase::connect();
+            $db2 = $this->_getDbData();
+            $tramite = $db->table('tramite')
+                ->select('id, folio, contrato, tra_status_id, cli_directo_id, cli_directo_ejecutivo_id, entidad_id, tra_tipos_id, unidad, serie, placas, observaciones, empresa_gestora_id, gestor_id, derechos_tramite, derechos_pago_sitio, derechos_vigencia, derechos_revol_cliente, derechos_refer_banc, costo_tramite, deposito_gestor, col_a_favor, num_factura_gestor, pago_gestor_st_id, status_doctos_gestor, impuesto_gestoria, gestoria_comision, costo_paqueteria, gestor_total_pago, reembolso_status_id, cobro_status_id, id_give_cliente, numero_factura, numero_refactura, evidencia_cobro_txt, costo_pago_cliente, comision_derechos')
+                ->where('id', $id)
+                ->get()
+                ->getRowArray();
+
+            if (empty($tramite)) {
+                return null;
+            }
+
+            $gestorNombre = 'Sin asignar';
+            if (!empty($tramite['gestor_id'])) {
+                $gestorModel = new GestorModel($db2);
+                $gestorNombre = $gestorModel->getGestorNameById((int) $tramite['gestor_id']) ?: 'Sin asignar';
+            }
+
+            $empresaGestoraNombre = 'Sin empresa';
+            if (!empty($tramite['empresa_gestora_id'])) {
+                $empresaGestoraRow = $db->table('ges_empresa_gestora')
+                    ->select('id, nombre')
+                    ->where('id', (int) $tramite['empresa_gestora_id'])
+                    ->get()
+                    ->getRowArray();
+                $empresaGestoraNombre = (string) ($empresaGestoraRow['nombre'] ?? 'Sin empresa');
+            }
+
+            $pagoGestorStatusModel = new PagoGestorStatusModel($db2);
+            $reembolsoStatusModel = new ReembolsoStatusModel($db2);
+            $cobroStatusModel = new CobroStatusModel($db2);
+            $pagoGestorStatuses = $pagoGestorStatusModel->getPagoGestorStatusOptions();
+            $reembolsoStatuses = $reembolsoStatusModel->getReembolsoStatusOptions();
+            $cobroStatuses = $cobroStatusModel->getCobroStatusOptions();
+
+            $traStatusLabel = 'Sin estatus';
+            if (!empty($tramite['tra_status_id'])) {
+                $traStatusRow = $db->table('tra_status')
+                    ->select('id, tra_status')
+                    ->where('id', (int) $tramite['tra_status_id'])
+                    ->get()
+                    ->getRowArray();
+                $traStatusLabel = (string) ($traStatusRow['tra_status'] ?? 'Sin estatus');
+            }
+
+            $clienteNombre = 'Sin cliente';
+            if (!empty($tramite['cli_directo_id'])) {
+                $clienteRow = $db->table('cli_directo')
+                    ->select('id, nombre')
+                    ->where('id', (int) $tramite['cli_directo_id'])
+                    ->get()
+                    ->getRowArray();
+                $clienteNombre = (string) ($clienteRow['nombre'] ?? 'Sin cliente');
+            }
+
+            $ejecutivoNombre = 'Sin ejecutivo';
+            if (!empty($tramite['cli_directo_ejecutivo_id'])) {
+                $ejecutivoRow = $db->table('cli_directo_ejecutivo')
+                    ->select('id, nombre')
+                    ->where('id', (int) $tramite['cli_directo_ejecutivo_id'])
+                    ->get()
+                    ->getRowArray();
+                $ejecutivoNombre = (string) ($ejecutivoRow['nombre'] ?? 'Sin ejecutivo');
+            }
+
+            $entidadNombre = 'Sin entidad';
+            if (!empty($tramite['entidad_id'])) {
+                $entidadRow = $db->table('entidad')
+                    ->select('id, entidad')
+                    ->where('id', (int) $tramite['entidad_id'])
+                    ->get()
+                    ->getRowArray();
+                $entidadNombre = (string) ($entidadRow['entidad'] ?? 'Sin entidad');
+            }
+
+            $tipoPrincipalLabel = 'Sin tipo principal';
+            if (!empty($tramite['tra_tipos_id'])) {
+                $tipoPrincipalRow = $db->table('tra_tipos')
+                    ->select('id, tipo_tramite')
+                    ->where('id', (int) $tramite['tra_tipos_id'])
+                    ->get()
+                    ->getRowArray();
+                $tipoPrincipalLabel = (string) ($tipoPrincipalRow['tipo_tramite'] ?? 'Sin tipo principal');
+            }
+
+            $linkedServiceBadges = [];
+            $associatedServiceRows = [];
+            $serviceRowsRaw = $this->getPrototypeServiceRowsRaw($id, (int) ($tramite['tra_tipos_id'] ?? 0));
+            foreach ($serviceRowsRaw as $serviceRow) {
+                $serviceTipoId = (int) ($serviceRow['tra_tipos_id'] ?? 0);
+                $serviceLabel = (string) ($serviceRow['label'] ?? ('Tipo #' . $serviceTipoId));
+                $isPrincipal = !empty($serviceRow['is_principal']);
+                $linkedServiceBadges[] = [
+                    'label' => $serviceLabel,
+                    'state' => $isPrincipal ? 'principal' : 'asociado',
+                ];
+
+                if (!$isPrincipal) {
+                    $associatedServiceRows[] = [
+                        'label' => $serviceLabel,
+                        'kind' => 'Asociado registrado',
+                        'actions' => 'Solo lectura',
+                    ];
+                }
+            }
+
+            $sumDerechos = 0.0;
+            foreach ($serviceRowsRaw as $serviceRow) {
+                $sumDerechos += is_numeric($serviceRow['costo_tramite'] ?? null)
+                    ? (float) $serviceRow['costo_tramite']
+                    : 0.0;
+            }
+            $derechosTramiteFallback = is_numeric($tramite['derechos_tramite'] ?? null)
+                ? (float) $tramite['derechos_tramite']
+                : 0.0;
+            if ($sumDerechos <= 0 && $derechosTramiteFallback > 0) {
+                $sumDerechos = $derechosTramiteFallback;
+            }
+
+            $baseIva = 0.0;
+            $baseIva += is_numeric($tramite['costo_pago_cliente'] ?? null) ? (float) $tramite['costo_pago_cliente'] : 0.0;
+            $baseIva += is_numeric($tramite['comision_derechos'] ?? null) ? (float) $tramite['comision_derechos'] : 0.0;
+            $ivaCalc = round($baseIva * 0.16, 2);
+            $costoTotalCalc = round($sumDerechos + $baseIva + $ivaCalc, 2);
+
+            $step1DocumentState = $this->buildPrototypeStep1DocumentState(
+                $id,
+                (int) ($tramite['tra_tipos_id'] ?? 0),
+                $serviceRowsRaw
+            );
+
+            $pagoDerechosModel = new PagoDerechosModel($db2);
+            $pagoDerechosRows = $pagoDerechosModel->getImgDerechosByTramiteId($id);
+            $pagoDerechosDocs = [];
+            if (is_array($pagoDerechosRows)) {
+                foreach ($pagoDerechosRows as $docRow) {
+                    $fileName = trim((string) ($docRow['file'] ?? ''));
+                    if ($fileName !== '') {
+                        $pagoDerechosDocs[] = $fileName;
+                    }
+                }
+            }
+
+            $documentRows = $db->table('tra_pago_gestor')
+                ->select('file, comprobante_final')
+                ->where('tramite_id', $id)
+                ->where('status', 1)
+                ->orderBy('id', 'DESC')
+                ->get()
+                ->getResultArray();
+
+            $cobroClienteRows = $db->table('tra_cobro_cliente')
+                ->select('id, file, cobro_correcto')
+                ->where('tramite_id', $id)
+                ->where('status', 1)
+                ->orderBy('id', 'DESC')
+                ->get()
+                ->getResultArray();
+
+            $paymentDocs = [];
+            $paymentDocsRaw = [];
+            $evidenceDocs = [];
+            $evidenceDocsRaw = [];
+            $cobroClienteDocs = [];
+            $cobroClienteDocsRaw = [];
+            $hasFacturaGestor = false;
+            $hasComprobantePago = false;
+            $hasTramiteRecibido = false;
+            $hasAcuseRecibo = false;
+
+            foreach ($documentRows as $row) {
+                $tipo = (string) ($row['comprobante_final'] ?? '');
+                $file = (string) ($row['file'] ?? '');
+                if ($file === '') {
+                    continue;
+                }
+
+                if ($tipo === 'factura_gestor') {
+                    $hasFacturaGestor = true;
+                    $paymentDocs[] = $file;
+                    $paymentDocsRaw[] = [
+                        'file' => $file,
+                        'comprobante_final' => $tipo,
+                    ];
+                    continue;
+                }
+
+                if ($tipo === 'comprobante_pago') {
+                    $hasComprobantePago = true;
+                    $paymentDocs[] = $file;
+                    $paymentDocsRaw[] = [
+                        'file' => $file,
+                        'comprobante_final' => $tipo,
+                    ];
+                    continue;
+                }
+
+                if ($tipo === 'tramite_recibido' || $tipo === 'acuse_recibo_cliente') {
+                    if ($tipo === 'tramite_recibido') {
+                        $hasTramiteRecibido = true;
+                    }
+                    if ($tipo === 'acuse_recibo_cliente') {
+                        $hasAcuseRecibo = true;
+                    }
+                    $evidenceDocs[] = $file;
+                    $evidenceDocsRaw[] = [
+                        'file' => $file,
+                        'comprobante_final' => $tipo,
+                    ];
+                    continue;
+                }
+
+                $paymentDocs[] = $file;
+                $paymentDocsRaw[] = [
+                    'file' => $file,
+                    'comprobante_final' => $tipo,
+                ];
+            }
+
+            foreach ($cobroClienteRows as $row) {
+                $file = trim((string) ($row['file'] ?? ''));
+                if ($file === '') {
+                    continue;
+                }
+
+                $cobroCorrecto = trim((string) ($row['cobro_correcto'] ?? 'otro'));
+                if (!in_array($cobroCorrecto, ['parcial', 'completo', 'otro'], true)) {
+                    $cobroCorrecto = 'otro';
+                }
+
+                $cobroClienteDocs[] = $file;
+                $cobroClienteDocsRaw[] = [
+                    'id' => (int) ($row['id'] ?? 0),
+                    'file' => $file,
+                    'cobro_correcto' => $cobroCorrecto,
+                ];
+            }
+
+            $derechosPagoMap = [
+                'online' => 'En Linea',
+                'ventanilla' => 'En Ventanilla',
+            ];
+            $derechosFormaMap = [
+                'revolvente' => 'Fondo Revolvente',
+                'cliente' => 'Pago Cliente',
+            ];
+
+            return [
+                'id' => (int) ($tramite['id'] ?? 0),
+                'folio' => (string) ($tramite['folio'] ?? ''),
+                'contrato' => (string) ($tramite['contrato'] ?? ''),
+                'tra_status_id' => (int) ($tramite['tra_status_id'] ?? 0),
+                'tra_status_label' => $traStatusLabel,
+                'cli_directo_id' => (int) ($tramite['cli_directo_id'] ?? 0),
+                'cli_directo_ejecutivo_id' => (int) ($tramite['cli_directo_ejecutivo_id'] ?? 0),
+                'entidad_id' => (int) ($tramite['entidad_id'] ?? 0),
+                'reembolso_status_id' => (int) ($tramite['reembolso_status_id'] ?? 0),
+                'cobro_status_id' => (int) ($tramite['cobro_status_id'] ?? 0),
+                'cliente_name' => $clienteNombre,
+                'ejecutivo_name' => $ejecutivoNombre,
+                'entidad_name' => $entidadNombre,
+                'tipo_principal_label' => $tipoPrincipalLabel,
+                'principal_tipo_id' => (int) ($tramite['tra_tipos_id'] ?? 0),
+                'step1_complete' => !empty($tramite['contrato']) && !empty($tramite['entidad_id']),
+                'linked_service_badges' => $linkedServiceBadges,
+                'associated_service_rows' => $associatedServiceRows,
+                'service_rows_raw' => $serviceRowsRaw,
+                'step1_documents' => $step1DocumentState['documents'] ?? [],
+                'step1_document_options' => $step1DocumentState['documentOptions'] ?? [],
+                'step1_document_option_meta' => $step1DocumentState['documentOptionMeta'] ?? [],
+                'step1_doc_summary' => $step1DocumentState['summary'] ?? [
+                    'requiredTotal' => 0,
+                    'uploadedRequired' => 0,
+                    'uploadedTotal' => 0,
+                ],
+                'empresa_gestora_id' => (int) ($tramite['empresa_gestora_id'] ?? 0),
+                'empresa_gestora_name' => $empresaGestoraNombre,
+                'gestor_id' => (int) ($tramite['gestor_id'] ?? 0),
+                'gestor_name' => $gestorNombre,
+                'step2_complete' => !empty($tramite['empresa_gestora_id']) && !empty($tramite['gestor_id']),
+                'step3_complete' => !empty($tramite['derechos_tramite']) && !empty($tramite['derechos_revol_cliente']) && !empty($tramite['derechos_refer_banc']),
+                'pago_gestor_st_id' => (int) ($tramite['pago_gestor_st_id'] ?? 0),
+                'pago_gestor_status_label' => $pagoGestorStatuses[(int) ($tramite['pago_gestor_st_id'] ?? 0)] ?? 'Sin definir',
+                'reembolso_status_label' => $reembolsoStatuses[(int) ($tramite['reembolso_status_id'] ?? 0)] ?? 'Sin definir',
+                'cobro_status_label' => $cobroStatuses[(int) ($tramite['cobro_status_id'] ?? 0)] ?? 'Sin definir',
+                'status_doctos_gestor' => (string) ($tramite['status_doctos_gestor'] ?? 'en proceso'),
+                'status_doctos_gestor_label' => ((string) ($tramite['status_doctos_gestor'] ?? 'en proceso')) === 'entregados' ? 'Entregados' : 'En proceso',
+                'fields' => [
+                    'unidad' => (string) ($tramite['unidad'] ?? ''),
+                    'serie' => (string) ($tramite['serie'] ?? ''),
+                    'placas' => (string) ($tramite['placas'] ?? ''),
+                    'observaciones' => (string) ($tramite['observaciones'] ?? ''),
+                    'derechos_tramite' => (float) ($tramite['derechos_tramite'] ?? 0),
+                    'derechos_pago_sitio' => (string) ($tramite['derechos_pago_sitio'] ?? ''),
+                    'derechos_pago_sitio_label' => $derechosPagoMap[(string) ($tramite['derechos_pago_sitio'] ?? '')] ?? (string) ($tramite['derechos_pago_sitio'] ?? ''),
+                    'derechos_vigencia' => (string) ($tramite['derechos_vigencia'] ?? ''),
+                    'derechos_revol_cliente' => (string) ($tramite['derechos_revol_cliente'] ?? ''),
+                    'derechos_revol_cliente_label' => $derechosFormaMap[(string) ($tramite['derechos_revol_cliente'] ?? '')] ?? (string) ($tramite['derechos_revol_cliente'] ?? ''),
+                    'derechos_refer_banc' => (string) ($tramite['derechos_refer_banc'] ?? ''),
+                    'costo_tramite' => (float) ($tramite['costo_tramite'] ?? 0),
+                    'deposito_gestor' => (float) ($tramite['deposito_gestor'] ?? 0),
+                    'col_a_favor' => (float) ($tramite['col_a_favor'] ?? 0),
+                    'num_factura_gestor' => (string) ($tramite['num_factura_gestor'] ?? ''),
+                    'impuesto_gestoria' => (float) ($tramite['impuesto_gestoria'] ?? 0),
+                    'gestoria_comision' => (float) ($tramite['gestoria_comision'] ?? 0),
+                    'costo_paqueteria' => (float) ($tramite['costo_paqueteria'] ?? 0),
+                    'gestor_total_pago' => (float) ($tramite['gestor_total_pago'] ?? 0),
+                    'id_give_cliente' => (string) ($tramite['id_give_cliente'] ?? ''),
+                    'numero_factura' => (string) ($tramite['numero_factura'] ?? ''),
+                    'numero_refactura' => (string) ($tramite['numero_refactura'] ?? ''),
+                    'evidencia_cobro_txt' => (string) ($tramite['evidencia_cobro_txt'] ?? ''),
+                    'costo_gestoria' => number_format($sumDerechos, 2, '.', ''),
+                    'costo_pago_cliente' => (float) ($tramite['costo_pago_cliente'] ?? 0),
+                    'comision_derechos' => (float) ($tramite['comision_derechos'] ?? 0),
+                    'iva' => number_format($ivaCalc, 2, '.', ''),
+                    'costo_total' => number_format($costoTotalCalc, 2, '.', ''),
+                ],
+                'pago_derechos_docs' => $pagoDerechosDocs,
+                'payment_docs' => $paymentDocs,
+                'payment_docs_raw' => $paymentDocsRaw,
+                'evidence_docs' => $evidenceDocs,
+                'evidence_docs_raw' => $evidenceDocsRaw,
+                'cobro_cliente_docs' => $cobroClienteDocs,
+                'cobro_cliente_docs_raw' => $cobroClienteDocsRaw,
+                'process_notes' => $this->getPrototypeEvidencias($id),
+                'has_tramite_recibido' => $hasTramiteRecibido,
+                'has_acuse_recibo' => $hasAcuseRecibo,
+                'has_factura_gestor' => $hasFacturaGestor,
+                'has_comprobante_pago' => $hasComprobantePago,
+            ];
+        } catch (\Throwable $e) {
+            log_message('error', 'Error loading prototype readonly tramite ' . $id . ': ' . $e->getMessage());
+            return null;
+        }
+    }
+
     /**
      * Listado de trámites listos para Cobro a Cliente (Paso 5).
      * Filtra por evidencia en tra_pago_gestor (tramite_recibido + acuse_recibo_cliente).
@@ -2255,9 +4669,13 @@ class Tramitesn extends Tramites
             throw new \Exception('No existe el folio');
         }
 
+        $db = ConfigDatabase::connect();
+
         $crud = $this->_getGroceryCrudEnterprise();
         $crud->setCsrfTokenName(csrf_token());
         $crud->setCsrfTokenValue(csrf_hash());
+
+        $hasTipoEvidenciaField = $db->fieldExists('tipo_evidencia', 'tra_evidencias');
 
         $crud->setTable('tra_evidencias');
         $crud->setSubject('Bitacora', 'Bitacora');
@@ -2277,6 +4695,9 @@ class Tramitesn extends Tramites
         $crud->columns(['created_at', 'id', 'comentario', 'user_id']);
         $crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
         $crud->where(['folio_tramite' => $folio_tramite]);
+        if ($hasTipoEvidenciaField) {
+            $crud->where(['tipo_evidencia' => 1]);
+        }
         $crud->callbackColumn('comentario', function ($value) {
             $shortened_value = strlen($value) > 50 ? substr($value, 0, 50) . '...' : $value;
             return '<span title="' . htmlspecialchars($value, ENT_QUOTES) . '">' . $shortened_value . '</span>';
@@ -2583,6 +5004,12 @@ class Tramitesn extends Tramites
             ];
             $sumDerechos += $costoNum;
         }
+        $derechosTramiteFallback = is_numeric($tramite['derechos_tramite'] ?? null)
+            ? (float) $tramite['derechos_tramite']
+            : 0.0;
+        if ($sumDerechos <= 0 && $derechosTramiteFallback > 0) {
+            $sumDerechos = $derechosTramiteFallback;
+        }
         $tramite['costo_gestoria'] = number_format($sumDerechos, 2, '.', '');
 
         $entidades = new EntidadesModel($db2);
@@ -2800,6 +5227,9 @@ class Tramitesn extends Tramites
                     'revolvente' => 'Fondo Revolvente',
                     'cliente'    => 'Pago Cliente',
                 ],
+                    'documentTypeMeta' => !empty($prototypeReadOnlyTramite['step1_document_option_meta']) && is_array($prototypeReadOnlyTramite['step1_document_option_meta'])
+                        ? $prototypeReadOnlyTramite['step1_document_option_meta']
+                        : [],
                 'value'    => $tramite['derechos_revol_cliente'],
                 'required' => true,
             ],

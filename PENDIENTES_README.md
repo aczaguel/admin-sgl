@@ -46,6 +46,34 @@ Archivos relacionados:
 - El proyecto usa CSS compilado en `public/assets/vendors/styles/style.css`.
 - Para asegurar consistencia inmediata se dejaron overrides/local styles en los headers (evita depender del build de `public/assets/src/styles/...`).
 
+### Auditoría de rutas vs menú
+- Auditoría realizada y documentada en `AUDIT_RUTAS_MENU_2026-05-25.md`.
+- Entregable confirmado:
+  - clasificación de rutas de navegación
+  - rutas internas/AJAX/API
+  - deep links legítimos
+  - rutas huérfanas
+  - superficie sospechosa por typo, alias legacy y dependencia de `AutoRoute`
+- Corrección ya aplicada en `app/Config/Routes.php` para typos evidentes de targets GET y placeholders malformados, sin cambiar URLs públicas.
+
+### Auth / redirects Deskapp
+- Slice ya cubierto en controladores operativos principales:
+  - `Tramites` para `audit_search`
+  - `Tramitesn` para `search`, `update`, `ver_seccion_pago_gestor`, `ver_seccion_cobro_cliente` y `cobro_cliente_ver`
+  - `Cobranza` para `index` y `expediente`
+- Validado con pruebas en:
+  - `tests/app/Controllers/Deskapp/TramitesAuditAccessTest.php`
+  - `tests/app/Controllers/Deskapp/TramitesnSearchAccessTest.php`
+  - `tests/app/Controllers/Deskapp/TramitesnSessionRedirectTest.php`
+  - `tests/app/Controllers/Deskapp/CobranzaControllerTest.php`
+
+### Auditoría de cambios de estatus
+- La revisión de cambios activos de `tramite.tra_status_id` ya quedó hecha y el backlog original estaba desfasado.
+- Estado confirmado:
+  - los controladores activos ya registran `status_change`
+  - `tramite_audit_log` es la fuente oficial vigente de lectura
+  - `tra_user_log` permanece solo como escritura legacy temporal
+
 ## En pausa (no tocar antes del demo)
 
 ### Limpieza/estandarización de rutas
@@ -73,7 +101,8 @@ Checklist sugerido:
 - [ ] Preparar ambiente QA real con esa versión de PHP y extensiones homologadas
 - [ ] Evaluar upgrade del framework base desde `CodeIgniter 4.0.4` a una versión compatible con PHP 8.2
 - [ ] Auditar dependencias embebidas y vendor crítico: Grocery CRUD, PHPExcel/PhpSpreadsheet, PHPUnit y librerías de soporte
-- [ ] Ejecutar smoke tests de flujos críticos en runtime PHP 8.*: login, dashboard, trámites, notificaciones, uploads, exportaciones y cobranza
+- [x] Ejecutar smoke tests de flujos críticos en runtime PHP 8.*: login, dashboard, trámites, notificaciones, uploads, exportaciones y cobranza
+  - Resultado de revisión 13-06-2026: existe smoke browser dedicado en `tests/browser/php82-smoke.spec.js`, smoke autenticado de JSON interno y validaciones documentadas en `MIGRACION_PHP_8_2_README.md` para login, dashboard, trámites, notificaciones, uploads, exportaciones y cobranza bajo PHP 8.2.
 - [ ] Re-priorizar después la limpieza de rutas/AutoRoute con el sistema ya estable en PHP 8.*
 
 ### Operación / Demo
@@ -95,20 +124,23 @@ Checklist sugerido:
 - [ ] Validar qué permisos y rutas deben usarse para que el botón de revisión no rompa el flujo actual ni los bloqueos por estatus
 
 ### Cobranza / permisos / retiro de superficie antigua
-- [ ] Quitar bypass por rol o usuario especial en permisos y visibilidad; todo debe resolverse por permisos efectivos asignados
-- [ ] Mantener que Super Admin vea todo por tener todos los checks y roles asignados, no por bypass implícito en helpers
+- [x] Quitar bypass por rol o usuario especial en permisos y visibilidad; todo debe resolverse por permisos efectivos asignados
+- [x] Mantener que Super Admin vea todo por tener todos los checks y roles asignados, no por bypass implícito en helpers
 - [ ] Revisar y simplificar el acceso a Cobro a Cliente para que no dependa de combinaciones legacy como `section_final_costos` o permisos de navegación redundantes
 - [ ] Eliminar consideraciones extra de acceso en cobranza y trámite final; solo se debe ver y operar lo permitido por permisos
 - [ ] Retirar legacy de autorización y navegación relacionado con cobranza conforme se migre al módulo nuevo
 - [ ] Definir y ejecutar pruebas end-to-end del flujo operativo desde creación de trámite hasta entrada a cobranza
 - [ ] Cubrir con pruebas los puntos mínimos del flujo: creación, avance de estatus, condición de listo para cobranza, visibilidad en bandeja y acceso al expediente de cobranza
 
-### Auth / redirects Deskapp
-- [ ] Extender el barrido de redirects de sesión expirada y de rutas/redirecciones antiguas al resto de controladores Deskapp fuera del slice ya corregido (Cobranza, Tramites, Tramitesn)
+Resultado de revisión 13-06-2026:
+- `tests/app/Helpers/AclPermissionBehaviorTest.php` ya valida que `has_permission()` requiere permisos explícitos incluso para `Super Admin`, y que `bypass_tramite_tenant_access` no concede acceso.
+- `app/Helpers/cliente_filter_helper.php` ya documenta y aplica que no existe acceso global implícito por rol y que Admin/Super Admin dependen de relaciones explícitas en `cliente_user`.
 
-### 2) Completar auditoría de cambios de estatus (migración `tra_user_log` → `tramite_audit_log`)
-- Estado: **no se puede retirar `tra_user_log` aún**, pero la revisión puntual del 24-05-2026 confirmó que los cambios activos de `tramite.tra_status_id` ya registran `status_change`.
-- Hallazgo actualizado: el backlog estaba desfasado; los controladores activos ya llaman `log_tramite_status_change()` de forma directa o a través de `updateTramiteStatus()`.
+### Auth / redirects Deskapp
+- [ ] Extender el barrido de redirects de sesión expirada y de rutas/redirecciones antiguas al resto de controladores Deskapp fuera del slice ya cubierto en Cobranza, Tramites y Tramitesn
+
+### 2) Completar transición residual de cambios de estatus (migración `tra_user_log` → `tramite_audit_log`)
+- Estado: la auditoría ya quedó completada; lo pendiente es retirar o encapsular definitivamente la escritura legacy de `tra_user_log`.
 
 Cobertura confirmada en la revisión:
 - `Deskapp\\Tramites::updateTramiteStatus()`
@@ -130,24 +162,8 @@ Checklist sugerido:
   - Fase 4: eliminar `TraUserLogModel` y la tabla solo cuando ya no haya integraciones SQL/reportes fuera de app que dependan de ella.
 
 ### 3) Auditoría de rutas vs menú
-Objetivo: identificar rutas “huérfanas” o sospechosas que no aparecen en el menú ni se consumen por JS.
-
-Entregable deseado:
-- Lista de rutas con clasificación:
-  - Navegación (menú)
-  - Internas (AJAX/API)
-  - Acceso directo legítimo
-  - Huérfanas
-  - Sospechosas por typo o superficie antigua
-
-Estado 25-05-2026:
-- Auditoría realizada y documentada en `AUDIT_RUTAS_MENU_2026-05-25.md`.
-- Hallazgos principales:
-  - se detectaron typos reales en destinos GET (`:` en lugar de `::`) y placeholders malformados; quedaron corregidos en `app/Config/Routes.php` el 25-05-2026 sin cambiar URLs
-  - hay rutas cliente modernas comentadas que hoy sobreviven por `AutoRoute`
-  - siguen existiendo aliases heredados con y sin `/deskapp`, y deben retirarse en favor de rutas canónicas
-  - permanecen rutas demo y superficie antigua candidatas a limpieza posterior
-  - los siguientes pasos de rutas quedan pendientes y pueden bajar de prioridad frente a la migración a PHP 8.*
+Entregable completado y movido a “Hecho”.
+Lo pendiente de este frente quedó concentrado en el plan de implementación y retiro progresivo de aliases/AutoRoute.
 
 ### 4) Plan de implementación (cuando se retome rutas)
 Estrategia propuesta (a validar):
@@ -159,10 +175,14 @@ Estrategia propuesta (a validar):
 
 ### 5) Plan de limpieza de permisos y acceso
 Estrategia propuesta (a validar):
-- PR pequeño #1: quitar bypass de `has_permission()` y helpers de cliente para que la autorización dependa solo de permisos y alcance asignado
-- PR #2: unificar acceso de cobranza en una sola regla reutilizable para controller, vistas y acciones
+- [x] PR pequeño #1: quitar bypass de `has_permission()` y helpers de cliente para que la autorización dependa solo de permisos y alcance asignado
+- [x] PR #2: unificar acceso de cobranza en una sola regla reutilizable para controller, vistas y acciones
 - PR #3: retirar dependencias legacy de `section_final_costos`, permisos de navegación y condiciones especiales del wizard para entrar a cobranza
 - PR #4: agregar pruebas integrales del flujo desde alta de trámite hasta bandeja/expediente de cobranza
+
+Estado 13-06-2026:
+- La regla reutilizable ya existe en `app/Helpers/permissions_helper.php` (`can_access_cobro_cliente_surface()` / `can_edit_cobro_cliente_surface()`) y ya se consume desde controladores, vistas y helpers del flujo de cobranza.
+- La deuda pendiente sigue siendo retirar la compatibilidad transitoria con `section_final_costos`, no la unificación de la regla.
 
 ## Decisiones pendientes (cuando pase el demo)
 - Plan de retiro para rutas antiguas sin `/deskapp`:

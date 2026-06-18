@@ -4,7 +4,7 @@
 		$canDashboardCliente = has_permission('menu_dashboard_cliente', $session->get('user_permissions'), $session->get('user_roles'));
 		$canTramitesCliente = has_permission('menu_tramites_cliente', $session->get('user_permissions'), $session->get('user_roles'));
 	?>
-	<div class="left-side-bar" data-sidebar-version="2026-04-06-1">
+	<div class="left-side-bar" data-sidebar-version="2026-04-06-1" data-nav-layout="legacy-fallback" hidden aria-hidden="true" style="display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;">
 		<div class="brand-logo">
 			<a href="<?php echo base_url('deskapp/dashboard'); ?>" class="sgl-brand-link" style="display: flex; justify-content: center; align-items: center; padding: 10px 0;">
 				<img src="<?php echo base_url(); ?>/public/assets/vendors/images/logo_sasgl_bicolor.png" alt="Logo SASGL" class="dark-logo sgl-brand-image" style="max-width: 150px; height: auto;">

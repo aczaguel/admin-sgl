@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!DOCTYPE html>
+  <html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Layout de Tramites</title>
+    <link rel="stylesheet" href="./tramites-layout-dummy.css">
+  </head>
+  <body>
+    <div class="mock-shell">
+      <header class="mock-header">
+        <div>
+          <span class="mock-eyebrow">Prototipo aislado</span>
+          <h1>Layout de tramites con datos dummy</h1>
+          <p>Mock de trabajo para iterar la experiencia antes de tocar la vista real. La idea es proteger el area operativa y pulir primero la distribucion visual, jerarquia y ritmo de lectura.</p>
+        </div>
+        <div class="mock-badge-stack">
+          <div class="mock-badge"><span>Modo</span><strong>Solo UX</strong></div>
+          <div class="mock-badge"><span>Fuente</span><strong>Datos dummy</strong></div>
+          <div class="mock-badge"><span>Riesgo</span><strong>Cero impacto</strong></div>
+        </div>
+      </header>
+
+      <div class="tramite-layout">
+        <section class="tramite-quick-details">
+          <div class="quick-details-top">
+            <div class="quick-details-title">
+              <h2>Folio TR-2026-00871</h2>
+              <p>Tramite de ejemplo para probar jerarquia visual, densidad de informacion y relacion entre el cuerpo principal y el panel lateral derecho.</p>
+            </div>
+            <div class="quick-status-chip">
+              <div class="quick-status-dot"></div>
+              <div>
+                <span>Estatus actual</span>
+                <strong>Pago de derechos</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="quick-detail-grid">
+            <article class="quick-detail-card"><span>Cliente</span><strong>Cliente Directo Sofia</strong></article>
+            <article class="quick-detail-card"><span>Ejecutivo</span><strong>Luisa Flores</strong></article>
+            <article class="quick-detail-card"><span>Tipo</span><strong>Constancia No Infraccion</strong></article>
+            <article class="quick-detail-card"><span>Unidad</span><strong>UNIDAD-DEMO-008</strong></article>
+            <article class="quick-detail-card"><span>Serie</span><strong>SERIE-DEMO-008</strong></article>
+            <article class="quick-detail-card"><span>Placas</span><strong>DEM-008</strong></article>
+            <article class="quick-detail-card"><span>Entidad / Municipio</span><strong>CDMX / Alvaro Obregon</strong></article>
+            <article class="quick-detail-card"><span>Gestor</span><strong>Nora Medrano</strong></article>
+            <article class="quick-detail-card"><span>Inicio</span><strong>04/06/2026 17:30</strong></article>
+            <article class="quick-detail-card"><span>Responsable</span><strong>Miguel Angel</strong></article>
+            <article class="quick-detail-card"><span>Tipos ligados</span><strong>Tenencia, Reporte de robo</strong></article>
+            <article class="quick-detail-card"><span>Prioridad</span><strong>Normal</strong></article>
+          </div>
+        </section>
+
+        <div class="tramite-main-grid">
+          <main class="tramite-content">
+            <section class="mock-panel">
+              <div class="content-header">
+                <div>
+                  <h3>Zona de Contenido</h3>
+                  <p>El cuerpo principal domina el ancho disponible y separa el trabajo por bloques legibles, no como una sola masa de campos.</p>
+                </div>
+                <div class="stage-pills">
+                  <div class="stage-pill">1. Datos</div>
+                  <div class="stage-pill is-current">2. Gestor y derechos</div>
+                  <div class="stage-pill">3. Finalizacion</div>
+                </div>
+              </div>
+
+              <div class="content-grid">
+                <article class="content-card">
+                  <h4>Datos del tramite</h4>
+                  <p class="card-copy">Resumen editable de la operacion principal, con campos agrupados por relacion funcional.</p>
+                  <div class="field-grid">
+                    <div class="field"><span>Tipo principal</span><div class="fake-select">Constancia No Infraccion</div></div>
+                    <div class="field"><span>Contrato</span><div class="fake-input">CONTRATO-DEMO-008</div></div>
+                    <div class="field"><span>Cliente</span><div class="fake-select">Cliente Directo Sofia</div></div>
+                    <div class="field"><span>Ejecutivo</span><div class="fake-select">Luisa Flores</div></div>
+                    <div class="field"><span>Unidad</span><div class="fake-input">UNIDAD-DEMO-008</div></div>
+                    <div class="field"><span>Observaciones</span><div class="fake-textarea">El tramite esta en etapa media y requiere claridad sobre el pago de derechos, documentos disponibles y siguiente accion operativa.</div></div>
+                  </div>
+                </article>
+
+                <article class="content-card">
+                  <h4>Gestor y empresa</h4>
+                  <p class="card-copy">Bloque operativo del paso actual, separado del resto para evitar saturacion.</p>
+                  <div class="field-grid">
+                    <div class="field"><span>Empresa gestora</span><div class="fake-select">Nora Alicia Medrano del Angel</div></div>
+                    <div class="field"><span>Gestor asignado</span><div class="fake-select">Nora Alicia Medrano del Angel</div></div>
+                    <div class="field"><span>Asignado por</span><div class="fake-input">Luisa Flores</div></div>
+                    <div class="field"><span>Fecha de asignacion</span><div class="fake-input">05/06/2026 09:14</div></div>
+                  </div>
+                  <div class="inline-note">Estado del bloque: completo y listo para continuar sin esconder el contexto operativo.</div>
+                </article>
+
+                <article class="content-card is-wide">
+                  <h4>Pago de derechos</h4>
+                  <p class="card-copy">Ejemplo de sub-bloque que combina captura, estado y evidencia documental sin mezclarlo con el historico.</p>
+                  <div class="field-grid">
+                    <div class="field"><span>Monto</span><div class="fake-input">$ 1,500.00</div></div>
+                    <div class="field"><span>Forma de pago</span><div class="fake-select">Fondo revolvente</div></div>
+                    <div class="field"><span>Referencia bancaria</span><div class="fake-input">REF-DEMO-008</div></div>
+                    <div class="field"><span>Fecha vigencia</span><div class="fake-input">19/06/2026 18:52</div></div>
+                  </div>
+                  <div class="inline-note">Alerta UX: aqui deberia vivir la decision principal del usuario. Por eso este bloque se queda en la columna dominante y no en el panel derecho.</div>
+                </article>
+
+                <article class="content-card is-wide">
+                  <h4>Documentos relacionados</h4>
+                  <p class="card-copy">Ejemplo visual de como separar evidencia y archivos del formulario, sin convertirlos en una tabla pesada desde el inicio.</p>
+                  <div class="document-stack">
+                    <div class="document-item">
+                      <div>
+                        <strong>Comprobante de pago</strong>
+                        <span>PDF subido por Luisa Flores hace 2 horas</span>
+                      </div>
+                      <div class="document-tag">Disponible</div>
+                    </div>
+                    <div class="document-item">
+                      <div>
+                        <strong>Linea de captura</strong>
+                        <span>Archivo por generar en el siguiente paso</span>
+                      </div>
+                      <div class="document-tag">Pendiente</div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              <div class="footer-actions">
+                <div class="action-group">
+                  <button class="mock-btn is-secondary" type="button">Cancelar</button>
+                  <button class="mock-btn" type="button">Guardar borrador</button>
+                </div>
+                <div class="action-group">
+                  <button class="mock-btn is-accent" type="button">Aprobar tramite</button>
+                </div>
+              </div>
+            </section>
+          </main>
+
+          <aside class="tramite-side-panel">
+            <section class="mock-panel tramite-dropdown-zone">
+              <div class="panel-header">
+                <span class="panel-kicker">Zona Dropdown</span>
+                <h3>Acciones y contexto</h3>
+                <p>Panel derecho compacto para secciones, accesos rapidos y acciones secundarias.</p>
+              </div>
+
+              <div class="side-select">
+                <div>
+                  <span>Seccion activa</span>
+                  Pago de derechos
+                </div>
+                <strong>▾</strong>
+              </div>
+
+              <div class="side-actions">
+                <div class="side-action">
+                  <div class="side-action-icon">01</div>
+                  <div>
+                    <strong>Ver documentos</strong>
+                    <span>Abrir evidencia asociada al paso actual</span>
+                  </div>
+                </div>
+                <div class="side-action">
+                  <div class="side-action-icon">02</div>
+                  <div>
+                    <strong>Cambiar estatus</strong>
+                    <span>Accion secundaria agrupada y fuera del cuerpo principal</span>
+                  </div>
+                </div>
+                <div class="side-action">
+                  <div class="side-action-icon">03</div>
+                  <div>
+                    <strong>Ir a historial</strong>
+                    <span>Navegacion contextual sin invadir el formulario</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="mock-panel tramite-notes-history">
+              <div class="panel-header">
+                <span class="panel-kicker">Zona Historico</span>
+                <h3>Notas y actividad</h3>
+                <p>Timeline lateral con lectura cronologica simple y separada de la captura.</p>
+                <span class="timeline-marker marker-current"></span>
+
+              <div class="history-list">
+                <article class="history-item">
+                  <div class="history-meta"><span>Hoy · 10:42</span><span>Luisa Flores</span></div>
+                  <h4>Se completo la captura de pago</h4>
+                  <p>Se guardo el monto, la referencia bancaria y la forma de pago. El tramite ya esta listo para autorizacion.</p>
+                </article>
+                <article class="history-item">
+                  <div class="history-meta"><span>Ayer · 17:10</span><span>Nora Medrano</span></div>
+                  <h4>Gestor confirmado</h4>
+                  <p>La empresa gestora y el responsable operativo quedaron definidos para este bloque.</p>
+                </article>
+                <article class="history-item">
+                  <div class="history-meta"><span>04/06 · 17:30</span><span>Sistema</span></div>
+                  <h4>Tramite creado</h4>
+                  <p>Se inicializo el expediente con folio, contrato y datos base del cliente para el flujo nuevo.</p>
+                </article>
+    </main>
+  </div>
+          </aside>
+        </div>
+      </div>
+              <div>

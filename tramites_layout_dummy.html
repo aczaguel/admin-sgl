@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mock Layout Trámites</title>
+  <style>
+    :root {
+      --bg: #eef3f8;
+      --bg-accent: #dce9f7;
+      --panel: #ffffff;
+      --panel-soft: #f7fafc;
+      --text: #10233d;
+      --muted: #66758a;
+      --line: #d8e2ee;
+      --deep: #123b66;
+      --deep-2: #1d5f8f;
+      --accent: #ea6b2d;
+      --accent-soft: #fff1e8;
+      --success: #0f766e;
+      --warning: #a16207;
+      --danger: #b42318;
+      --shadow-lg: 0 28px 60px rgba(15, 23, 42, 0.10);
+      --shadow-md: 0 14px 30px rgba(15, 23, 42, 0.08);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(29, 95, 143, 0.14), transparent 28%),
+        radial-gradient(circle at top right, rgba(234, 107, 45, 0.10), transparent 24%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+    }
+
+    .shell {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .intro {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: 1.85rem;
+      font-weight: 850;
+      letter-spacing: -0.03em;
+    }
+
+    .page-subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 780px;
+      line-height: 1.5;
+    }
+
+    .build-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid #c8d7e7;
+      background: rgba(255,255,255,0.8);
+      color: var(--deep);
+      font-size: 0.78rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.8fr);
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .hero-panel,
+    .snapshot-panel,
+    .main-panel,
+    .side-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .hero-panel {
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--deep) 0%, var(--deep-2) 58%, #2e7ba9 100%);
+      color: #fff;
+      border: 0;
+    }
+
+    .hero-inner {
+      padding: 22px 22px 18px;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.13);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hero-title {
+      margin: 10px 0 8px;
+      font-size: 1.55rem;
+      font-weight: 850;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-copy {
+      margin: 0;
+      max-width: 720px;
+      color: rgba(255,255,255,0.80);
+      line-height: 1.55;
+    }
+
+    .status-chip-row,
+    .id-chip-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.11);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-size: 0.78rem;
+      font-weight: 750;
+    }
+
+    .chip.status {
+      background: rgba(15, 118, 110, 0.24);
+    }
+
+    .chip.warning {
+      background: rgba(234, 107, 45, 0.22);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .hero-card {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.11);
+      border: 1px solid rgba(255,255,255,0.14);
+      min-width: 0;
+    }
+
+    .hero-label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.72);
+      font-weight: 800;
+    }
+
+    .hero-value {
+      font-size: 0.92rem;
+      font-weight: 780;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .snapshot-panel {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(248,250,252,0.96) 100%),
+        linear-gradient(120deg, rgba(18,59,102,0.05), rgba(234,107,45,0.05));
+    }
+
+    .snapshot-title {
+      margin: 0;
+      font-size: 0.98rem;
+      font-weight: 820;
+    }
+
+    .snapshot-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.45;
+    }
+
+    .progress-block {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+    }
+
+    .progress-label-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.78rem;
+      font-weight: 750;
+      color: var(--muted);
+    }
+
+    .progress-track {
+      height: 10px;
+      border-radius: 999px;
+      background: #d9e5f1;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      width: 68%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent) 0%, #ff9a4d 100%);
+    }
+
+    .signal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .signal-card {
+      padding: 12px;
+      border-radius: 16px;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+    }
+
+    .signal-card span {
+      display: block;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .signal-card strong {
+      font-size: 0.86rem;
+      font-weight: 820;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .main-panel {
+      padding: 18px;
+    }
+
+    .content-topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .content-title {
+      margin: 0;
+      font-size: 1.08rem;
+      font-weight: 840;
+    }
+
+    .content-copy {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+      max-width: 760px;
+    }
+
+    .step-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .step-tab {
+      min-width: 130px;
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+      border-radius: 18px;
+      padding: 12px 14px;
+    }
+
+    .step-tab small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .step-tab strong {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 820;
+    }
+
+    .step-tab.active {
+      background: linear-gradient(180deg, #fff6ef 0%, var(--accent-soft) 100%);
+      border-color: #ffd0b6;
+      box-shadow: var(--shadow-md);
+    }
+
+    .content-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 250px;
+      gap: 18px;
+    }
+
+    .content-stack,
+    .inner-side-stack,
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-card,
+    .inner-side-card,
+    .side-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    }
+
+    .section-card {
+      padding: 18px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 840;
+    }
+
+    .section-copy {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .section-tag {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--deep);
+      white-space: nowrap;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.wide {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      font-size: 0.76rem;
+      font-weight: 780;
+      color: #34465c;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px 13px;
+      background: #fff;
+      font: inherit;
+      color: var(--text);
+    }
+
+    .field textarea {
+      min-height: 104px;
+      resize: vertical;
+    }
+
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .metric {
+      padding: 12px;
+      border-radius: 16px;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+    }
+
+    .metric span {
+      display: block;
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .metric strong {
+      font-size: 0.88rem;
+      font-weight: 820;
+    }
+
+    .dropzone-dummy {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 12px;
+    }
+
+    .dropzone-box,
+    .gallery-box {
+      min-height: 180px;
+      border-radius: 18px;
+      border: 1px dashed #99aabd;
+      background: linear-gradient(180deg, #f8fbff 0%, #f1f6fb 100%);
+      padding: 18px;
+    }
+
+    .dropzone-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 780;
+    }
+
+    .gallery-box {
+      border-style: solid;
+      background: #fff;
+    }
+
+    .gallery-box strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 0.84rem;
+    }
+
+    .gallery-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .gallery-item {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      font-size: 0.78rem;
+    }
+
+    .inner-side-card,
+    .side-card {
+      padding: 16px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .inner-side-title,
+    .side-title {
+      margin: 0 0 4px;
+      font-size: 0.98rem;
+      font-weight: 840;
+    }
+
+    .inner-side-copy,
+    .side-copy {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .mini-list,
+    .action-list,
+    .notes-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .mini-item,
+    .action-item,
+    .note-item {
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+      padding: 12px;
+    }
+
+    .mini-item strong,
+    .action-item strong,
+    .note-item strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.83rem;
+    }
+
+    .action-item {
+      background: linear-gradient(180deg, #fff 0%, #f8fbff 100%);
+    }
+
+    .action-item small,
+    .mini-item small,
+    .note-item small {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .side-panel {
+      position: sticky;
+      top: 24px;
+    }
+
+    .side-kicker {
+      margin: 0 0 4px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.68rem;
+      font-weight: 820;
+    }
+
+    .select-mock {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 13px;
+      background: #fff;
+      color: var(--text);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .note-meta {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 0.73rem;
+      font-weight: 700;
+    }
+
+    .tone-success { border-left: 4px solid var(--success); }
+    .tone-warning { border-left: 4px solid var(--warning); }
+    .tone-danger { border-left: 4px solid var(--danger); }
+
+    .footer-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .footer-hint {
+      color: var(--muted);
+      font-size: 0.8rem;
+      max-width: 560px;
+      line-height: 1.45;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 18px;
+      font-weight: 840;
+      font-size: 0.82rem;
+    }
+
+    .btn.secondary {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .btn.primary {
+      background: linear-gradient(90deg, var(--accent) 0%, #ff944a 100%);
+      color: #fff;
+    }
+
+    @media (max-width: 1260px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .content-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .inner-side-stack {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 1100px) {
+      .hero-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .side-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .shell {
+        padding: 16px;
+      }
+
+      .intro {
+        align-items: start;
+      }
+
+      .hero-grid,
+      .field-grid,
+      .metrics-row,
+      .dropzone-dummy,
+      .signal-grid,
+      .inner-side-stack {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="intro">
+      <div>
+        <h1 class="page-title">Mock de Layout de Trámites</h1>
+        <p class="page-subtitle">Propuesta visual aislada para iterar la pantalla sin tocar controllers ni la vista operativa. La prioridad es que la zona de contenido se sienta dominante y el panel derecho acompañe sin estorbar.</p>
+      </div>
+      <div class="build-badge">Mock independiente · Datos dummy · Desktop first</div>
+    </div>
+
+    <section class="hero">
+      <article class="hero-panel">
+        <div class="hero-inner">
+          <div class="hero-top">
+            <div>
+              <span class="eyebrow">Trámite activo</span>
+              <h2 class="hero-title">SOF-DEMO-260604-08 · Constancia No Infracción</h2>
+              <p class="hero-copy">La parte superior resume el contexto completo del expediente en un solo vistazo. El objetivo es que el usuario se ubique rápido antes de bajar a la captura principal.</p>
+            </div>
+            <div class="status-chip-row">
+              <span class="chip status">Pago de derechos</span>
+              <span class="chip warning">Normal · 2 días</span>
+            </div>
+          </div>
+
+          <div class="id-chip-row" style="margin-bottom: 14px;">
+            <span class="chip">ID 12454</span>
+            <span class="chip">Contrato CONTRATO-DEMO-008</span>
+            <span class="chip">Responsable Luisa Flores</span>
+          </div>
+
+          <div class="hero-grid">
+            <div class="hero-card"><span class="hero-label">Cliente</span><span class="hero-value">Cliente Directo Sofia</span></div>
+            <div class="hero-card"><span class="hero-label">Ejecutivo</span><span class="hero-value">Ejecutivo Sofia</span></div>
+            <div class="hero-card"><span class="hero-label">Gestor</span><span class="hero-value">Nora Alicia Medrano</span></div>
+            <div class="hero-card"><span class="hero-label">Tipos ligados</span><span class="hero-value">Constancia, Tenencia, Reporte de robo</span></div>
+            <div class="hero-card"><span class="hero-label">Unidad</span><span class="hero-value">UNIDAD-DEMO-8</span></div>
+            <div class="hero-card"><span class="hero-label">Serie / Placas</span><span class="hero-value">SERIE-DEMO-8 · DEM0008</span></div>
+            <div class="hero-card"><span class="hero-label">Entidad / Municipio</span><span class="hero-value">Aguascalientes / Alvaro Obregon</span></div>
+            <div class="hero-card"><span class="hero-label">Fechas</span><span class="hero-value">Creacion 04/06/2026 · Inicio 04/06/2026</span></div>
+          </div>
+        </div>
+      </article>
+
+      <aside class="snapshot-panel">
+        <div>
+          <h3 class="snapshot-title">Lectura rápida operativa</h3>
+          <p class="snapshot-copy">Este bloque lateral del header puede ayudar a destacar estado del flujo, tareas pendientes y progreso sin contaminar la columna principal.</p>
+        </div>
+
+        <div class="progress-block">
+          <div class="progress-label-row">
+            <span>Avance estimado del trámite</span>
+            <strong>68%</strong>
+          </div>
+          <div class="progress-track"><div class="progress-fill"></div></div>
+        </div>
+
+        <div class="signal-grid">
+          <div class="signal-card"><span>Sección activa</span><strong>Pago de derechos</strong></div>
+          <div class="signal-card"><span>Siguiente acción</span><strong>Validar evidencia</strong></div>
+          <div class="signal-card"><span>Documentos</span><strong>3 cargados</strong></div>
+          <div class="signal-card"><span>Riesgo</span><strong>Bajo</strong></div>
+        </div>
+      </aside>
+    </section>
+
+    <div class="main-grid">
+      <main class="main-panel">
+        <div class="content-topbar">
+          <div>
+            <h2 class="content-title">Zona de Contenido / Cuerpo</h2>
+            <p class="content-copy">Aquí vive la captura principal. La propuesta organiza el trabajo en bloques claros y deja las ayudas en columnas laterales más ligeras.</p>
+          </div>
+          <div class="step-tabs">
+            <div class="step-tab"><small>Paso 1</small><strong>Generales</strong></div>
+            <div class="step-tab"><small>Paso 2</small><strong>Gestor</strong></div>
+            <div class="step-tab active"><small>Paso 3</small><strong>Pago de derechos</strong></div>
+            <div class="step-tab"><small>Paso 4</small><strong>Documentos</strong></div>
+          </div>
+        </div>
+
+        <div class="content-layout">
+          <div class="content-stack">
+            <section class="section-card">
+              <div class="section-header">
+                <div>
+                  <h3 class="section-title">Datos base del trámite</h3>
+                  <p class="section-copy">Bloque principal con los campos de contexto que el usuario necesita confirmar o ajustar antes de bajar al detalle financiero.</p>
+                </div>
+                <span class="section-tag">Bloque prioritario</span>
+              </div>
+
+              <div class="field-grid">
+                <div class="field"><label>Cliente</label><select><option>Cliente Directo Sofia</option></select></div>
+                <div class="field"><label>Ejecutivo</label><select><option>Ejecutivo Sofia</option></select></div>
+                <div class="field"><label>Tipo principal</label><select><option>Constancia No Infraccion</option></select></div>
+                <div class="field"><label>Contrato</label><input value="CONTRATO-DEMO-008"></div>
+                <div class="field"><label>Unidad</label><input value="UNIDAD-DEMO-8"></div>
+                <div class="field"><label>Serie</label><input value="SERIE-DEMO-8"></div>
+                <div class="field wide"><label>Observaciones</label><textarea>Cliente solicita confirmar vigencia antes de pasar a autorizacion. La captura debe sentirse ordenada y guiada, no como una masa de campos.</textarea></div>
+              </div>
+
+              <div class="metrics-row">
+                <div class="metric"><span>Estatus</span><strong>Pago de derechos</strong></div>
+                <div class="metric"><span>Semaforo</span><strong>Normal</strong></div>
+                <div class="metric"><span>Tiempo en paso</span><strong>2 dias</strong></div>
+              </div>
+            </section>
+
+            <section class="section-card">
+              <div class="section-header">
+                <div>
+                  <h3 class="section-title">Pago de derechos</h3>
+                  <p class="section-copy">Bloque enfocado en la tarea actual. Los campos se mantienen juntos y los documentos relacionados no rompen la lectura del formulario.</p>
+                </div>
+                <span class="section-tag">Paso activo</span>
+              </div>
+
+              <div class="field-grid">
+                <div class="field"><label>Monto</label><input value="1500.00"></div>
+                <div class="field"><label>Forma de pago</label><select><option>Fondo Revolvente</option></select></div>
+                <div class="field"><label>Referencia bancaria</label><input value="REF-DEMO-8"></div>
+                <div class="field"><label>Fecha vigencia</label><input value="2026-06-19 18:52"></div>
+              </div>
+            </section>
+
+            <section class="section-card">
+              <div class="section-header">
+                <div>
+                  <h3 class="section-title">Documentos relacionados</h3>
+                  <p class="section-copy">La evidencia sigue dentro del cuerpo principal, pero separada visualmente del formulario para no saturar la captura.</p>
+                </div>
+                <span class="section-tag">Apoyo documental</span>
+              </div>
+
+              <div class="dropzone-dummy">
+                <div class="dropzone-box">Area dummy para dropzone / uploader / evidencias del paso actual</div>
+                <div class="gallery-box">
+                  <strong>Archivos ya cargados</strong>
+                  <div class="gallery-list">
+                    <div class="gallery-item">derechos_pago_demo.pdf</div>
+                    <div class="gallery-item">referencia_bancaria_demo.jpg</div>
+                    <div class="gallery-item">acuse_demo.png</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div class="footer-actions">
+              <p class="footer-hint">La idea del mock es que la acción principal se lea al final del cuerpo y que el panel lateral sólo complemente con contexto y navegación, no con ruido.</p>
+              <div class="btn-row">
+                <button class="btn secondary">Cancelar</button>
+                <button class="btn primary">Guardar cambios</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="inner-side-stack">
+            <section class="inner-side-card">
+              <h3 class="inner-side-title">Resumen del paso</h3>
+              <p class="inner-side-copy">Mini panel dentro del cuerpo para destacar lo que falta sin llevar al usuario al lateral principal.</p>
+              <div class="mini-list">
+                <div class="mini-item"><strong>Estado del paso</strong><small>Completo al 80%. Falta validar comprobante final.</small></div>
+                <div class="mini-item"><strong>Campo critico</strong><small>Confirmar que la referencia bancaria coincida con el pago cargado.</small></div>
+              </div>
+            </section>
+
+            <section class="inner-side-card">
+              <h3 class="inner-side-title">Checklist operativo</h3>
+              <p class="inner-side-copy">Ayuda corta, no invasiva.</p>
+              <div class="mini-list">
+                <div class="mini-item"><strong>1. Capturar monto</strong><small>Listo</small></div>
+                <div class="mini-item"><strong>2. Vincular evidencia</strong><small>Pendiente</small></div>
+                <div class="mini-item"><strong>3. Aprobar paso</strong><small>Bloqueado hasta subir documento</small></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+
+      <aside class="side-panel">
+        <section class="side-card">
+          <p class="side-kicker">Zona Dropdown</p>
+          <h3 class="side-title">Acciones y navegación</h3>
+          <p class="side-copy">El panel lateral acompaña, pero no pelea por protagonismo con el formulario.</p>
+
+          <div class="select-mock">Vista completa del tramite</div>
+
+          <div class="action-list">
+            <div class="action-item"><strong>Ir a seccion</strong><small>Generales, Gestor, Pago, Documentos, Costos finales</small></div>
+            <div class="action-item"><strong>Documentos</strong><small>Abre visor, historial y descargas rápidas</small></div>
+            <div class="action-item"><strong>Cambio de estatus</strong><small>Accion condicionada por permisos y completitud</small></div>
+            <div class="action-item"><strong>Accion rapida</strong><small>Enviar a validacion o dejar observacion</small></div>
+          </div>
+        </section>
+
+        <section class="side-card">
+          <p class="side-kicker">Zona Historico</p>
+          <h3 class="side-title">Notas y bitacora</h3>
+          <p class="side-copy">Formato de timeline compacto y legible. Lo importante es entender que paso y quien lo hizo.</p>
+
+          <div class="notes-stack">
+            <div class="note-item tone-success">
+              <span class="note-meta">07/06/2026 · 09:32 · Luisa Flores</span>
+              <strong>Pago registrado</strong>
+              <small>Se capturo el monto de derechos y ya quedo lista la referencia bancaria.</small>
+            </div>
+            <div class="note-item tone-warning">
+              <span class="note-meta">06/06/2026 · 18:10 · Nora Medrano</span>
+              <strong>Documento pendiente</strong>
+              <small>Falta adjuntar el comprobante oficial para liberar la aprobacion del paso.</small>
+            </div>
+            <div class="note-item tone-danger">
+              <span class="note-meta">05/06/2026 · 11:24 · Sistema</span>
+              <strong>Observacion operativa</strong>
+              <small>Revisar vigencia antes de autorizar. El dato no debe quedarse escondido dentro del formulario.</small>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>

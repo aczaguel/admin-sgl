@@ -329,7 +329,6 @@
 							<?= perm_audit_tag('list_cobro_cliente') ?>
 						</button>
 					<?php endif; ?>
-
 					<?php if ($canQuickBitacora): ?>
 						<button type="button" class="ribbon-btn ribbon-btn-bitacora" data-toggle="modal" data-target="#modal-bitacora">
 							<div class="ribbon-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
@@ -486,7 +485,6 @@
 
 			<?= $this->include('deskapp/extra-pages/tramite_update/steps/step_5') ?>
 		</div>
-	</div>
 </div>
 
 <?php if (has_permission('important_cancelar_tramite', $user_permissions ?? [], $user_roles ?? [])): ?>

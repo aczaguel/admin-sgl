@@ -2808,6 +2808,9 @@ class Tramites extends BaseController
         if ($resp = acl_require_permission('can_upload_dropzone_pago_derechos', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
             return $resp;
         }
+        if ($resp = acl_require_permission('quick_action_pagos_derecho_delete', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
 
         // Validar nombre del archivo
         $fileName = trim((string) $fileName);
@@ -2974,7 +2977,7 @@ class Tramites extends BaseController
                 ];
                 $builder->insert($data);
                 $filePath = $ds . $storeFolder . $ds . $fileName;
-                return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente', 'filePath'=>$filePath]);
+                return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente', 'filePath'=>$filePath, 'fileName' => $fileName]);
             } else {
                 return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
             }
@@ -3034,20 +3037,6 @@ class Tramites extends BaseController
         if ($resp = acl_require_permission('editar_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
             return $resp;
         }
-        $existingComprobanteFinal = (string) ($existingRecord['comprobante_final'] ?? '');
-        if (in_array($existingComprobanteFinal, ['factura_gestor', 'comprobante_pago'], true)) {
-            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-                return $resp;
-            }
-        } else {
-            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-                return $resp;
-            }
-        }
-        if (!$canKeepStep4Editable && !puede_editar_modulo($roles, $traStatusId, 'can_upload_dropzone_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4)) {
-            return acl_deny('Acceso denegado.', 403, null, true);
-        }
-
         // Validar nombre del archivo
         $fileName = trim((string) $fileName);
         if ($fileName === '') {
@@ -3067,6 +3056,31 @@ class Tramites extends BaseController
             
             if (!$existingRecord) {
                 return $this->response->setJSON(['success' => false, 'message' => 'El registro no existe en la base de datos.']);
+            }
+
+            $existingComprobanteFinal = (string) ($existingRecord['comprobante_final'] ?? '');
+            $hasLegacyDropzonePermission = has_permission('can_upload_dropzone_pago_gestor', $perms, $roles);
+            $hasEvidencePermission = has_permission('can_upload_dropzone_evidencias_finales', $perms, $roles) || $hasLegacyDropzonePermission;
+            $hasPaymentDocPermission = has_permission('can_upload_dropzone_pago_gestor_documentos', $perms, $roles) || $hasLegacyDropzonePermission;
+
+            if (in_array($existingComprobanteFinal, ['factura_gestor', 'comprobante_pago'], true)) {
+                if (!$hasPaymentDocPermission) {
+                    return acl_deny('Acceso denegado.', 403, null, true);
+                }
+                if ($resp = acl_require_permission('quick_action_pago_gestor_delete', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+                    return $resp;
+                }
+            } else {
+                if (!$hasEvidencePermission) {
+                    return acl_deny('Acceso denegado.', 403, null, true);
+                }
+                if ($resp = acl_require_permission('quick_action_evidencias_finales_delete', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+                    return $resp;
+                }
+            }
+
+            if (!$canKeepStep4Editable && !puede_editar_modulo($roles, $traStatusId, 'upload_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4)) {
+                return acl_deny('Acceso denegado.', 403, null, true);
             }
 
             // Ruta del archivo
@@ -3157,14 +3171,17 @@ class Tramites extends BaseController
             $comprobanteFinal = null;
         }
 
-        // Permiso fino Dropzone segun el tipo de archivo que se sube.
+        $hasLegacyDropzonePermission = has_permission('can_upload_dropzone_pago_gestor', $perms, $roles);
+        $hasEvidencePermission = has_permission('can_upload_dropzone_evidencias_finales', $perms, $roles) || $hasLegacyDropzonePermission;
+        $hasPaymentDocPermission = has_permission('can_upload_dropzone_pago_gestor_documentos', $perms, $roles) || $hasLegacyDropzonePermission;
+
         if (in_array($comprobanteFinal, ['factura_gestor', 'comprobante_pago'], true)) {
-            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-                return $resp;
+            if (!$hasPaymentDocPermission) {
+                return acl_deny('Acceso denegado.', 403, null, true);
             }
         } else {
-            if ($resp = acl_require_permission('can_upload_dropzone_pago_gestor', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
-                return $resp;
+            if (!$hasEvidencePermission) {
+                return acl_deny('Acceso denegado.', 403, null, true);
             }
         }
 
@@ -5861,12 +5878,20 @@ class Tramites extends BaseController
         $crud->setCsrfTokenName(csrf_token());
         $crud->setCsrfTokenValue(csrf_hash());
 
+        $hasTipoEvidenciaField = $db->fieldExists('tipo_evidencia', 'tra_evidencias');
+
         $crud->setTable('tra_evidencias');
         $crud->setSubject('Bitacora', 'Bitacora');
 
         $crud->where([
             'folio_tramite' => $folio_tramite
         ]);   
+
+        if ($hasTipoEvidenciaField) {
+            $crud->where([
+                'tipo_evidencia' => 1,
+            ]);
+        }
 
         $crud->callbackAfterInsert(function ($stateParameters)  use ($self, $crud) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
@@ -6077,6 +6102,8 @@ class Tramites extends BaseController
         $crud->setCsrfTokenName(csrf_token());
         $crud->setCsrfTokenValue(csrf_hash());
 
+        $hasTipoEvidenciaField = $db->fieldExists('tipo_evidencia', 'tra_evidencias');
+
         $crud->setTable('tra_evidencias');
         $crud->setSubject('Bitacora', 'Bitacora');
         $crud->defaultOrdering('tra_evidencias.created_at', 'desc');
@@ -6104,6 +6131,12 @@ class Tramites extends BaseController
         $crud->where([
             'folio_tramite' => $folio_tramite
         ]);   
+
+        if ($hasTipoEvidenciaField) {
+            $crud->where([
+                'tipo_evidencia' => 1,
+            ]);
+        }
         $crud->callbackColumn('comentario', function($value, $row) {
             // Recortar el texto si es muy largo
             $shortened_value = strlen($value) > 50 ? substr($value, 0, 50) . '...' : $value;

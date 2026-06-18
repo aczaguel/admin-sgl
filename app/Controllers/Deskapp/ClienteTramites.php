@@ -827,10 +827,16 @@ class ClienteTramites extends BaseController
         $traEvidencias = [];
         try {
             if ($db->tableExists('tra_evidencias')) {
-                $evRows = $db->table('tra_evidencias')
+                $builder = $db->table('tra_evidencias')
                     ->select('id, folio_tramite, comentario, costo, file, created_at')
                     ->where('tramite_id', $tramiteId)
-                    ->where('status', 1)
+                    ->where('status', 1);
+
+                if ($db->fieldExists('tipo_evidencia', 'tra_evidencias')) {
+                    $builder->where('tipo_evidencia', 1);
+                }
+
+                $evRows = $builder
                     ->orderBy('created_at', 'ASC')
                     ->get()
                     ->getResultArray();

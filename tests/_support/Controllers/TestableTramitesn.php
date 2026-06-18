@@ -10,6 +10,7 @@ class TestableTramitesn extends Tramitesn
     public static $denyTenantAccess = false;
     public static $useDatabaseLookups = false;
     public static $skipLegacyFinalSaveSideEffects = false;
+    public static $skipLegacyUpdateSaveSideEffects = false;
     public static $fakeUploadMoves = false;
 
     public function __construct()
@@ -61,6 +62,15 @@ class TestableTramitesn extends Tramitesn
         }
 
         parent::recordFinalSaveUserLog($tramiteId, $userId);
+    }
+
+    protected function recordUpdateSaveSideEffects(int $tramiteId, ?string $folio, int $userId, int $statusUpdatedTo, array $changes): void
+    {
+        if (static::$skipLegacyUpdateSaveSideEffects) {
+            return;
+        }
+
+        parent::recordUpdateSaveSideEffects($tramiteId, $folio, $userId, $statusUpdatedTo, $changes);
     }
 
     protected function moveCobroClienteUploadedFile(string $tempFile, string $targetFile): bool

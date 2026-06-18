@@ -159,5 +159,25 @@
 .sgl-status-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .dropzone-gestor .dz-preview .dz-remove{display:none !important}
 
+/* Revert temporal del layout experimental: mantener la vista productiva cercana a la versión previa */
+.tramite-summary-grid{display:none !important}
+.tramite-main-grid,
+.tramite-main-grid.is-single-column{display:flex !important;flex-direction:column !important;gap:0 !important}
+.tramite-side-panel{order:-1;display:block !important;margin-bottom:16px}
+.tramite-dropdown-zone{background:transparent !important;border:0 !important;box-shadow:none !important;padding:0 !important}
+.tramite-dropdown-zone .tramite-zone-heading,
+.tramite-dropdown-zone .tramite-side-stats,
+.tramite-dropdown-zone .tramite-section-selector,
+.tramite-notes-history{display:none !important}
+.tramite-dropdown-zone .quick-actions-ribbon{margin:0 0 16px 0 !important;padding:18px !important;background:linear-gradient(135deg,#f8fafc 0%,#eef2ff 100%) !important;border:1px solid #e2e8f0 !important;border-radius:18px !important;box-shadow:0 12px 24px rgba(15,23,42,.08) !important}
+.tramite-dropdown-zone .ribbon-buttons{display:flex !important;flex-wrap:wrap !important;gap:12px !important}
+.tramite-dropdown-zone .ribbon-btn{width:auto !important;min-height:unset !important;justify-content:center !important;text-align:center !important;padding:14px 16px !important}
+
+@media (max-width: 992px){
+	.tramite-side-panel{margin-bottom:12px}
+	.tramite-dropdown-zone .ribbon-buttons{display:grid !important;grid-template-columns:repeat(auto-fit,minmax(150px,1fr)) !important}
+	.tramite-dropdown-zone .ribbon-btn{width:100% !important}
+}
+
 
 

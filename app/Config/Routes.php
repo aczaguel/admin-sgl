@@ -311,6 +311,13 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 	$routes->get('tramitesn', 'Tramitesn::tramite');
 	$routes->get('tramitesn/tramite', 'Tramitesn::tramite');
 	$routes->post('tramitesn/tramite', 'Tramitesn::tramite');
+	$routes->get('tramitesn/prototipo-layout', 'Tramitesn::prototipo_layout');
+	$routes->get('tramitesn/prototipo-layout/paso-1', 'Tramitesn::prototipo_layout_paso_1');
+	$routes->get('tramitesn/prototipo-layout/paso-2', 'Tramitesn::prototipo_layout_paso_2');
+	$routes->get('tramitesn/prototipo-layout/paso-3', 'Tramitesn::prototipo_layout_paso_3');
+	$routes->get('tramitesn/prototipo-layout/paso-4', 'Tramitesn::prototipo_layout_paso_4');
+	$routes->get('tramitesn/prototipo-layout/paso-5', 'Tramitesn::prototipo_layout_paso_5');
+	$routes->get('tramitesn/prototipo-layout/paso/(:num)', 'Tramitesn::prototipo_layout/$1');
 	$routes->get('tramitesn/search', 'Tramitesn::search');
 	$routes->post('tramitesn/search', 'Tramitesn::search');
 	$routes->get('tramitesn/cobro_cliente', 'Tramitesn::cobro_cliente');
@@ -337,6 +344,13 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 	$routes->post('tramitesn/upload_cobro_cliente/(:num)', 'Tramitesn::upload_cobro_cliente');
 	$routes->post('tramitesn/delete_pago_gestor', 'Tramitesn::delete_pago_gestor');
 	$routes->post('tramitesn/delete_cobro_cliente', 'Tramitesn::delete_cobro_cliente');
+
+	// Prototipo de layout - notas y bitácora (rutas explícitas para no depender de AutoRoute)
+	$routes->post('tramitesn/prototype_evidencias_add/(:num)', 'Tramitesn::prototype_evidencias_add/$1');
+	$routes->post('tramitesn/prototype_step4_notes_add/(:num)', 'Tramitesn::prototype_step4_notes_add/$1');
+	$routes->post('tramitesn/prototype_step5_notes_add/(:num)', 'Tramitesn::prototype_step5_notes_add/$1');
+	$routes->post('tramitesn/upload_step1_doc/(:num)', 'Tramitesn::upload_step1_doc/$1');
+	$routes->post('tramitesn/delete_step1_doc', 'Tramitesn::delete_step1_doc');
 
 	// Guardado (reutiliza lógica heredada de Tramites::update_save)
 	$routes->post('tramitesn/update_save/(:num)', 'Tramitesn::update_save');

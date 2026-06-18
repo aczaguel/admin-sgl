@@ -4,6 +4,9 @@
   "scripts": {
     "test:browser:list": "playwright test --list",
     "test:browser:cobranza": "playwright test tests/browser/cobranza-save.spec.js --project=chromium",
+    "test:browser:tramites-step1": "playwright test tests/browser/tramites-step1-save.spec.js --project=chromium",
+    "test:browser:tramites-step2-step3": "playwright test tests/browser/tramites-step2-step3-save.spec.js --project=chromium",
+    "test:browser:tramites-operativo": "playwright test tests/browser/tramites-step1-save.spec.js tests/browser/tramites-step2-step3-save.spec.js --project=chromium",
     "test:browser:php82-smoke": "playwright test tests/browser/php82-smoke.spec.js --project=chromium"
   },
   "devDependencies": {

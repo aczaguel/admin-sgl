@@ -1374,12 +1374,20 @@ class Concluido extends BaseController
         $crud->setCsrfTokenName(csrf_token());
         $crud->setCsrfTokenValue(csrf_hash());
 
+        $hasTipoEvidenciaField = $db->fieldExists('tipo_evidencia', 'tra_evidencias');
+
         $crud->setTable('tra_evidencias');
         $crud->setSubject('Bitacora', 'Bitacora');
 
         $crud->where([
             'folio_tramite' => $folio_tramite
         ]);   
+
+        if ($hasTipoEvidenciaField) {
+            $crud->where([
+                'tipo_evidencia' => 1,
+            ]);
+        }
 
         $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
@@ -1567,6 +1575,8 @@ class Concluido extends BaseController
         $crud->setCsrfTokenName(csrf_token());
         $crud->setCsrfTokenValue(csrf_hash());
 
+        $hasTipoEvidenciaField = $db->fieldExists('tipo_evidencia', 'tra_evidencias');
+
         $crud->setTable('tra_evidencias');
         $crud->setSubject('Bitacora', 'Bitacora');
         $crud->defaultOrdering('tra_evidencias.created_at', 'desc');
@@ -1593,6 +1603,12 @@ class Concluido extends BaseController
         $crud->where([
             'folio_tramite' => $folio_tramite
         ]);   
+
+        if ($hasTipoEvidenciaField) {
+            $crud->where([
+                'tipo_evidencia' => 1,
+            ]);
+        }
         $crud->callbackColumn('comentario', function($value, $row) {
             // Recortar el texto si es muy largo
             $shortened_value = strlen($value) > 50 ? substr($value, 0, 50) . '...' : $value;

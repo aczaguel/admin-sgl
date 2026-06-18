@@ -29,7 +29,7 @@ $bodyClasses = trim(($bodyClass ?? '') . ($isSglLayout ? ' sgl-theme-2026' : '')
         <!-- <link rel="stylesheet" href="<?= $assets ?>/src/plugins/datatables/css/dataTables.4.min.css"> -->
         <link rel="stylesheet" href="<?= $assets ?>/vendors/styles/style.css">
         <?php if ($isSglLayout): ?>
-            <link rel="stylesheet" href="<?= $assets ?>/src/styles/sgl_blue_template.css?v=20260606-1">
+            <link rel="stylesheet" href="<?= $assets ?>/src/styles/sgl_blue_template.css?v=20260610-1">
         <?php endif; ?>
         <style>
             <?php if ($isSglLayout): ?>

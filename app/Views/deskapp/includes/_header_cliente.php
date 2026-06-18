@@ -13,7 +13,7 @@
  -->
 
 <?php
-	helper(['cliente_filter', 'cliente_context']);
+	helper(['cliente_filter', 'cliente_context', 'permissions']);
 
 	$session = $session ?? session();
 	$userId = $session->get('id');
@@ -32,7 +32,8 @@
 	$qs = $_GET ?? [];
 ?>
 
-<link rel="stylesheet" href="<?= base_url('/public/assets/src/styles/sgl_blue_template.css?v=20260606-1') ?>">
+<link rel="stylesheet" href="<?= base_url('/public/assets/src/styles/sgl_blue_template.css?v=20260610-1') ?>">
+<script defer src="<?= base_url('/public/assets/src/scripts/sgl_ribbon_nav.js?v=20260606-1') ?>"></script>
 
 
 <div class="header">
@@ -228,6 +229,7 @@
 			&nbsp;
 		</div>
 	</div>
+	<?= view('deskapp/includes/_ribbon_nav', ['session' => $session]) ?>
 </div>
 
 <div class="right-sidebar">

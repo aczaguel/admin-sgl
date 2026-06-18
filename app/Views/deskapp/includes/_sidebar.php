@@ -18,7 +18,7 @@
 		return;
 	}
 ?>
-<div class="left-side-bar" data-sidebar-version="2026-04-06-1">
+<div class="left-side-bar" data-sidebar-version="2026-04-06-1" data-nav-layout="legacy-fallback" hidden aria-hidden="true" style="display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important;">
 	<div class="brand-logo">
 		<div class="sgl-sidebar-collapse-btn sgl-sidebar-collapse-btn--sidebar" role="button" tabindex="0" aria-label="Contraer/expandir menú" title="Contraer/expandir menú">
 			<i class="dw dw-left-arrow" aria-hidden="true"></i>

@@ -858,6 +858,8 @@ class Proceso extends BaseController
         $crud->unsetPrint();
         $crud->unsetFilters();
         $crud->unsetSettings();
+        $hasTipoEvidenciaField = $db->fieldExists('tipo_evidencia', 'tra_evidencias');
+
         $crud->setTable('tra_evidencias');
         $crud->setSubject('Bitacora', 'Bitacora');
         $crud->defaultOrdering('tra_evidencias.created_at', 'desc');
@@ -875,6 +877,12 @@ class Proceso extends BaseController
         $crud->where([
             'folio_tramite' => $folio_tramite
         ]);   
+
+        if ($hasTipoEvidenciaField) {
+            $crud->where([
+                'tipo_evidencia' => 1,
+            ]);
+        }
 
         $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
@@ -1644,6 +1652,8 @@ class Proceso extends BaseController
         $crud->unsetPrint();
         $crud->unsetFilters();
         $crud->unsetSettings();
+        $hasTipoEvidenciaField = $db->fieldExists('tipo_evidencia', 'tra_evidencias');
+
         $crud->setTable('tra_evidencias');
         $crud->setSubject('Bitacora', 'Bitacora');
         $crud->defaultOrdering('tra_evidencias.created_at', 'desc');
@@ -1661,6 +1671,12 @@ class Proceso extends BaseController
         $crud->where([
             'folio_tramite' => $folio_tramite
         ]);   
+
+        if ($hasTipoEvidenciaField) {
+            $crud->where([
+                'tipo_evidencia' => 1,
+            ]);
+        }
 
         $crud->callbackAfterInsert(function ($stateParameters)  use ($self) {
             if (is_object($stateParameters) && property_exists($stateParameters, 'insertId')) {
