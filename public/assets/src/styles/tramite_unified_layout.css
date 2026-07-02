@@ -1,0 +1,1560 @@
+/**
+ * Tramite Unified Layout (TUL)
+ * Estilos dedicados para la vista unificada de trámite.
+ * Todos los selectores usan el prefijo tul- para evitar conflictos con estilos globales.
+ * Se usa .tul-container como selector padre para ganar especificidad contra Bootstrap.
+ */
+
+/* ============================================================
+   FLOATING MENU OVERRIDE
+   When .tul-no-floating-menu is on <body>, convert the fixed/sticky
+   header to static so it does not overlap the content.
+   ============================================================ */
+
+body.tul-no-floating-menu .header {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+}
+
+body.tul-no-floating-menu .left-side-bar {
+    position: static !important;
+    top: auto !important;
+}
+
+body.tul-no-floating-menu .mobile-menu-overlay {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+body.tul-no-floating-menu .main-container {
+    padding-top: 0 !important;
+}
+
+/* ============================================================
+   BASE LAYOUT
+   ============================================================ */
+
+.tul-container {
+    max-width: 100%;
+    padding: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    box-sizing: border-box;
+}
+
+.tul-container *,
+.tul-container *::before,
+.tul-container *::after {
+    box-sizing: border-box;
+}
+
+/* ============================================================
+   STEP ROW
+   ============================================================ */
+
+.tul-container .tul-step-row {
+    margin-bottom: 12px;
+    border-left: 4px solid;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+.tul-container .tul-step-row__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.tul-container .tul-step-row__title {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* === Color Accents per Step === */
+.tul-container .tul-step-row--1 { border-left-color: #123b66; background-color: #eef5ff; }
+.tul-container .tul-step-row--2 { border-left-color: #1d5f8f; background-color: #f0f7ff; }
+.tul-container .tul-step-row--3 { border-left-color: #2878b0; background-color: #f3f9ff; }
+.tul-container .tul-step-row--4 { border-left-color: #0f766e; background-color: #edfaf7; }
+.tul-container .tul-step-row--5 { border-left-color: #0d9488; background-color: #e8f9f8; }
+
+/* ============================================================
+   THREE-RAIL GRID
+   ============================================================ */
+
+.tul-container .tul-three-rail {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+}
+
+/* === Rail base === */
+.tul-container .tul-rail {
+    min-width: 0;
+    padding: 4px;
+    overflow: hidden;
+}
+
+.tul-container .tul-rail--form {
+    /* Carril izquierdo: formulario */
+}
+
+.tul-container .tul-rail--docs {
+    /* Carril centro: documentos */
+}
+
+.tul-container .tul-rail--notes {
+    /* Carril derecho: notas/bitácora */
+}
+
+/* ============================================================
+   PHASE DIVIDER
+   ============================================================ */
+
+.tul-container .tul-phase-divider {
+    border-top: 2px solid #d1d5db;
+    margin: 16px 0;
+    padding-top: 8px;
+    text-align: center;
+}
+
+.tul-container .tul-phase-divider__label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+}
+
+/* ============================================================
+   ACCORDION
+   ============================================================ */
+
+.tul-container .tul-accordion__trigger {
+    cursor: pointer;
+    user-select: none;
+}
+
+.tul-container .tul-accordion__body {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 300ms ease;
+}
+
+.tul-container .tul-accordion.is-expanded .tul-accordion__body {
+    max-height: 2000px;
+}
+
+.tul-container .tul-accordion__icon {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #374151;
+    transition: transform 300ms ease;
+}
+
+.tul-container .tul-accordion.is-expanded .tul-accordion__icon {
+    transform: rotate(180deg);
+}
+
+/* ============================================================
+   COMPACT TYPOGRAPHY
+   ============================================================ */
+
+.tul-container .tul-rail label {
+    font-size: 11px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    display: block;
+    color: #374151;
+}
+
+.tul-container .tul-rail input,
+.tul-container .tul-rail select,
+.tul-container .tul-rail textarea {
+    font-size: 13px !important;
+    padding: 6px 10px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    line-height: 1.5 !important;
+    background-color: #fff !important;
+    color: #1f2937 !important;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    height: auto !important;
+    box-shadow: none !important;
+}
+
+.tul-container .tul-rail input:focus,
+.tul-container .tul-rail select:focus,
+.tul-container .tul-rail textarea:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12) !important;
+}
+
+.tul-container .tul-rail select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    padding-right: 28px !important;
+}
+
+.tul-container .tul-rail input:disabled,
+.tul-container .tul-rail select:disabled,
+.tul-container .tul-rail textarea:disabled {
+    background-color: #f3f4f6 !important;
+    color: #6b7280 !important;
+    cursor: not-allowed !important;
+    opacity: 1 !important;
+    border-color: #e5e7eb !important;
+}
+
+.tul-container .tul-rail textarea {
+    resize: vertical;
+    min-height: 56px;
+}
+
+/* ============================================================
+   READONLY BADGE
+   ============================================================ */
+
+.tul-readonly-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #92400e;
+    background-color: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 3px;
+    padding: 2px 6px;
+}
+
+/* ============================================================
+   BLOCKED NOTICE
+   ============================================================ */
+
+.tul-blocked-notice {
+    font-size: 11px;
+    color: #991b1b;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 3px;
+    padding: 4px 8px;
+    margin-bottom: 8px;
+}
+
+/* ============================================================
+   LOADING BUTTON STATE
+   ============================================================ */
+
+.tul-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.tul-loading::after {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-left: 6px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: tul-spin 0.6s linear infinite;
+    vertical-align: middle;
+}
+
+@keyframes tul-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   NOTIFICATION CONTAINER
+   ============================================================ */
+
+.tul-notify {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 9999;
+    max-width: 320px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    opacity: 1;
+    transition: opacity 300ms ease;
+}
+
+.tul-notify--success {
+    color: #065f46;
+    background-color: #d1fae5;
+    border: 1px solid #6ee7b7;
+}
+
+.tul-notify--error {
+    color: #991b1b;
+    background-color: #fee2e2;
+    border: 1px solid #fca5a5;
+}
+
+.tul-notify.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.tul-container .tul-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 7px 14px !important;
+    cursor: pointer !important;
+    transition: background-color 150ms ease, transform 100ms ease, box-shadow 150ms ease;
+    text-decoration: none !important;
+    line-height: 1.4 !important;
+    letter-spacing: 0.01em;
+    color: #fff !important;
+}
+
+.tul-container .tul-btn:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.tul-container .tul-btn:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    transform: none;
+}
+
+.tul-container .tul-btn--primary {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
+}
+
+.tul-container .tul-btn--primary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4) !important;
+}
+
+.tul-container .tul-btn--danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    box-shadow: 0 1px 3px rgba(220, 38, 38, 0.3) !important;
+}
+
+.tul-container .tul-btn--danger:hover:not(:disabled) {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%) !important;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4) !important;
+}
+
+.tul-container .tul-btn--small,
+.tul-container .tul-btn--sm {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+    border-radius: 5px !important;
+}
+
+.tul-container .tul-btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+/* ============================================================
+   FIELD GRID & FIELDS
+   ============================================================ */
+
+.tul-container .tul-field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+@media (max-width: 991px) {
+    .tul-container .tul-three-rail {
+        grid-template-columns: 1fr !important;
+    }
+    .tul-container .tul-field-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tul-container .tul-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 4px;
+}
+
+.tul-container .tul-field--wide {
+    grid-column: 1 / -1;
+}
+
+.tul-container .tul-field--urgent label {
+    color: #dc2626;
+}
+
+.tul-container .tul-field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+@media (max-width: 991px) {
+    .tul-container .tul-field-group {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tul-container .tul-field-help {
+    font-size: 10px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.tul-container .tul-field-warning {
+    font-size: 10px;
+    color: #dc2626;
+    margin-top: 2px;
+}
+
+.tul-container .tul-fieldset {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    background-color: #fafbfc;
+}
+
+.tul-container .tul-fieldset__legend {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 0 6px;
+    color: #374151;
+}
+
+.tul-container .tul-label {
+    font-size: 11px;
+    font-weight: 500;
+    margin-bottom: 3px;
+    display: block;
+    color: #374151;
+}
+
+/* ============================================================
+   DROPZONE
+   ============================================================ */
+
+.tul-container .tul-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 16px 12px;
+    margin-bottom: 10px;
+    text-align: center;
+    transition: border-color 200ms ease, background-color 200ms ease;
+    background-color: #f8fafc;
+    position: relative;
+    cursor: pointer;
+}
+
+.tul-container .tul-dropzone:hover {
+    border-color: #2563eb;
+    background-color: #eff6ff;
+}
+
+.tul-container .tul-dropzone.is-dragover {
+    border-color: #2563eb;
+    background-color: #dbeafe;
+}
+
+.tul-container .tul-dropzone__input {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0 !important;
+    cursor: pointer !important;
+    z-index: 2;
+}
+
+.tul-container .tul-dropzone__area {
+    padding: 12px 8px;
+    position: relative;
+}
+
+.tul-container .tul-dropzone__area .tul-dropzone__input {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0 !important;
+    cursor: pointer !important;
+}
+
+.tul-container .tul-dropzone__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    pointer-events: none;
+}
+
+.tul-container .tul-dropzone__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.tul-container .tul-dropzone__hint {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.tul-container .tul-dropzone::before {
+    content: '📁';
+    display: block;
+    font-size: 24px;
+    margin-bottom: 4px;
+    opacity: 0.6;
+}
+
+.tul-container .tul-dropzone__meta {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.tul-container .tul-dropzone__progress {
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #2563eb;
+    background-color: #dbeafe;
+    border-radius: 4px;
+    padding: 3px 8px;
+    display: inline-block;
+}
+
+/* ============================================================
+   GALLERY
+   ============================================================ */
+
+.tul-container .tul-gallery {
+    margin-top: 10px;
+}
+
+.tul-container .tul-gallery__title {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #374151;
+}
+
+.tul-container .tul-gallery__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    background-color: #fff;
+    transition: box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.tul-container .tul-gallery__item:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.tul-container .tul-gallery__item-preview {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+    border: 1px solid #e5e7eb;
+}
+
+.tul-container .tul-gallery__item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+
+.tul-container .tul-gallery__item-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1f2937;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tul-container .tul-gallery__item-link {
+    font-size: 11px;
+    color: #2563eb;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 400;
+}
+
+.tul-container .tul-gallery__item-link:hover {
+    text-decoration: underline;
+    color: #1d4ed8;
+}
+
+.tul-container .tul-gallery__item-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tul-container .tul-gallery__item-meta {
+    font-size: 10px;
+    color: #6b7280;
+    font-weight: 400;
+}
+
+.tul-container .tul-gallery__thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+    border: 1px solid #e5e7eb;
+}
+
+.tul-container .tul-gallery__filename {
+    font-size: 12px;
+    color: #374151;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tul-container .tul-gallery__empty {
+    font-size: 11px;
+    color: #9ca3af;
+    padding: 12px 8px;
+    text-align: center;
+    background-color: #f9fafb;
+    border-radius: 6px;
+    border: 1px dashed #e5e7eb;
+}
+
+/* ============================================================
+   NOTES PANEL (Steps 4 & 5)
+   ============================================================ */
+
+.tul-notes-panel__title {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+}
+
+.tul-notes-panel__input {
+    width: 100%;
+    min-height: 48px;
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 3px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.tul-notes-panel__list {
+    margin-top: 8px;
+}
+
+.tul-notes-panel__empty {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 6px;
+}
+
+.tul-note-item {
+    padding: 4px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.tul-note-item:last-child {
+    border-bottom: none;
+}
+
+.tul-note-item__meta {
+    font-size: 10px;
+    color: #6b7280;
+}
+
+.tul-note-item__body {
+    font-size: 12px;
+    color: #1f2937;
+    margin: 2px 0 0 0;
+}
+
+/* ============================================================
+   NOTES FORM (shared step 1/3)
+   ============================================================ */
+
+.tul-notes-form {
+    margin-bottom: 8px;
+}
+
+.tul-notes-list__item {
+    padding: 4px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.tul-notes-list__item:last-child {
+    border-bottom: none;
+}
+
+.tul-notes-list__meta {
+    font-size: 10px;
+    color: #6b7280;
+}
+
+.tul-notes-list__text {
+    font-size: 12px;
+    color: #1f2937;
+    margin: 2px 0 0 0;
+}
+
+/* ============================================================
+   COSTS PANEL (Step 4)
+   ============================================================ */
+
+.tul-costs-panel {
+    margin-top: 12px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 8px;
+}
+
+.tul-costs-panel__title {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+}
+
+.tul-costs-panel__list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tul-costs-panel__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid #d1d5db;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ============================================================
+   FORM FEEDBACK
+   ============================================================ */
+
+.tul-form-feedback {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    margin-top: 6px;
+}
+
+.tul-form-feedback--success {
+    color: #065f46;
+    background-color: #d1fae5;
+}
+
+.tul-form-feedback--error {
+    color: #991b1b;
+    background-color: #fee2e2;
+}
+
+/* ============================================================
+   INLINE NOTE (loading state)
+   ============================================================ */
+
+.tul-inline-note {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+/* ============================================================
+   RAIL EMPTY STATE
+   ============================================================ */
+
+.tul-rail__empty {
+    font-size: 12px;
+    color: #6b7280;
+    padding: 8px;
+}
+
+/* ============================================================
+   STATUS INDICATORS (Step 3)
+   ============================================================ */
+
+.tul-status-indicators__title {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+}
+
+.tul-status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+}
+
+.tul-status-item__icon {
+    font-size: 14px;
+}
+
+.tul-status-item--done .tul-status-item__icon {
+    color: #059669;
+}
+
+.tul-status-item--pending .tul-status-item__icon {
+    color: #d97706;
+}
+
+.tul-status-item__label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.tul-status-item__value {
+    font-size: 11px;
+    color: #6b7280;
+    margin-left: auto;
+}
+
+/* ============================================================
+   GATE BADGE (Step 3)
+   ============================================================ */
+
+.tul-gate-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 3px;
+    margin-top: 8px;
+}
+
+.tul-gate-badge--complete {
+    color: #065f46;
+    background-color: #d1fae5;
+    border: 1px solid #6ee7b7;
+}
+
+.tul-gate-badge--pending {
+    color: #92400e;
+    background-color: #fef3c7;
+    border: 1px solid #fcd34d;
+}
+
+/* ============================================================
+   NOTES (Step 1/3 bitácora with BEM __notation)
+   ============================================================ */
+
+.tul-notes__title {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+    color: #374151;
+}
+
+.tul-notes__compose {
+    margin-bottom: 8px;
+}
+
+.tul-notes__input {
+    width: 100%;
+    min-height: 48px;
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 3px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.tul-notes__list {
+    max-height: 240px;
+    overflow-y: auto;
+    margin-top: 8px;
+}
+
+.tul-notes__item {
+    padding: 4px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.tul-notes__item:last-child {
+    border-bottom: none;
+}
+
+.tul-notes__item-meta {
+    font-size: 10px;
+    color: #6b7280;
+    display: block;
+    margin-bottom: 1px;
+}
+
+.tul-notes__item-body {
+    font-size: 12px;
+    color: #1f2937;
+    display: block;
+    line-height: 1.3;
+}
+
+.tul-notes__empty {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 6px;
+}
+
+/* ============================================================
+   BUTTON SIZE MODIFIER
+   ============================================================ */
+
+.tul-btn--sm {
+    font-size: 11px;
+    padding: 2px 6px;
+}
+
+/* ============================================================
+   RAIL TITLE & INFO (used in step 2 right rail)
+   ============================================================ */
+
+.tul-rail__title {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+    color: #374151;
+}
+
+.tul-rail__info {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+/* ============================================================
+   APPROVAL FORM (Step 2)
+   ============================================================ */
+
+.tul-approval-form {
+    margin-bottom: 8px;
+}
+
+.tul-approval-form__message {
+    font-size: 12px;
+    color: #374151;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+/* ============================================================
+   VIGENCIA ALERT (Step 2 right rail)
+   ============================================================ */
+
+.tul-vigencia-alert {
+    margin-top: 12px;
+    padding: 6px 8px;
+    border-radius: 3px;
+    border: 1px solid #fcd34d;
+    background-color: #fef3c7;
+}
+
+.tul-vigencia-alert--urgent {
+    border-color: #fca5a5;
+    background-color: #fee2e2;
+}
+
+.tul-vigencia-alert__title {
+    font-size: 11px;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+    color: #92400e;
+}
+
+.tul-vigencia-alert--urgent .tul-vigencia-alert__title {
+    color: #991b1b;
+}
+
+.tul-vigencia-alert__text {
+    font-size: 11px;
+    margin: 0;
+    color: #78350f;
+    line-height: 1.3;
+}
+
+.tul-vigencia-alert--urgent .tul-vigencia-alert__text {
+    color: #7f1d1d;
+}
+
+/* ============================================================
+   BLOCKED NOTICE (subtle variant)
+   ============================================================ */
+
+.tul-blocked-notice--subtle {
+    background-color: #f9fafb;
+    border-color: #e5e7eb;
+    color: #6b7280;
+}
+
+/* ============================================================
+   INPUT BASE (shared)
+   ============================================================ */
+
+.tul-container .tul-input {
+    font-size: 13px;
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tul-input:disabled {
+    background-color: #f3f4f6;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+   SELECT2 (searchable selects within the unified layout)
+   ============================================================ */
+
+.tul-container .select2-container {
+    width: 100% !important;
+}
+
+.tul-container .select2-container .select2-selection--single {
+    height: 32px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    background-color: #fff;
+}
+
+.tul-container .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 30px !important;
+    font-size: 13px !important;
+    color: #1f2937;
+    padding-left: 10px;
+    padding-right: 24px;
+}
+
+.tul-container .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 30px !important;
+}
+
+.tul-container .select2-container--default.select2-container--disabled .select2-selection--single {
+    background-color: #f3f4f6 !important;
+}
+
+/* Dropdown shared (not scoped, select2 renders at body level) */
+.select2-dropdown {
+    font-size: 13px;
+}
+
+/* ============================================================
+   STICKY DETAIL BAR
+   ============================================================ */
+
+.tul-detailbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0;
+    background: linear-gradient(135deg, #123b66 0%, #1d5f8f 100%);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.18);
+    margin: 0 8px 12px 8px;
+    box-sizing: border-box;
+}
+
+.tul-detailbar__item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2px 16px;
+    min-width: 0;
+    flex: 1 1 0;
+    overflow: hidden;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.tul-detailbar__item:last-child {
+    border-right: none;
+}
+
+.tul-detailbar__label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.65);
+    margin-bottom: 1px;
+    white-space: nowrap;
+}
+
+.tul-detailbar__value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tul-detailbar__value--status {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 4px;
+    padding: 1px 8px;
+    font-size: 11px;
+    align-self: flex-start;
+}
+
+@media (max-width: 991px) {
+    .tul-detailbar {
+        gap: 6px;
+    }
+    .tul-detailbar__item {
+        flex: 1 1 40%;
+        border-right: none;
+        padding: 2px 8px;
+    }
+}
+
+/* ============================================================
+   SERVICE COMPOSITION (Step 1: principal + asociados)
+   ============================================================ */
+
+.tul-container .tul-services {
+    margin-top: 12px;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #fafbfc;
+}
+
+.tul-container .tul-services__title {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #374151;
+}
+
+.tul-container .tul-services__sublabel {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+    margin: 6px 0 4px;
+}
+
+.tul-container .tul-services__principal-name {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #123b66;
+    background: #eef5ff;
+    border-radius: 4px;
+    padding: 3px 8px;
+}
+
+.tul-container .tul-services__row,
+.tul-container .tul-services__add {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.tul-container .tul-services__row .tul-services__select,
+.tul-container .tul-services__add .tul-services__select {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.tul-container .tul-services__list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+
+.tul-container .tul-services__item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background-color: #fff;
+}
+
+.tul-container .tul-services__item .tul-services__select {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.tul-container .tul-services__item-name {
+    flex: 1 1 auto;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tul-container .tul-services__empty {
+    font-size: 11px;
+    color: #9ca3af;
+    margin: 2px 0;
+}
+
+/* ============================================================
+   PROGRESSIVE DISCLOSURE / LOCKED SECTIONS
+   ============================================================ */
+
+.tul-container .tul-step-row--locked {
+    opacity: 0.85;
+}
+
+.tul-container .tul-step-row--locked .tul-step-row__title {
+    color: #6b7280;
+}
+
+.tul-container .tul-lock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    background-color: #e5e7eb;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 2px 8px;
+}
+
+.tul-container .tul-lock-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    background: repeating-linear-gradient(
+        45deg,
+        #f9fafb,
+        #f9fafb 10px,
+        #f3f4f6 10px,
+        #f3f4f6 20px
+    );
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    color: #6b7280;
+}
+
+.tul-container .tul-lock-notice__icon {
+    font-size: 20px;
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+
+.tul-container .tul-lock-notice__text {
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* === Phase progress dots in detail bar === */
+.tul-detailbar__value--phase {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.tul-phase-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.3);
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.tul-phase-dot.is-active {
+    background-color: #34d399;
+    box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.25);
+}
+
+/* ============================================================
+   APPROVAL CARD (Step 2 right rail)
+   ============================================================ */
+
+.tul-container .tul-approval-card {
+    border: 1px solid #6ee7b7;
+    border-radius: 10px;
+    padding: 14px;
+    background: linear-gradient(160deg, #ecfdf5 0%, #d1fae5 100%);
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15);
+}
+
+.tul-container .tul-approval-card__head {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.tul-container .tul-approval-card__icon {
+    font-size: 22px;
+    color: #059669;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.tul-container .tul-approval-card__title {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0 0 2px 0;
+    color: #065f46;
+}
+
+.tul-container .tul-approval-card__copy {
+    font-size: 11px;
+    line-height: 1.4;
+    margin: 0;
+    color: #047857;
+}
+
+.tul-container .tul-btn--approve {
+    width: 100%;
+    color: #fff;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 11px 16px;
+    border-radius: 8px;
+    letter-spacing: 0.02em;
+}
+
+.tul-container .tul-btn--approve:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.5);
+}
+
+.tul-container .tul-approval-status {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.tul-container .tul-approval-status--done {
+    background-color: #ecfdf5;
+    border: 1px solid #a7f3d0;
+}
+
+.tul-container .tul-approval-status__icon {
+    font-size: 20px;
+    color: #059669;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   STEP 4 — SALDO A FAVOR (visual calc)
+   ============================================================ */
+
+.tul-container .tul-step4-saldo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid transparent;
+    line-height: 1.3;
+}
+
+.tul-container .tul-step4-saldo::before {
+    font-size: 16px;
+}
+
+/* Saldo a favor del gestor (SGL debe pagar) — ámbar */
+.tul-container .tul-step4-saldo.is-gestor {
+    background: rgba(221, 153, 24, 0.14);
+    border-color: rgba(221, 153, 24, 0.35);
+    color: #92600a;
+}
+.tul-container .tul-step4-saldo.is-gestor::before { content: '⚠️'; }
+
+/* Saldo a favor de la empresa (gestor debe devolver) — azul */
+.tul-container .tul-step4-saldo.is-sgl {
+    background: rgba(40, 118, 199, 0.14);
+    border-color: rgba(40, 118, 199, 0.35);
+    color: #1d5f8f;
+}
+.tul-container .tul-step4-saldo.is-sgl::before { content: '↩️'; }
+
+/* Sin saldo pendiente — verde */
+.tul-container .tul-step4-saldo.is-even {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #047857;
+}
+.tul-container .tul-step4-saldo.is-even::before { content: '✅'; }
+
+.tul-container .tul-step4-breakdown {
+    margin-top: 6px;
+    font-size: 10px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+/* Campos calculados (readonly) resaltados */
+.tul-container .tul-rail input[data-tul-step4-out] {
+    background-color: #f8fafc;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+/* ============================================================
+   STEP 4 — COST ROWS (montos por servicio asociado)
+   ============================================================ */
+
+.tul-container .tul-rail .tul-cost-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background-color: #fff;
+    margin-bottom: 6px;
+    flex-wrap: nowrap;
+}
+
+.tul-container .tul-rail .tul-cost-row__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.tul-container .tul-rail .tul-cost-row__title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1f2937;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.tul-container .tul-rail .tul-cost-row__sub {
+    font-size: 10px;
+    color: #9ca3af;
+    white-space: nowrap;
+}
+
+.tul-container .tul-rail .tul-cost-row__input {
+    width: 110px !important;
+    flex: 0 0 110px;
+    text-align: right;
+}
+
+.tul-container .tul-rail .tul-cost-row .tul-btn {
+    flex: 0 0 auto;
+}
+
+/* ============================================================
+   STEP 4 — COSTS PANEL header/hint
+   ============================================================ */
+
+.tul-container .tul-costs-panel__hint {
+    font-size: 10px;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+}
+
+.tul-container .tul-costs-panel__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 8px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #9ca3af;
+}
+
+.tul-container .tul-costs-panel__header span:last-child {
+    width: 110px;
+    text-align: right;
+    flex: 0 0 auto;
+}

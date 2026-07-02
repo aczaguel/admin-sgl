@@ -37,6 +37,12 @@ class Tramitesn extends Tramites
     private const PROTOTYPE_STEP5_NOTE_ORIGIN = 'cliente';
     private const PROTOTYPE_STEP5_NOTE_FIELD = 'Nota paso 5';
 
+    /**
+     * Flag to indicate that the unified layout view should be rendered
+     * instead of the legacy prototipo layout.
+     */
+    protected bool $_unifiedLayoutMode = false;
+
     private function traEvidenciasSupportsTipo(): bool
     {
         static $supportsTipo = null;
@@ -3920,7 +3926,7 @@ class Tramitesn extends Tramites
             }
         }
 
-        return view('deskapp/extra-pages/tramites_layout_prototipo', [
+        $viewData = [
             'title' => 'SGL - Detalle de Tramites',
             'activeStep' => $activeStep,
             'prototypeTramiteId' => $prototypeTramiteId,
@@ -3936,7 +3942,14 @@ class Tramitesn extends Tramites
             'prototypeStep4NotesForm' => $prototypeStep4NotesForm,
             'prototypeStep5NotesForm' => $prototypeStep5NotesForm,
             'prototypeEvidenceForm' => $prototypeEvidenceForm,
-        ]);
+        ];
+
+        if ($this->_unifiedLayoutMode) {
+            $this->_unifiedLayoutMode = false;
+            return view('deskapp/tramite_unified/index', ['viewData' => $viewData]);
+        }
+
+        return view('deskapp/extra-pages/tramites_layout_prototipo', $viewData);
     }
 
     public function prototipo_layout_paso_1()
@@ -3962,6 +3975,17 @@ class Tramitesn extends Tramites
     public function prototipo_layout_paso_5()
     {
         return $this->prototipo_layout(5);
+    }
+
+    /**
+     * Unified layout view — renders the same tramite data using
+     * the new decomposed partial-based layout (5 rows × 3 rails).
+     * Reuses all data-loading logic from prototipo_layout().
+     */
+    public function unified_layout()
+    {
+        $this->_unifiedLayoutMode = true;
+        return $this->prototipo_layout(null);
     }
 
     public function upload_step1_doc($tramiteId = null)

@@ -318,6 +318,7 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 	$routes->get('tramitesn/prototipo-layout/paso-4', 'Tramitesn::prototipo_layout_paso_4');
 	$routes->get('tramitesn/prototipo-layout/paso-5', 'Tramitesn::prototipo_layout_paso_5');
 	$routes->get('tramitesn/prototipo-layout/paso/(:num)', 'Tramitesn::prototipo_layout/$1');
+	$routes->get('tramitesn/unified-layout', 'Tramitesn::unified_layout');
 	$routes->get('tramitesn/search', 'Tramitesn::search');
 	$routes->post('tramitesn/search', 'Tramitesn::search');
 	$routes->get('tramitesn/cobro_cliente', 'Tramitesn::cobro_cliente');
