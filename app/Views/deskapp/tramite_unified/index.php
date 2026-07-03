@@ -24,7 +24,7 @@
 <meta name="csrf-token-name" content="<?= csrf_token() ?>">
 <meta name="csrf-token-hash" content="<?= csrf_hash() ?>">
 
-<link rel="stylesheet" href="<?= base_url('/public/assets/src/styles/tramite_unified_layout.css') ?>?v=20250619q">
+<link rel="stylesheet" href="<?= base_url('/public/assets/src/styles/tramite_unified_layout.css') ?>?v=20250619y">
 
 <?php
 $tul_t = $viewData['prototypeReadOnlyTramite'] ?? null;
@@ -83,6 +83,16 @@ if ($tul_gateFinanciera) {
     $tul_faseActual = 1;
     $tul_faseLabel = 'Operación base';
 }
+
+// --- Acciones globales: Cancelar / Concluir ---
+if (!function_exists('has_permission')) {
+    helper('permissions');
+}
+$tul_perms = session()->get('user_permissions');
+$tul_roles = session()->get('user_roles');
+$tul_isLockedTramite = in_array($tul_traStatusId, [20, 21], true);
+$tul_canCancel = has_permission('important_cancelar_tramite', $tul_perms, $tul_roles) && !$tul_isLockedTramite;
+$tul_canConclude = has_permission('important_concluir_tramite', $tul_perms, $tul_roles) && $tul_traStatusId === 28;
 ?>
 
 <div class="tul-detailbar" data-tul-detailbar>
@@ -139,8 +149,37 @@ if ($tul_gateFinanciera) {
     <!-- Fase Financiera: Pasos 4-5 (colapsados en acordeón) -->
     <?= view('deskapp/tramite_unified/_step4_row', $viewData) ?>
     <?= view('deskapp/tramite_unified/_step5_row', $viewData) ?>
+
+    <?php if ($tul_canCancel || $tul_canConclude): ?>
+        <div class="tul-actions-bar">
+            <div class="tul-actions-bar__info">
+                <span class="tul-actions-bar__label">Acciones del trámite</span>
+                <span class="tul-actions-bar__hint">Estas acciones cambian el estatus final del expediente.</span>
+            </div>
+            <div class="tul-actions-bar__buttons">
+                <?php if ($tul_canCancel): ?>
+                    <button type="button"
+                            class="tul-btn tul-btn--danger"
+                            data-tul-cancel-tramite
+                            data-tul-tramite-id="<?= (int) $tul_id ?>"
+                            data-tul-url="<?= base_url('/deskapp/tramites/cancelar_tramite') ?>">
+                        Cancelar Trámite
+                    </button>
+                <?php endif; ?>
+                <?php if ($tul_canConclude): ?>
+                    <button type="button"
+                            class="tul-btn tul-btn--approve"
+                            data-tul-conclude-tramite
+                            data-tul-tramite-id="<?= (int) $tul_id ?>"
+                            data-tul-url="<?= base_url('/deskapp/tramites/autorizar') ?>">
+                        Concluir Trámite
+                    </button>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 
-<script src="<?= base_url('/public/assets/src/js/tramite_unified.js') ?>?v=20250619n"></script>
+<script src="<?= base_url('/public/assets/src/js/tramite_unified.js') ?>?v=20250619q"></script>
 
 <?= $this->endSection() ?>

@@ -128,7 +128,7 @@ $notesUrl      = '/deskapp/tramitesn/prototype_step4_notes_add/' . $tramiteId;
                         </div>
 
                         <div class="tul-field">
-                            <label for="tul_step4_col_a_favor">Saldo a favor</label>
+                            <label for="tul_step4_col_a_favor">Saldo pendiente</label>
                             <input
                                 type="number"
                                 step="0.01"

@@ -25,6 +25,123 @@
             this.bindServices();
             this.bindStep4Finance();
             this.bindStep4Costs();
+            this.bindStep5Finance();
+            this.bindTramiteActions();
+        },
+
+        // ------------------------------------------------------------------
+        // Global tramite actions: Cancelar / Concluir
+        // ------------------------------------------------------------------
+
+        /**
+         * Binds the Cancelar and Concluir buttons.
+         *  - Cancelar → cancelar_tramite (tramite_id, motivo, status_id=21)
+         *  - Concluir → autorizar (tramite_id, status_id=20)
+         * Both reload on success so the gates and readonly states re-evaluate.
+         */
+        bindTramiteActions: function() {
+            var self = this;
+
+            var cancelBtn = document.querySelector('[data-tul-cancel-tramite]');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function() {
+                    var motivo = window.prompt('Motivo de cancelación del trámite:');
+                    if (motivo === null) return; // canceló el prompt
+                    motivo = String(motivo).trim();
+                    if (motivo === '') {
+                        self.notify('error', 'Debes indicar un motivo para cancelar el trámite.');
+                        return;
+                    }
+                    var data = new FormData();
+                    self.appendCsrf(data);
+                    data.append('tramite_id', cancelBtn.getAttribute('data-tul-tramite-id'));
+                    data.append('motivo', motivo);
+                    data.append('status_id', '21');
+                    self.runTramiteAction(cancelBtn, cancelBtn.getAttribute('data-tul-url'), data, 'Trámite cancelado.');
+                });
+            }
+
+            var concludeBtn = document.querySelector('[data-tul-conclude-tramite]');
+            if (concludeBtn) {
+                concludeBtn.addEventListener('click', function() {
+                    if (!window.confirm('¿Concluir este trámite? Esta acción cierra el expediente.')) return;
+                    var data = new FormData();
+                    self.appendCsrf(data);
+                    data.append('tramite_id', concludeBtn.getAttribute('data-tul-tramite-id'));
+                    data.append('status_id', '20');
+                    self.runTramiteAction(concludeBtn, concludeBtn.getAttribute('data-tul-url'), data, 'Trámite concluido.');
+                });
+            }
+        },
+
+        /**
+         * Executes a global tramite status action and reloads on success.
+         */
+        runTramiteAction: function(btn, url, data, okMessage) {
+            var self = this;
+            if (!url) return;
+            btn.disabled = true;
+            btn.classList.add('tul-loading');
+
+            this.ajax('POST', url, data, {
+                onSuccess: function(xhr) {
+                    var json = null;
+                    try { json = JSON.parse(xhr.responseText); } catch (e) { json = null; }
+                    if (json && json.success === false) {
+                        btn.disabled = false;
+                        btn.classList.remove('tul-loading');
+                        self.notify('error', json.message || 'No se pudo completar la acción.');
+                        return;
+                    }
+                    self.notify('success', (json && json.message) ? json.message : okMessage);
+                    setTimeout(function() { window.location.reload(); }, 800);
+                },
+                onError: function(xhr) {
+                    self.handleError(xhr, { btn: btn });
+                }
+            });
+        },
+
+        // ------------------------------------------------------------------
+        // Step 5 finance live calculation (Costo total)
+        // ------------------------------------------------------------------
+
+        /**
+         * Live-computes the client billing total:
+         *   Costo total = Sumatoria de derechos + Honorarios + Comisión + IVA
+         */
+        bindStep5Finance: function() {
+            var form = document.querySelector('[data-tul-step5-finance]');
+            if (!form) return;
+
+            var getVal = function(name) {
+                var el = form.querySelector('[name="' + name + '"]');
+                return el ? (parseFloat(el.value) || 0) : 0;
+            };
+
+            var totalOut = form.querySelector('[name="costo_total"]');
+
+            var recompute = function() {
+                var derechos = getVal('costo_gestoria');
+                var honorarios = getVal('costo_pago_cliente');
+                var comision = getVal('comision_derechos');
+                var iva = getVal('iva');
+                var total = derechos + honorarios + comision + iva;
+                if (totalOut) {
+                    totalOut.value = total.toFixed(2);
+                }
+            };
+
+            var drivers = ['costo_gestoria', 'costo_pago_cliente', 'comision_derechos', 'iva'];
+            for (var i = 0; i < drivers.length; i++) {
+                var el = form.querySelector('[name="' + drivers[i] + '"]');
+                if (el) {
+                    el.addEventListener('input', recompute);
+                    el.addEventListener('change', recompute);
+                }
+            }
+
+            recompute();
         },
 
         // ------------------------------------------------------------------
@@ -112,13 +229,32 @@
                     input.addEventListener('input', recomputeTotal);
                     wrap.appendChild(input);
 
+                    // Persistent "saved" checkmark: visible when the row already
+                    // has a stored cost, and after a successful save.
+                    var check = document.createElement('span');
+                    check.className = 'tul-cost-row__check';
+                    check.setAttribute('data-tul-cost-check', '');
+                    check.setAttribute('title', 'Costo guardado');
+                    check.innerHTML = '<i class="icon-check"></i>';
+                    var hasSavedValue = row.costo_tramite !== null
+                        && row.costo_tramite !== undefined
+                        && String(row.costo_tramite).trim() !== '';
+                    if (!hasSavedValue) check.classList.add('is-hidden');
+                    wrap.appendChild(check);
+
                     if (!readonly) {
+                        // Hide the checkmark while the value is being edited
+                        // (out of sync with the server until re-saved).
+                        input.addEventListener('input', function() {
+                            check.classList.add('is-hidden');
+                        });
+
                         var btn = document.createElement('button');
                         btn.type = 'button';
                         btn.className = 'tul-btn tul-btn--primary tul-btn--sm';
                         btn.textContent = 'Guardar';
                         btn.addEventListener('click', function() {
-                            self.saveCostRow(updateUrl, row.id, input, btn);
+                            self.saveCostRow(updateUrl, row.id, input, btn, check);
                         });
                         wrap.appendChild(btn);
                     }
@@ -145,7 +281,7 @@
         /**
          * Persists a single service cost row.
          */
-        saveCostRow: function(updateUrl, id, input, btn) {
+        saveCostRow: function(updateUrl, id, input, btn, check) {
             var self = this;
             btn.disabled = true;
             btn.classList.add('tul-loading');
@@ -166,6 +302,8 @@
                         return;
                     }
                     self.notify('success', json.message || 'Costo actualizado.');
+                    // Reveal the persistent "saved" checkmark for this row.
+                    if (check) check.classList.remove('is-hidden');
                 },
                 onError: function(xhr) {
                     self.handleError(xhr, { btn: btn });

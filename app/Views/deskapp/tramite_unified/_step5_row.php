@@ -72,7 +72,7 @@ $notesUrl   = '/deskapp/tramitesn/prototype_step5_notes_add/' . $tramiteId;
                     <div class="tul-blocked-notice"><?= esc($blockedReason) ?></div>
                 <?php endif; ?>
 
-                <form data-tul-save data-tul-step="5" data-tul-url="<?= esc($saveUrl, 'attr') ?>" data-tul-reload<?= !$canEdit ? ' data-tul-readonly' : '' ?>>
+                <form data-tul-save data-tul-step="5" data-tul-url="<?= esc($saveUrl, 'attr') ?>" data-tul-reload data-tul-step5-finance<?= !$canEdit ? ' data-tul-readonly' : '' ?>>
                     <input type="hidden" name="<?= esc($csrfName, 'attr') ?>" value="<?= esc($csrfHash, 'attr') ?>">
                     <input type="hidden" name="costo_gestoria_hidden" value="<?= esc((string) ($values['costo_gestoria_hidden'] ?? ''), 'attr') ?>">
 

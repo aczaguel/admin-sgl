@@ -57,32 +57,116 @@ body.tul-no-floating-menu .main-container {
    ============================================================ */
 
 .tul-container .tul-step-row {
-    margin-bottom: 12px;
-    border-left: 4px solid;
-    border-radius: 4px;
-    padding: 8px 12px;
+    position: relative;
+    margin-bottom: 16px;
+    border: 1px solid #e5e9f0;
+    border-left: 5px solid var(--tul-step-accent, #123b66);
+    border-radius: 10px;
+    padding: 0 14px 14px 14px;
     font-size: 13px;
+    background:
+        linear-gradient(180deg, var(--tul-step-bg, #f4f8ff) 0%, #ffffff 120px);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 16px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+}
+
+/* Banda superior del color del paso */
+.tul-container .tul-step-row::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--tul-step-accent, #123b66);
+    opacity: 0.9;
 }
 
 .tul-container .tul-step-row__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    gap: 10px;
+    margin: 0 -14px 12px -14px;
+    padding: 11px 14px 10px 14px;
+    background: var(--tul-step-band, rgba(18, 59, 102, 0.06));
+    border-bottom: 1px solid var(--tul-step-band-border, rgba(18, 59, 102, 0.12));
 }
 
 .tul-container .tul-step-row__title {
-    font-size: 13px;
-    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
     margin: 0;
+    color: var(--tul-step-accent, #123b66);
 }
 
-/* === Color Accents per Step === */
-.tul-container .tul-step-row--1 { border-left-color: #123b66; background-color: #eef5ff; }
-.tul-container .tul-step-row--2 { border-left-color: #1d5f8f; background-color: #f0f7ff; }
-.tul-container .tul-step-row--3 { border-left-color: #2878b0; background-color: #f3f9ff; }
-.tul-container .tul-step-row--4 { border-left-color: #0f766e; background-color: #edfaf7; }
-.tul-container .tul-step-row--5 { border-left-color: #0d9488; background-color: #e8f9f8; }
+/* Número de paso en círculo (sin tocar el markup) */
+.tul-container .tul-step-row__title::before {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--tul-step-accent, #123b66);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+/* === Paleta corporativa por paso === */
+.tul-container .tul-step-row--1 {
+    --tul-step-accent: #123b66;
+    --tul-step-bg: #eef4fc;
+    --tul-step-band: rgba(18, 59, 102, 0.07);
+    --tul-step-band-border: rgba(18, 59, 102, 0.14);
+}
+.tul-container .tul-step-row--1 .tul-step-row__title::before { content: '1'; }
+
+.tul-container .tul-step-row--2 {
+    --tul-step-accent: #1d5f8f;
+    --tul-step-bg: #eef5fb;
+    --tul-step-band: rgba(29, 95, 143, 0.07);
+    --tul-step-band-border: rgba(29, 95, 143, 0.14);
+}
+.tul-container .tul-step-row--2 .tul-step-row__title::before { content: '2'; }
+
+.tul-container .tul-step-row--3 {
+    --tul-step-accent: #2878b0;
+    --tul-step-bg: #eef6fc;
+    --tul-step-band: rgba(40, 120, 176, 0.07);
+    --tul-step-band-border: rgba(40, 120, 176, 0.14);
+}
+.tul-container .tul-step-row--3 .tul-step-row__title::before { content: '3'; }
+
+.tul-container .tul-step-row--4 {
+    --tul-step-accent: #0f766e;
+    --tul-step-bg: #eef7f5;
+    --tul-step-band: rgba(15, 118, 110, 0.07);
+    --tul-step-band-border: rgba(15, 118, 110, 0.14);
+}
+.tul-container .tul-step-row--4 .tul-step-row__title::before { content: '4'; }
+
+.tul-container .tul-step-row--5 {
+    --tul-step-accent: #4338ca;
+    --tul-step-bg: #f0f0fb;
+    --tul-step-band: rgba(67, 56, 202, 0.07);
+    --tul-step-band-border: rgba(67, 56, 202, 0.15);
+}
+.tul-container .tul-step-row--5 .tul-step-row__title::before { content: '5'; }
+
+/* En acordeones (pasos 4-5) el header es también el trigger: mantener el color de banda */
+.tul-container .tul-step-row.tul-accordion .tul-step-row__header {
+    margin-bottom: 0;
+}
+.tul-container .tul-step-row.tul-accordion.is-expanded .tul-step-row__header {
+    margin-bottom: 12px;
+}
 
 /* ============================================================
    THREE-RAIL GRID
@@ -118,18 +202,31 @@ body.tul-no-floating-menu .main-container {
    ============================================================ */
 
 .tul-container .tul-phase-divider {
-    border-top: 2px solid #d1d5db;
-    margin: 16px 0;
-    padding-top: 8px;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 22px 2px 18px 2px;
+}
+
+.tul-container .tul-phase-divider::before,
+.tul-container .tul-phase-divider::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #cbd5e1, transparent);
 }
 
 .tul-container .tul-phase-divider__label {
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #6b7280;
+    letter-spacing: 0.09em;
+    color: #0f766e;
+    background: rgba(15, 118, 110, 0.08);
+    border: 1px solid rgba(15, 118, 110, 0.18);
+    border-radius: 999px;
+    padding: 5px 16px;
+    white-space: nowrap;
 }
 
 /* ============================================================
@@ -1530,6 +1627,38 @@ body.tul-no-floating-menu .main-container {
     flex: 0 0 auto;
 }
 
+/* Persistent "saved" checkmark next to each cost row */
+.tul-container .tul-rail .tul-cost-row__check {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: #16a34a;
+    color: #fff;
+    font-size: 13px;
+    line-height: 1;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.tul-container .tul-rail .tul-cost-row__check::before {
+    content: "\2714"; /* heavy check mark, fallback if icon font missing */
+}
+
+.tul-container .tul-rail .tul-cost-row__check i {
+    display: none; /* rely on the ::before glyph for consistency */
+}
+
+.tul-container .tul-rail .tul-cost-row__check.is-hidden {
+    opacity: 0;
+    transform: scale(0.6);
+    pointer-events: none;
+    visibility: hidden;
+}
+
 /* ============================================================
    STEP 4 — COSTS PANEL header/hint
    ============================================================ */
@@ -1557,4 +1686,88 @@ body.tul-no-floating-menu .main-container {
     width: 110px;
     text-align: right;
     flex: 0 0 auto;
+}
+
+/* ============================================================
+   GLOBAL ACTIONS BAR (Cancelar / Concluir)
+   ============================================================ */
+
+.tul-container .tul-actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.tul-container .tul-actions-bar__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.tul-container .tul-actions-bar__label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.tul-container .tul-actions-bar__hint {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+.tul-container .tul-actions-bar__buttons {
+    display: flex;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+
+.tul-container .tul-actions-bar .tul-btn {
+    padding: 9px 18px;
+    font-size: 13px;
+}
+
+/* ============================================================
+   LAYOUT FIX — asegurar ancho completo del contenido
+   El shell SGL 2026 estiliza .main-container, pero esta vista
+   renderiza en <main id="main-content">. Forzamos ancho completo.
+   ============================================================ */
+
+/* Cortar el overflow horizontal SOLO en <html> (contenedor de scroll raíz).
+   No usar overflow-x en body ni #main-content porque romperían el
+   position: sticky de la barra de detalle. Este CSS solo carga en esta vista. */
+html {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+body.sgl-theme-2026 #main-content,
+body[data-layout-theme="sgl-2026"] #main-content,
+body #main-content,
+#main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 100px 20px 24px 20px !important;
+}
+
+body.tul-no-floating-menu #main-content {
+    padding-top: 20px !important;
+}
+
+body #main-content > .tul-container,
+.tul-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
 }

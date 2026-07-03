@@ -1,3 +1,18 @@
+> # ⚠️ DOCUMENTO SUPERADO
+>
+> **Este documento quedó obsoleto y fue superado por el spec oficial:**
+> `.kiro/specs/tramite-unified-layout/` (`requirements.md`, `design.md`, `tasks.md`).
+>
+> La implementación final vive en la ruta **`/deskapp/tramitesn/unified-layout?tramite_id={id}`**
+> (no en `prototipo-layout`). El detalle histórico consolidado de todo el desarrollo está en
+> **`HISTORIAL_DESARROLLO.md`**.
+>
+> Se conserva únicamente como referencia histórica del diseño inicial. **No usar como fuente de verdad.**
+>
+> _Nota de paleta:_ el Paso 5 final se cambió a índigo `#4338ca` (no teal) para diferenciarlo del Paso 4.
+
+---
+
 # Refactorización del Prototipo Layout Unificado
 
 > Documento de seguimiento para la pantalla `/deskapp/tramitesn/prototipo-layout`
