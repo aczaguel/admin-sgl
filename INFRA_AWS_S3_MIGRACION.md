@@ -195,11 +195,92 @@ Los documentos son sensibles (facturas, acuses, evidencias). **No** dejar el buc
 5. **Flip de lectura:** `FILE_STORAGE_DRIVER=s3`. Verificar galerías/preview en los 5 pasos.
 6. **Conservar el disco local** como respaldo (no borrar). Si en el futuro se quiere liberar espacio, hacerlo solo tras confirmar backups de S3 y con aprobación explícita — nunca de forma automática.
 
+> **IMPORTANTE — hay DOS raíces de subidas en disco**, no una. El runbook completo (§4.7) las cubre ambas.
+> El comando de arriba (`./public/assets/uploads`) es solo la primera raíz.
+
+### 4.7 Runbook completo de subida a S3 (ambas raíces, no destructivo)
+
+**Carpetas identificadas en el código y en disco:**
+
+| Raíz en disco | Contenido | Prefijo/Key en S3 |
+|---|---|---|
+| `public/assets/uploads/` | `cobro_cliente/`, `pago_gestor/`, `pago_derechos/`, `documentostatus/`, `docstatus/`, `evidencias/` (+ sueltos) | mismo nombre de subcarpeta (`cobro_cliente/…`, `pago_gestor/<id>/…`) |
+| `writable/uploads/tramites/` | documentos de la **API externa** por trámite | `tramites/<id>/…` |
+| `writable/uploads/avatars/` | avatares de usuario | `avatars/…` |
+
+> Las claves resultantes coinciden con las que espera la app (`keyFromStored()` / `buildKey()` del diseño): `<category>/<id?>/<file>`. Por eso cada raíz se sincroniza a su prefijo correspondiente.
+
+**Precondiciones (una sola vez):**
+```bash
+# 1. Bucket privado con versioning y Block Public Access (Terraform o CLI)
+aws s3api create-bucket --bucket sgl-uploads-prod --region us-east-1
+aws s3api put-bucket-versioning --bucket sgl-uploads-prod \
+  --versioning-configuration Status=Enabled
+aws s3api put-public-access-block --bucket sgl-uploads-prod \
+  --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+# 2. Cifrado por defecto (SSE-S3)
+aws s3api put-bucket-encryption --bucket sgl-uploads-prod \
+  --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+# 3. IAM Instance Profile adjunto al EC2 (sin llaves). Verifica identidad:
+aws sts get-caller-identity
+```
+
+**Copia inicial — ejecutar EN EL EC2 de producción, desde la raíz del proyecto.** Los archivos locales NO se tocan (sin `--delete`):
+```bash
+# Raíz 1: documentos de trámites
+aws s3 sync ./public/assets/uploads       s3://sgl-uploads-prod           --exclude "*.tmp" --size-only
+
+# Raíz 2a: documentos de la API externa -> prefijo tramites/
+aws s3 sync ./writable/uploads/tramites   s3://sgl-uploads-prod/tramites  --exclude "*.tmp" --size-only
+
+# Raíz 2b: avatares -> prefijo avatars/
+aws s3 sync ./writable/uploads/avatars    s3://sgl-uploads-prod/avatars   --exclude "*.tmp" --size-only
+```
+
+**(Opcional) Ventana de doble escritura:** activa `FILE_STORAGE_DUAL_WRITE=true` para que las subidas nuevas caigan en local **y** S3 mientras terminas.
+
+**Sync incremental final** (solo diferencias, rápido) — repetir los 3 comandos anteriores justo antes del flip.
+
+**Verificación de integridad (los conteos deben coincidir):**
+```bash
+# Local (ambas raíces)
+find ./public/assets/uploads ./writable/uploads/tramites ./writable/uploads/avatars -type f ! -name "*.tmp" | wc -l
+# S3
+aws s3 ls s3://sgl-uploads-prod --recursive | wc -l
+# Equivalente automatizado
+php spark s3:migrate-check
+```
+
+**Flip de lectura:** en `.env` → `FILE_STORAGE_DRIVER=s3`; verificar galerías/preview en los 5 pasos y avatares.
+
+**Rollback instantáneo:** `FILE_STORAGE_DRIVER=local` (el disco local sigue intacto).
+
+> **Notas de seguridad:** estos comandos son **aditivos** (sin `--delete`), read-only sobre el disco local. El versioning ON protege ante cualquier sobrescritura. El disco local se conserva como respaldo y no se borra automáticamente.
+> **Nota de entorno:** en tu copia local de desarrollo solo existe `public/assets/uploads/cobro_cliente` y algunos sueltos; las demás subcarpetas (`pago_gestor`, `documentostatus`, etc.) existen en **producción**. El `sync` sube lo que exista en cada entorno, así que el runbook funciona igual en ambos.
+
 ---
 
 ## 5. Fase 2 — Migración al EC2 nuevo
 
-### 5.1 Estrategia
+### 5.0 Orden elegido: S3 PRIMERO, luego cómputo (decisión final)
+
+> **Decisión:** primero se completa el desacople a S3 (spec `s3-file-storage` + runbook §4.7 + flip
+> `FILE_STORAGE_DRIVER=s3`). **Después** se migra el cómputo al EC2 nuevo.
+
+**Por qué (confirmado):** con los archivos ya en S3 y las sesiones fuera de alcance por ahora, el EC2 nuevo
+**nace limpio (stateless)**: no hay que copiar ni un archivo al servidor nuevo. Solo apunta al **mismo bucket S3**
+(vía Instance Profile) y al **mismo RDS**. La migración deja de ser "copiar GB y rezar" y se vuelve
+"levantar contenedor + reasignar la Elastic IP", con rollback trivial y **cero riesgo de pérdida de archivos**
+en el cutover (ambos servidores leen/escriben el mismo S3).
+
+**Secuencia:**
+1. **Fase S3** (primero): implementar el spec `s3-file-storage`, correr el runbook §4.7 (sync aditivo, sin borrar), verificar integridad, y hacer el flip `FILE_STORAGE_DRIVER=s3`. El servidor queda stateless respecto a archivos.
+2. **Fase cómputo** (después): levantar el EC2 nuevo con la misma imagen Docker, **mismo RDS**, **mismo bucket S3** y su Instance Profile; validar contra IP temporal; **reasignar la Elastic IP**. Sin copia de archivos.
+
+> Ya **no se requiere rsync de archivos** entre servidores. La única precaución operativa que queda para el
+> cutover de cómputo es la convivencia en el mismo RDS (§5.3: migraciones expand/contract, vigilar `max_connections`).
+
+### 5.1 Estrategia (aplica una vez S3 está activo)
 Con la app ya stateless (Fase 1 completa):
 1. Construir la **misma imagen Docker** (o AMI dorada con el compose) en el EC2 nuevo.
 2. Adjuntar el **mismo Instance Profile** (acceso S3) y apuntar `.env` al **mismo RDS**.

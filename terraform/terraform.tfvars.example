@@ -1,0 +1,13 @@
+# Copy to terraform.tfvars and adjust. terraform.tfvars is gitignored.
+# Remember: S3 bucket names are globally unique across ALL AWS accounts.
+
+region = "us-east-1"
+project = "admin-sgl"
+
+# If the defaults are taken, append a unique suffix, e.g.:
+# dev_bucket_name  = "sgl-uploads-dev-451797130916"
+# prod_bucket_name = "sgl-uploads-prod-451797130916"
+dev_bucket_name  = "sgl-uploads-dev"
+prod_bucket_name = "sgl-uploads-prod"
+
+dev_iam_user_name = "sgl-uploads-dev-user"

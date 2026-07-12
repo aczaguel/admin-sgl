@@ -739,7 +739,7 @@ class ClienteTramites extends BaseController
                     if (!is_file($filePath)) {
                         continue;
                     }
-                    $doc['url'] = base_url('/assets/uploads/pago_gestor/' . $tramiteId . '/' . $fileName);
+                    $doc['url'] = file_url($fileName, 'pago_gestor', (int) $tramiteId);
                     $pagoGestorDocs[] = $doc;
                 }
 
@@ -756,7 +756,7 @@ class ClienteTramites extends BaseController
                     $filePath = FCPATH . 'assets/uploads/pago_gestor/' . $tramiteId . '/' . $fileName;
                     if (is_file($filePath)) {
                         $docGestorEntregado = $rowDoc;
-                        $docGestorEntregadoUrl = base_url('/assets/uploads/pago_gestor/' . $tramiteId . '/' . $fileName);
+                        $docGestorEntregadoUrl = file_url($fileName, 'pago_gestor', (int) $tramiteId);
                     }
                 }
             }
@@ -848,7 +848,7 @@ class ClienteTramites extends BaseController
                         && strpos($evFile, "\0") === false && strpos($evFile, '..') === false) {
                         $evPath = FCPATH . 'assets/uploads/evidencias/' . $tramiteId . '/' . $evFile;
                         if (is_file($evPath)) {
-                            $evUrl = base_url('/assets/uploads/evidencias/' . $tramiteId . '/' . $evFile);
+                            $evUrl = file_url($evFile, 'evidencias', (int) $tramiteId);
                         }
                     }
                     $evRow['url'] = $evUrl;
@@ -877,7 +877,7 @@ class ClienteTramites extends BaseController
                     if ($pdFile !== '' && basename($pdFile) === $pdFile
                         && strpos($pdFile, "\0") === false && strpos($pdFile, '..') === false) {
                         // Siempre generamos la URL; el archivo puede existir en producción aunque no en local
-                        $pdUrl = base_url('/assets/uploads/pago_derechos/' . $tramiteId . '/' . $pdFile);
+                        $pdUrl = file_url($pdFile, 'pago_derechos', (int) $tramiteId);
                     }
                     $pdRow['url'] = $pdUrl;
                     $traPagoDerechos[] = $pdRow;
@@ -906,7 +906,7 @@ class ClienteTramites extends BaseController
                         && strpos($coFile, "\0") === false && strpos($coFile, '..') === false) {
                         $coPath = FCPATH . 'assets/uploads/cobro_cliente/' . $tramiteId . '/' . $coFile;
                         // Siempre generamos la URL; el archivo puede existir en producción aunque no en local
-                        $coUrl = base_url('/assets/uploads/cobro_cliente/' . $tramiteId . '/' . $coFile);
+                        $coUrl = file_url($coFile, 'cobro_cliente', (int) $tramiteId);
                     }
                     $coRow['url'] = $coUrl;
                     $traCobros[] = $coRow;

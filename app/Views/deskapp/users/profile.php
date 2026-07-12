@@ -166,7 +166,7 @@
 						<div class="pd-20 card-box height-100-p">
 							<div class="profile-photo text-center">
 								<div class="profile-photo-container">
-									<img src="/public/<?= $user['avatar'] ?? 'uploads/avatars/default.png' ?>" 
+									<img src="<?= esc(avatar_url($user['avatar'] ?? '')) ?>" 
 										 alt="Avatar" class="avatar-photo" id="currentAvatar">
 									<label for="avatarUpload" class="edit-avatar-btn" title="Cambiar foto">
 										<i class="fa fa-camera"></i>
@@ -400,7 +400,7 @@
 		$('#cancelImageBtn').on('click', function() {
 			$('#avatarUpload').val('');
 			$('#imagePreviewContainer').fadeOut();
-			$('#currentAvatar').attr('src', '/public/<?= $user["avatar"] ?? "uploads/avatars/default.png" ?>');
+			$('#currentAvatar').attr('src', '<?= esc(avatar_url($user["avatar"] ?? ""), "js") ?>');
 		});
 		
 		// Eliminar avatar

@@ -28,4 +28,36 @@ class Services extends CoreServices
 	//
 	//     return new \CodeIgniter\Example();
 	// }
+
+	/**
+	 * Shared file storage service.
+	 *
+	 * Resolves the active storage driver (local|s3) from Config\FileStorage
+	 * and exposes it to callers via service('fileStorage').
+	 */
+	public static function fileStorage(bool $getShared = true)
+	{
+		if ($getShared) {
+			return static::getSharedInstance('fileStorage');
+		}
+
+		return new \App\Libraries\Storage\FileStorageService(config('FileStorage'));
+	}
+
+	/**
+	 * Shared secrets service.
+	 *
+	 * Resolves the active secret provider (aws|env) from Config\Secrets and
+	 * exposes it to callers via service('secrets'). Returning a shared instance
+	 * ensures the provider and the AWS SDK client are built at most once per
+	 * request, and the per-request Secret_Cache is reused across callers.
+	 */
+	public static function secrets(bool $getShared = true)
+	{
+		if ($getShared) {
+			return static::getSharedInstance('secrets');
+		}
+
+		return new \App\Libraries\Secrets\SecretsManagerService(config('Secrets'));
+	}
 }

@@ -182,7 +182,7 @@
 			<div class="dropdown">
 				<a class="dropdown-toggle no-arrow" href="#" role="button" data-toggle="dropdown">
 					<span class="user-icon">
-						<img src="/public/<?= esc($session->get('avatar')) ?>" alt="">
+						<img src="<?= esc(avatar_url($session->get('avatar'))) ?>" alt="">
 					</span>
 					<!-- <span class="user-name"><?= esc($session->get('firstname').' '.$session->get('midname').' '.$session->get('lastname')); ?></span> -->
 				</a>

@@ -34,7 +34,7 @@ class Database extends Config
 		'DSN'      => '',
 		'hostname' => 'localhost',
 		'username' => 'root',
-		'password' => 'root',
+		'password' => 'RootAdmin',
 		'database' => 'procedures',
 		'DBDriver' => 'MySQLi',
 		'DBPrefix' => '',
@@ -82,18 +82,44 @@ class Database extends Config
 	{
 		parent::__construct();
 
+		// Ensure that we always set the database group to 'tests' if
+		// we are currently running an automated test suite, so that
+		// we don't overwrite live data on accident.
+		//
+		// This MUST short-circuit before any secret resolution: the test
+		// suite uses the in-memory SQLite `tests` group and must never
+		// reach out to AWS Secrets Manager (or any provider). Returning
+		// here guarantees resolveRdsInto() is never called under testing.
+		if (ENVIRONMENT === 'testing')
+		{
+			$this->defaultGroup = 'tests';
+
+			return;
+		}
+
+		// Resolve the RDS credentials into the `default` connection group
+		// before the first database connection is opened. This is the single
+		// point CI4 instantiates Config\Database (on both the web front
+		// controller and the `spark` CLI), so credentials are always in place
+		// before any Database\Connection opens.
+		//
+		// When SECRETS_PROVIDER is absent/empty or `env` (the default) this is
+		// behavior-identical to today's plain-.env configuration; when it is
+		// `aws` the values come from AWS Secrets Manager. Any resolution error
+		// is intentionally NOT caught so it propagates and the application fails
+		// closed — it never connects with partial or unknown credentials.
+		service('secrets')->resolveRdsInto($this->default);
+
+		// Docker host override — MUST run AFTER secret resolution. In `env`
+		// mode resolveRdsInto() repopulates hostname from
+		// database.default.hostname (e.g. "localhost"), which the app container
+		// cannot reach; applying this override afterward points the connection
+		// at the host machine (Docker Desktop). In prod (`aws`) DOCKER_DB_HOST
+		// is unset, so the resolved RDS endpoint is preserved untouched.
 		$dockerDbHost = trim((string) env('DOCKER_DB_HOST', ''));
 		if ($dockerDbHost !== '')
 		{
 			$this->default['hostname'] = $dockerDbHost;
-		}
-
-		// Ensure that we always set the database group to 'tests' if
-		// we are currently running an automated test suite, so that
-		// we don't overwrite live data on accident.
-		if (ENVIRONMENT === 'testing')
-		{
-			$this->defaultGroup = 'tests';
 		}
 	}
 

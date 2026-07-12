@@ -76,7 +76,7 @@
 									$docType = (string) ($doc['comprobante_final'] ?? '');
 									$fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 									$isImage = in_array($fileExt, ['jpg','jpeg','png','gif','webp'], true);
-									$fileUrl = base_url('/assets/uploads/pago_gestor/' . $id . '/' . $fileName);
+									$fileUrl = file_url($fileName, 'pago_gestor', (int) $id);
 									$docTypeLabel = $docType;
 									if ($docType === 'tramite_recibido') {
 										$docTypeLabel = 'Tramite Entregado por Gestor';

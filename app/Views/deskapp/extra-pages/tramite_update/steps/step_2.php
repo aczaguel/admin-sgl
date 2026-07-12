@@ -248,7 +248,7 @@
 															$docType = (string) ($doc['doc_type'] ?? ($doc['comprobante_final'] ?? ''));
 															$fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 															$isImage = in_array($fileExt, ['jpg','jpeg','png','gif','webp'], true);
-															$fileUrl = base_url('/assets/uploads/pago_derechos/' . $id . '/' . $fileName);
+															$fileUrl = file_url($fileName, 'pago_derechos', (int) $id);
 														?>
 														<div class="file-preview" data-file="<?= esc($fileName) ?>" data-doc-type="<?= esc($docType) ?>" style="border:1px solid #ddd;border-radius:5px;padding:5px;background-color:#f9f9f9;display:inline-block;margin:4px;text-align:center;">
 															<a href="<?= esc($fileUrl) ?>" target="_blank">

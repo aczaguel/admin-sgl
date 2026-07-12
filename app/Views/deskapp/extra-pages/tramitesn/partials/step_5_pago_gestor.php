@@ -240,7 +240,7 @@
 							$docType = (string) ($doc['comprobante_final'] ?? '');
 							$fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 							$isImage = in_array($fileExt, ['jpg','jpeg','png','gif','webp'], true);
-							$fileUrl = base_url('/assets/uploads/pago_gestor/' . $id . '/' . $fileName);
+							$fileUrl = file_url($fileName, 'pago_gestor', (int) $id);
 							$docTypeLabel = $docType === 'factura_gestor' ? 'Factura del Gestor' : ($docType === 'comprobante_pago' ? 'Comprobante de Pago' : 'Otro');
 						?>
 						<div class="file-preview" data-file="<?= esc($fileName) ?>" style="border:1px solid #ddd;border-radius:5px;padding:5px;background-color:#f9f9f9;display:inline-block;margin:4px;text-align:center;">

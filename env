@@ -51,6 +51,14 @@
 # DATABASE
 #--------------------------------------------------------------------
 
+database.default.hostname = localhost
+database.default.database = procedures
+database.default.username = root
+database.default.password = RootAdmin
+database.default.DBDriver = MySQLi
+
+
+DOCKER_DB_HOST = host.docker.internal
 # database.default.hostname = localhost
 # database.default.database = ci4
 # database.default.username = root
@@ -121,3 +129,40 @@
 #--------------------------------------------------------------------
 
 # logger.threshold = 4
+#--------------------------------------------------------------------
+# FILE STORAGE (S3 abstraction)
+#--------------------------------------------------------------------
+# Active storage driver: local | s3. Defaults to 'local' (current behavior).
+# FILE_STORAGE_DRIVER = local
+
+# S3 driver settings. NO access keys here: credentials are resolved from the
+# EC2 IAM Instance Profile metadata endpoint. Never add access-key/secret keys.
+# S3_BUCKET = sgl-uploads-prod
+# S3_REGION = us-east-1
+
+# Server-side encryption for objects at rest: AES256 (SSE-S3) or aws:kms.
+# S3_SSE = AES256
+
+# Default presigned-URL time-to-live in seconds (S3 driver). Default 300 (5 min).
+# S3_PRESIGN_TTL = 300
+
+# Optional temporary dual-write during the migration window (writes local AND s3).
+# FILE_STORAGE_DUAL_WRITE = false
+
+#--------------------------------------------------------------------
+# SECRETS (AWS Secrets Manager abstraction)
+#--------------------------------------------------------------------
+# Active secret provider: aws | env. Defaults to 'env' (current behavior).
+SECRETS_PROVIDER = env
+
+# Secret NAME or ARN for the RDS credentials secret (aws provider only).
+# This is a REFERENCE, never a value. No passwords ever live in .env.
+# SECRETS_RDS_REFERENCE = sgl/prod/rds-credentials
+
+# AWS region for the SecretsManagerClient (aws provider only).
+# SECRETS_REGION = us-east-1
+
+# Optional per-request cache TTL in seconds. 0 or unset = valid for the
+# whole request. There are intentionally NO access-key/secret-key settings:
+# credentials come from the EC2 IAM Instance Profile.
+# SECRETS_CACHE_TTL = 0

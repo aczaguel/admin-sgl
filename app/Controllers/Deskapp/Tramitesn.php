@@ -733,7 +733,7 @@ class Tramitesn extends Tramites
                         $documentsById[$documentoId]['file'] = $fileName;
                         $documentsById[$documentoId]['has_file'] = $fileName !== '';
                         $documentsById[$documentoId]['file_url'] = $fileName !== ''
-                            ? base_url('/assets/uploads/documentostatus/' . rawurlencode($fileName))
+                            ? file_url($fileName, 'documentostatus')
                             : '';
                         $documentsById[$documentoId]['status_label'] = trim((string) ($row['status_documento_label'] ?? '')) ?: ($fileName !== '' ? 'Cargado' : 'Pendiente');
                         $documentsById[$documentoId]['comentario'] = trim((string) ($row['comentario'] ?? ''));
@@ -4046,32 +4046,18 @@ class Tramitesn extends Tramites
             return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo.', 'csrfHash' => csrf_hash()]);
         }
 
-        $ds = DIRECTORY_SEPARATOR;
-        $storeFolder = 'assets/uploads/documentostatus';
-        $targetPath = FCPATH . $storeFolder . $ds;
-        if (!is_dir($targetPath)) {
-            mkdir($targetPath, 0777, true);
-        }
-
-        $tempFile = $_FILES['file']['tmp_name'];
+        $tempFile = (string) ($_FILES['file']['tmp_name'] ?? '');
         $originalName = (string) ($_FILES['file']['name'] ?? '');
-        $extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
-        $baseName = (string) pathinfo($originalName, PATHINFO_FILENAME);
-        $safeBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $baseName);
-        $safeBase = trim((string) $safeBase, '_');
-        if ($safeBase === '') {
-            $safeBase = 'documento';
-        }
-        try {
-            $random = bin2hex(random_bytes(8));
-        } catch (\Exception $e) {
-            $random = uniqid();
-        }
-        $fileName = $safeBase . '_' . $tramiteId . '_' . $documentoId . '_' . $random . ($extension !== '' ? '.' . $extension : '');
-        $targetFile = $targetPath . $fileName;
 
-        if (!move_uploaded_file($tempFile, $targetFile)) {
-            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo.', 'csrfHash' => csrf_hash()]);
+        // Persist through the storage abstraction (local disk or S3 depending on
+        // FILE_STORAGE_DRIVER). "documentostatus" is a flat category (no per-id
+        // segment); the legacy tra_doc_status.file column stores the bare filename.
+        $key = buildKey('documentostatus', null, $originalName);
+        $fileName = basename($key);
+
+        $storage = service('fileStorage');
+        if (!$storage->put($key, $tempFile)) {
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo guardar el archivo.', 'csrfHash' => csrf_hash()]);
         }
 
         try {
@@ -4085,10 +4071,10 @@ class Tramitesn extends Tramites
 
             foreach ($existingRows as $existing) {
                 $existingFile = trim((string) ($existing['file'] ?? ''));
-                if ($existingFile !== '' && $existingFile === basename($existingFile) && strpos($existingFile, '..') === false) {
-                    $existingPath = $targetPath . $existingFile;
-                    if (is_file($existingPath)) {
-                        @unlink($existingPath);
+                if ($existingFile !== '' && strpos($existingFile, '..') === false) {
+                    $existingKey = keyFromStored($existingFile, 'documentostatus');
+                    if ($existingKey !== '') {
+                        $storage->delete($existingKey);
                     }
                 }
             }
@@ -4111,18 +4097,40 @@ class Tramitesn extends Tramites
                 'status' => 1,
             ]);
 
+            $filePath = file_url($fileName, 'documentostatus');
+            if ($filePath === '') {
+                return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo resolver la URL del archivo.', 'csrfHash' => csrf_hash()]);
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Documento subido correctamente.',
                 'fileName' => $fileName,
                 'documento_id' => $documentoId,
-                'filePath' => base_url('/assets/uploads/documentostatus/' . rawurlencode($fileName)),
+                'filePath' => $filePath,
                 'csrfHash' => csrf_hash(),
             ]);
         } catch (\Throwable $e) {
             log_message('error', 'Error en upload_step1_doc: ' . $e->getMessage());
-            @unlink($targetFile);
-            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Error al guardar el documento.', 'csrfHash' => csrf_hash()]);
+
+            // Compensating action: the object was already persisted by put()
+            // but the DB write failed. Delete the just-written key exactly once
+            // so the store never accumulates an object with no referencing row.
+            $compensated = false;
+            try {
+                $compensated = (bool) $storage->delete($key);
+            } catch (\Throwable $deleteError) {
+                $compensated = false;
+                log_message('error', 'Fallo al ejecutar delete compensatorio en upload_step1_doc para key: ' . $key . ' - ' . $deleteError->getMessage());
+            }
+
+            if (!$compensated) {
+                // The compensating delete could not remove the object. Record the
+                // orphaned key clearly so it can be identified for later cleanup.
+                log_message('error', 'ORPHANED_S3_KEY upload_step1_doc: no se pudo eliminar el objeto huérfano tras fallo de DB. key=' . $key);
+            }
+
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo persistir el documento subido.', 'csrfHash' => csrf_hash()]);
         }
     }
 
@@ -4196,13 +4204,18 @@ class Tramitesn extends Tramites
                 return $this->response->setJSON(['success' => false, 'message' => 'No se encontró documento para eliminar.', 'csrfHash' => csrf_hash()]);
             }
 
-            $targetPath = FCPATH . 'assets/uploads/documentostatus' . DIRECTORY_SEPARATOR;
+            // Eliminar el/los objeto(s) a través del servicio de almacenamiento (Req 6.4).
+            // documentostatus es plano (sin id). Req 6.7: si delete() falla o lanza
+            // excepción, se retorna 500 y NO se elimina la fila de BD (la referencia
+            // existente se conserva intacta).
+            helper('filestorage');
+            $storage = service('fileStorage');
             foreach ($rows as $row) {
                 $file = trim((string) ($row['file'] ?? ''));
                 if ($file !== '' && $file === basename($file) && strpos($file, '..') === false) {
-                    $fullPath = $targetPath . $file;
-                    if (is_file($fullPath)) {
-                        @unlink($fullPath);
+                    $key = keyFromStored($file, 'documentostatus');
+                    if (!$storage->delete($key)) {
+                        return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor.', 'csrfHash' => csrf_hash()]);
                     }
                 }
             }
@@ -5684,36 +5697,22 @@ class Tramitesn extends Tramites
             return acl_deny('Acceso denegado.', 403, null, true);
         }
 
-        if (empty($_FILES['file'])) {
+        if (empty($_FILES['file']) || empty($_FILES['file']['tmp_name'])) {
             return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo.']);
         }
 
-        $ds = DIRECTORY_SEPARATOR;
-        $storeFolder = 'assets/uploads/documentostatus';
-        $targetPath = FCPATH . $storeFolder . $ds;
-        if (!is_dir($targetPath)) {
-            mkdir($targetPath, 0777, true);
-        }
-
-        $tempFile = $_FILES['file']['tmp_name'];
+        $tempFile = (string) ($_FILES['file']['tmp_name'] ?? '');
         $originalName = (string) ($_FILES['file']['name'] ?? '');
-        $extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
-        $baseName = (string) pathinfo($originalName, PATHINFO_FILENAME);
-        $safeBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $baseName);
-        $safeBase = trim((string) $safeBase, '_');
-        if ($safeBase === '') {
-            $safeBase = 'documento';
-        }
-        try {
-            $random = bin2hex(random_bytes(8));
-        } catch (\Exception $e) {
-            $random = uniqid();
-        }
-        $fileName = $safeBase . '_' . $tramiteId . '_' . $documentoId . '_' . $random . ($extension !== '' ? '.' . $extension : '');
-        $targetFile = $targetPath . $fileName;
 
-        if (!move_uploaded_file($tempFile, $targetFile)) {
-            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo.']);
+        // Persist through the storage abstraction (local disk or S3 depending on
+        // FILE_STORAGE_DRIVER). "documentostatus" is a flat category (no per-id
+        // segment); the legacy tra_doc_status.file column stores the bare filename.
+        $key = buildKey('documentostatus', null, $originalName);
+        $fileName = basename($key);
+
+        $storage = service('fileStorage');
+        if (!$storage->put($key, $tempFile)) {
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo guardar el archivo.']);
         }
 
         try {
@@ -5727,10 +5726,10 @@ class Tramitesn extends Tramites
 
             foreach ($existingRows as $existing) {
                 $existingFile = trim((string) ($existing['file'] ?? ''));
-                if ($existingFile !== '' && $existingFile === basename($existingFile) && strpos($existingFile, '..') === false) {
-                    $existingPath = $targetPath . $existingFile;
-                    if (is_file($existingPath)) {
-                        @unlink($existingPath);
+                if ($existingFile !== '' && strpos($existingFile, '..') === false) {
+                    $existingKey = keyFromStored($existingFile, 'documentostatus');
+                    if ($existingKey !== '') {
+                        $storage->delete($existingKey);
                     }
                 }
             }
@@ -5755,7 +5754,11 @@ class Tramitesn extends Tramites
             ];
             $db->table('tra_doc_status')->insert($insertData);
 
-            $filePath = base_url('/assets/uploads/documentostatus/' . $fileName);
+            $filePath = file_url($fileName, 'documentostatus');
+            if ($filePath === '') {
+                return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo resolver la URL del archivo.']);
+            }
+
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'Documento subido correctamente.',
@@ -5765,8 +5768,25 @@ class Tramitesn extends Tramites
             ]);
         } catch (\Throwable $e) {
             log_message('error', 'Error en upload_final_doc: ' . $e->getMessage());
-            @unlink($targetFile);
-            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Error al guardar el documento.']);
+
+            // Compensating action: the object was already persisted by put()
+            // but the DB write failed. Delete the just-written key exactly once
+            // so the store never accumulates an object with no referencing row.
+            $compensated = false;
+            try {
+                $compensated = (bool) $storage->delete($key);
+            } catch (\Throwable $deleteError) {
+                $compensated = false;
+                log_message('error', 'Fallo al ejecutar delete compensatorio en upload_final_doc para key: ' . $key . ' - ' . $deleteError->getMessage());
+            }
+
+            if (!$compensated) {
+                // The compensating delete could not remove the object. Record the
+                // orphaned key clearly so it can be identified for later cleanup.
+                log_message('error', 'ORPHANED_S3_KEY upload_final_doc: no se pudo eliminar el objeto huérfano tras fallo de DB. key=' . $key);
+            }
+
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo persistir el documento subido.']);
         }
     }
 
@@ -5832,15 +5852,18 @@ class Tramitesn extends Tramites
                 return $this->response->setJSON(['success' => false, 'message' => 'No se encontró documento para eliminar.']);
             }
 
-            $ds = DIRECTORY_SEPARATOR;
-            $targetPath = FCPATH . 'assets/uploads/documentostatus' . $ds;
-
+            // Eliminar el/los objeto(s) a través del servicio de almacenamiento (Req 6.4).
+            // documentostatus es plano (sin id). Req 6.7: si delete() falla o lanza
+            // excepción, se retorna 500 y NO se elimina la fila de BD (la referencia
+            // existente se conserva intacta).
+            helper('filestorage');
+            $storage = service('fileStorage');
             foreach ($rows as $row) {
                 $file = trim((string) ($row['file'] ?? ''));
                 if ($file !== '' && $file === basename($file) && strpos($file, '..') === false) {
-                    $fullPath = $targetPath . $file;
-                    if (is_file($fullPath)) {
-                        @unlink($fullPath);
+                    $key = keyFromStored($file, 'documentostatus');
+                    if (!$storage->delete($key)) {
+                        return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor.']);
                     }
                 }
             }

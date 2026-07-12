@@ -151,7 +151,7 @@
 						<div class="col-md-8 mb-20 mb-md-0">
 							<div class="d-flex align-items-center mb-15">
 								<div style="width: 70px; height: 70px; border-radius: 50%; overflow: hidden; margin-right: 20px; border: 4px solid rgba(255,255,255,0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.2); background: white;">
-									<img src="/public/<?= esc($session->get('avatar')) ?>" alt="<?= esc($session->get('firstname')) ?>" style="width: 100%; height: 100%; object-fit: cover;">
+									<img src="<?= esc(avatar_url($session->get('avatar'))) ?>" alt="<?= esc($session->get('firstname')) ?>" style="width: 100%; height: 100%; object-fit: cover;">
 								</div>
 								<div>
 									<p style="color: rgba(255,255,255,0.8); margin: 0; font-size: 14px; font-weight: 500; letter-spacing: 1px;">

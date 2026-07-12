@@ -6,6 +6,15 @@ class ExternalTramiteService
 {
     private $db;
 
+    /**
+     * Storage keys written via the storage service during the current
+     * createTramite() transaction. Used to compensate (delete) orphaned
+     * objects when the DB transaction is rolled back (Req 7.1).
+     *
+     * @var string[]
+     */
+    private array $pendingUploadedKeys = [];
+
     public function __construct($db = null)
     {
         helper(['cliente_filter', 'cliente_context']);
@@ -344,6 +353,7 @@ class ExternalTramiteService
             'started_at' => date('Y-m-d H:i:s'),
         ];
 
+        $this->pendingUploadedKeys = [];
         $this->db->transStart();
 
         try {
@@ -374,6 +384,10 @@ class ExternalTramiteService
             if ($this->db->transStatus() === false) {
                 throw new \RuntimeException('Error en la transacción de creación.');
             }
+
+            // Transaction committed: the uploaded objects are now referenced by
+            // persisted rows, so there is nothing to compensate (Req 7.4).
+            $this->pendingUploadedKeys = [];
 
             if (!empty($context['requireExternalReference'])) {
                 $this->createReferenceMapping(
@@ -412,12 +426,49 @@ class ExternalTramiteService
         } catch (\Throwable $e) {
             $this->db->transRollback();
 
+            // Compensating cleanup (Req 7.1 / 7.2): the DB transaction was rolled
+            // back, so any object already written via put() during this request
+            // would be orphaned. Delete each just-written key exactly once and
+            // record any that could not be removed for later cleanup (Req 7.5).
+            $this->compensatePendingUploads();
+
             return [
                 'success' => false,
                 'message' => 'Error al guardar: ' . $e->getMessage(),
                 'statusCode' => 500,
             ];
         }
+    }
+
+    /**
+     * Delete every storage object written during the current (now failed)
+     * createTramite() transaction exactly once, so the store never keeps an
+     * object with no referencing row (Req 7.1). Keys whose delete fails are
+     * logged so they can be identified for later cleanup (Req 7.5).
+     */
+    protected function compensatePendingUploads(): void
+    {
+        if ($this->pendingUploadedKeys === []) {
+            return;
+        }
+
+        helper('filestorage');
+        $storage = service('fileStorage');
+
+        foreach (array_unique($this->pendingUploadedKeys) as $key) {
+            try {
+                if ($storage->delete($key) === false) {
+                    log_message('error', 'ExternalTramiteService: orphaned storage object could not be deleted after DB rollback: {key}', ['key' => $key]);
+                }
+            } catch (\Throwable $deleteError) {
+                log_message('error', 'ExternalTramiteService: compensating delete failed for orphaned key {key}: {message}', [
+                    'key' => $key,
+                    'message' => $deleteError->getMessage(),
+                ]);
+            }
+        }
+
+        $this->pendingUploadedKeys = [];
     }
 
     protected function normalizePayload(array $payload): array
@@ -788,26 +839,69 @@ class ExternalTramiteService
             return 0;
         }
 
-        $uploadPath = $this->ensureUploadPath($tramiteId);
+        helper('filestorage');
+        $storage = service('fileStorage');
         $count = 0;
 
         foreach ($documentFiles as $archivo) {
+            // Req 6.3: a missing/invalid file (or one already moved) must never
+            // reach put(); skip it as the existing validation did.
             if (!$archivo->isValid() || $archivo->hasMoved()) {
                 continue;
             }
 
-            $nuevoNombre = $archivo->getRandomName();
-            $archivo->move($uploadPath, $nuevoNombre);
+            // Req 6.3: an empty temporary path must not trigger a put() call.
+            $tempPath = (string) $archivo->getTempName();
+            if ($tempPath === '') {
+                continue;
+            }
 
-            $this->db->table('tra_doc_status')->insert([
+            $nuevoNombre = $archivo->getRandomName();
+            // Design ("CI4 $file->move() path"): the external API stores under
+            // the canonical key tramites/<id>/<name>. This preserves the legacy
+            // WRITEPATH/uploads/tramites/<id>/<file> -> tramites/<id>/<file> map.
+            $key = 'tramites/' . $tramiteId . '/' . $nuevoNombre;
+
+            // Req 6.2: persist through the storage service using the uploaded
+            // file's temporary path instead of $archivo->move(...).
+            // Req 6.6: a failed put() must not record a DB reference; throwing
+            // rolls back the surrounding transaction so no row is retained.
+            if ($storage->put($key, $tempPath) === false) {
+                throw new \RuntimeException('No se pudo almacenar el documento del trámite en el almacenamiento.');
+            }
+            $this->pendingUploadedKeys[] = $key;
+
+            // Req 6.5: store canonical values only (bare filename in
+            // nombre_archivo, relative key in ruta) — never an absolute URL.
+            $inserted = $this->db->table('tra_doc_status')->insert([
                 'tramite_id' => $tramiteId,
                 'nombre_archivo' => $nuevoNombre,
                 'nombre_original' => $archivo->getClientName(),
-                'ruta' => $uploadPath . $nuevoNombre,
+                'ruta' => $key,
                 'tipo' => $archivo->getClientMimeType(),
                 'tamano' => $archivo->getSize(),
                 'created_at' => date('Y-m-d H:i:s'),
             ]);
+
+            // Req 7.1: DB write failed after a successful put() => delete the
+            // just-written key exactly once, then surface the failure.
+            if ($inserted === false) {
+                try {
+                    $storage->delete($key);
+                } catch (\Throwable $deleteError) {
+                    log_message('error', 'ExternalTramiteService: compensating delete failed for orphaned key {key}: {message}', [
+                        'key' => $key,
+                        'message' => $deleteError->getMessage(),
+                    ]);
+                }
+                $this->pendingUploadedKeys = array_values(array_filter(
+                    $this->pendingUploadedKeys,
+                    static fn (string $pendingKey): bool => $pendingKey !== $key
+                ));
+
+                throw new \RuntimeException('No se pudo registrar el documento del trámite.');
+            }
+
             $count++;
         }
 

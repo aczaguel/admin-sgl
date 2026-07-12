@@ -27,7 +27,7 @@ class BaseController extends \CodeIgniter\Controller
 	 *
 	 * @var array
 	 */
-	protected $helpers = [];
+	protected $helpers = ['filestorage'];
 
 	/**
 	 * Constructor.

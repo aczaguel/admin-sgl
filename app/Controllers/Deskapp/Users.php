@@ -1390,46 +1390,67 @@ class Users extends BaseController
                 'phone' => $this->request->getPost('phone')
             ];
             
-            // Manejar la subida de avatar
-            $avatar = $this->request->getFile('avatar');
-            if ($avatar && $avatar->isValid() && !$avatar->hasMoved()) {
-                // Crear directorio si no existe
-                $uploadPath = ROOTPATH . 'public/uploads/avatars';
-                if (!is_dir($uploadPath)) {
-                    mkdir($uploadPath, 0755, true);
+            // Manejar la subida de avatar a través del Storage_Service (S3 File Storage).
+            // El avatar es opcional en este formulario: solo entramos al flujo de subida
+            // cuando el usuario efectivamente adjuntó un archivo válido.
+            $avatar     = $this->request->getFile('avatar');
+            $newKey     = null; // Clave recién escrita (para compensar en fallo de DB).
+            $avatarProvided = $avatar && $avatar->isValid() && !$avatar->hasMoved();
+
+            if ($avatarProvided) {
+                // Req 6.3: sin archivo / ruta temporal vacía => 400 y NO llamar a put().
+                $tempName = (string) $avatar->getTempName();
+                if ($tempName === '' || !is_file($tempName)) {
+                    return $this->response
+                        ->setStatusCode(400)
+                        ->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo válido.']);
                 }
-                
-                // Debug de permisos/rutas en producción
-                log_message('error', '[AVATAR DEBUG] uploadPath=' . $uploadPath
-                    . ' is_dir=' . (is_dir($uploadPath) ? 'yes' : 'no')
-                    . ' is_writable=' . (is_writable($uploadPath) ? 'yes' : 'no')
-                    . ' tmp=' . $avatar->getTempName()
-                    . ' tmp_exists=' . (file_exists($avatar->getTempName()) ? 'yes' : 'no'));
-                
-                // Eliminar avatar anterior si existe y no es el default
-                if (!empty($oldUser['avatar']) && $oldUser['avatar'] !== 'uploads/avatars/default.png') {
-                    $oldPath = ROOTPATH . 'public/' . $oldUser['avatar'];
-                    if (file_exists($oldPath)) {
-                        @unlink($oldPath);
-                    }
-                }
-                
-                // Generar nombre único para la imagen
-                $newName = 'avatar_' . $userId . '_' . time() . '.' . $avatar->getExtension();
-                
-                // Mover archivo
-                if ($avatar->move($uploadPath, $newName)) {
-                    $data['avatar'] = 'uploads/avatars/' . $newName;
-                } else {
+
+                // Nombre original provisto por el cliente para derivar la clave canónica.
+                $originalName = (string) ($avatar->getClientName() ?: $avatar->getName());
+                $key          = buildKey('avatars', null, $originalName);
+
+                $storage = service('fileStorage');
+
+                // Req 6.2 / 6.6: persistir con put(); si falla, 500 y NO registrar referencia en DB.
+                if (!$storage->put($key, $tempName)) {
+                    log_message('error', '[AVATAR] put() falló para la clave: ' . $key);
                     return redirect()->back()->withInput()->with('error', 'Error al subir la imagen de perfil');
                 }
+                $newKey = $key;
+
+                // Req 6.4 / 6.7: eliminar el avatar anterior (reemplazo) vía delete() del servicio,
+                // no con unlink(). Si delete() falla => error y se conserva la referencia existente;
+                // además se compensa el objeto recién escrito para no dejar huérfanos.
+                $oldAvatar = (string) ($oldUser['avatar'] ?? '');
+                if ($oldAvatar !== '' && $oldAvatar !== 'uploads/avatars/default.png') {
+                    $oldKey = keyFromStored($oldAvatar, 'avatars');
+                    if ($oldKey !== '' && !$storage->delete($oldKey)) {
+                        log_message('error', '[AVATAR] delete() del avatar anterior falló: ' . $oldKey);
+                        $storage->delete($newKey); // compensa el objeto recién subido
+                        return redirect()->back()->withInput()->with('error', 'No se pudo eliminar el avatar anterior. Se conservó el actual.');
+                    }
+                }
+
+                // Req 6.5 / 5.x: almacenar el valor canónico (nombre base), nunca una URL absoluta.
+                $data['avatar'] = basename($key);
             }
-            
-            // Actualizar base de datos
-            $builder = $db->table('users');
-            $builder->where('id', $userId);
-            $builder->update($data);
-            
+
+            // Actualizar base de datos (con compensación ante fallo posterior al put()).
+            try {
+                $builder = $db->table('users');
+                $builder->where('id', $userId);
+                $builder->update($data);
+            } catch (\Throwable $e) {
+                log_message('error', 'Error al actualizar perfil: ' . $e->getMessage());
+                // Req 7.1: si la escritura en DB falla tras un put() exitoso, se elimina
+                // exactamente una vez el objeto recién escrito para no dejar huérfanos.
+                if ($newKey !== null) {
+                    service('fileStorage')->delete($newKey);
+                }
+                return redirect()->back()->withInput()->with('error', 'No se pudieron guardar los datos del perfil.');
+            }
+
             // Actualizar datos de sesión
             $session->set('firstname', $data['firstname']);
             $session->set('midname', $data['midname'] ?? '');
@@ -1505,10 +1526,20 @@ class Users extends BaseController
         $userModel = new UserModel($db);
         $user = $userModel->find($userId);
         
-        if (!empty($user['avatar']) && $user['avatar'] !== 'uploads/avatars/default.png') {
-            $oldPath = ROOTPATH . 'public/' . $user['avatar'];
-            if (file_exists($oldPath)) {
-                @unlink($oldPath);
+        // Req 6.4 / 6.7: eliminar el objeto subyacente vía delete() del Storage_Service
+        // en lugar de unlink(). Si delete() falla, se devuelve error y se conserva la
+        // referencia existente sin cambios.
+        $currentAvatar = (string) ($user['avatar'] ?? '');
+        if ($currentAvatar !== '' && $currentAvatar !== 'uploads/avatars/default.png') {
+            $key = keyFromStored($currentAvatar, 'avatars');
+            if ($key !== '' && !service('fileStorage')->delete($key)) {
+                log_message('error', '[AVATAR] delete() falló al eliminar avatar: ' . $key);
+                return $this->response
+                    ->setStatusCode(500)
+                    ->setJSON([
+                        'success' => false,
+                        'message' => 'No se pudo eliminar el avatar. Se conservó el actual.',
+                    ]);
             }
         }
         

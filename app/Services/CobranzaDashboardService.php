@@ -607,7 +607,7 @@ class CobranzaDashboardService
             $fileName = (string) ($row['file'] ?? '');
 
             return $row + [
-                'file_url' => base_url('assets/uploads/pago_derechos/' . $tramiteId . '/' . $fileName),
+                'file_url' => file_url($fileName, 'pago_derechos', $tramiteId),
                 'is_image' => $this->isImageFile($fileName),
             ];
         }, $rows);
@@ -821,7 +821,7 @@ class CobranzaDashboardService
             $fileName = (string) ($row['file'] ?? '');
 
             return $row + [
-                'file_url' => base_url('assets/uploads/pago_gestor/' . $tramiteId . '/' . $fileName),
+                'file_url' => file_url($fileName, 'pago_gestor', $tramiteId),
                 'is_image' => $this->isImageFile($fileName),
                 'doc_label' => $this->mapPagoGestorDocumentType($row['comprobante_final'] ?? ''),
             ];
@@ -921,7 +921,7 @@ class CobranzaDashboardService
                 'cobro_correcto' => (string) ($row['cobro_correcto'] ?? 'otro'),
                 'created_at' => $row['created_at'] ?? null,
                 'is_image' => $isImage,
-                'file_url' => base_url('assets/uploads/cobro_cliente/' . $tramiteId . '/' . $fileName),
+                'file_url' => file_url($fileName, 'cobro_cliente', $tramiteId),
             ];
         }, $rows);
     }

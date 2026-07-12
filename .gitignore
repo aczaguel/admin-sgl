@@ -41,6 +41,19 @@ writable/uploads/*
 public/uploads/*
 public/debug_session.php
 
+# Terraform: state (contiene secretos), locks, tfvars y crash logs
+terraform/.terraform/
+terraform/**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+terraform/terraform.tfvars
+crash.log
+crash.*.log
+
+# Credenciales AWS locales del contenedor (nunca commitear las reales)
+docker/aws.env
+
 # Ignorar archivos de IDE/editor
 *.swp  # Archivos temporales de Vim
 *.swo

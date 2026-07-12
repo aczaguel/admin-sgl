@@ -2833,16 +2833,14 @@ class Tramites extends BaseController
                 return $this->response->setJSON(['success' => false, 'message' => 'El registro no existe en la base de datos.']);
             }
 
-            // Ruta del archivo
-            $ds = DIRECTORY_SEPARATOR;
-            $storeFolder = 'assets/uploads/pago_derechos/' . $tramiteId;
-            $filePath = FCPATH . $storeFolder . $ds . $fileName;
-
-            // Eliminar archivo físico
-            if (file_exists($filePath)) {
-                if (!unlink($filePath)) {
-                    return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor.']);
-                }
+            // Eliminar el objeto a través del servicio de almacenamiento (Req 6.4).
+            // Req 6.7: si delete() falla o lanza excepción, se retorna 500 y NO se
+            // elimina la fila de BD (la referencia existente se conserva intacta).
+            helper('filestorage');
+            $key = keyFromStored($fileName, 'pago_derechos', (int) $tramiteId);
+            $storage = service('fileStorage');
+            if (!$storage->delete($key)) {
+                return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor.']);
             }
 
             // Eliminar registro de la base de datos con WHERE obligatorio
@@ -2936,54 +2934,54 @@ class Tramites extends BaseController
             return acl_deny('Acceso denegado.', 403, null, true);
         }
 
-        $ds = DIRECTORY_SEPARATOR; 
-        $storeFolder = 'assets/uploads/pago_derechos/' . $tramiteId; // Carpeta destino para los archivos
-        $targetPath = FCPATH . $storeFolder . $ds;
-
-        if (!is_dir($targetPath)) {
-            mkdir($targetPath, 0777, true); // Crear carpeta si no existe
+        // Req 6.3: sin archivo o tmp_name vacío -> 400 y NO se invoca put().
+        if (empty($_FILES['file']) || empty($_FILES['file']['tmp_name'])) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
         }
 
-        if (!empty($_FILES['file'])) {
-            // Subir archivo
-            $tempFile = $_FILES['file']['tmp_name'];
-            $originalName = (string) ($_FILES['file']['name'] ?? '');
-            $extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
-            $baseName = (string) pathinfo($originalName, PATHINFO_FILENAME);
-            $safeBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $baseName);
-            $safeBase = trim((string) $safeBase, '_');
-            if ($safeBase === '') {
-                $safeBase = 'archivo';
-            }
-            try {
-                $random = bin2hex(random_bytes(8));
-            } catch (\Exception $e) {
-                $random = uniqid();
-            }
-            $fileName = $safeBase . '_' . $random . ($extension !== '' ? '.' . $extension : '');
-            $targetFile = $targetPath . $fileName;
+        helper('filestorage');
 
-            if (move_uploaded_file($tempFile, $targetFile)) {
-                // Guardar el registro en la tabla tra_pago_derechos
-                $db = \Config\Database::connect();
-                $builder = $db->table('tra_pago_derechos');
-                $data = [
-                    'tramite_id' => $tramiteId,
-                    'file' => $fileName,
-                    'user_id' => $userId,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s'),
-                    'status' => 1
-                ];
-                $builder->insert($data);
-                $filePath = $ds . $storeFolder . $ds . $fileName;
-                return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente', 'filePath'=>$filePath, 'fileName' => $fileName]);
-            } else {
-                return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
-            }
+        $tempFile     = $_FILES['file']['tmp_name'];
+        $originalName = (string) ($_FILES['file']['name'] ?? '');
+
+        // Clave canónica traversal-safe (categoría por-id con el id del trámite).
+        $key      = buildKey('pago_derechos', (int) $tramiteId, $originalName);
+        $fileName = basename($key); // valor source-of-truth para el campo legacy `file`
+
+        // Req 6.6: si put falla -> 500 y NO se escribe referencia en BD.
+        $storage = service('fileStorage');
+        if (!$storage->put($key, $tempFile)) {
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
         }
 
-        return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
+        // Req 6.8: la URL debe resolverse; nunca devolver una URL vacía/malformada.
+        $filePath = file_url($fileName, 'pago_derechos', (int) $tramiteId);
+        if ($filePath === '') {
+            $storage->delete($key); // compensa el objeto recién almacenado
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo generar la URL del archivo']);
+        }
+
+        // Req 7.1/7.2/7.4: si la escritura en BD falla tras un put exitoso,
+        // se ejecuta delete($key) EXACTAMENTE una vez para no dejar huérfanos.
+        try {
+            $db = \Config\Database::connect();
+            $builder = $db->table('tra_pago_derechos');
+            $data = [
+                'tramite_id' => $tramiteId,
+                'file' => $fileName,
+                'user_id' => $userId,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+                'status' => 1
+            ];
+            $builder->insert($data);
+        } catch (\Throwable $e) {
+            log_message('error', 'Error en upload_comprobante: ' . $e->getMessage());
+            $storage->delete($key);
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Error al guardar el registro del archivo']);
+        }
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente', 'filePath' => $filePath, 'fileName' => $fileName]);
     }
 
     public function delete_pago_gestor()
@@ -3083,16 +3081,14 @@ class Tramites extends BaseController
                 return acl_deny('Acceso denegado.', 403, null, true);
             }
 
-            // Ruta del archivo
-            $ds = DIRECTORY_SEPARATOR;
-            $storeFolder = 'assets/uploads/pago_gestor/' . $tramiteId;
-            $filePath = FCPATH . $storeFolder . $ds . $fileName;
-
-            // Eliminar archivo físico
-            if (file_exists($filePath)) {
-                if (!unlink($filePath)) {
-                    return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor.']);
-                }
+            // Eliminar el objeto a través del servicio de almacenamiento (Req 6.4).
+            // Req 6.7: si delete() falla o lanza excepción, se retorna 500 y NO se
+            // elimina la fila de BD (la referencia existente se conserva intacta).
+            helper('filestorage');
+            $key = keyFromStored($fileName, 'pago_gestor', (int) $tramiteId);
+            $storage = service('fileStorage');
+            if (!$storage->delete($key)) {
+                return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor.']);
             }
 
             // Eliminar registro de la base de datos con WHERE obligatorio
@@ -3199,65 +3195,64 @@ class Tramites extends BaseController
             return acl_deny('Acceso denegado.', 403, null, true);
         }
 
-        $ds = DIRECTORY_SEPARATOR;
-        $storeFolder = 'assets/uploads/pago_gestor/' . $tramiteId; // Carpeta destino para los archivos
-        $targetPath = FCPATH . $storeFolder . $ds;
-
-        if (!is_dir($targetPath)) {
-            mkdir($targetPath, 0777, true); // Crear carpeta si no existe
+        // Req 6.3: sin archivo o tmp_name vacío -> 400 y NO se invoca put().
+        if (empty($_FILES['file']) || empty($_FILES['file']['tmp_name'])) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
         }
 
-        if (!empty($_FILES['file'])) {
-            // Subir archivo
-            $tempFile = $_FILES['file']['tmp_name'];
-            $originalName = (string) ($_FILES['file']['name'] ?? '');
-            $extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
-            $baseName = (string) pathinfo($originalName, PATHINFO_FILENAME);
-            $safeBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $baseName);
-            $safeBase = trim((string) $safeBase, '_');
-            if ($safeBase === '') {
-                $safeBase = 'archivo';
-            }
-            try {
-                $random = bin2hex(random_bytes(8));
-            } catch (\Exception $e) {
-                $random = uniqid();
-            }
-            $fileName = $safeBase . '_' . $random . ($extension !== '' ? '.' . $extension : '');
-            $targetFile = $targetPath . $fileName;
+        helper('filestorage');
 
-            if (move_uploaded_file($tempFile, $targetFile)) {
-                // Guardar el registro en la tabla tra_pago_gestor
-                $db = \Config\Database::connect();
-                $builder = $db->table('tra_pago_gestor'); // Cambiado a la tabla 'tra_pago_gestor'
-                $data = [
-                    'tramite_id' => $tramiteId,
-                    'file' => $fileName,
-                    'user_id' => $userId,
-                    'comprobante_final' => $comprobanteFinal,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s'),
-                    'status' => 1
-                ];
-                $builder->insert($data);
+        $tempFile     = $_FILES['file']['tmp_name'];
+        $originalName = (string) ($_FILES['file']['name'] ?? '');
 
-                $this->updateCobrarClienteFlag($db, (int) $tramiteId);
+        // Clave canónica traversal-safe (categoría por-id con el id del trámite).
+        $key      = buildKey('pago_gestor', (int) $tramiteId, $originalName);
+        $fileName = basename($key); // valor source-of-truth para el campo legacy `file`
 
-                $filePath = base_url('/assets/uploads/pago_gestor/' . $tramiteId . '/' . $fileName);
-                return $this->response->setJSON([
-                    'success' => true,
-                    'message' => 'Archivo subido y registro creado correctamente',
-                    'filePath' => $filePath,
-                    'fileName' => $fileName,
-                    'originalName' => $originalName,
-                    'comprobanteFinal' => $comprobanteFinal,
-                ]);
-            } else {
-                return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
-            }
+        // Req 6.6: si put falla -> 500 y NO se escribe referencia en BD.
+        $storage = service('fileStorage');
+        if (!$storage->put($key, $tempFile)) {
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
         }
 
-        return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
+        // Req 6.8: la URL debe resolverse; nunca devolver una URL vacía/malformada.
+        $filePath = file_url($fileName, 'pago_gestor', (int) $tramiteId);
+        if ($filePath === '') {
+            $storage->delete($key); // compensa el objeto recién almacenado
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo generar la URL del archivo']);
+        }
+
+        // Req 7.1/7.2/7.4: si la escritura en BD falla tras un put exitoso,
+        // se ejecuta delete($key) EXACTAMENTE una vez para no dejar huérfanos.
+        $db = \Config\Database::connect();
+        try {
+            $builder = $db->table('tra_pago_gestor'); // Cambiado a la tabla 'tra_pago_gestor'
+            $data = [
+                'tramite_id' => $tramiteId,
+                'file' => $fileName,
+                'user_id' => $userId,
+                'comprobante_final' => $comprobanteFinal,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+                'status' => 1
+            ];
+            $builder->insert($data);
+        } catch (\Throwable $e) {
+            log_message('error', 'Error en upload_pago_gestor: ' . $e->getMessage());
+            $storage->delete($key);
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Error al guardar el registro del archivo']);
+        }
+
+        $this->updateCobrarClienteFlag($db, (int) $tramiteId);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Archivo subido y registro creado correctamente',
+            'filePath' => $filePath,
+            'fileName' => $fileName,
+            'originalName' => $originalName,
+            'comprobanteFinal' => $comprobanteFinal,
+        ]);
     }
 
     public function delete_cobro_cliente()
@@ -3328,16 +3323,14 @@ class Tramites extends BaseController
                 return $this->response->setJSON(['success' => false, 'message' => 'El registro no existe en la base de datos.']);
             }
 
-            // Ruta del archivo
-            $ds = DIRECTORY_SEPARATOR;
-            $storeFolder = 'assets/uploads/cobro_cliente/' . $tramiteId;
-            $filePath = FCPATH . $storeFolder . $ds . $fileName;
-
-            // Eliminar archivo físico
-            if (file_exists($filePath)) {
-                if (!unlink($filePath)) {
-                    return $this->response->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor.']);
-                }
+            // Eliminar el objeto a través del servicio de almacenamiento (Req 6.4).
+            // Req 6.7: si delete() falla o lanza excepción, se retorna 500 y NO se
+            // elimina la fila de BD (la referencia existente se conserva intacta).
+            helper('filestorage');
+            $key = keyFromStored($fileName, 'cobro_cliente', (int) $tramiteId);
+            $storage = service('fileStorage');
+            if (!$storage->delete($key)) {
+                return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo eliminar el archivo del servidor.']);
             }
 
             // Eliminar registro de la base de datos con WHERE obligatorio
@@ -3403,67 +3396,62 @@ class Tramites extends BaseController
             return acl_deny('Acceso denegado.', 403, null, true);
         }
     
-        $ds = DIRECTORY_SEPARATOR;
-        $storeFolder = 'assets/uploads/cobro_cliente/' . $tramiteId; // Carpeta destino para los archivos
-        $targetPath = FCPATH . $storeFolder . $ds;
-    
-        if (!is_dir($targetPath)) {
-            mkdir($targetPath, 0777, true); // Crear carpeta si no existe
+        // Req 6.3: sin archivo o tmp_name vacío -> 400 y NO se invoca put().
+        if (empty($_FILES['file']) || empty($_FILES['file']['tmp_name'])) {
+            return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
         }
-    
-        if (!empty($_FILES['file'])) {
-            // Subir archivo
-            $tempFile = $_FILES['file']['tmp_name'];
-            $originalName = (string) ($_FILES['file']['name'] ?? '');
-            $extension = strtolower((string) pathinfo($originalName, PATHINFO_EXTENSION));
-            $baseName = (string) pathinfo($originalName, PATHINFO_FILENAME);
-            $safeBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', $baseName);
-            $safeBase = trim((string) $safeBase, '_');
-            if ($safeBase === '') {
-                $safeBase = 'archivo';
-            }
-            try {
-                $random = bin2hex(random_bytes(8));
-            } catch (\Exception $e) {
-                $random = uniqid();
-            }
-            $fileName = $safeBase . '_' . $random . ($extension !== '' ? '.' . $extension : '');
-            $targetFile = $targetPath . $fileName;
-    
-            if ($this->moveCobroClienteUploadedFile($tempFile, $targetFile)) {
-                // Guardar el registro en la tabla tra_cobro_cliente
-                $db = \Config\Database::connect();
-                $builder = $db->table('tra_cobro_cliente'); // Cambiado a la tabla 'tra_cobro_cliente'
-                $cobroCorrecto = $request->getPost('cobro_correcto');
-                $cobroCorrecto = is_string($cobroCorrecto) ? trim($cobroCorrecto) : '';
-                if (!in_array($cobroCorrecto, ['parcial', 'completo', 'otro'], true)) {
-                    $cobroCorrecto = 'otro';
-                }
-                $data = [
-                    'tramite_id' => $tramiteId,
-                    'file' => $fileName,
-                    'cobro_correcto' => $cobroCorrecto,
-                    'user_id' => $userId,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => date('Y-m-d H:i:s'),
-                    'status' => 1
-                ];
-                $builder->insert($data);
-    
-                return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente']);
-            } else {
-                return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
-            }
+
+        helper('filestorage');
+
+        $tempFile     = $_FILES['file']['tmp_name'];
+        $originalName = (string) ($_FILES['file']['name'] ?? '');
+
+        // Clave canónica traversal-safe (categoría por-id con el id del trámite).
+        $key      = buildKey('cobro_cliente', (int) $tramiteId, $originalName);
+        $fileName = basename($key); // valor source-of-truth para el campo legacy `file`
+
+        // Req 6.6: si put falla -> 500 y NO se escribe referencia en BD.
+        $storage = service('fileStorage');
+        if (!$storage->put($key, $tempFile)) {
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo mover el archivo']);
         }
-    
-        return $this->response->setStatusCode(400)->setJSON(['success' => false, 'message' => 'No se recibió ningún archivo']);
+
+        // Req 6.8: la URL debe resolverse; nunca devolver una URL vacía/malformada.
+        $filePath = file_url($fileName, 'cobro_cliente', (int) $tramiteId);
+        if ($filePath === '') {
+            $storage->delete($key); // compensa el objeto recién almacenado
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'No se pudo generar la URL del archivo']);
+        }
+
+        // Req 7.1/7.2/7.4: si la escritura en BD falla tras un put exitoso,
+        // se ejecuta delete($key) EXACTAMENTE una vez para no dejar huérfanos.
+        try {
+            $db = \Config\Database::connect();
+            $builder = $db->table('tra_cobro_cliente'); // Cambiado a la tabla 'tra_cobro_cliente'
+            $cobroCorrecto = $request->getPost('cobro_correcto');
+            $cobroCorrecto = is_string($cobroCorrecto) ? trim($cobroCorrecto) : '';
+            if (!in_array($cobroCorrecto, ['parcial', 'completo', 'otro'], true)) {
+                $cobroCorrecto = 'otro';
+            }
+            $data = [
+                'tramite_id' => $tramiteId,
+                'file' => $fileName,
+                'cobro_correcto' => $cobroCorrecto,
+                'user_id' => $userId,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s'),
+                'status' => 1
+            ];
+            $builder->insert($data);
+        } catch (\Throwable $e) {
+            log_message('error', 'Error en upload_cobro_cliente: ' . $e->getMessage());
+            $storage->delete($key);
+            return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => 'Error al guardar el registro del archivo']);
+        }
+
+        return $this->response->setJSON(['success' => true, 'message' => 'Archivo subido y registro creado correctamente', 'filePath' => $filePath, 'fileName' => $fileName]);
     }
 
-        protected function moveCobroClienteUploadedFile(string $tempFile, string $targetFile): bool
-        {
-            return move_uploaded_file($tempFile, $targetFile);
-        }
-    
 
     public function getDependentData($type, $parentId) {
         helper(['permissions', 'cliente_filter', 'acl_guard']);
@@ -6592,27 +6580,14 @@ class Tramites extends BaseController
                     throw new \Exception('Nombre de archivo inválido.');
                 }
         
-                // Define the base image path
-                $baseImagePath = FCPATH . 'assets/uploads/pago_derechos/';
-        
-                // Ensure tramite_id and fileName are available
-                if ($tramite_id && $fileName) {
-                    // Construct the full file path
-                    $filePath = $baseImagePath . $tramite_id . '/' . $fileName;
-        
-                    // Check if the file exists
-                    if (file_exists($filePath)) {
-                        // Attempt to delete the file
-                        if (unlink($filePath)) {
-                            // log_message('info', "File successfully deleted: $filePath");
-                        } else {
-                            // log_message('error', "Failed to delete file: $filePath");
-                        }
-                    } else {
-                        // log_message('warning', "File does not exist: $filePath");
-                    }
-                } else {
-                    // log_message('error', "Incomplete data: Tramite ID: $tramite_id, File: $fileName");
+                // Eliminar el objeto a través del servicio de almacenamiento (Req 6.4).
+                // GroceryCrud elimina la fila DESPUÉS de este callback; Req 6.7: si
+                // delete() falla o lanza excepción, se lanza para abortar la eliminación
+                // de la fila y conservar intacta la referencia existente.
+                helper('filestorage');
+                $key = keyFromStored($fileName, 'pago_derechos', (int) $tramite_id);
+                if (!service('fileStorage')->delete($key)) {
+                    throw new \Exception('No se pudo eliminar el archivo del servidor.');
                 }
             } else {
                 // log_message('error', "No record found for Primary Key: $primaryKeyValue");
@@ -6951,27 +6926,14 @@ class Tramites extends BaseController
                     throw new \Exception('Nombre de archivo inválido.');
                 }
         
-                // Define the base image path
-                $baseImagePath = FCPATH . 'assets/uploads/pago_gestor/';
-        
-                // Ensure tramite_id and fileName are available
-                if ($tramite_id && $fileName) {
-                    // Construct the full file path
-                    $filePath = $baseImagePath . $tramite_id . '/' . $fileName;
-        
-                    // Check if the file exists
-                    if (file_exists($filePath)) {
-                        // Attempt to delete the file
-                        if (unlink($filePath)) {
-                            // log_message('info', "File successfully deleted: $filePath");
-                        } else {
-                            // log_message('error', "Failed to delete file: $filePath");
-                        }
-                    } else {
-                        // log_message('warning', "File does not exist: $filePath");
-                    }
-                } else {
-                    // log_message('error', "Incomplete data: Tramite ID: $tramite_id, File: $fileName");
+                // Eliminar el objeto a través del servicio de almacenamiento (Req 6.4).
+                // GroceryCrud elimina la fila DESPUÉS de este callback; Req 6.7: si
+                // delete() falla o lanza excepción, se lanza para abortar la eliminación
+                // de la fila y conservar intacta la referencia existente.
+                helper('filestorage');
+                $key = keyFromStored($fileName, 'pago_gestor', (int) $tramite_id);
+                if (!service('fileStorage')->delete($key)) {
+                    throw new \Exception('No se pudo eliminar el archivo del servidor.');
                 }
             } else {
                 // log_message('error', "No record found for Primary Key: $primaryKeyValue");
@@ -7240,27 +7202,14 @@ class Tramites extends BaseController
                     throw new \Exception('Nombre de archivo inválido.');
                 }
         
-                // Define the base image path
-                $baseImagePath = FCPATH . 'assets/uploads/cobro_cliente/';
-        
-                // Ensure tramite_id and fileName are available
-                if ($tramite_id && $fileName) {
-                    // Construct the full file path
-                    $filePath = $baseImagePath . $tramite_id . '/' . $fileName;
-        
-                    // Check if the file exists
-                    if (file_exists($filePath)) {
-                        // Attempt to delete the file
-                        if (unlink($filePath)) {
-                            // log_message('info', "File successfully deleted: $filePath");
-                        } else {
-                            // log_message('error', "Failed to delete file: $filePath");
-                        }
-                    } else {
-                        // log_message('warning', "File does not exist: $filePath");
-                    }
-                } else {
-                    // log_message('error', "Incomplete data: Tramite ID: $tramite_id, File: $fileName");
+                // Eliminar el objeto a través del servicio de almacenamiento (Req 6.4).
+                // GroceryCrud elimina la fila DESPUÉS de este callback; Req 6.7: si
+                // delete() falla o lanza excepción, se lanza para abortar la eliminación
+                // de la fila y conservar intacta la referencia existente.
+                helper('filestorage');
+                $key = keyFromStored($fileName, 'cobro_cliente', (int) $tramite_id);
+                if (!service('fileStorage')->delete($key)) {
+                    throw new \Exception('No se pudo eliminar el archivo del servidor.');
                 }
             } else {
                 // log_message('error', "No record found for Primary Key: $primaryKeyValue");

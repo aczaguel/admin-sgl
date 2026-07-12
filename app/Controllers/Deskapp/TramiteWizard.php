@@ -28,7 +28,7 @@ class TramiteWizard extends BaseController
     
     public function __construct()
     {
-        helper(['form', 'url', 'cliente_filter', 'cliente_context', 'permissions', 'acl_guard']);
+        helper(['form', 'url', 'cliente_filter', 'cliente_context', 'permissions', 'acl_guard', 'filestorage']);
         $this->db = \Config\Database::connect();
     }
 
@@ -636,29 +636,90 @@ class TramiteWizard extends BaseController
 
     private function guardarArchivos($tramiteId, $archivos)
     {
-        $uploadPath = WRITEPATH . 'uploads/tramites/' . $tramiteId . '/';
-        
-        if (!is_dir($uploadPath)) {
-            mkdir($uploadPath, 0777, true);
-        }
+        helper('filestorage');
+
+        $storage    = service('fileStorage');
+        $documentos = [];
 
         foreach ($archivos as $archivo) {
-            if ($archivo->isValid() && !$archivo->hasMoved()) {
-                $nuevoNombre = $archivo->getRandomName();
-                $archivo->move($uploadPath, $nuevoNombre);
-
-                // Registrar en tabla de documentos
-                $this->db->table('tra_doc_status')->insert([
-                    'tramite_id' => $tramiteId,
-                    'nombre_archivo' => $nuevoNombre,
-                    'nombre_original' => $archivo->getClientName(),
-                    'ruta' => $uploadPath . $nuevoNombre,
-                    'tipo' => $archivo->getClientMimeType(),
-                    'tamano' => $archivo->getSize(),
-                    'created_at' => date('Y-m-d H:i:s')
-                ]);
+            // Defensive: an already-moved handle cannot be persisted again.
+            if ($archivo->hasMoved()) {
+                continue;
             }
+
+            // Req 6.3: missing/invalid file or empty temporary path => 400, do NOT call put.
+            $tempName = $archivo->getTempName();
+            if (!$archivo->isValid() || $tempName === '' || $tempName === null) {
+                return [
+                    'success'    => false,
+                    'statusCode' => 400,
+                    'message'    => 'No se recibió un archivo válido',
+                    'documentos' => $documentos,
+                ];
+            }
+
+            // Build a traversal-safe relative key under tramites/<id>/... (canonical layout).
+            $key = buildKey('tramites', (int) $tramiteId, $archivo->getClientName());
+
+            // Req 6.2 / 6.6: persist through the storage service using the uploaded temp path.
+            // A failed put returns 500 and records NO database reference.
+            if (!$storage->put($key, $tempName)) {
+                log_message('error', 'TramiteWizard::guardarArchivos put failed for key {key}', ['key' => $key]);
+
+                return [
+                    'success'    => false,
+                    'statusCode' => 500,
+                    'message'    => 'No se pudo guardar el archivo',
+                    'documentos' => $documentos,
+                ];
+            }
+
+            // Req 6.5: store the canonical value (bare filename); never an absolute URL.
+            $storedValue = basename($key);
+
+            try {
+                // Registrar en tabla de documentos. The relative key is stored in
+                // `ruta` so the reference is driver-agnostic (resolvable by file_url()).
+                $this->db->table('tra_doc_status')->insert([
+                    'tramite_id'      => $tramiteId,
+                    'nombre_archivo'  => $storedValue,
+                    'nombre_original' => $archivo->getClientName(),
+                    'ruta'            => $key,
+                    'tipo'            => $archivo->getClientMimeType(),
+                    'tamano'          => $archivo->getSize(),
+                    'created_at'      => date('Y-m-d H:i:s'),
+                ]);
+            } catch (\Throwable $e) {
+                // Req 7.1: DB write failed after a successful put => compensating delete
+                // exactly once for the just-written key, then return 500 (no referencing row).
+                $storage->delete($key);
+                log_message(
+                    'error',
+                    'TramiteWizard::guardarArchivos DB write failed after put for key {key}: {msg}',
+                    ['key' => $key, 'msg' => $e->getMessage()]
+                );
+
+                return [
+                    'success'    => false,
+                    'statusCode' => 500,
+                    'message'    => 'Error al guardar el documento',
+                    'documentos' => $documentos,
+                ];
+            }
+
+            // Req 6.5: return the browser URL produced by the URL resolver for the stored value.
+            $documentos[] = [
+                'nombre_archivo' => $storedValue,
+                'url'            => file_url($storedValue, 'tramites', (int) $tramiteId),
+            ];
         }
+
+        return [
+            'success'    => true,
+            'statusCode' => 200,
+            'message'    => 'Archivos guardados',
+            'documentos' => $documentos,
+        ];
     }
 
     private function registrarBitacora($tramiteId, $descripcion, $userId)
