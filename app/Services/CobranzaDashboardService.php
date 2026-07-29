@@ -784,24 +784,40 @@ class CobranzaDashboardService
             return null;
         }
 
+        // Si viene una ruta, nos quedamos solo con el nombre base.
         $fileBase = basename($fileName);
-        if ($fileBase === '' || $fileBase === '.' || $fileBase === '..') {
+        if (
+            $fileBase === '' || $fileBase === '.' || $fileBase === '..'
+            || strpos($fileBase, "\0") !== false || strpos($fileBase, '..') !== false
+        ) {
             return null;
         }
 
-        $candidates = [
-            ['dir' => 'assets/uploads/documentostatus/', 'url' => '/assets/uploads/documentostatus/'],
-            ['dir' => 'assets/uploads/docstatus/', 'url' => '/assets/uploads/docstatus/'],
-        ];
+        $driver = config('FileStorage')->driver;
 
-        foreach ($candidates as $candidate) {
-            $path = FCPATH . $candidate['dir'] . $fileBase;
-            if (is_file($path)) {
-                return base_url($candidate['url'] . $fileBase);
+        if ($driver === 'local') {
+            // Se preserva el sondeo por directorio candidato para que la salida
+            // en modo local sea byte-idéntica al comportamiento previo:
+            // file_url($fileBase, $category) == base_url('/assets/uploads/'.$category.'/'.$fileBase).
+            $candidates = [
+                ['dir' => 'assets/uploads/documentostatus/', 'category' => 'documentostatus'],
+                ['dir' => 'assets/uploads/docstatus/', 'category' => 'docstatus'],
+            ];
+
+            foreach ($candidates as $candidate) {
+                $path = FCPATH . $candidate['dir'] . $fileBase;
+                if (is_file($path)) {
+                    return file_url($fileBase, $candidate['category']);
+                }
             }
+
+            return null;
         }
 
-        return null;
+        // Driver s3: no hay disco local que sondear. `documentostatus` es la
+        // categoría canónica; se resuelve directamente a una URL prefirmada
+        // para la clave `documentostatus/<basename>` sin emitir /assets/uploads/.
+        return file_url($fileBase, 'documentostatus');
     }
 
     private function loadPagoGestorDocuments(int $tramiteId): array

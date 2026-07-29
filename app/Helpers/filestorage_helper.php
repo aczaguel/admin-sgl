@@ -258,6 +258,52 @@ if (!function_exists('file_url')) {
     }
 }
 
+if (!function_exists('file_download_url')) {
+    /**
+     * Resolve a browser URL that forces a download for a stored file value.
+     *
+     * Mirrors file_url() but returns a URL with Content-Disposition: attachment
+     * (s3) so files that browsers would otherwise render inline (e.g. XML) are
+     * downloaded instead. Empty/unresolvable values degrade to '' exactly like
+     * file_url().
+     *
+     * @param string   $storedValue Raw DB value (bare filename, relative key, or absolute URL).
+     * @param string   $category    e.g. "documentostatus", "pago_gestor".
+     * @param int|null $id          Tramite id for per-id categories.
+     * @param int      $ttl         Presigned TTL (seconds) when the active driver is s3.
+     *
+     * @return string Download URL for the stored file, or '' when unresolvable.
+     */
+    function file_download_url(string $storedValue, string $category = '', ?int $id = null, int $ttl = 300): string
+    {
+        if (trim($storedValue) === '') {
+            return '';
+        }
+
+        try {
+            $key = keyFromStored($storedValue, $category, $id);
+            if ($key === '') {
+                return '';
+            }
+
+            return (string) service('fileStorage')->downloadUrl($key, $ttl, basename($key));
+        } catch (\Throwable $e) {
+            log_message(
+                'error',
+                'file_download_url: could not resolve download URL for [{value}] (category={category}, id={id}): {message}',
+                [
+                    'value'    => $storedValue,
+                    'category' => $category,
+                    'id'       => $id ?? 'null',
+                    'message'  => $e->getMessage(),
+                ]
+            );
+
+            return '';
+        }
+    }
+}
+
 if (!function_exists('avatar_url')) {
     /**
      * Resolve a browser URL for a user avatar value, preserving legacy behavior.
@@ -299,5 +345,112 @@ if (!function_exists('avatar_url')) {
         $url = file_url($value, 'avatars');
 
         return $url !== '' ? $url : base_url('public/' . ltrim($default, '/'));
+    }
+}
+
+if (!function_exists('is_image_filename')) {
+    /**
+     * Report whether a filename names a browser-renderable image.
+     *
+     * The extension is defined as the substring following the final `.`
+     * character in the (trimmed) filename. The predicate returns true only
+     * when that extension is one of `png`, `jpg`, `jpeg`, `gif`, `webp`,
+     * `bmp`, or `svg`, compared case-insensitively.
+     *
+     * It returns false for a filename that is empty or whitespace-only,
+     * contains no `.` character, or whose only `.` is its first character
+     * (a leading-dot-only name such as ".png").
+     *
+     * @param string $name Filename to inspect (e.g. "comprobante_12472.JPG").
+     *
+     * @return bool True when the extension is a renderable image type, false otherwise.
+     */
+    function is_image_filename(string $name): bool
+    {
+        $name = trim($name);
+        if ($name === '') {
+            return false;
+        }
+
+        // Require a '.' that is not the first character, so leading-dot-only
+        // names (".png") and names without any '.' return false.
+        $pos = strrpos($name, '.');
+        if ($pos === false || $pos === 0) {
+            return false;
+        }
+
+        $ext = substr($name, $pos + 1);
+
+        return preg_match('/^(png|jpe?g|gif|webp|bmp|svg)$/i', $ext) === 1;
+    }
+}
+
+if (!function_exists('file_url_map')) {
+    /**
+     * Resolve a list of stored file values into a { storedValue => url } map.
+     *
+     * Thin convenience wrapper over `file_url()`: it adds no new resolution
+     * logic, so every produced URL still flows through the single resolution
+     * point and inherits its graceful degradation (empty/unresolvable => '').
+     *
+     * Each value is trimmed; empty/whitespace-only values are skipped, and
+     * duplicate keys collapse to a single entry (exactly one per distinct
+     * non-empty stored value). Keys are the ORIGINAL trimmed stored values (as
+     * they appear in the doc rows / DB), so a view can look up the URL by the
+     * same filename it already renders. A value that `file_url()` resolves to
+     * '' is RETAINED as a key mapped to '' rather than excluded.
+     *
+     * @param string[] $storedValues Raw DB values (bare filename, relative key, or absolute URL).
+     * @param string   $category     e.g. "cobro_cliente", "pago_gestor", "documentostatus".
+     * @param int|null $id           Tramite id for per-id categories.
+     * @param int      $ttl          Presigned TTL (seconds) when the active driver is s3.
+     *
+     * @return array<string,string> Map of storedValue => browser URL ('' when unresolvable).
+     */
+    function file_url_map(array $storedValues, string $category = '', ?int $id = null, int $ttl = 300): array
+    {
+        $map = [];
+        foreach ($storedValues as $value) {
+            $name = trim((string) $value);
+            if ($name === '' || array_key_exists($name, $map)) {
+                continue;
+            }
+            $map[$name] = file_url($name, $category, $id, $ttl); // '' if unresolvable
+        }
+
+        return $map;
+    }
+}
+
+if (!function_exists('file_url_list')) {
+    /**
+     * Resolve a list of stored file values into an ordered list of
+     * [name, url] entries.
+     *
+     * Thin convenience wrapper over `file_url()` for galleries that render an
+     * ordered list rather than a keyed lookup. Each value is trimmed;
+     * empty/whitespace-only values are skipped. Input order is preserved and,
+     * unlike `file_url_map()`, duplicate values are retained — one entry per
+     * occurrence.
+     *
+     * @param string[] $storedValues Raw DB values (bare filename, relative key, or absolute URL).
+     * @param string   $category     e.g. "cobro_cliente", "pago_gestor", "documentostatus".
+     * @param int|null $id           Tramite id for per-id categories.
+     * @param int      $ttl          Presigned TTL (seconds) when the active driver is s3.
+     *
+     * @return array<int,array{name:string,url:string}> Ordered list of resolved entries.
+     */
+    function file_url_list(array $storedValues, string $category = '', ?int $id = null, int $ttl = 300): array
+    {
+        $list = [];
+        foreach ($storedValues as $value) {
+            $name = trim((string) $value);
+            if ($name === '') {
+                continue;
+            }
+            $list[] = ['name' => $name, 'url' => file_url($name, $category, $id, $ttl)];
+        }
+
+        return $list;
     }
 }

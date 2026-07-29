@@ -628,15 +628,31 @@ class ClienteTramites extends BaseController
                         return null;
                     }
 
+                    $driver = config('FileStorage')->driver;
+
+                    // Bajo s3 no hay disco local: resolvemos directamente contra
+                    // la categoría canónica 'documentostatus' vía file_url()
+                    // (URL prefirmada), sin aplicar la compuerta de existencia
+                    // local. Un valor no resoluble degrada a null.
+                    if ($driver !== 'local') {
+                        $url = file_url($fileBase, 'documentostatus');
+
+                        return $url !== '' ? $url : null;
+                    }
+
+                    // Bajo local conservamos el sondeo de directorios candidatos
+                    // con is_file() para mantener la salida byte-idéntica al
+                    // comportamiento actual; file_url() devuelve la misma ruta
+                    // base_url('/assets/uploads/'.<categoria>/<archivo>).
                     $candidates = [
-                        ['dir' => 'assets/uploads/documentostatus/', 'url' => '/assets/uploads/documentostatus/'],
-                        ['dir' => 'assets/uploads/docstatus/', 'url' => '/assets/uploads/docstatus/'],
+                        ['dir' => 'assets/uploads/documentostatus/', 'category' => 'documentostatus'],
+                        ['dir' => 'assets/uploads/docstatus/', 'category' => 'docstatus'],
                     ];
 
                     foreach ($candidates as $cand) {
                         $filePath = FCPATH . $cand['dir'] . $fileBase;
                         if (is_file($filePath)) {
-                            return base_url($cand['url'] . $fileBase);
+                            return file_url($fileBase, $cand['category']);
                         }
                     }
 

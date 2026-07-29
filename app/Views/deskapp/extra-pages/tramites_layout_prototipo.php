@@ -4768,10 +4768,9 @@ $flowCardClass = static function (int $stepNumber) use ($activeStep): string {
                             <?php
                               $step4DocFile = (string) ($doc['file'] ?? '');
                               $step4DocType = (string) ($doc['comprobante_final'] ?? '');
-                              $step4DocBaseUrl = rtrim((string) ($prototypeStep4Form['fileBaseUrl'] ?? ''), '/');
-                              $step4DocUrl = $step4DocBaseUrl !== '' ? $step4DocBaseUrl . '/' . rawurlencode($step4DocFile) : '#';
+                              $step4DocUrl = ($doc['url'] ?? '') !== '' ? (string) $doc['url'] : '#';
                               $step4DocLabel = (string) (($prototypeStep4Form['options']['comprobanteFinal'][$step4DocType] ?? '') ?: ($step4DocType !== '' ? $step4DocType : 'Documento de pago'));
-                              $step4IsImagePreview = (bool) preg_match('/\.(png|jpe?g|gif|webp|bmp|svg)$/i', $step4DocFile);
+                              $step4IsImagePreview = !empty($doc['is_image']);
                             ?>
                             <div class="tp-gallery-item">
                               <?php if ($step4IsImagePreview && $step4DocUrl !== '#'): ?>
@@ -4980,10 +4979,9 @@ $flowCardClass = static function (int $stepNumber) use ($activeStep): string {
                             <?php
                               $step5DocFile = (string) ($doc['file'] ?? '');
                               $step5DocType = (string) ($doc['cobro_correcto'] ?? 'otro');
-                              $step5DocBaseUrl = rtrim((string) ($prototypeStep5Form['fileBaseUrl'] ?? ''), '/');
-                              $step5DocUrl = $step5DocBaseUrl !== '' ? $step5DocBaseUrl . '/' . rawurlencode($step5DocFile) : '#';
+                              $step5DocUrl = ($doc['url'] ?? '') !== '' ? (string) $doc['url'] : '#';
                               $step5DocLabel = (string) (($prototypeStep5Form['options']['cobroCorrecto'][$step5DocType] ?? '') ?: ($step5DocType !== '' ? $step5DocType : 'Soporte de cobro'));
-                              $step5IsImagePreview = (bool) preg_match('/\.(png|jpe?g|gif|webp|bmp|svg)$/i', $step5DocFile);
+                              $step5IsImagePreview = !empty($doc['is_image']);
                             ?>
                             <div class="tp-gallery-item">
                               <?php if ($step5IsImagePreview && $step5DocUrl !== '#'): ?>
@@ -5728,10 +5726,11 @@ $flowCardClass = static function (int $stepNumber) use ($activeStep): string {
                               <div class="tp-gallery-list" data-step4-doc-gallery style="margin-top: 0;">
                                 <?php if (!empty($prototypeStep4Form['docs']) && is_array($prototypeStep4Form['docs'])): ?>
                                   <?php foreach ($prototypeStep4Form['docs'] as $docRow): ?>
+                                    <?php $step4InlineDocUrl = ($docRow['url'] ?? '') !== '' ? (string) $docRow['url'] : '#'; ?>
                                     <div class="tp-gallery-item">
                                       <div class="tp-gallery-item-head">
                                         <div>
-                                          <a class="tp-gallery-item-link" href="<?= esc(($prototypeStep4Form['fileBaseUrl'] ?? '') . rawurlencode((string) ($docRow['file'] ?? '')), 'attr') ?>" target="_blank" rel="noreferrer" data-doc-preview-url="<?= esc(($prototypeStep4Form['fileBaseUrl'] ?? '') . rawurlencode((string) ($docRow['file'] ?? '')), 'attr') ?>" data-doc-preview-name="<?= esc((string) ($docRow['file'] ?? ''), 'attr') ?>" data-doc-preview-meta="<?= esc((string) ($docRow['comprobante_final'] ?? ''), 'attr') ?>"><?= esc((string) ($docRow['file'] ?? 'Sin nombre')) ?></a>
+                                          <a class="tp-gallery-item-link" href="<?= esc($step4InlineDocUrl, 'attr') ?>" target="_blank" rel="noreferrer" data-doc-preview-url="<?= esc($step4InlineDocUrl, 'attr') ?>" data-doc-preview-name="<?= esc((string) ($docRow['file'] ?? ''), 'attr') ?>" data-doc-preview-meta="<?= esc((string) ($docRow['comprobante_final'] ?? ''), 'attr') ?>"><?= esc((string) ($docRow['file'] ?? 'Sin nombre')) ?></a>
                                           <span class="tp-gallery-item-meta"><?= esc((string) ($docRow['comprobante_final'] ?? 'Sin tipo')) ?></span>
                                         </div>
                                         <?php if ($prototypeStep4CanDeleteDocs): ?>
@@ -5969,10 +5968,11 @@ $flowCardClass = static function (int $stepNumber) use ($activeStep): string {
                         <div class="tp-gallery-list" data-step5-doc-gallery style="margin-top: 0;">
                           <?php if (!empty($prototypeStep5Form['docs']) && is_array($prototypeStep5Form['docs'])): ?>
                             <?php foreach ($prototypeStep5Form['docs'] as $docRow): ?>
+                              <?php $step5InlineDocUrl = ($docRow['url'] ?? '') !== '' ? (string) $docRow['url'] : '#'; ?>
                               <div class="tp-gallery-item">
                                 <div class="tp-gallery-item-head">
                                   <div>
-                                    <a class="tp-gallery-item-link" href="<?= esc(($prototypeStep5Form['fileBaseUrl'] ?? '') . rawurlencode((string) ($docRow['file'] ?? '')), 'attr') ?>" target="_blank" rel="noreferrer" data-doc-preview-url="<?= esc(($prototypeStep5Form['fileBaseUrl'] ?? '') . rawurlencode((string) ($docRow['file'] ?? '')), 'attr') ?>" data-doc-preview-name="<?= esc((string) ($docRow['file'] ?? ''), 'attr') ?>" data-doc-preview-meta="<?= esc((string) ($docRow['cobro_correcto'] ?? ''), 'attr') ?>"><?= esc((string) ($docRow['file'] ?? 'Sin nombre')) ?></a>
+                                    <a class="tp-gallery-item-link" href="<?= esc($step5InlineDocUrl, 'attr') ?>" target="_blank" rel="noreferrer" data-doc-preview-url="<?= esc($step5InlineDocUrl, 'attr') ?>" data-doc-preview-name="<?= esc((string) ($docRow['file'] ?? ''), 'attr') ?>" data-doc-preview-meta="<?= esc((string) ($docRow['cobro_correcto'] ?? ''), 'attr') ?>"><?= esc((string) ($docRow['file'] ?? 'Sin nombre')) ?></a>
                                     <span class="tp-gallery-item-meta"><?= esc((string) ($docRow['cobro_correcto'] ?? 'Sin tipo')) ?></span>
                                   </div>
                                   <?php if ($prototypeStep5CanDeleteDocs): ?>
@@ -6366,10 +6366,9 @@ $flowCardClass = static function (int $stepNumber) use ($activeStep): string {
                               <?php
                                 $step4DocFile = (string) ($doc['file'] ?? '');
                                 $step4DocType = (string) ($doc['comprobante_final'] ?? '');
-                                $step4DocBaseUrl = rtrim((string) ($prototypeStep4Form['fileBaseUrl'] ?? ''), '/');
-                                $step4DocUrl = $step4DocBaseUrl !== '' ? $step4DocBaseUrl . '/' . rawurlencode($step4DocFile) : '#';
+                                $step4DocUrl = ($doc['url'] ?? '') !== '' ? (string) $doc['url'] : '#';
                                 $step4DocLabel = (string) (($prototypeStep4Form['options']['comprobanteFinal'][$step4DocType] ?? '') ?: ($step4DocType !== '' ? $step4DocType : 'Documento de pago'));
-                                $step4IsImagePreview = (bool) preg_match('/\.(png|jpe?g|gif|webp|bmp|svg)$/i', $step4DocFile);
+                                $step4IsImagePreview = !empty($doc['is_image']);
                               ?>
                               <div class="tp-gallery-item">
                                 <?php if ($step4IsImagePreview && $step4DocUrl !== '#'): ?>
@@ -6458,10 +6457,9 @@ $flowCardClass = static function (int $stepNumber) use ($activeStep): string {
                               <?php
                                 $step5DocFile = (string) ($doc['file'] ?? '');
                                 $step5DocType = (string) ($doc['cobro_correcto'] ?? 'otro');
-                                $step5DocBaseUrl = rtrim((string) ($prototypeStep5Form['fileBaseUrl'] ?? ''), '/');
-                                $step5DocUrl = $step5DocBaseUrl !== '' ? $step5DocBaseUrl . '/' . rawurlencode($step5DocFile) : '#';
+                                $step5DocUrl = ($doc['url'] ?? '') !== '' ? (string) $doc['url'] : '#';
                                 $step5DocLabel = (string) (($prototypeStep5Form['options']['cobroCorrecto'][$step5DocType] ?? '') ?: ($step5DocType !== '' ? $step5DocType : 'Soporte de cobro'));
-                                $step5IsImagePreview = (bool) preg_match('/\.(png|jpe?g|gif|webp|bmp|svg)$/i', $step5DocFile);
+                                $step5IsImagePreview = !empty($doc['is_image']);
                               ?>
                               <div class="tp-gallery-item">
                                 <?php if ($step5IsImagePreview && $step5DocUrl !== '#'): ?>

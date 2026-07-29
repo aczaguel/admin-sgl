@@ -229,6 +229,16 @@ final class FileStorageService implements FileStorage
      *
      * Always delegates to the active driver only.
      */
+    public function downloadUrl(string $key, int $ttlSeconds = 300, string $downloadName = ''): string
+    {
+        return $this->driver->downloadUrl($key, $ttlSeconds, $downloadName);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * Always delegates to the active driver only.
+     */
     public function exists(string $key): bool
     {
         return $this->driver->exists($key);

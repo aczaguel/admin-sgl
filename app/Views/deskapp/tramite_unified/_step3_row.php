@@ -7,7 +7,7 @@
  *
  * Expected view variables:
  * - $prototypeStep3Form       (canUpload, canDelete, blockedReason, deleteBlockedReason,
- *                              csrfName, csrfHash, urls, tramiteId, fileBaseUrl,
+ *                              csrfName, csrfHash, urls, tramiteId,
  *                              options, docs, hasTramiteRecibido, hasAcuseRecibo)
  * - $prototypeEvidenceForm    (canView, canAdd, blockedReason, csrfName, csrfHash,
  *                              tramiteId, urls, items)
@@ -25,7 +25,6 @@ $csrfHash              = $prototypeStep3Form['csrfHash'] ?? csrf_hash();
 $documents             = $prototypeStep3Form['docs'] ?? [];
 $hasTramiteRecibido    = !empty($prototypeStep3Form['hasTramiteRecibido']);
 $hasAcuseRecibo        = !empty($prototypeStep3Form['hasAcuseRecibo']);
-$fileBaseUrl           = $prototypeStep3Form['fileBaseUrl'] ?? '';
 
 // --- Evidence/Notes permissions & data (shared bitácora with step 1) ---
 $evidenceCanView = !empty($prototypeEvidenceForm['canView']);
@@ -147,16 +146,16 @@ $tulLockReason = (string) ($tulStep3LockReason ?? '');
                             $docFile = (string) ($doc['file'] ?? '');
                             $docTipo = (string) ($doc['comprobante_final'] ?? $doc['tipo'] ?? '');
                             $docLabel = $tulEvidenceLabels[$docTipo] ?? ($docTipo !== '' ? $docTipo : 'Evidencia');
-                            $docUrl  = ($fileBaseUrl !== '' && $docFile !== '') ? rtrim($fileBaseUrl, '/') . '/' . rawurlencode($docFile) : '';
-                            $isImage = (bool) preg_match('/\.(png|jpe?g|gif|webp|bmp|svg)$/i', $docFile);
+                            $docUrl  = ($doc['url'] ?? '') !== '' ? $doc['url'] : '#';
+                            $isImage = !empty($doc['is_image']);
                         ?>
                         <div class="tul-gallery__item" data-tul-doc data-tul-doc-file="<?= esc($docFile, 'attr') ?>">
-                            <?php if ($isImage && $docUrl !== ''): ?>
+                            <?php if ($isImage && $docUrl !== '#'): ?>
                                 <img class="tul-gallery__item-preview" src="<?= esc($docUrl, 'attr') ?>" alt="<?= esc($docLabel, 'attr') ?>" loading="lazy">
                             <?php endif; ?>
                             <div class="tul-gallery__item-info">
                                 <span class="tul-gallery__item-name"><?= esc($docLabel) ?></span>
-                                <?php if ($docUrl !== ''): ?>
+                                <?php if ($docUrl !== '#'): ?>
                                     <a class="tul-gallery__item-link"
                                        href="<?= esc($docUrl, 'attr') ?>"
                                        target="_blank"

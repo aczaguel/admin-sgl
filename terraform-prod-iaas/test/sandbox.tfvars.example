@@ -1,0 +1,43 @@
+###############################################################################
+# test/sandbox.tfvars.example
+#
+# Optional tfvars for the Terratest sandbox run (task 11.2). Copy to
+# sandbox.tfvars, fill in a SMALL throwaway snapshot, and point the suite at it:
+#
+#   cp sandbox.tfvars.example sandbox.tfvars
+#   RUN_TERRATEST=1 SANDBOX_SNAPSHOT_ID=<same id> SANDBOX_TFVARS=$PWD/sandbox.tfvars \
+#     go test -v -timeout 60m ./...
+#
+# The suite's built-in Vars are layered on top of this file, so the keys it sets
+# (use_real_prod_db, create_isolated_bucket, rds_snapshot_identifier, sizing,
+# bucket name, region) take precedence. This file is handy for pinning the extra
+# knobs (CIDR narrowing, backup window, etc.) for a sandbox.
+###############################################################################
+
+# Region for the throwaway sandbox.
+region = "us-east-1"
+
+# Isolated mode — safe. Never point a sandbox at the real prod DB.
+use_real_prod_db       = false
+create_isolated_bucket = true
+
+# Small throwaway snapshot to seed from (id or ARN). Keep it tiny for cost.
+# Must match SANDBOX_SNAPSHOT_ID passed to the test.
+rds_snapshot_identifier = "rds:my-small-throwaway-snapshot"
+
+# Distinct identifier so the sandbox never collides with prod (R10.8).
+rds_identifier = "sgl-prod-iaas-sandbox-db"
+
+# Cheap sizing for a throwaway.
+rds_instance_class = "db.t3.small"
+instance_type      = "t3.small"
+
+# Dedicated sandbox bucket (never a shared/real bucket).
+isolated_bucket_name = "bucket-sgl-uploads-prod-iaas-sandbox"
+
+# Optionally narrow who can reach the sandbox over 443 to your office range.
+ingress_cidr_https = ["0.0.0.0/0"]
+open_http          = true
+
+backup_retention_period = 7
+backup_window           = "03:00-04:00"

@@ -139,15 +139,24 @@
 															if($campo == "file"){
 																$val_image = ($valor_nuevo!="")?$valor_nuevo:$valor_original;
 
-																if(stristr($val_image, "pdf")){
-																	$valor_nuevo = '<a href="/assets/uploads/'.$val_image.'" target="_blank" rel="noreferrer">'.$val_image.'</a>';
-																}else{
-																	if(file_exists('assets/uploads/'. $val_image)){
-																		?>
-																			<img class="card-img-top" src="<?php echo base_url() . '/assets/uploads/'. $val_image; ?>" alt="Card image cap">
-																		<?php
-																	}else{
-																		echo "El archivo: ". 'assets/uploads/'. $val_image . " no existe";
+																// Path-traversal guard: reject values with ".." segments or null bytes
+																$_safe = basename(trim($val_image));
+																if ($_safe === '' || $_safe === '.' || $_safe === '..' || strpos($val_image, '..') !== false || strpos($val_image, "\0") !== false) {
+																	echo '<span class="text-muted">Archivo no disponible</span>';
+																} else {
+																	$url = file_url($val_image, '');
+																	if ($url !== '') {
+																		if (is_image_filename($val_image)) {
+																			?>
+																			<img class="card-img-top" src="<?php echo esc($url); ?>" alt="<?php echo esc(basename($val_image)); ?>">
+																			<?php
+																		} else {
+																			?>
+																			<a href="<?php echo esc($url); ?>" target="_blank" rel="noreferrer"><?php echo esc(basename($val_image)); ?></a>
+																			<?php
+																		}
+																	} else {
+																		echo '<span class="text-muted">Archivo no disponible</span>';
 																	}
 																}
 															}

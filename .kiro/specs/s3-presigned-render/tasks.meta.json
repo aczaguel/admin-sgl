@@ -1,0 +1,339 @@
+{
+  "pbtResults": {
+    "3.5 Write property test for no local upload path under s3": {
+      "status": "passed",
+      "lastRunTimestamp": 1783998709932
+    },
+    "3.4 Write property test for the driver-correct existence gate": {
+      "status": "passed",
+      "lastRunTimestamp": 1783998725146
+    },
+    "3.6 Write property test that every rendered file resolves through `file_url`": {
+      "status": "passed",
+      "lastRunTimestamp": 1783998727470
+    },
+    "4.4 Write property test for byte-identical local output": {
+      "status": "passed",
+      "lastRunTimestamp": 1783999327005
+    },
+    "6.3 Write property test that `fileBaseUrl` is eliminated": {
+      "status": "passed",
+      "lastRunTimestamp": 1783999378119
+    },
+    "8.1 Write property test for side-effect-free, expiring presigned URLs": {
+      "status": "passed",
+      "lastRunTimestamp": 1783999740873
+    }
+  },
+  "executionHistory": {
+    "2. Checkpoint - helpers complete": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998396446
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1784005280937
+      }
+    ],
+    "3.3 Write unit tests for the driver-aware gate and JSON contract": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998396617
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998435965
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998742797
+      }
+    ],
+    "3.4 Write property test for the driver-correct existence gate": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998396730
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998436903
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998743710
+      }
+    ],
+    "3.5 Write property test for no local upload path under s3": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998396828
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998437923
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998744708
+      }
+    ],
+    "3.6 Write property test that every rendered file resolves through `file_url`": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998396928
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998439015
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998745378
+      }
+    ],
+    "4.3 Write unit tests for the doc resolvers under both drivers": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998397032
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998440158
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998746496
+      }
+    ],
+    "4.4 Write property test for byte-identical local output": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998397133
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998756577
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999545918
+      }
+    ],
+    "5. Checkpoint - endpoints and resolvers complete": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998397233
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1784005287707
+      }
+    ],
+    "6.2 Write unit tests for the step-form builder enrichment": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998397330
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998757354
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999541525
+      }
+    ],
+    "6.3 Write property test that `fileBaseUrl` is eliminated": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998397440
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998758252
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999542441
+      }
+    ],
+    "7.1 Update the step row views `app/Views/deskapp/tramite_unified/_step1_row.php` through `_step5_row.php`": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998397597
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998759093
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999543922
+      }
+    ],
+    "7.2 Update the mirrored step4/step5 blocks in `app/Views/deskapp/extra-pages/tramites_layout_prototipo.php`": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998397698
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998760453
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999544865
+      }
+    ],
+    "7.3 Update `app/Views/deskapp/ui/grocery_timeline.php`": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998397795
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999552100
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999863268
+      }
+    ],
+    "8.1 Write property test for side-effect-free, expiring presigned URLs": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998397880
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999552835
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999864378
+      }
+    ],
+    "8.2 Write integration tests for the `getFiles` endpoints under both drivers": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998397981
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999553551
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999865614
+      }
+    ],
+    "8.3 Write render integration tests for the step views under both drivers": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998398062
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999871722
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1784005274600
+      }
+    ],
+    "9. Final checkpoint - render path fully migrated (verified in local mode)": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998398159
+      },
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1784005292754
+      }
+    ],
+    "3. Migrate the `getFiles` AJAX endpoints (driver-aware existence gate)": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783998745478
+      }
+    ],
+    "6. Migrate the `Tramitesn` step-form builders (eliminate `fileBaseUrl`)": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999542534
+      }
+    ],
+    "4. Migrate the `Doc_Resolver`s (driver-aware, traversal-safe)": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999546023
+      }
+    ],
+    "7. Migrate the views/JS to consume per-file URLs": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1783999863367
+      }
+    ],
+    "8. Presign guarantees and cross-driver integration tests": [
+      {
+        "executionId": "4436aa1f-5e46-4f41-bc11-9230ad8873ae",
+        "chatSessionId": "sess_458e744c-bf17-4a08-b474-b904cdfc0cd1",
+        "timestamp": 1784005274709
+      }
+    ]
+  }
+}

@@ -732,8 +732,35 @@ class Tramitesn extends Tramites
                     if ($fileName !== '' || $existingFile === '') {
                         $documentsById[$documentoId]['file'] = $fileName;
                         $documentsById[$documentoId]['has_file'] = $fileName !== '';
-                        $documentsById[$documentoId]['file_url'] = $fileName !== ''
-                            ? file_url($fileName, 'documentostatus')
+                        // A single tra_doc_status.file column may hold several
+                        // comma-separated filenames (multi-upload). Split them so
+                        // each renders as its own link with its own resolved URL.
+                        $splitNames = $fileName !== ''
+                            ? array_values(array_filter(
+                                array_map('trim', explode(',', $fileName)),
+                                static function (string $f): bool {
+                                    return $f !== '';
+                                }
+                            ))
+                            : [];
+                        $documentsById[$documentoId]['files'] = array_map(
+                            static function (string $f): array {
+                                // XML forces a download (browsers render raw XML
+                                // inline); everything else keeps the inline URL.
+                                $isXml = strtolower((string) pathinfo($f, PATHINFO_EXTENSION)) === 'xml';
+                                return [
+                                    'name' => $f,
+                                    'url' => $isXml
+                                        ? file_download_url($f, 'documentostatus')
+                                        : file_url($f, 'documentostatus'),
+                                    'is_image' => is_image_filename($f),
+                                ];
+                            },
+                            $splitNames
+                        );
+                        // Backward-compat: file_url keeps the first file's URL.
+                        $documentsById[$documentoId]['file_url'] = !empty($documentsById[$documentoId]['files'])
+                            ? (string) $documentsById[$documentoId]['files'][0]['url']
                             : '';
                         $documentsById[$documentoId]['status_label'] = trim((string) ($row['status_documento_label'] ?? '')) ?: ($fileName !== '' ? 'Cargado' : 'Pendiente');
                         $documentsById[$documentoId]['comentario'] = trim((string) ($row['comentario'] ?? ''));
@@ -3249,6 +3276,27 @@ class Tramitesn extends Tramites
             $prototypeReadOnlyTramite = $this->loadPrototypeReadOnlyTramite($prototypeTramiteId);
         }
 
+        // Auto-detect active step for unified layout when no explicit ?step= provided.
+        // Reads the tra_status.new_format_step column, which maps each status to its
+        // step in the new unified layout (differs from the legacy `step` column).
+        if ($this->_unifiedLayoutMode && $this->request->getGet('step') === null && $prototypeReadOnlyTramite !== null) {
+            $traStatusId = (int) ($prototypeReadOnlyTramite['tra_status_id'] ?? 0);
+            if ($traStatusId > 0) {
+                $stepRow = \Config\Database::connect()
+                    ->table('tra_status')
+                    ->select('new_format_step')
+                    ->where('id', $traStatusId)
+                    ->get()
+                    ->getRowArray();
+                $detectedStep = (int) ($stepRow['new_format_step'] ?? 0);
+                if ($detectedStep >= 1) {
+                    // Terminal states (concluido/cancelado use new_format_step=10)
+                    // clamp to 5 so the unified layout shows all phases unblocked.
+                    $activeStep = min($detectedStep, 5);
+                }
+            }
+        }
+
         [$roles, $perms] = $this->normalizeRolesPermsFromSession();
         $prototypeCanApproveStep2 = false;
         $prototypeEvidenceForm = [
@@ -3348,7 +3396,6 @@ class Tramitesn extends Tramites
             'csrfName' => csrf_token(),
             'csrfHash' => csrf_hash(),
             'tramiteId' => $prototypeTramiteId,
-            'fileBaseUrl' => base_url('/assets/uploads/documentostatus/'),
             'urls' => [
                 'upload' => site_url('/deskapp/tramitesn/upload_step1_doc/' . $prototypeTramiteId),
                 'delete' => site_url('/deskapp/tramitesn/delete_step1_doc'),
@@ -3393,7 +3440,6 @@ class Tramitesn extends Tramites
             ],
             'approvalStatusId' => 23,
             'tramiteId' => $prototypeTramiteId,
-            'fileBaseUrl' => base_url('/assets/uploads/pago_derechos/' . $prototypeTramiteId . '/'),
             'options' => [
                 'empresaGestora' => [],
                 'gestor' => [],
@@ -3416,9 +3462,7 @@ class Tramitesn extends Tramites
                 'derechos_refer_banc' => (string) ($prototypeReadOnlyTramite['fields']['derechos_refer_banc'] ?? ''),
             ],
             'docs' => !empty($prototypeReadOnlyTramite['pago_derechos_docs']) && is_array($prototypeReadOnlyTramite['pago_derechos_docs'])
-                ? array_map(static function ($fileName): array {
-                    return ['file' => (string) $fileName];
-                }, $prototypeReadOnlyTramite['pago_derechos_docs'])
+                ? $this->expandDocEntries($prototypeReadOnlyTramite['pago_derechos_docs'], 'pago_derechos', $prototypeTramiteId)
                 : [],
         ];
         $prototypeStep3Form = [
@@ -3434,7 +3478,6 @@ class Tramitesn extends Tramites
                 'openPagoGestor' => site_url('/deskapp/tramitesn/prototipo-layout/paso-4?tramite_id=' . $prototypeTramiteId),
             ],
             'tramiteId' => $prototypeTramiteId,
-            'fileBaseUrl' => base_url('/assets/uploads/pago_gestor/' . $prototypeTramiteId . '/'),
             'options' => [
                 'comprobanteFinal' => [
                     'tramite_recibido' => 'Tramite Entregado por Gestor',
@@ -3442,7 +3485,7 @@ class Tramitesn extends Tramites
                 ],
             ],
             'docs' => !empty($prototypeReadOnlyTramite['evidence_docs_raw']) && is_array($prototypeReadOnlyTramite['evidence_docs_raw'])
-                ? $prototypeReadOnlyTramite['evidence_docs_raw']
+                ? $this->expandDocEntries($prototypeReadOnlyTramite['evidence_docs_raw'], 'pago_gestor', $prototypeTramiteId)
                 : [],
             'hasTramiteRecibido' => !empty($prototypeReadOnlyTramite['has_tramite_recibido']),
             'hasAcuseRecibo' => !empty($prototypeReadOnlyTramite['has_acuse_recibo']),
@@ -3458,7 +3501,6 @@ class Tramitesn extends Tramites
             'csrfName' => csrf_token(),
             'csrfHash' => csrf_hash(),
             'tramiteId' => $prototypeTramiteId,
-            'fileBaseUrl' => base_url('/assets/uploads/pago_gestor/' . $prototypeTramiteId . '/'),
             'url' => site_url('/deskapp/tramitesn/update_pago_gestor/' . $prototypeTramiteId),
             'urls' => [
                 'upload' => site_url('/deskapp/tramitesn/upload_pago_gestor/' . $prototypeTramiteId),
@@ -3479,7 +3521,7 @@ class Tramitesn extends Tramites
                 ],
             ],
             'docs' => !empty($prototypeReadOnlyTramite['payment_docs_raw']) && is_array($prototypeReadOnlyTramite['payment_docs_raw'])
-                ? $prototypeReadOnlyTramite['payment_docs_raw']
+                ? $this->expandDocEntries($prototypeReadOnlyTramite['payment_docs_raw'], 'pago_gestor', $prototypeTramiteId)
                 : [],
             'values' => [
                 'costo_tramite' => (string) ($prototypeReadOnlyTramite['fields']['costo_tramite'] ?? ''),
@@ -3506,7 +3548,6 @@ class Tramitesn extends Tramites
             'csrfName' => csrf_token(),
             'csrfHash' => csrf_hash(),
             'tramiteId' => $prototypeTramiteId,
-            'fileBaseUrl' => base_url('/assets/uploads/cobro_cliente/' . $prototypeTramiteId . '/'),
             'url' => site_url('/deskapp/tramitesn/update_final_save/' . $prototypeTramiteId),
             'urls' => [
                 'getFiles' => site_url('/deskapp/tramitesn/getCobroClienteFiles/' . $prototypeTramiteId),
@@ -3522,7 +3563,7 @@ class Tramitesn extends Tramites
                 ],
             ],
             'docs' => !empty($prototypeReadOnlyTramite['cobro_cliente_docs_raw']) && is_array($prototypeReadOnlyTramite['cobro_cliente_docs_raw'])
-                ? $prototypeReadOnlyTramite['cobro_cliente_docs_raw']
+                ? $this->expandDocEntries($prototypeReadOnlyTramite['cobro_cliente_docs_raw'], 'cobro_cliente', $prototypeTramiteId)
                 : [],
             'values' => [
                 'id_give_cliente' => (string) ($prototypeReadOnlyTramite['fields']['id_give_cliente'] ?? ''),
@@ -3767,7 +3808,9 @@ class Tramitesn extends Tramites
                 && ($canKeepStep4Editable || puede_editar_modulo($roles, $traStatusId, 'editar_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4));
 
             $prototypeStep4Form['canEdit'] = $canEditPagoGestor;
-            $prototypeStep4Form['canView'] = $hasTenantAccess && $canSectionPagoGestor;
+            // canView is read-only: gated by tenant access only so historical
+            // tramites are always viewable. Editing still requires section perms.
+            $prototypeStep4Form['canView'] = $hasTenantAccess;
             $prototypeStep4Form['canUploadDocs'] = $canUploadDropzonePagoGestorDocumentos;
             $prototypeStep4Form['canDeleteDocs'] = $canUploadDropzonePagoGestorDocumentos
                 && has_permission('quick_action_pago_gestor_delete', $perms, $roles);
@@ -3826,9 +3869,9 @@ class Tramitesn extends Tramites
                 }
             }
 
-            $prototypeStep5Form['canView'] = $hasTenantAccess
-                && $canSectionFinalCostos
-                && $canAccessCobroCliente;
+            // canView is read-only: gated by tenant access only so historical
+            // tramites are always viewable. Editing still requires section perms.
+            $prototypeStep5Form['canView'] = $hasTenantAccess;
 
             $prototypeStep5Form['canEdit'] = $hasTenantAccess
                 && $canSectionFinalCostos
@@ -4233,6 +4276,67 @@ class Tramitesn extends Tramites
         }
     }
 
+    /**
+     * Expand document rows whose `file` column may hold several comma-separated
+     * filenames (GroceryCrud multi-upload stores multiple files in one column).
+     *
+     * Each filename becomes its own entry with its own resolved `url` and
+     * `is_image` flag, preserving all other row metadata (e.g. comprobante_final,
+     * cobro_correcto, id). A row with an empty file yields a single entry with
+     * url='' so pre-existing "empty row" behavior is retained.
+     *
+     * @param array<int,mixed> $rawRows   Raw doc rows (arrays with a 'file' key, or bare filename strings).
+     * @param string           $category  Storage category (e.g. 'pago_gestor', 'cobro_cliente').
+     * @param int              $tramiteId Tramite id used to build per-id keys.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private function expandDocEntries(array $rawRows, string $category, int $tramiteId): array
+    {
+        $expanded = [];
+        foreach ($rawRows as $rawRow) {
+            $row = is_array($rawRow) ? $rawRow : ['file' => (string) $rawRow];
+            $fileField = trim((string) ($row['file'] ?? ''));
+
+            if ($fileField === '') {
+                $entry = $row;
+                $entry['file'] = '';
+                $entry['url'] = '';
+                $entry['is_image'] = false;
+                $expanded[] = $entry;
+                continue;
+            }
+
+            $fileNames = array_values(array_filter(
+                array_map('trim', explode(',', $fileField)),
+                static function (string $f): bool {
+                    return $f !== '';
+                }
+            ));
+            if ($fileNames === []) {
+                $fileNames = [''];
+            }
+
+            foreach ($fileNames as $file) {
+                $entry = $row;
+                $entry['file'] = $file;
+                // XML files force a download (Content-Disposition: attachment)
+                // because browsers render raw XML inline; other files keep the
+                // normal inline URL.
+                $isXml = $file !== '' && strtolower((string) pathinfo($file, PATHINFO_EXTENSION)) === 'xml';
+                $entry['url'] = $file !== ''
+                    ? ($isXml
+                        ? file_download_url($file, $category, $tramiteId)
+                        : file_url($file, $category, $tramiteId))
+                    : '';
+                $entry['is_image'] = $file !== '' ? is_image_filename($file) : false;
+                $expanded[] = $entry;
+            }
+        }
+
+        return $expanded;
+    }
+
     private function loadPrototypeReadOnlyTramite(int $id): ?array
     {
         if ($id <= 0) {
@@ -4276,13 +4380,15 @@ class Tramitesn extends Tramites
             $cobroStatuses = $cobroStatusModel->getCobroStatusOptions();
 
             $traStatusLabel = 'Sin estatus';
+            $traNewFormatStep = 0;
             if (!empty($tramite['tra_status_id'])) {
                 $traStatusRow = $db->table('tra_status')
-                    ->select('id, tra_status')
+                    ->select('id, tra_status, new_format_step')
                     ->where('id', (int) $tramite['tra_status_id'])
                     ->get()
                     ->getRowArray();
                 $traStatusLabel = (string) ($traStatusRow['tra_status'] ?? 'Sin estatus');
+                $traNewFormatStep = (int) ($traStatusRow['new_format_step'] ?? 0);
             }
 
             $clienteNombre = 'Sin cliente';
@@ -4493,6 +4599,7 @@ class Tramitesn extends Tramites
                 'contrato' => (string) ($tramite['contrato'] ?? ''),
                 'tra_status_id' => (int) ($tramite['tra_status_id'] ?? 0),
                 'tra_status_label' => $traStatusLabel,
+                'new_format_step' => $traNewFormatStep,
                 'cli_directo_id' => (int) ($tramite['cli_directo_id'] ?? 0),
                 'cli_directo_ejecutivo_id' => (int) ($tramite['cli_directo_ejecutivo_id'] ?? 0),
                 'entidad_id' => (int) ($tramite['entidad_id'] ?? 0),

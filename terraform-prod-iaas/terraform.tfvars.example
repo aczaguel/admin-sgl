@@ -1,0 +1,161 @@
+###############################################################################
+# terraform-prod-iaas/terraform.tfvars.example
+#
+# Example variable values for the Prod IaaS stack (the parallel production
+# server that runs side by side with "Prod estable").
+#
+# HOW TO USE:
+#   cp terraform.tfvars.example terraform.tfvars
+#   # edit terraform.tfvars, then:
+#   terraform init && terraform plan
+#
+# This file documents TWO mutually-understood operating scenarios controlled by
+# two toggles:
+#
+#   use_real_prod_db        (DB target)     false = isolated RDS  | true = REAL prod RDS
+#   create_isolated_bucket  (bucket target) true  = new bucket    | false = reuse a bucket
+#
+# Pick ONE scenario block below (A or B), uncomment it, and fill in the values.
+# SCENARIO A is the SAFE default. SCENARIO B rehearses a cutover and its writes
+# hit real production data -- read the blast-radius warning before using it.
+#
+# ---------------------------------------------------------------------------
+# VALIDATION RULES (enforced at plan time -- see variables.tf and checks.tf):
+#   R10.6  use_real_prod_db = true  REQUIRES real_prod_rds_reference to be set.
+#   R10.7  create_isolated_bucket = false REQUIRES existing_bucket_name to be set.
+#   R10.8  rds_identifier MUST NOT equal prod_rds_source_identifier.
+#   R10.9  use_real_prod_db = false REQUIRES at least one of
+#          rds_snapshot_identifier OR prod_rds_source_identifier to be set
+#          (a snapshot source must exist to seed the isolated RDS).
+# A plan that violates any of these rules halts before creating resources.
+###############################################################################
+
+
+###############################################################################
+# COMMON SIZING / CONFIG KNOBS (apply to both scenarios)
+###############################################################################
+
+# AWS region for all Prod IaaS resources.
+region = "us-east-1"
+
+# Project tag applied to every resource via provider default_tags.
+project = "admin-sgl"
+
+# EC2 instance type for the App instance (cost knob). Default t3.medium.
+instance_type = "t3.medium"
+
+# CIDRs allowed to reach 443 (and 80 when open_http). Narrow to an office range
+# if you don't want the app publicly reachable while you rehearse.
+ingress_cidr_https = ["0.0.0.0/0"]
+
+# Open inbound TCP 80 for the HTTP->HTTPS redirect.
+open_http = true
+
+# Root gp3 volume size in GB (app is stateless; no uploads land on disk).
+root_volume_size = 30
+
+
+###############################################################################
+# SCENARIO A -- ISOLATED DEFAULT  (SAFE -- recommended)
+#
+#   use_real_prod_db       = false  -> create an isolated RDS seeded from a
+#                                      READ-ONLY production snapshot. App writes
+#                                      NEVER reach production data.
+#   create_isolated_bucket = true   -> create a dedicated, encrypted bucket for
+#                                      Prod IaaS test writes.
+#
+# This is the mode you use to stand up and smoke-test the parallel server
+# without any risk to Prod estable. Leave this block active for normal work.
+###############################################################################
+
+# ---- DB target: isolated snapshot-seeded RDS ----
+use_real_prod_db = false
+
+# Identifier of the PRODUCTION RDS. Used ONLY as a read-only source to look up
+# the latest snapshot to seed from. It is never managed/modified by this stack.
+# Required by R10.9 (unless you set rds_snapshot_identifier below instead).
+prod_rds_source_identifier = "sgl-prod-db"
+
+# OPTIONAL: pin an explicit snapshot ARN/id to seed from. When set, this
+# overrides the "latest snapshot" lookup above. Leave empty to use the latest.
+rds_snapshot_identifier = ""
+
+# Identifier for the NEW isolated RDS instance.
+# MUST differ from prod_rds_source_identifier (R10.8).
+rds_identifier = "sgl-prod-iaas-db"
+
+# RDS instance class for the isolated DB (cost knob; db.t3.small to save money).
+rds_instance_class = "db.t3.medium"
+
+# Automated backup retention in days. MUST be within 7..35 so point-in-time
+# recovery is enabled (enforced by a variable validation block).
+backup_retention_period = 7
+
+# Preferred RDS backup window in UTC (hh:mm-hh:mm).
+backup_window = "03:00-04:00"
+
+# ---- Bucket target: dedicated isolated bucket ----
+create_isolated_bucket = true
+
+# Name for the dedicated Prod IaaS bucket (used when create_isolated_bucket = true).
+isolated_bucket_name = "bucket-sgl-uploads-prod-iaas"
+
+# existing_bucket_name is IGNORED in Scenario A (leave empty).
+existing_bucket_name = ""
+
+# real_prod_rds_* are IGNORED in Scenario A (leave empty).
+real_prod_rds_reference  = ""
+real_prod_rds_secret_arn = ""
+
+
+###############################################################################
+# SCENARIO B -- CUTOVER REHEARSAL  (DANGEROUS -- writes hit PRODUCTION)
+#
+#   use_real_prod_db       = true   -> point the App instance at the REAL prod
+#                                      RDS. The isolated RDS and its secret are
+#                                      NOT created (their module count = 0).
+#   create_isolated_bucket = false  -> reuse the existing (real prod) bucket
+#                                      instead of creating a new one.
+#
+# !!! BLAST-RADIUS WARNING -------------------------------------------------- !!!
+#   In this mode the parallel server reads AND WRITES the live production
+#   database and the live production bucket. Any create/update/delete performed
+#   through the app mutates REAL production data. There is no isolation.
+#   Use ONLY for a deliberate, supervised cutover rehearsal, ideally in a
+#   maintenance window with a fresh backup on hand. Note: this stack still
+#   references the prod RDS by name/secret only -- it never MANAGES the prod
+#   RDS as a Terraform resource, so destroy/apply of this stack cannot delete
+#   it. But application-level writes will land on production.
+# !!! ----------------------------------------------------------------------- !!!
+#
+# To use Scenario B: comment out the DB/bucket target lines in Scenario A above
+# and uncomment the block below.
+###############################################################################
+
+# ---- DB target: REAL production RDS ----
+# use_real_prod_db = true
+#
+# # Existing Secrets Manager reference (name) for the REAL prod RDS creds.
+# # REQUIRED when use_real_prod_db = true (R10.6). Empty value halts the plan.
+# real_prod_rds_reference = "sgl/prod/rds-credentials"
+#
+# # ARN of that existing secret, scoped into the IAM policy so the instance can
+# # read it (least privilege -- GetSecretValue on this ARN only).
+# real_prod_rds_secret_arn = "arn:aws:secretsmanager:us-east-1:123456789012:secret:sgl/prod/rds-credentials-AbCdEf"
+#
+# # In Scenario B the isolated RDS is NOT created, so these are unused. They
+# # still must satisfy R10.8 (rds_identifier != prod_rds_source_identifier) if
+# # left at non-empty defaults, so keep them distinct or empty.
+# prod_rds_source_identifier = ""
+# rds_snapshot_identifier    = ""
+# rds_identifier             = "sgl-prod-iaas-db"
+
+# ---- Bucket target: reuse an existing bucket ----
+# create_isolated_bucket = false
+#
+# # Name of the existing bucket to reuse (e.g. the real prod uploads bucket).
+# # REQUIRED when create_isolated_bucket = false (R10.7). Empty halts the plan.
+# existing_bucket_name = "bucket-sgl-uploads-prod"
+#
+# # isolated_bucket_name is IGNORED in Scenario B (no bucket is created).
+# isolated_bucket_name = ""

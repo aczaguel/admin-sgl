@@ -579,8 +579,12 @@ class Concluido extends BaseController
         $result = [];
         $ds = DIRECTORY_SEPARATOR;
 
-        // Ruta de la carpeta donde se almacenan los archivos
-        $storeFolderSpecific = 'assets/uploads/pago_gestor/' . $id . $ds;
+        $category = 'pago_gestor';
+        // Leer el driver de almacenamiento una sola vez por llamada.
+        $driver = config('FileStorage')->driver;
+
+        // Ruta de la carpeta donde se almacenan los archivos (solo aplica al driver local)
+        $storeFolderSpecific = 'assets/uploads/' . $category . '/' . $id . $ds;
 
         // Consulta a la base de datos
         $cobro_cliente_db = $db->table('tra_pago_gestor')
@@ -589,16 +593,8 @@ class Concluido extends BaseController
                                 ->get()
                                 ->getResultObject();
 
-        // Función para asignar íconos personalizados según el tipo de archivo
-        $assignIcon = function ($extension, $filePath) {
-            $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
-
-            // Si el archivo es una imagen, devolver la ruta del archivo
-            if (in_array(strtolower($extension), $imageExtensions)) {
-                return base_url($filePath);
-            }
-
-            // Si no es una imagen, usar un ícono específico por extensión
+        // Ícono estático para archivos que no son imágenes (se conserva el mapa original)
+        $staticIconFor = function ($extension) {
             $icons = [
                 'xml'  => '/public/assets/src/images/xml-icon.png',
                 'pdf'  => '/public/assets/src/images/pdf-icon.png',
@@ -616,19 +612,38 @@ class Concluido extends BaseController
 
         // Validar archivos de la base de datos
         foreach ($cobro_cliente_db as $dbFile) {
-            $filePath = $storeFolderSpecific . $dbFile->file;
-            $absoluteFilePath = FCPATH . $filePath;
+            $name = (string) $dbFile->file;
 
-            // Verificar que el archivo exista físicamente
-            if (file_exists($absoluteFilePath)) {
-                $extension = strtolower(pathinfo($dbFile->file, PATHINFO_EXTENSION));
-                $obj['id'] = $dbFile->id; // ID del archivo en la base de datos
-                $obj['name'] = $dbFile->file; // Nombre del archivo
-                $obj['size'] = filesize($absoluteFilePath); // Tamaño del archivo físico
-                $obj['existing_path'] = base_url($filePath); // Ruta para la vista
-                $obj['icon'] = $assignIcon($extension, $filePath); // Ícono o imagen real según el tipo de archivo
-                $result[] = $obj;
+            // Omitir filas con valor vacío o compuesto solo por espacios.
+            if (trim($name) === '') {
+                continue;
             }
+
+            // Bajo el driver local se conserva la verificación de existencia física
+            // (file_exists) y el filesize(). Bajo s3 el objeto no está en disco local,
+            // así que se omite el gate local, se omite 'size' y nunca se hace un
+            // exists() por archivo contra S3.
+            $absoluteFilePath = null;
+            if ($driver === 'local') {
+                $absoluteFilePath = FCPATH . $storeFolderSpecific . $name;
+                if (!file_exists($absoluteFilePath)) {
+                    continue;
+                }
+            }
+
+            $existingPath = file_url($name, $category, $id);
+
+            $obj = [];
+            $obj['id'] = $dbFile->id; // ID del archivo en la base de datos
+            $obj['name'] = $name; // Nombre del archivo
+            if ($driver === 'local') {
+                $obj['size'] = filesize($absoluteFilePath); // Tamaño del archivo físico
+            }
+            $obj['existing_path'] = $existingPath; // URL resuelta a través de file_url
+            $obj['icon'] = is_image_filename($name)
+                ? $existingPath
+                : $staticIconFor(pathinfo($name, PATHINFO_EXTENSION)); // Imagen real o ícono estático
+            $result[] = $obj;
         }
 
         // Devolver los resultados en formato JSON
@@ -665,8 +680,12 @@ class Concluido extends BaseController
         $result = [];
         $ds = DIRECTORY_SEPARATOR;
 
-        // Ruta de la carpeta donde se almacenan los archivos
-        $storeFolderSpecific = 'assets/uploads/pago_derechos/' . $id . $ds;
+        $category = 'pago_derechos';
+        // Leer el driver de almacenamiento una sola vez por llamada.
+        $driver = config('FileStorage')->driver;
+
+        // Ruta de la carpeta donde se almacenan los archivos (solo aplica al driver local)
+        $storeFolderSpecific = 'assets/uploads/' . $category . '/' . $id . $ds;
 
         // Consulta a la base de datos
         $cobro_cliente_db = $db->table('tra_pago_derechos')
@@ -675,16 +694,8 @@ class Concluido extends BaseController
                                 ->get()
                                 ->getResultObject();
 
-        // Función para asignar íconos personalizados según el tipo de archivo
-        $assignIcon = function ($extension, $filePath) {
-            $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
-
-            // Si el archivo es una imagen, devolver la ruta del archivo
-            if (in_array(strtolower($extension), $imageExtensions)) {
-                return base_url($filePath);
-            }
-
-            // Si no es una imagen, usar un ícono específico por extensión
+        // Ícono estático para archivos que no son imágenes (se conserva el mapa original)
+        $staticIconFor = function ($extension) {
             $icons = [
                 'xml'  => '/public/assets/src/images/xml-icon.png',
                 'pdf'  => '/public/assets/src/images/pdf-icon.png',
@@ -702,19 +713,38 @@ class Concluido extends BaseController
 
         // Validar archivos de la base de datos
         foreach ($cobro_cliente_db as $dbFile) {
-            $filePath = $storeFolderSpecific . $dbFile->file;
-            $absoluteFilePath = FCPATH . $filePath;
+            $name = (string) $dbFile->file;
 
-            // Verificar que el archivo exista físicamente
-            if (file_exists($absoluteFilePath)) {
-                $extension = strtolower(pathinfo($dbFile->file, PATHINFO_EXTENSION));
-                $obj['id'] = $dbFile->id; // ID del archivo en la base de datos
-                $obj['name'] = $dbFile->file; // Nombre del archivo
-                $obj['size'] = filesize($absoluteFilePath); // Tamaño del archivo físico
-                $obj['existing_path'] = base_url($filePath); // Ruta para la vista
-                $obj['icon'] = $assignIcon($extension, $filePath); // Ícono o imagen real según el tipo de archivo
-                $result[] = $obj;
+            // Omitir filas con valor vacío o compuesto solo por espacios.
+            if (trim($name) === '') {
+                continue;
             }
+
+            // Bajo el driver local se conserva la verificación de existencia física
+            // (file_exists) y el filesize(). Bajo s3 el objeto no está en disco local,
+            // así que se omite el gate local, se omite 'size' y nunca se hace un
+            // exists() por archivo contra S3.
+            $absoluteFilePath = null;
+            if ($driver === 'local') {
+                $absoluteFilePath = FCPATH . $storeFolderSpecific . $name;
+                if (!file_exists($absoluteFilePath)) {
+                    continue;
+                }
+            }
+
+            $existingPath = file_url($name, $category, $id);
+
+            $obj = [];
+            $obj['id'] = $dbFile->id; // ID del archivo en la base de datos
+            $obj['name'] = $name; // Nombre del archivo
+            if ($driver === 'local') {
+                $obj['size'] = filesize($absoluteFilePath); // Tamaño del archivo físico
+            }
+            $obj['existing_path'] = $existingPath; // URL resuelta a través de file_url
+            $obj['icon'] = is_image_filename($name)
+                ? $existingPath
+                : $staticIconFor(pathinfo($name, PATHINFO_EXTENSION)); // Imagen real o ícono estático
+            $result[] = $obj;
         }
 
         // Devolver los resultados en formato JSON
@@ -752,8 +782,12 @@ class Concluido extends BaseController
         $result = [];
         $ds = DIRECTORY_SEPARATOR;
 
-        // Ruta de la carpeta donde se almacenan los archivos
-        $storeFolderSpecific = 'assets/uploads/cobro_cliente/' . $id . $ds;
+        $category = 'cobro_cliente';
+        // Leer el driver de almacenamiento una sola vez por llamada.
+        $driver = config('FileStorage')->driver;
+
+        // Ruta de la carpeta donde se almacenan los archivos (solo aplica al driver local)
+        $storeFolderSpecific = 'assets/uploads/' . $category . '/' . $id . $ds;
 
         // Consulta a la base de datos
         $cobro_cliente_db = $db->table('tra_cobro_cliente')
@@ -762,16 +796,8 @@ class Concluido extends BaseController
                                 ->get()
                                 ->getResultObject();
 
-        // Función para asignar íconos personalizados según el tipo de archivo
-        $assignIcon = function ($extension, $filePath) {
-            $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
-
-            // Si el archivo es una imagen, devolver la ruta del archivo
-            if (in_array(strtolower($extension), $imageExtensions)) {
-                return base_url($filePath);
-            }
-
-            // Si no es una imagen, usar un ícono específico por extensión
+        // Ícono estático para archivos que no son imágenes (se conserva el mapa original)
+        $staticIconFor = function ($extension) {
             $icons = [
                 'xml'  => '/public/assets/src/images/xml-icon.png',
                 'pdf'  => '/public/assets/src/images/pdf-icon.png',
@@ -789,19 +815,38 @@ class Concluido extends BaseController
 
         // Validar archivos de la base de datos
         foreach ($cobro_cliente_db as $dbFile) {
-            $filePath = $storeFolderSpecific . $dbFile->file;
-            $absoluteFilePath = FCPATH . $filePath;
+            $name = (string) $dbFile->file;
 
-            // Verificar que el archivo exista físicamente
-            if (file_exists($absoluteFilePath)) {
-                $extension = strtolower(pathinfo($dbFile->file, PATHINFO_EXTENSION));
-                $obj['id'] = $dbFile->id; // ID del archivo en la base de datos
-                $obj['name'] = $dbFile->file; // Nombre del archivo
-                $obj['size'] = filesize($absoluteFilePath); // Tamaño del archivo físico
-                $obj['existing_path'] = base_url($filePath); // Ruta para la vista
-                $obj['icon'] = $assignIcon($extension, $filePath); // Ícono o imagen real según el tipo de archivo
-                $result[] = $obj;
+            // Omitir filas con valor vacío o compuesto solo por espacios.
+            if (trim($name) === '') {
+                continue;
             }
+
+            // Bajo el driver local se conserva la verificación de existencia física
+            // (file_exists) y el filesize(). Bajo s3 el objeto no está en disco local,
+            // así que se omite el gate local, se omite 'size' y nunca se hace un
+            // exists() por archivo contra S3.
+            $absoluteFilePath = null;
+            if ($driver === 'local') {
+                $absoluteFilePath = FCPATH . $storeFolderSpecific . $name;
+                if (!file_exists($absoluteFilePath)) {
+                    continue;
+                }
+            }
+
+            $existingPath = file_url($name, $category, $id);
+
+            $obj = [];
+            $obj['id'] = $dbFile->id; // ID del archivo en la base de datos
+            $obj['name'] = $name; // Nombre del archivo
+            if ($driver === 'local') {
+                $obj['size'] = filesize($absoluteFilePath); // Tamaño del archivo físico
+            }
+            $obj['existing_path'] = $existingPath; // URL resuelta a través de file_url
+            $obj['icon'] = is_image_filename($name)
+                ? $existingPath
+                : $staticIconFor(pathinfo($name, PATHINFO_EXTENSION)); // Imagen real o ícono estático
+            $result[] = $obj;
         }
 
         // Devolver los resultados en formato JSON

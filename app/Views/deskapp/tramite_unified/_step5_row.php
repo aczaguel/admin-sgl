@@ -21,7 +21,6 @@ $tramiteId     = $prototypeTramiteId ?? 0;
 $csrfName      = $prototypeStep5Form['csrfName'] ?? csrf_token();
 $csrfHash      = $prototypeStep5Form['csrfHash'] ?? csrf_hash();
 $documents     = $prototypeStep5Form['docs'] ?? [];
-$fileBaseUrl   = rtrim((string) ($prototypeStep5Form['fileBaseUrl'] ?? ''), '/');
 
 // Notes
 $notesCanView = $prototypeStep5NotesForm['canView'] ?? false;
@@ -179,9 +178,9 @@ $notesUrl   = '/deskapp/tramitesn/prototype_step5_notes_add/' . $tramiteId;
                                 $docFile = (string) ($doc['file'] ?? '');
                                 $docType = (string) ($doc['cobro_correcto'] ?? 'otro');
                                 $docId   = (string) ($doc['id'] ?? '');
-                                $docUrl  = $fileBaseUrl !== '' ? $fileBaseUrl . '/' . rawurlencode($docFile) : '#';
+                                $docUrl  = ($doc['url'] ?? '') !== '' ? $doc['url'] : '#';
                                 $docLabel = (string) (($cobroCorrectoOptions[$docType] ?? '') ?: ($docType !== '' ? $docType : 'Soporte de cobro'));
-                                $isImage = (bool) preg_match('/\.(png|jpe?g|gif|webp|bmp|svg)$/i', $docFile);
+                                $isImage = !empty($doc['is_image']);
                             ?>
                             <div class="tul-gallery__item" data-tul-doc data-tul-doc-id="<?= esc($docId, 'attr') ?>">
                                 <?php if ($isImage && $docUrl !== '#'): ?>

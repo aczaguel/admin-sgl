@@ -1,0 +1,344 @@
+{
+  "pbtResults": {
+    "1.4 Add plan-time validation assertions for the toggle/validation rules": {
+      "status": "passed",
+      "lastRunTimestamp": 1784880014961
+    },
+    "7.2 Add plan assertion that exactly one new EIP is allocated and associated": {
+      "status": "passed",
+      "lastRunTimestamp": 1784880286792
+    },
+    "3.2 Add plan assertion that IAM is scoped to exactly two ARNs": {
+      "status": "passed",
+      "lastRunTimestamp": 1784880550111
+    },
+    "10.1 Assert no Prod estable resource is in the Prod IaaS plan/state": {
+      "status": "passed",
+      "lastRunTimestamp": 1784881866166
+    },
+    "10.3 Assert toggle `count = 0` behavior across the four combinations": {
+      "status": "passed",
+      "lastRunTimestamp": 1784881924441
+    },
+    "10.4 Assert idempotent re-apply": {
+      "status": "passed",
+      "lastRunTimestamp": 1784881992477
+    },
+    "10.2 Assert isolated-mode DB write isolation": {
+      "status": "passed",
+      "lastRunTimestamp": 1784882059775
+    }
+  },
+  "executionHistory": {
+    "1.1 Create `terraform-prod-iaas/versions.tf` with the remote backend and provider pins": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876980135
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876994813
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877192856
+      }
+    ],
+    "1.2 Create `terraform-prod-iaas/providers.tf` with the AWS provider and default tags": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876980285
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876996178
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877194214
+      }
+    ],
+    "1.3 Create `terraform-prod-iaas/variables.tf` with all knobs and validation blocks": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876980397
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876997127
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877194945
+      }
+    ],
+    "1.4 Add plan-time validation assertions for the toggle/validation rules": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876980490
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877636020
+      },
+      {
+        "executionId": "7fa4f02b-275b-44f4-9e9f-7ff8867a83ea",
+        "chatSessionId": "sess_6bf40b07-8a36-494f-aaab-ca372ae5cad8",
+        "timestamp": 1784877785908
+      },
+      {
+        "executionId": "7fa4f02b-275b-44f4-9e9f-7ff8867a83ea",
+        "chatSessionId": "sess_6bf40b07-8a36-494f-aaab-ca372ae5cad8",
+        "timestamp": 1784879868557
+      }
+    ],
+    "2.1 Create `terraform-prod-iaas/modules/network/` (variables.tf, main.tf, outputs.tf)": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876980577
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877259996
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877628424
+      }
+    ],
+    "2.2 Add plan assertion that SSH is closed and DB access is restricted": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876980675
+      }
+    ],
+    "3.1 Create `terraform-prod-iaas/modules/iam/` (variables.tf, main.tf, outputs.tf)": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876980767
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877259880
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877629737
+      }
+    ],
+    "3.2 Add plan assertion that IAM is scoped to exactly two ARNs": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876980850
+      }
+    ],
+    "4.1 Create `terraform-prod-iaas/modules/secrets/` (variables.tf, main.tf, outputs.tf)": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876980930
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877260078
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877631198
+      }
+    ],
+    "5.1 Create `terraform-prod-iaas/modules/rds/` (variables.tf, main.tf, outputs.tf)": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876981013
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877260229
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877632216
+      }
+    ],
+    "5.2 Add plan assertion for RDS destroy safety and backup/PITR configuration": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876981098
+      }
+    ],
+    "6.1 Create `terraform-prod-iaas/modules/compute/` (variables.tf, main.tf, outputs.tf)": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876981241
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877260150
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877633698
+      }
+    ],
+    "6.2 Create the user-data template `modules/compute/user-data.sh.tftpl`": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876981321
+      }
+    ],
+    "6.3 Add assertion that no AWS keys appear in user-data or outputs": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876981403
+      }
+    ],
+    "7.1 Create `terraform-prod-iaas/modules/eip/` (variables.tf, main.tf, outputs.tf)": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876981489
+      },
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877634868
+      }
+    ],
+    "7.2 Add plan assertion that exactly one new EIP is allocated and associated": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876981574
+      }
+    ],
+    "8.1 Create `terraform-prod-iaas/main.tf` toggle-resolution locals and read-only snapshot lookup": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876981666
+      }
+    ],
+    "8.2 Wire the six modules and the reused `s3_bucket` module in `main.tf`": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876981753
+      }
+    ],
+    "8.3 Create `terraform-prod-iaas/outputs.tf`": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876981839
+      }
+    ],
+    "8.4 Create `terraform-prod-iaas/terraform.tfvars.example`": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876981933
+      }
+    ],
+    "9. Checkpoint - static validation of the whole stack": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876982021
+      }
+    ],
+    "10.1 Assert no Prod estable resource is in the Prod IaaS plan/state": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876982107
+      }
+    ],
+    "10.2 Assert isolated-mode DB write isolation": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876982194
+      }
+    ],
+    "10.3 Assert toggle `count = 0` behavior across the four combinations": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876982355
+      }
+    ],
+    "10.4 Assert idempotent re-apply": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876982443
+      }
+    ],
+    "11.1 Write OPA/conftest policies over the plan JSON": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876982528
+      }
+    ],
+    "11.2 Write Terratest post-apply checks against an isolated sandbox": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876982621
+      }
+    ],
+    "12. Final checkpoint - full verification": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784876982706
+      }
+    ],
+    "4. Implement the `secrets` module": [
+      {
+        "executionId": "4335250b-8c10-4f80-a65d-deb77ce76d4e",
+        "chatSessionId": "sess_067f1326-0ae6-40d2-88e4-f437cbfddff7",
+        "timestamp": 1784877631288
+      }
+    ],
+    "1. Bootstrap the `terraform-prod-iaas/` root module scaffolding": [
+      {
+        "executionId": "7fa4f02b-275b-44f4-9e9f-7ff8867a83ea",
+        "chatSessionId": "sess_6bf40b07-8a36-494f-aaab-ca372ae5cad8",
+        "timestamp": 1784879868655
+      }
+    ]
+  }
+}

@@ -133,6 +133,16 @@ final class LocalFileStorage implements FileStorage
     }
 
     /**
+     * For the local driver the file is served same-origin, so the browser's
+     * `download` attribute on the link handles the download. Returns the same
+     * URL as url().
+     */
+    public function downloadUrl(string $key, int $ttlSeconds = 300, string $downloadName = ''): string
+    {
+        return $this->url($key, $ttlSeconds);
+    }
+
+    /**
      * True if a regular file exists at $key. Returns false for a rejected key
      * or a key that was never written, without raising an error.
      */

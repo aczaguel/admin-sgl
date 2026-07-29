@@ -122,6 +122,44 @@ final class S3FileStorage implements FileStorage
     }
 
     /**
+     * Presigned GetObject URL that forces download via
+     * ResponseContentDisposition=attachment. Same TTL rules as url().
+     */
+    public function downloadUrl(string $key, int $ttlSeconds = 300, string $downloadName = ''): string
+    {
+        if ($ttlSeconds <= 0 || $ttlSeconds > self::MAX_PRESIGN_TTL) {
+            log_message(
+                'error',
+                'S3 downloadUrl rejected: ttl ' . $ttlSeconds . ' out of range (0, ' . self::MAX_PRESIGN_TTL . '] for key ' . $key
+            );
+
+            return '';
+        }
+
+        try {
+            $this->assertKey($key);
+
+            $name = $downloadName !== '' ? $downloadName : basename($key);
+            // Sanitize the suggested filename for the header (no quotes/CR/LF).
+            $name = preg_replace('/["\r\n]+/', '', $name);
+
+            $cmd = $this->client->getCommand('GetObject', [
+                'Bucket'                     => $this->bucket,
+                'Key'                        => $key,
+                'ResponseContentDisposition' => 'attachment; filename="' . $name . '"',
+            ]);
+
+            return (string) $this->client
+                ->createPresignedRequest($cmd, '+' . $ttlSeconds . ' seconds')
+                ->getUri();
+        } catch (\Throwable $e) {
+            log_message('error', 'S3 downloadUrl failed for ' . $key . ': ' . $e->getMessage());
+
+            return '';
+        }
+    }
+
+    /**
      * Delete the object at $key. Idempotent: S3 returns success even when the
      * key is absent, so this returns true whether or not the object existed.
      * Returns false only on an actual error (e.g. permission/network).

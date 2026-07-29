@@ -36,6 +36,20 @@ interface FileStorage
     public function url(string $key, int $ttlSeconds = 300): string;
 
     /**
+     * Resolve a browser URL that forces a file download (Content-Disposition:
+     * attachment) rather than inline rendering.
+     *
+     * local: same base_url path as url() (same-origin, the view's `download`
+     * attribute handles the download). s3: a presigned GET carrying
+     * ResponseContentDisposition=attachment, valid for $ttlSeconds.
+     *
+     * @param string $key         Canonical relative key.
+     * @param int    $ttlSeconds  Presigned TTL (s3 only).
+     * @param string $downloadName Optional filename to suggest; defaults to basename($key).
+     */
+    public function downloadUrl(string $key, int $ttlSeconds = 300, string $downloadName = ''): string;
+
+    /**
      * True if an object exists at $key.
      */
     public function exists(string $key): bool;

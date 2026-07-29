@@ -44,6 +44,8 @@ public/debug_session.php
 # Terraform: state (contiene secretos), locks, tfvars y crash logs
 terraform/.terraform/
 terraform/**/.terraform/
+terraform-prod-iaas/.terraform/
+terraform-prod-iaas/**/.terraform/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl

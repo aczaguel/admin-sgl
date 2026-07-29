@@ -7,7 +7,7 @@
  * No inline style attributes — all styling via tul-* CSS classes.
  *
  * Expected view variables:
- * - $prototypeStep4Form       (canView, canEdit, canUploadDocs, canDeleteDocs, blockedReason, uploadBlockedReason, deleteBlockedReason, csrfName, csrfHash, tramiteId, fileBaseUrl, url, urls, options, docs, values)
+ * - $prototypeStep4Form       (canView, canEdit, canUploadDocs, canDeleteDocs, blockedReason, uploadBlockedReason, deleteBlockedReason, csrfName, csrfHash, tramiteId, url, urls, options, docs, values)
  * - $prototypeStep4NotesForm  (canView, canAdd, blockedReason, csrfName, csrfHash, tramiteId, urls, items)
  * - $prototypeTramiteId       (int)
  */
@@ -24,7 +24,6 @@ $tramiteId     = (int) ($prototypeTramiteId ?? 0);
 $csrfName      = $prototypeStep4Form['csrfName'] ?? csrf_token();
 $csrfHash      = $prototypeStep4Form['csrfHash'] ?? csrf_hash();
 $documents     = $prototypeStep4Form['docs'] ?? [];
-$fileBaseUrl   = rtrim((string) ($prototypeStep4Form['fileBaseUrl'] ?? ''), '/');
 
 // --- Form values ---
 $values = $prototypeStep4Form['values'] ?? [];
@@ -302,7 +301,7 @@ $notesUrl      = '/deskapp/tramitesn/prototype_step4_notes_add/' . $tramiteId;
                                 $docFile   = (string) ($docRow['file'] ?? '');
                                 $docType   = (string) ($docRow['comprobante_final'] ?? '');
                                 $docId     = (string) ($docRow['id'] ?? '');
-                                $docUrl    = $fileBaseUrl !== '' && $docFile !== '' ? $fileBaseUrl . '/' . rawurlencode($docFile) : '#';
+                                $docUrl    = ($docRow['url'] ?? '') !== '' ? $docRow['url'] : '#';
                                 $docLabel  = (string) ($comprobanteFinalOptions[$docType] ?? ($docType !== '' ? $docType : 'Documento de pago'));
                             ?>
                             <div class="tul-gallery__item" data-tul-doc data-tul-doc-id="<?= esc($docId, 'attr') ?>">

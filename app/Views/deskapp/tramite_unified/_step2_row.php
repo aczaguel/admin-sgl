@@ -9,7 +9,7 @@
  * - $prototypeStep2Form        (canEdit, blockedReason, canUploadDocs, canDeleteDocs,
  *                               docsBlockedReason, deleteBlockedReason, csrfName, csrfHash,
  *                               currentStatusId, currentStep, isApprovedLock, isLockedStatus,
- *                               urls, options, values, docs, fileBaseUrl)
+ *                               urls, options, values, docs)
  * - $prototypeCanApproveStep2  (bool)
  * - $prototypeTramiteId        (int)
  *
@@ -37,7 +37,6 @@ $values               = $prototypeStep2Form['values'] ?? [];
 $options              = $prototypeStep2Form['options'] ?? [];
 $urls                 = $prototypeStep2Form['urls'] ?? [];
 $docs                 = $prototypeStep2Form['docs'] ?? [];
-$fileBaseUrl          = $prototypeStep2Form['fileBaseUrl'] ?? '';
 
 // --- Approval stage logic ---
 $currentStep          = (int) ($prototypeStep2Form['currentStep'] ?? 0);
@@ -276,15 +275,15 @@ $approveUrl         = '/deskapp/tramites/autorizar';
                             $docFile = (string) ($doc['file'] ?? '');
                             $docId   = (string) ($doc['id'] ?? $docFile);
                             $docName = $docFile !== '' ? $docFile : 'Archivo';
-                            $docUrl  = ($fileBaseUrl !== '' && $docFile !== '') ? rtrim($fileBaseUrl, '/') . '/' . rawurlencode($docFile) : '';
-                            $isImage = (bool) preg_match('/\.(png|jpe?g|gif|webp|bmp|svg)$/i', $docFile);
+                            $docUrl  = ($doc['url'] ?? '') !== '' ? $doc['url'] : '#';
+                            $isImage = !empty($doc['is_image']);
                         ?>
                         <div class="tul-gallery__item" data-tul-doc data-tul-doc-id="<?= esc($docId, 'attr') ?>">
-                            <?php if ($isImage && $docUrl !== ''): ?>
+                            <?php if ($isImage && $docUrl !== '#'): ?>
                                 <img class="tul-gallery__item-preview" src="<?= esc($docUrl, 'attr') ?>" alt="<?= esc($docName, 'attr') ?>" loading="lazy">
                             <?php endif; ?>
                             <div class="tul-gallery__item-info">
-                                <?php if ($docUrl !== ''): ?>
+                                <?php if ($docUrl !== '#'): ?>
                                     <a class="tul-gallery__item-link" href="<?= esc($docUrl, 'attr') ?>" target="_blank" rel="noreferrer"><?= esc($docName) ?></a>
                                 <?php else: ?>
                                     <span class="tul-gallery__item-name"><?= esc($docName) ?></span>

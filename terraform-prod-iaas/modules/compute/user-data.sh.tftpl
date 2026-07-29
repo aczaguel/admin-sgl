@@ -1,0 +1,175 @@
+#!/bin/bash
+#
+# user-data.sh.tftpl — Prod IaaS App instance bootstrap (Amazon Linux 2023).
+#
+# Rendered by modules/compute/main.tf via a templatefile() call that passes:
+#     env_file_vars  = var.env_file_vars   (map(string) -> app .env)
+#     compose_source = var.compose_source  (how the compose project reaches the box)
+#
+# Responsibilities (Requirements 5.2-5.8, 13.1-13.3):
+#   1. Render a STATELESS .env from env_file_vars. NO AWS access/secret keys are
+#      ever written — the instance authenticates only through its IAM instance
+#      profile.
+#   2. Fail closed: abort with an operator-observable failure when any required
+#      value (S3_BUCKET, region, SECRETS_RDS_REFERENCE) is empty, or if AWS key
+#      material is detected in the .env.
+#   3. Install Docker + the docker compose plugin and start the app.
+#   4. Treat the app as ready only after it passes a health check within 300s;
+#      otherwise mark the startup as failed.
+#
+# Terraform template note: this file is processed by templatefile(). Only the
+# env_file_vars / key / value / compose_source interpolations and the for/endfor
+# directives below are evaluated by Terraform. Every literal shell brace
+# expansion is escaped (doubled leading dollar) so it survives rendering
+# unchanged.
+
+set -euo pipefail
+
+LOG_TAG="sgl-prod-iaas-userdata"
+APP_DIR="/opt/sgl"
+STATUS_DIR="/var/lib/sgl"
+ENV_FILE="$${APP_DIR}/.env"
+STAGED_ENV="$${STATUS_DIR}/.env.staged"
+FAILED_MARKER="$${STATUS_DIR}/STARTUP_FAILED"
+READY_MARKER="$${STATUS_DIR}/APP_READY"
+HEALTH_TIMEOUT_SECONDS=300
+
+mkdir -p "$${APP_DIR}" "$${STATUS_DIR}"
+
+# Start every boot from a clean status: the app is NOT ready until proven so.
+rm -f "$${FAILED_MARKER}" "$${READY_MARKER}"
+
+# fail: record an operator-observable failure and stop. Leaves the app in a
+# not-started / not-ready state (Requirements 5.4, 5.7, 13.1, 13.2).
+fail() {
+  local reason="$1"
+  {
+    echo "timestamp=$(date -u +%FT%TZ)"
+    echo "reason=$${reason}"
+  } | tee "$${FAILED_MARKER}" >&2
+  logger -t "$${LOG_TAG}" "STARTUP FAILED: $${reason}"
+  rm -f "$${READY_MARKER}"
+  exit 1
+}
+
+require_nonempty() {
+  local name="$1"
+  local val="$${2:-}"
+  if [ -z "$${val}" ]; then
+    fail "Required configuration value '$${name}' is empty; refusing to start the application."
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# 1. Render the stateless .env from env_file_vars (NO AWS keys).
+# ---------------------------------------------------------------------------
+# The quoted heredoc delimiter prevents the shell from expanding any '$' in the
+# rendered values; the Terraform for-directive below emits one KEY=VALUE line
+# per entry at render time.
+umask 077
+cat > "$${STAGED_ENV}" <<'SGL_ENV_EOF'
+%{ for key, value in env_file_vars ~}
+${key}=${value}
+%{ endfor ~}
+SGL_ENV_EOF
+
+# ---------------------------------------------------------------------------
+# 2. Fail closed on AWS key material or missing required values.
+# ---------------------------------------------------------------------------
+# Defense in depth: even though the compute module rejects AWS key names in
+# env_file_vars, re-assert here that none reached the rendered .env
+# (Requirements 5.8, 6.2).
+if grep -Eiq '^[[:space:]]*(AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN)[[:space:]]*=' "$${STAGED_ENV}"; then
+  fail "Refusing to start: the .env contains static AWS credentials. The instance profile must be the only credential source."
+fi
+
+# Load the rendered values so we can validate the required ones.
+set -a
+# shellcheck disable=SC1090
+. "$${STAGED_ENV}"
+set +a
+
+# Required values — any empty one is a fail-closed configuration error
+# (Requirement 5.7). 'region' is validated on both the storage and secrets side.
+require_nonempty "S3_BUCKET" "$${S3_BUCKET:-}"
+require_nonempty "S3_REGION" "$${S3_REGION:-}"
+require_nonempty "SECRETS_REGION" "$${SECRETS_REGION:-}"
+require_nonempty "SECRETS_RDS_REFERENCE" "$${SECRETS_RDS_REFERENCE:-}"
+
+logger -t "$${LOG_TAG}" "Configuration validated: S3_BUCKET, regions, and SECRETS_RDS_REFERENCE are present; no AWS keys in .env."
+
+# ---------------------------------------------------------------------------
+# 3. Install Docker + the docker compose plugin (Amazon Linux 2023).
+# ---------------------------------------------------------------------------
+dnf install -y docker || fail "Docker installation failed."
+systemctl enable --now docker || fail "Docker service failed to start."
+
+DOCKER_CONFIG="/usr/local/lib/docker"
+mkdir -p "$${DOCKER_CONFIG}/cli-plugins"
+curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" \
+  -o "$${DOCKER_CONFIG}/cli-plugins/docker-compose" || fail "Failed to download the docker compose plugin."
+chmod +x "$${DOCKER_CONFIG}/cli-plugins/docker-compose"
+docker compose version >/dev/null 2>&1 || fail "The docker compose plugin is not functional."
+
+# ---------------------------------------------------------------------------
+# 4. Obtain the application (docker compose project) into APP_DIR.
+# ---------------------------------------------------------------------------
+# compose_source describes how the project reaches the box: a git URL to clone,
+# an s3:// prefix to sync, or a marker meaning the project is already present
+# (e.g. baked into the AMI).
+COMPOSE_SOURCE="${compose_source}"
+if [ -n "$${COMPOSE_SOURCE}" ]; then
+  case "$${COMPOSE_SOURCE}" in
+    git+*|git@*|*.git|https://*.git)
+      repo="$${COMPOSE_SOURCE#git+}"
+      dnf install -y git || fail "git installation failed."
+      # Clone into a temp dir then move contents, since APP_DIR may not be empty.
+      tmp_clone="$(mktemp -d)"
+      git clone "$${repo}" "$${tmp_clone}" || fail "Failed to clone the app repository from '$${COMPOSE_SOURCE}'."
+      cp -a "$${tmp_clone}/." "$${APP_DIR}/" || fail "Failed to copy the cloned app into $${APP_DIR}."
+      rm -rf "$${tmp_clone}"
+      ;;
+    s3://*)
+      aws s3 sync "$${COMPOSE_SOURCE}" "$${APP_DIR}" || fail "Failed to sync app artifacts from '$${COMPOSE_SOURCE}'."
+      ;;
+    *)
+      logger -t "$${LOG_TAG}" "Using pre-provisioned app directory (compose_source='$${COMPOSE_SOURCE}')."
+      ;;
+  esac
+fi
+
+# ---------------------------------------------------------------------------
+# 5. Place the validated .env and start the app.
+# ---------------------------------------------------------------------------
+install -m 0600 "$${STAGED_ENV}" "$${ENV_FILE}" || fail "Failed to install the .env into $${APP_DIR}."
+
+if [ ! -f "$${APP_DIR}/docker-compose.yml" ] && [ ! -f "$${APP_DIR}/compose.yaml" ] && [ ! -f "$${APP_DIR}/compose.yml" ]; then
+  fail "No docker compose file found in $${APP_DIR}; cannot start the application."
+fi
+
+cd "$${APP_DIR}"
+docker compose --env-file "$${ENV_FILE}" up -d || fail "docker compose up failed."
+
+# ---------------------------------------------------------------------------
+# 6. Health check — the app is ready ONLY on success within 300 seconds.
+# ---------------------------------------------------------------------------
+# The health endpoint is configurable via the .env (HEALTHCHECK_URL). Otherwise
+# it defaults to the published app port (DOCKER_APP_PORT, else 80) on localhost.
+APP_PORT="$${DOCKER_APP_PORT:-80}"
+HEALTH_URL="$${HEALTHCHECK_URL:-http://localhost:$${APP_PORT}/}"
+
+deadline=$(( $(date +%s) + HEALTH_TIMEOUT_SECONDS ))
+until curl -fsS --max-time 5 "$${HEALTH_URL}" >/dev/null 2>&1; do
+  if [ "$(date +%s)" -ge "$${deadline}" ]; then
+    docker compose logs --no-color > "$${STATUS_DIR}/compose-startup.log" 2>&1 || true
+    fail "Application did not pass the health check at '$${HEALTH_URL}' within $${HEALTH_TIMEOUT_SECONDS}s."
+  fi
+  sleep 5
+done
+
+# Mark ready ONLY after a successful health check (Requirement 5.5).
+{
+  echo "timestamp=$(date -u +%FT%TZ)"
+  echo "health_url=$${HEALTH_URL}"
+} > "$${READY_MARKER}"
+logger -t "$${LOG_TAG}" "Application is up and healthy at '$${HEALTH_URL}'."

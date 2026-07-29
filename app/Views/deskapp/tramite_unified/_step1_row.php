@@ -32,7 +32,6 @@ $docsDeleteBlockedReason = trim((string) ($prototypeStep1DocsForm['deleteBlocked
 $docsUrls = $prototypeStep1DocsForm['urls'] ?? [];
 $documents = $prototypeStep1DocsForm['documents'] ?? [];
 $docOptions = $prototypeStep1DocsForm['options'] ?? [];
-$docFileBaseUrl = $prototypeStep1DocsForm['fileBaseUrl'] ?? '';
 $docSummary = $prototypeStep1DocsForm['summary'] ?? [];
 
 // Notes / Bitácora
@@ -306,13 +305,24 @@ foreach ($svcServices as $svcRow) {
                                 $docName = (string) ($docItem['documento_nombre'] ?? 'Documento');
                                 $isRequired = !empty($docItem['is_required']);
                                 $statusLabel = (string) ($docItem['status_label'] ?? ($hasFile ? 'Cargado' : 'Pendiente'));
+                                // Per-file list (comma-separated multi-upload split in the controller).
+                                $docFiles = $docItem['files'] ?? [];
+                                if (empty($docFiles) && $hasFile && $fileUrl !== '') {
+                                    $docFiles = [['name' => $fileName, 'url' => $fileUrl]];
+                                }
                             ?>
                             <div class="tul-gallery__item" data-tul-doc data-tul-doc-id="<?= $docId ?>">
                                 <div class="tul-gallery__item-info">
                                     <span class="tul-gallery__item-name"><?= esc($docName) ?></span>
-                                    <?php if ($hasFile && $fileUrl !== ''): ?>
-                                        <a class="tul-gallery__item-link" href="<?= esc($fileUrl, 'attr') ?>" target="_blank" rel="noreferrer"><?= esc($fileName) ?></a>
-                                    <?php endif; ?>
+                                    <?php foreach ($docFiles as $docFile): ?>
+                                        <?php
+                                            $singleName = (string) ($docFile['name'] ?? '');
+                                            $singleUrl = (string) ($docFile['url'] ?? '');
+                                        ?>
+                                        <?php if ($singleName !== '' && $singleUrl !== ''): ?>
+                                            <a class="tul-gallery__item-link" href="<?= esc($singleUrl, 'attr') ?>" target="_blank" rel="noreferrer"><?= esc($singleName) ?></a>
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
                                     <span class="tul-gallery__item-meta"><?= esc(($isRequired ? 'Obligatorio' : 'Opcional') . ' · ' . $statusLabel) ?></span>
                                 </div>
                                 <?php if ($docsCanDelete && $hasFile && $docId > 0 && $fileName !== ''): ?>

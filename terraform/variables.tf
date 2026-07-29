@@ -16,13 +16,13 @@ variable "project" {
 variable "dev_bucket_name" {
   description = "Name of the dev/local uploads bucket."
   type        = string
-  default     = "sgl-uploads-dev"
+  default     = "bucket-sgl-uploads-dev"
 }
 
 variable "prod_bucket_name" {
   description = "Name of the production uploads bucket."
   type        = string
-  default     = "sgl-uploads-prod"
+  default     = "bucket-sgl-uploads-prod"
 }
 
 variable "dev_iam_user_name" {

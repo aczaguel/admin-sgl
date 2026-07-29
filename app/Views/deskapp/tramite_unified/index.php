@@ -43,34 +43,43 @@ foreach (($tul_t['associated_service_rows'] ?? []) as $tul_row) {
 }
 $tul_asociadosText = $tul_asociados !== [] ? implode(', ', $tul_asociados) : 'Sin asociados';
 
-// --- Gates de revelado progresivo ---
+// --- Gates de revelado progresivo (status-driven) ---
+// La visibilidad de cada fase se deriva del estatus real del trámite via la
+// columna tra_status.new_format_step (expuesta por el controller). Esto permite
+// cargar trámites históricos hacia atrás: si el estatus ya avanzó a un paso, ese
+// paso (y los previos) YA ocurrieron en el flujo viejo y no deben re-bloquearse
+// por la maquinaria nueva de aprobación/evidencias que esos trámites nunca tuvieron.
 $tul_step1Complete = !empty($tul_t['step1_complete']);
 $tul_step2Complete = !empty($tul_t['step2_complete']);
 $tul_step3Complete = !empty($tul_t['step3_complete']);
 $tul_hasTramiteRecibido = !empty($tul_t['has_tramite_recibido']);
 $tul_hasAcuseRecibo = !empty($tul_t['has_acuse_recibo']);
 
-// Paso/etapa real según el status del trámite (mismo mapa que el controller)
-$tul_arrStatus = [11 => 1, 22 => 2, 25 => 3, 26 => 3, 27 => 3, 23 => 4, 28 => 5, 20 => 6, 21 => 7, 29 => 1];
 $tul_traStatusId = (int) ($tul_t['tra_status_id'] ?? 0);
-$tul_stepActual = $tul_arrStatus[$tul_traStatusId] ?? 1;
 
-// El trámite se considera aprobado cuando pasó a "pago a gestor" (paso 4) o posterior.
+// new_format_step: 1 general, 2 gestión/derechos, 3 evidencias finales,
+// 4 pago a gestor, 5 cobro a cliente, 10 concluido/cancelado (terminal).
+// Se hace clamp a 5 para estados terminales, y default 1 si viene NULL/0.
+$tul_newFormatStep = (int) ($tul_t['new_format_step'] ?? 0);
+$tul_stepActual = $tul_newFormatStep >= 1 ? min($tul_newFormatStep, 5) : 1;
+
+// El trámite ya alcanzó/rebasó la fase financiera cuando su estatus está en
+// pago a gestor (paso 4) o posterior. El estatus ES la prueba de que la
+// aprobación previa ya ocurrió en el flujo original.
 $tul_isAprobado = $tul_stepActual >= 4;
 
-// Evidencias finales (paso 3): se desbloquean SOLO al aprobar el trámite.
-$tul_gateEvidencias = $tul_isAprobado;
-// Fase financiera (pasos 4-5): requiere aprobación + evidencias finales cargadas.
-$tul_gateFinanciera = $tul_isAprobado && $tul_hasTramiteRecibido && $tul_hasAcuseRecibo;
+// Evidencias finales (paso 3): visibles cuando el trámite alcanzó el paso 3 o
+// posterior. Ya no dependen del botón "Aprobar trámite" del flujo nuevo.
+$tul_gateEvidencias = $tul_stepActual >= 3;
+// Fase financiera (pasos 4-5): visible cuando el estatus alcanzó el paso 4 o
+// posterior. Ya no exige los registros de evidencias (tramite_recibido/acuse),
+// que son parte de la maquinaria nueva inexistente en trámites históricos.
+$tul_gateFinanciera = $tul_stepActual >= 4;
 
 $viewData['tulStep3Locked'] = !$tul_gateEvidencias;
-$viewData['tulStep3LockReason'] = 'Aprueba el trámite con el botón "Aprobar trámite" (Paso 2) para desbloquear las evidencias finales.';
+$viewData['tulStep3LockReason'] = 'Las evidencias finales se habilitan cuando el trámite avanza a esta etapa.';
 $viewData['tulFinanceLocked'] = !$tul_gateFinanciera;
-if (!$tul_isAprobado) {
-    $viewData['tulFinanceLockReason'] = 'Aprueba el trámite con el botón "Aprobar trámite" (Paso 2) para iniciar la fase financiera.';
-} else {
-    $viewData['tulFinanceLockReason'] = 'Carga el trámite recibido por el gestor y el acuse de recibo del cliente (Evidencias finales) para desbloquear Pago a Gestor y Cobro a Cliente.';
-}
+$viewData['tulFinanceLockReason'] = 'La fase financiera (Pago a Gestor y Cobro a Cliente) se habilita cuando el trámite avanza a esa etapa.';
 
 // Fase actual para el indicador de progreso
 if ($tul_gateFinanciera) {
