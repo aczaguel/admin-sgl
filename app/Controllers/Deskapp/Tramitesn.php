@@ -1458,7 +1458,7 @@ class Tramitesn extends Tramites
 
             if (can_edit_tramite($roles, $perms) || has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramitesn/update/' . $row->id;
+                    return '/deskapp/tramitesn/unified-layout?tramite_id=' . $row->id;
                 }, false);
             }
 
