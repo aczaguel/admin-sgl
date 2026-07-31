@@ -59,11 +59,12 @@ resource "aws_instance" "app" {
   iam_instance_profile = var.instance_profile_name
 
   # Enforce IMDSv2 so instance-profile credentials cannot be pulled via the
-  # legacy, token-less metadata endpoint.
+  # legacy, token-less metadata endpoint. Hop limit = 2 so Docker containers
+  # running inside the instance can reach the metadata service for credentials.
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
-    http_put_response_hop_limit = 1
+    http_put_response_hop_limit = 2
   }
 
   root_block_device {

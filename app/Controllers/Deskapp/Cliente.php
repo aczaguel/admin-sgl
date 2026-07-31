@@ -96,7 +96,11 @@ class Cliente extends BaseController
                 'database' => $db['database'],
                 'username' => $db['username'],
                 'password' => $db['password'],
-                'charset' => 'utf8'
+                'charset' => 'utf8',
+            // FR-01: Sync MySQL session timezone with PHP (America/Mexico_City)
+            'driver_options' => [
+                MYSQLI_INIT_COMMAND => "SET time_zone = '-06:00'",
+            ],
             ]
         ];
     }

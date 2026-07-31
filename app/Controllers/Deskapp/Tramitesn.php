@@ -1473,9 +1473,7 @@ class Tramitesn extends Tramites
             $tramite_crud->setSubject('tramite', 'Tramites (Nuevo Flujo)');
             $tramite_crud->defaultOrdering('tramite.id', 'desc');
 
-            $tramite_crud->where([
-                'tramite.created_at >= ?' => ['2026-01-01 00:00:00']
-            ]);
+            // FR-15: Removed year filter to allow historical contract search across all years
 
             $tramite_crud->columns([
                 'id', 'created_at', 'started_at', 'tra_status_id', 'folio', 'contrato', 'unidad', 'serie',

@@ -4303,7 +4303,7 @@ $flowCardClass = static function (int $stepNumber) use ($activeStep): string {
                         </div>
                         <div class="tp-field wide">
                           <label for="tp_step2_derechos_refer_banc">Referencia bancaria</label>
-                          <input id="tp_step2_derechos_refer_banc" type="text" value="<?= esc((string) ($prototypeStep2Form['values']['derechos_refer_banc'] ?? ''), 'attr') ?>" data-step2-input="derechos_refer_banc"<?= $prototypeStep2CanEdit ? '' : ' disabled' ?>>
+                          <input id="tp_step2_derechos_refer_banc" type="text" maxlength="100" value="<?= esc((string) ($prototypeStep2Form['values']['derechos_refer_banc'] ?? ''), 'attr') ?>" data-step2-input="derechos_refer_banc"<?= $prototypeStep2CanEdit ? '' : ' disabled' ?>>
                         </div>
                       </div>
                       <?php if ($prototypeStep2CanEdit): ?>
@@ -5417,7 +5417,7 @@ $flowCardClass = static function (int $stepNumber) use ($activeStep): string {
                                 </div>
                                 <div class="tp-field wide">
                                   <label for="tp_step2_derechos_refer_banc">Referencia bancaria</label>
-                                  <input id="tp_step2_derechos_refer_banc" type="text" value="<?= esc((string) ($prototypeStep2Form['values']['derechos_refer_banc'] ?? ''), 'attr') ?>" data-step2-input="derechos_refer_banc"<?= $prototypeStep2CanEdit ? '' : ' disabled' ?>>
+                                  <input id="tp_step2_derechos_refer_banc" type="text" maxlength="100" value="<?= esc((string) ($prototypeStep2Form['values']['derechos_refer_banc'] ?? ''), 'attr') ?>" data-step2-input="derechos_refer_banc"<?= $prototypeStep2CanEdit ? '' : ' disabled' ?>>
                                 </div>
                               </div>
                               <?php if ($prototypeStep2CanEdit): ?>

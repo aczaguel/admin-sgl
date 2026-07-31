@@ -51,11 +51,13 @@ class BaseController extends \CodeIgniter\Controller
 	{
 		helper('datetime_es');
 
+		// FR-04: Format date columns as Y-m-d only (no time) for cleaner exports.
+		// Users need sortable/filterable dates in Excel without the time portion.
 		$dateFields = ['created_at', 'updated_at', 'started_at', 'finished_at'];
 		foreach ($dateFields as $field) {
 			$groceryCrud->callbackColumn($field, static function ($value) use ($field) {
 				$fallback = in_array($field, ['started_at', 'finished_at'], true) ? 'Pendiente' : 'N/A';
-				return format_datetime_es($value, true, $fallback);
+				return format_date_ymd($value, $fallback);
 			});
 		}
 	}

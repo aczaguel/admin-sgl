@@ -231,6 +231,7 @@ $approveUrl         = '/deskapp/tramites/autorizar';
                                 id="tul_step2_derechos_refer_banc"
                                 type="text"
                                 name="derechos_refer_banc"
+                                maxlength="100"
                                 value="<?= esc((string) ($values['derechos_refer_banc'] ?? ''), 'attr') ?>"
                                 <?= !$canEdit ? ' disabled' : '' ?>
                             >

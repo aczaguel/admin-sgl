@@ -52,3 +52,24 @@ Events::on('pre_system', function () {
 		Services::toolbar()->respond();
 	}
 });
+
+/*
+ * --------------------------------------------------------------------
+ * MySQL Session Timezone Sync (FR-01)
+ * --------------------------------------------------------------------
+ * Sets the MySQL session time_zone to match the application timezone
+ * (America/Mexico_City = UTC-6) immediately after the first DB connection
+ * is established. This prevents the ~6 hour drift between PHP dates and
+ * MySQL NOW()/CURRENT_TIMESTAMP values.
+ */
+Events::on('post_controller_constructor', static function () {
+	if (ENVIRONMENT === 'testing') {
+		return;
+	}
+	try {
+		$db = \Config\Database::connect();
+		$db->query("SET time_zone = '-06:00'");
+	} catch (\Throwable $e) {
+		log_message('warning', '[FR-01] Could not set MySQL session timezone: ' . $e->getMessage());
+	}
+});

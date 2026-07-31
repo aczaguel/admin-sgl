@@ -179,3 +179,31 @@ module "eip" {
   name_prefix = "sgl-prod-iaas"
   instance_id = module.compute.instance_id
 }
+
+# ---- Allow the Prod IaaS EC2 to reach the existing production RDS ----------
+#
+# The production RDS has its own security groups (managed outside this stack).
+# We add an ingress rule on each to allow 3306 from the new Prod IaaS app SG.
+# This is the ONLY modification to existing prod infrastructure and is a single
+# additive rule — destroying this stack removes the rule, nothing else.
+variable "prod_rds_security_group_ids" {
+  description = "Security group IDs attached to the existing production RDS. An ingress rule for 3306 from the Prod IaaS app SG is added to each."
+  type        = list(string)
+  default     = []
+}
+
+resource "aws_vpc_security_group_ingress_rule" "prod_rds_from_iaas_app" {
+  for_each = var.use_real_prod_db ? toset(var.prod_rds_security_group_ids) : toset([])
+
+  security_group_id            = each.value
+  description                  = "MySQL inbound from Prod IaaS app (sgl-prod-iaas)"
+  ip_protocol                  = "tcp"
+  from_port                    = 3306
+  to_port                      = 3306
+  referenced_security_group_id = module.network.security_group_id
+
+  tags = {
+    Name      = "prod-rds-from-prod-iaas-app"
+    ManagedBy = "terraform-prod-iaas"
+  }
+}

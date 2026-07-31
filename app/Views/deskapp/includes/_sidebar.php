@@ -130,6 +130,9 @@
 									<?= perm_audit_tag('menu_tramites_tenencias', $session) ?>
 								</a></li>
 							<?php endif; ?>	
+							<li><a href="<?php echo base_url('deskapp/tramitesn/unified-layout?tramite_id=13251'); ?>">
+								<i class="fas fa-columns text-purple"></i> Layout Unificado
+							</a></li>
 						</ul>
 					</li>
 				<?php endif; ?>

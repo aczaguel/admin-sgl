@@ -100,6 +100,30 @@ resource "aws_vpc_security_group_egress_rule" "app_https_egress" {
   cidr_ipv4         = "0.0.0.0/0"
 }
 
+# Outbound HTTP (80) so Docker builds inside the instance can reach package
+# repositories (apt-get, dnf) that serve over plain HTTP.
+resource "aws_vpc_security_group_egress_rule" "app_http_egress" {
+  security_group_id = aws_security_group.app.id
+  description       = "HTTP egress for package repositories (apt/dnf)"
+  ip_protocol       = "tcp"
+  from_port         = 80
+  to_port           = 80
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
+# Outbound MySQL (3306) to any destination in the VPC so the App can reach the
+# existing production RDS (whose security groups are not managed by this stack).
+# This is broader than referencing a specific SG but is required when pointing
+# at an external RDS in cutover-rehearsal mode.
+resource "aws_vpc_security_group_egress_rule" "app_mysql_egress" {
+  security_group_id = aws_security_group.app.id
+  description       = "MySQL egress for reaching the production RDS"
+  ip_protocol       = "tcp"
+  from_port         = 3306
+  to_port           = 3306
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
 # Outbound MySQL (3306) to the isolated RDS security group so the App can reach
 # the database. Declared separately to avoid an app<->db dependency cycle.
 resource "aws_vpc_security_group_egress_rule" "app_to_db" {

@@ -10,7 +10,7 @@ terraform {
 
   # Separate state key so Prod IaaS NEVER shares/clobbers the existing stack's state.
   backend "s3" {
-    bucket         = "sgl-terraform-state"
+    bucket         = "bucket-sgl-terraform-state"
     key            = "prod-iaas/terraform.tfstate" # distinct from s3-file-storage/...
     region         = "us-east-1"
     dynamodb_table = "sgl-terraform-locks"

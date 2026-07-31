@@ -97,7 +97,7 @@ class DashboardAdmin extends BaseController
             'tramites_por_tipo' => $this->dashboardModel->getTramitesPorTipo('anio', $anio, $userId),
             'top_ejecutivos' => $this->dashboardModel->getTopEjecutivos(10, 'anio', $anio, $userId),
             'top_gestores' => $this->dashboardModel->getTopGestores(10, 'anio', $anio, $userId),
-            'generated_at' => date('Y-m-d H:i:s'),
+            'generated_at' => date('Y-m-d'),
         ];
     }
 

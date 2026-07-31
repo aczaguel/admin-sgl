@@ -4104,7 +4104,7 @@ class Tramites extends BaseController
         $validation = \Config\Services::validation();
         $validation->setRules([
             "derechos_revol_cliente" => "required",
-            "derechos_refer_banc" => "required"
+            "derechos_refer_banc" => "required|max_length[100]"
         ]);
 
         if ($validation->withRequest($this->request)->run() === FALSE) {
@@ -7463,7 +7463,11 @@ class Tramites extends BaseController
                 'database' => $db['database'],
                 'username' => $db['username'],
                 'password' => $db['password'],
-                'charset' => 'utf8'
+                'charset' => 'utf8',
+                // FR-01: Sync MySQL session timezone with PHP (America/Mexico_City)
+                'driver_options' => [
+                    MYSQLI_INIT_COMMAND => "SET time_zone = '-06:00'",
+                ],
             ]
         ];
     }
