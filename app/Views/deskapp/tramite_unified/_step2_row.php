@@ -263,8 +263,8 @@ $approveUrl         = '/deskapp/tramites/autorizar';
                     data-tul-upload-url="<?= esc($uploadUrl, 'attr') ?>"
                 >
                     <input type="hidden" name="<?= esc($csrfName, 'attr') ?>" value="<?= esc($csrfHash, 'attr') ?>">
-                    <input type="file" class="tul-dropzone__input" data-tul-file-input>
-                    <span class="tul-dropzone__label">Arrastra comprobantes o haz clic para seleccionar</span>
+                    <input type="file" class="tul-dropzone__input" data-tul-file-input multiple>
+                    <span class="tul-dropzone__label">Arrastra aquí o haz clic para seleccionar uno o más archivos</span>
                     <div class="tul-dropzone__progress" data-tul-upload-progress hidden>Subiendo...</div>
                 </div>
             <?php endif; ?>

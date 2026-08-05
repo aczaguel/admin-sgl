@@ -891,7 +891,7 @@
                     if (fileInput) {
                         fileInput.addEventListener('change', function() {
                             if (fileInput.files && fileInput.files.length > 0) {
-                                self.handleUpload(dropzone, fileInput.files[0]);
+                                self._uploadQueue(dropzone, fileInput.files);
                             }
                         });
                     }
@@ -902,12 +902,136 @@
                         uploadBtn.addEventListener('click', function(e) {
                             e.preventDefault();
                             if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                                self.handleUpload(dropzone, fileInput.files[0]);
+                                self._uploadQueue(dropzone, fileInput.files);
                             }
                         });
                     }
                 })(dropzones[i]);
             }
+        },
+
+        /**
+         * Uploads multiple files sequentially, one at a time.
+         * Reloads the page after all files have been processed.
+         *
+         * @param {HTMLElement} dropzone - The dropzone container
+         * @param {FileList} files       - The selected files
+         */
+        _uploadQueue: function(dropzone, files) {
+            var self = this;
+            var fileArray = Array.prototype.slice.call(files);
+            var total = fileArray.length;
+            var index = 0;
+            var errors = 0;
+
+            // Show count if multiple files selected
+            var feedback = dropzone.querySelector('[data-tul-upload-feedback]');
+            if (total > 1 && feedback) {
+                feedback.textContent = 'Subiendo ' + total + ' archivos...';
+                feedback.removeAttribute('hidden');
+            }
+
+            var uploadNext = function() {
+                if (index >= total) {
+                    // All done — reload to show updated gallery
+                    if (errors === 0) {
+                        self.notify('success', total === 1 ? 'Archivo subido correctamente.' : total + ' archivos subidos correctamente.');
+                    } else {
+                        self.notify('error', errors + ' de ' + total + ' archivos no pudieron subirse.');
+                    }
+                    setTimeout(function() { window.location.reload(); }, 800);
+                    return;
+                }
+
+                var file = fileArray[index];
+                index++;
+
+                // Override handleUpload's reload behavior: we reload only after the queue finishes.
+                self._uploadSingle(dropzone, file, function(ok) {
+                    if (!ok) errors++;
+                    uploadNext();
+                });
+            };
+
+            uploadNext();
+        },
+
+        /**
+         * Uploads a single file without reloading, calling back with success boolean.
+         * Used internally by _uploadQueue.
+         *
+         * @param {HTMLElement} dropzone - The dropzone container
+         * @param {File} file            - The file to upload
+         * @param {function} callback    - Called with true on success, false on error
+         */
+        _uploadSingle: function(dropzone, file, callback) {
+            var self = this;
+            var url = dropzone.getAttribute('data-tul-upload-url');
+            var progressEl = dropzone.querySelector('[data-tul-upload-progress]');
+            var fileInput = dropzone.querySelector('[data-tul-file-input]');
+
+            var docType = dropzone.querySelector('[data-tul-doc-type]');
+            if (docType && (docType.value === '' || docType.value === null)) {
+                self.notify('error', 'Selecciona el tipo de documento antes de subir el archivo.');
+                if (fileInput) fileInput.value = '';
+                callback(false);
+                return;
+            }
+
+            if (progressEl) {
+                progressEl.removeAttribute('hidden');
+                progressEl.textContent = '0%';
+            }
+
+            var formData = new FormData();
+            if (this.csrfName && this.csrfHash) {
+                formData.append(this.csrfName, this.csrfHash);
+            }
+            formData.append('file', file);
+
+            var namedFields = dropzone.querySelectorAll('input[name], select[name], textarea[name]');
+            for (var n = 0; n < namedFields.length; n++) {
+                var fld = namedFields[n];
+                if (fld.type === 'file') continue;
+                if (fld.name === this.csrfName) continue;
+                formData.append(fld.name, fld.value);
+            }
+
+            var docTypeSelect = dropzone.querySelector('[data-tul-doc-type-select]');
+            if (docTypeSelect && !docTypeSelect.name) {
+                formData.set('tipo', docTypeSelect.value);
+            }
+
+            this.ajax('POST', url, formData, {
+                onProgress: function(event) {
+                    if (progressEl && event.lengthComputable) {
+                        var percent = Math.round((event.loaded / event.total) * 100);
+                        progressEl.textContent = percent + '%';
+                    }
+                },
+                onSuccess: function(xhr) {
+                    if (progressEl) {
+                        progressEl.setAttribute('hidden', '');
+                        progressEl.textContent = '';
+                    }
+                    var response;
+                    try { response = JSON.parse(xhr.responseText); } catch (e) { response = {}; }
+                    if (response.success === false) {
+                        self.notify('error', response.message || 'No se pudo subir: ' + file.name);
+                        callback(false);
+                        return;
+                    }
+                    callback(true);
+                },
+                onError: function(xhr) {
+                    if (progressEl) {
+                        progressEl.setAttribute('hidden', '');
+                        progressEl.textContent = '';
+                    }
+                    self.handleError(xhr, {});
+                    callback(false);
+                }
+            });
         },
 
         /**

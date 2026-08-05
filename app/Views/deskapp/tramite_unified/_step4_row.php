@@ -278,8 +278,8 @@ $notesUrl      = '/deskapp/tramitesn/prototype_step4_notes_add/' . $tramiteId;
                         </div>
 
                         <div class="tul-dropzone__area">
-                            <input type="file" class="tul-dropzone__input" data-tul-file-input>
-                            <span class="tul-dropzone__label">Arrastra aquí la factura o comprobante del gestor</span>
+                            <input type="file" class="tul-dropzone__input" data-tul-file-input multiple>
+                            <span class="tul-dropzone__label">Arrastra aquí o haz clic para seleccionar uno o más archivos</span>
                             <span class="tul-dropzone__meta" data-tul-file-meta>Sin archivo seleccionado</span>
                         </div>
                         <div class="tul-dropzone__progress" data-tul-upload-progress hidden></div>

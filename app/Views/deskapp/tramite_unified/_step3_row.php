@@ -107,10 +107,10 @@ $tulLockReason = (string) ($tulStep3LockReason ?? '');
                      data-tul-upload-url="<?= esc($uploadUrl, 'attr') ?>">
                     <input type="hidden" name="<?= esc($csrfName, 'attr') ?>" value="<?= esc($csrfHash, 'attr') ?>">
                     <input type="hidden" name="comprobante_final" value="tramite_recibido">
-                    <input type="file" class="tul-dropzone__input" data-tul-file-input>
+                    <input type="file" class="tul-dropzone__input" data-tul-file-input multiple>
                     <div class="tul-dropzone__content">
                         <span class="tul-dropzone__label">Trámite Recibido</span>
-                        <span class="tul-dropzone__hint">Arrastra o haz clic para subir</span>
+                        <span class="tul-dropzone__hint">Arrastra o haz clic para subir uno o más archivos</span>
                     </div>
                     <div class="tul-dropzone__progress" data-tul-upload-progress hidden></div>
                 </div>
@@ -122,10 +122,10 @@ $tulLockReason = (string) ($tulStep3LockReason ?? '');
                      data-tul-upload-url="<?= esc($uploadUrl, 'attr') ?>">
                     <input type="hidden" name="<?= esc($csrfName, 'attr') ?>" value="<?= esc($csrfHash, 'attr') ?>">
                     <input type="hidden" name="comprobante_final" value="acuse_recibo_cliente">
-                    <input type="file" class="tul-dropzone__input" data-tul-file-input>
+                    <input type="file" class="tul-dropzone__input" data-tul-file-input multiple>
                     <div class="tul-dropzone__content">
                         <span class="tul-dropzone__label">Acuse Recibo Cliente</span>
-                        <span class="tul-dropzone__hint">Arrastra o haz clic para subir</span>
+                        <span class="tul-dropzone__hint">Arrastra o haz clic para subir uno o más archivos</span>
                     </div>
                     <div class="tul-dropzone__progress" data-tul-upload-progress hidden></div>
                 </div>

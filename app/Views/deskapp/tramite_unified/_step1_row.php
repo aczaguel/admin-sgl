@@ -276,8 +276,8 @@ foreach ($svcServices as $svcRow) {
                         </div>
 
                         <div class="tul-dropzone__area">
-                            <input type="file" class="tul-dropzone__input" data-tul-file-input>
-                            <span class="tul-dropzone__label">Arrastra aquí o haz clic para seleccionar archivo</span>
+                            <input type="file" class="tul-dropzone__input" data-tul-file-input multiple>
+                            <span class="tul-dropzone__label">Arrastra aquí o haz clic para seleccionar uno o más archivos</span>
                         </div>
 
                         <div class="tul-btn-row">
