@@ -65,6 +65,7 @@ class File extends SplFileInfo
 	 *
 	 * @return integer The file size in bytes
 	 */
+	#[\ReturnTypeWillChange]
 	public function getSize()
 	{
 		return $this->size ?? ($this->size = parent::getSize());
