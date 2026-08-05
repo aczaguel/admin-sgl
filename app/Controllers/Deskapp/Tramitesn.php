@@ -1864,7 +1864,7 @@ class Tramitesn extends Tramites
             return $resp;
         }
 
-        return redirect()->to('/deskapp/tramitesn/update/' . $resolvedId . '?from=search');
+        return redirect()->to('/deskapp/tramitesn/unified-layout?tramite_id=' . $resolvedId . '&from=search');
     }
 
     public function services($tramiteId)
@@ -2739,7 +2739,7 @@ class Tramitesn extends Tramites
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'El Gestor se asigno correctamente.',
-                'redirect' => '/deskapp/tramitesn/update/' . $id,
+                'redirect' => '/deskapp/tramitesn/unified-layout?tramite_id=' . $id,
                 'csrfHash' => csrf_hash(),
             ]);
 
@@ -2922,7 +2922,7 @@ class Tramitesn extends Tramites
             return $this->response->setJSON([
                 'success' => true,
                 'message' => 'El trámite se guardo correctamente.',
-                'redirect' => '/deskapp/tramitesn/update/' . $id,
+                'redirect' => '/deskapp/tramitesn/unified-layout?tramite_id=' . $id,
                 'csrfHash' => csrf_hash(),
             ]);
 
@@ -3121,7 +3121,7 @@ class Tramitesn extends Tramites
                 ]);
             }
 
-            $redirectUrl = '/deskapp/tramitesn/update/' . $id;
+            $redirectUrl = '/deskapp/tramitesn/unified-layout?tramite_id=' . $id;
             if ($targetStatus !== SGL_TRA_STATUS_COBRO_CLIENTE && has_permission('section_pago_gestor', $perms, $roles)) {
                 $redirectUrl = '/deskapp/tramitesn/ver_seccion_pago_gestor/' . $id;
             }
@@ -4715,7 +4715,7 @@ class Tramitesn extends Tramites
         }
 
         // Si no tiene acceso por multi-tenancy, no enviarlo al listado de cobro.
-        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, 'No tienes permiso para ver este tramite', '/deskapp/tramitesn/update/' . (int) $id, 403, false)) {
+        if ($resp = acl_require_tramite_tenant_access($id, $myid, $roles, 'No tienes permiso para ver este tramite', '/deskapp/tramitesn/unified-layout?tramite_id=' . (int) $id . '&error=403', 403, false)) {
             log_unauthorized_access_attempt('tramite', $id);
             return $resp;
         }

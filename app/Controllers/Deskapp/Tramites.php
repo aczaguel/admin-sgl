@@ -400,7 +400,7 @@ class Tramites extends BaseController
             $tramite_crud->unsetDeleteMultiple();
             if (has_permission('editar_tramite', $perms, $roles) || has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramitesn/update/' . $row->id;
+                    return '/deskapp/tramitesn/unified-layout?tramite_id=' . $row->id;
                 }, false);
             }
 
@@ -594,7 +594,7 @@ class Tramites extends BaseController
             $tramite_crud->unsetDeleteMultiple();
             if (has_permission('editar_tramite', $perms, $roles) || has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramitesn/update/' . $row->id;
+                    return '/deskapp/tramitesn/unified-layout?tramite_id=' . $row->id;
                 }, false);
             }
 
@@ -984,7 +984,7 @@ class Tramites extends BaseController
             $tramite_crud->unsetDeleteMultiple();
             if (has_permission('editar_tramite', $perms, $roles) || has_permission('read_tramite', $perms, $roles)){
                 $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramitesn/update/' . $row->id;
+                    return '/deskapp/tramitesn/unified-layout?tramite_id=' . $row->id;
                 }, false);
             }
 
@@ -1669,7 +1669,7 @@ class Tramites extends BaseController
                     return $this->response->setJSON([
                         'from' => 'insert',
                         'success' => true,
-                        'redirect' => '/deskapp/tramitesn/update/'.$lastInsertID
+                        'redirect' => '/deskapp/tramitesn/unified-layout?tramite_id='.$lastInsertID
                     ]);
                 } else {
                     // Si no es una solicitud AJAX, redirige a la página de lista
@@ -1696,7 +1696,7 @@ class Tramites extends BaseController
         // Alias/redirect del flujo legacy al flujo nuevo.
         // Esto asegura que cualquier link viejo a /tramites/update/{id} termine usando el wizard de tramitesn.
         if (strtolower($this->request->getMethod()) === 'get') {
-            return redirect()->to('/deskapp/tramitesn/update/' . (int) $id);
+            return redirect()->to('/deskapp/tramitesn/unified-layout?tramite_id=' . (int) $id);
         }
 
         helper(['permissions', 'cliente_filter', 'acl_guard']);
@@ -8358,7 +8358,7 @@ class Tramites extends BaseController
             $tramite_crud->unsetDeleteMultiple();
             if (has_permission('editar_tramite_cancelado', $perms, $roles) || has_permission('read_tramite_cancelado', $perms, $roles)){
                 $tramite_crud->setActionButton('Abrir', 'fas fa-eye', function ($row) {
-                    return '/deskapp/tramitesn/update/' . $row->id;
+                    return '/deskapp/tramitesn/unified-layout?tramite_id=' . $row->id;
                 }, false);
             }
 

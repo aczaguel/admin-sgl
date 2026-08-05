@@ -56,7 +56,7 @@ class NotificationModel extends Model
                 'message' => "Se creó el trámite {$folioTramite} - {$tipoTramite} para {$clienteNombre}",
                 'icon' => 'fa-file-alt',
                 'color' => 'info',
-                'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
+                'url' => base_url("deskapp/tramitesn/unified-layout?tramite_id={$tramiteId}"),
                 'created_by' => $createdBy
             ];
         }
@@ -225,7 +225,7 @@ class NotificationModel extends Model
             return $row;
         }
 
-        $targetUrl = base_url('deskapp/tramitesn/update/' . $tramiteId);
+        $targetUrl = base_url('deskapp/tramitesn/unified-layout?tramite_id=' . $tramiteId);
         $currentUrl = (string) ($row['url'] ?? '');
 
         if ($currentUrl === '') {
@@ -273,7 +273,7 @@ class NotificationModel extends Model
                     'message' => "El trámite {$folioTramite} fue actualizado: {$cambios}",
                     'icon' => 'fa-edit',
                     'color' => 'warning',
-                    'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
+                    'url' => base_url("deskapp/tramitesn/unified-layout?tramite_id={$tramiteId}"),
                     'created_by' => $createdBy
                 ];
             }
@@ -303,7 +303,7 @@ class NotificationModel extends Model
                 'message' => "Se asignó a {$gestorNombre} para el trámite {$folioTramite}",
                 'icon' => 'fa-user-tie',
                 'color' => 'primary',
-                'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
+                'url' => base_url("deskapp/tramitesn/unified-layout?tramite_id={$tramiteId}"),
                 'created_by' => $createdBy
             ];
         }
@@ -335,7 +335,7 @@ class NotificationModel extends Model
                 'message' => "Se registró pago de $" . number_format($monto, 2) . " para el trámite {$folioTramite}",
                 'icon' => 'fa-money-bill-wave',
                 'color' => 'success',
-                'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
+                'url' => base_url("deskapp/tramitesn/unified-layout?tramite_id={$tramiteId}"),
                 'created_by' => $createdBy
             ];
         }
@@ -367,7 +367,7 @@ class NotificationModel extends Model
                 'message' => "Se generó la factura {$numeroFactura} para el trámite {$folioTramite}",
                 'icon' => 'fa-file-invoice',
                 'color' => 'info',
-                'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
+                'url' => base_url("deskapp/tramitesn/unified-layout?tramite_id={$tramiteId}"),
                 'created_by' => $createdBy
             ];
         }
@@ -399,7 +399,7 @@ class NotificationModel extends Model
                 'message' => "Se cobró $" . number_format($monto, 2) . " del trámite {$folioTramite}",
                 'icon' => 'fa-check-circle',
                 'color' => 'success',
-                'url' => base_url("deskapp/tramitesn/update/{$tramiteId}"),
+                'url' => base_url("deskapp/tramitesn/unified-layout?tramite_id={$tramiteId}"),
                 'created_by' => $createdBy
             ];
         }
