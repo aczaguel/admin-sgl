@@ -1851,7 +1851,47 @@ class Tramitesn extends Tramites
         } elseif ($folio !== '') {
             $tramiteRow = $db->table('tramite')->select('id, folio')->where('folio', $folio)->get()->getRowArray();
         } else {
-            $tramiteRow = $db->table('tramite')->select('id, folio')->where('contrato', $contrato)->get()->getRowArray();
+            // Contrato can have multiple tramites — fetch ALL of them.
+            $tramiteRows = $db->table('tramite')
+                ->select('tramite.id, tramite.folio, tramite.contrato, tramite.unidad, tramite.serie, tramite.placas, tramite.created_at, tra_status.tra_status as status_nombre, tra_tipos.tipo_tramite as tipo_tramite, cli_directo_ejecutivo.nombre as ejecutivo_nombre')
+                ->join('tra_status', 'tra_status.id = tramite.tra_status_id', 'left')
+                ->join('tra_tipos', 'tra_tipos.id = tramite.tra_tipos_id', 'left')
+                ->join('cli_directo_ejecutivo', 'cli_directo_ejecutivo.id = tramite.cli_directo_ejecutivo_id', 'left')
+                ->where('tramite.contrato', $contrato)
+                ->orderBy('tramite.id', 'DESC')
+                ->get()
+                ->getResultArray();
+
+            if (empty($tramiteRows)) {
+                return redirect()->to('/deskapp/tramitesn/search')->with('error', 'No se encontraron trámites con ese contrato.');
+            }
+
+            // Filter by tenant access
+            $accessible = [];
+            foreach ($tramiteRows as $row) {
+                $rowId = (int) $row['id'];
+                if (!acl_require_tramite_tenant_access($rowId, $userId, $roles, '', '', 403, false)) {
+                    $accessible[] = $row;
+                }
+            }
+
+            if (empty($accessible)) {
+                return redirect()->to('/deskapp/tramitesn/search')->with('error', 'No tienes acceso a los trámites de ese contrato.');
+            }
+
+            // If only one result, redirect directly
+            if (count($accessible) === 1) {
+                $resolvedId = (int) $accessible[0]['id'];
+                return redirect()->to('/deskapp/tramitesn/unified-layout?tramite_id=' . $resolvedId . '&from=search');
+            }
+
+            // Multiple results: show a results list in the search view
+            return view('deskapp/tramitesn/search', [
+                'session'          => $session,
+                'title'            => 'Trámites del contrato ' . esc($contrato),
+                'contrato_results' => $accessible,
+                'contrato_query'   => $contrato,
+            ]);
         }
 
         $resolvedId = (int) ($tramiteRow['id'] ?? 0);
