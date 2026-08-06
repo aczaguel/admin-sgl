@@ -4110,33 +4110,41 @@ class Tramitesn extends Tramites
                 ->get()
                 ->getResultArray();
 
-            foreach ($existingRows as $existing) {
+            if (!empty($existingRows)) {
+                // Accumulate: append the new filename to the existing record's file field (comma-separated).
+                $existing = $existingRows[0];
                 $existingFile = trim((string) ($existing['file'] ?? ''));
-                if ($existingFile !== '' && strpos($existingFile, '..') === false) {
-                    $existingKey = keyFromStored($existingFile, 'documentostatus');
-                    if ($existingKey !== '') {
-                        $storage->delete($existingKey);
-                    }
+
+                // Build the new comma-separated value, avoiding duplicates.
+                $existingFiles = $existingFile !== ''
+                    ? array_filter(array_map('trim', explode(',', $existingFile)))
+                    : [];
+                if (!in_array($fileName, $existingFiles, true)) {
+                    $existingFiles[] = $fileName;
                 }
+                $newFileValue = implode(',', $existingFiles);
+
+                $db->table('tra_doc_status')
+                    ->where('id', (int) $existing['id'])
+                    ->update([
+                        'file'       => $newFileValue,
+                        'user_id'    => $userId,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+            } else {
+                $db->table('tra_doc_status')->insert([
+                    'folio_tramite'       => (string) ($tramiteRow['folio'] ?? ''),
+                    'tramite_id'          => $tramiteId,
+                    'documento_id'        => $documentoId,
+                    'status_documento_id' => defined('SGL_TRA_STATUS_RECOLECCION_DCTOS') ? (int) SGL_TRA_STATUS_RECOLECCION_DCTOS : 11,
+                    'file'                => $fileName,
+                    'comentario'          => 'se sube documento desde prototipo paso 1',
+                    'user_id'             => $userId,
+                    'created_at'          => date('Y-m-d H:i:s'),
+                    'updated_at'          => date('Y-m-d H:i:s'),
+                    'status'              => 1,
+                ]);
             }
-
-            $db->table('tra_doc_status')
-                ->where('tramite_id', $tramiteId)
-                ->where('documento_id', $documentoId)
-                ->delete();
-
-            $db->table('tra_doc_status')->insert([
-                'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
-                'tramite_id' => $tramiteId,
-                'documento_id' => $documentoId,
-                'status_documento_id' => defined('SGL_TRA_STATUS_RECOLECCION_DCTOS') ? (int) SGL_TRA_STATUS_RECOLECCION_DCTOS : 11,
-                'file' => $fileName,
-                'comentario' => 'se sube documento desde prototipo paso 1',
-                'user_id' => $userId,
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
-                'status' => 1,
-            ]);
 
             $filePath = file_url($fileName, 'documentostatus');
             if ($filePath === '') {
