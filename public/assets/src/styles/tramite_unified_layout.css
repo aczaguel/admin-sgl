@@ -21,6 +21,8 @@ body.tul-no-floating-menu .header {
 body.tul-no-floating-menu .left-side-bar {
     position: static !important;
     top: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
 }
 
 body.tul-no-floating-menu .mobile-menu-overlay {
@@ -67,7 +69,7 @@ body.tul-no-floating-menu .main-container {
     background:
         linear-gradient(180deg, var(--tul-step-bg, #f4f8ff) 0%, #ffffff 120px);
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 16px rgba(15, 23, 42, 0.05);
-    overflow: hidden;
+    overflow: visible;
 }
 
 /* Banda superior del color del paso */
@@ -182,7 +184,7 @@ body.tul-no-floating-menu .main-container {
 .tul-container .tul-rail {
     min-width: 0;
     padding: 4px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .tul-container .tul-rail--form {
@@ -1758,7 +1760,7 @@ body #main-content,
     flex: 1 1 100% !important;
     box-sizing: border-box !important;
     margin: 0 !important;
-    padding: 100px 20px 24px 20px !important;
+    padding: 80px 20px 24px 20px !important;
 }
 
 body.tul-no-floating-menu #main-content {

@@ -34,6 +34,8 @@ $tul_tipo = $tul_t['tipo_principal_label'] ?? 'Sin tipo';
 $tul_status = $tul_t['tra_status_label'] ?? 'Sin estatus';
 $tul_cliente = $tul_t['cliente_name'] ?? 'Sin cliente';
 $tul_gestor = $tul_t['gestor_name'] ?? 'Sin asignar';
+$tul_createdAt = isset($tul_t['created_at']) && $tul_t['created_at'] ? substr((string) $tul_t['created_at'], 0, 10) : '—';
+$tul_startedAt = isset($tul_t['started_at']) && $tul_t['started_at'] ? substr((string) $tul_t['started_at'], 0, 10) : 'Pendiente';
 $tul_asociados = [];
 foreach (($tul_t['associated_service_rows'] ?? []) as $tul_row) {
     $lbl = trim((string) ($tul_row['label'] ?? ''));
@@ -132,6 +134,14 @@ $tul_canConclude = has_permission('important_concluir_tramite', $tul_perms, $tul
     <div class="tul-detailbar__item">
         <span class="tul-detailbar__label">Gestor</span>
         <span class="tul-detailbar__value"><?= esc($tul_gestor) ?></span>
+    </div>
+    <div class="tul-detailbar__item">
+        <span class="tul-detailbar__label">Creación</span>
+        <span class="tul-detailbar__value"><?= esc($tul_createdAt) ?></span>
+    </div>
+    <div class="tul-detailbar__item">
+        <span class="tul-detailbar__label">Inicio</span>
+        <span class="tul-detailbar__value"><?= esc($tul_startedAt) ?></span>
     </div>
     <div class="tul-detailbar__item tul-detailbar__item--phase">
         <span class="tul-detailbar__label">Fase</span>

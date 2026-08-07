@@ -121,7 +121,7 @@
 	<div class="row mt-20">
 		<div class="col-xl-10 col-lg-12 mx-auto">
 			<div class="card-box mb-30">
-				<div class="pb-20 pt-20 pl-30 pr-30">
+				<div class="pb-10 pt-10 pl-15 pr-15">
 					<h5 class="mb-20">
 						<i class="fas fa-list text-primary"></i>
 						<?= count($contrato_results) ?> trámites encontrados para el contrato <strong><?= esc($contrato_query ?? '') ?></strong>
@@ -138,6 +138,7 @@
 									<th>Unidad</th>
 									<th>Serie</th>
 									<th>Placas</th>
+									<th>Entidad</th>
 									<th>Estatus</th>
 									<th>Fecha</th>
 									<th></th>
@@ -154,6 +155,7 @@
 									<td><?= esc($tr['unidad'] ?? '') ?></td>
 									<td><?= esc($tr['serie'] ?? '') ?></td>
 									<td><?= esc($tr['placas'] ?? '') ?></td>
+									<td><?= esc($tr['entidad_nombre'] ?? '—') ?></td>
 									<td><?= esc($tr['status_nombre'] ?? 'Sin estatus') ?></td>
 									<td><?= esc(substr((string) ($tr['created_at'] ?? ''), 0, 10)) ?></td>
 									<td>

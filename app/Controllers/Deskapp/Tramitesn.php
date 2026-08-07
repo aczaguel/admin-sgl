@@ -1853,10 +1853,11 @@ class Tramitesn extends Tramites
         } else {
             // Contrato can have multiple tramites — fetch ALL of them.
             $tramiteRows = $db->table('tramite')
-                ->select('tramite.id, tramite.folio, tramite.contrato, tramite.unidad, tramite.serie, tramite.placas, tramite.created_at, tra_status.tra_status as status_nombre, tra_tipos.tipo_tramite as tipo_tramite, cli_directo_ejecutivo.nombre as ejecutivo_nombre')
+                ->select('tramite.id, tramite.folio, tramite.contrato, tramite.unidad, tramite.serie, tramite.placas, tramite.created_at, tra_status.tra_status as status_nombre, tra_tipos.tipo_tramite as tipo_tramite, cli_directo_ejecutivo.nombre as ejecutivo_nombre, entidad.entidad as entidad_nombre')
                 ->join('tra_status', 'tra_status.id = tramite.tra_status_id', 'left')
                 ->join('tra_tipos', 'tra_tipos.id = tramite.tra_tipos_id', 'left')
                 ->join('cli_directo_ejecutivo', 'cli_directo_ejecutivo.id = tramite.cli_directo_ejecutivo_id', 'left')
+                ->join('entidad', 'entidad.id = tramite.entidad_id', 'left')
                 ->where('tramite.contrato', $contrato)
                 ->orderBy('tramite.id', 'DESC')
                 ->get()

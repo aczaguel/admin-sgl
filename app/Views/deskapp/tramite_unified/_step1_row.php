@@ -295,8 +295,17 @@ foreach ($svcServices as $svcRow) {
                 <!-- Galería de documentos -->
                 <div class="tul-gallery" data-tul-gallery data-tul-step="1">
                     <h4 class="tul-gallery__title">Documentos cargados</h4>
-                    <?php if (!empty($documents) && is_array($documents)): ?>
-                        <?php foreach ($documents as $docItem): ?>
+                    <?php
+                    // Filter to only documents that have at least one file uploaded
+                    $uploadedDocuments = array_filter($documents ?? [], function($d) {
+                        if (!empty($d['files']) && is_array($d['files'])) {
+                            return count($d['files']) > 0;
+                        }
+                        return !empty($d['has_file']) || (!empty($d['file']) && trim((string) $d['file']) !== '');
+                    });
+                    ?>
+                    <?php if (!empty($uploadedDocuments)): ?>
+                        <?php foreach ($uploadedDocuments as $docItem): ?>
                             <?php
                                 $docId = (int) ($docItem['documento_id'] ?? 0);
                                 $hasFile = !empty($docItem['has_file']);
@@ -331,7 +340,7 @@ foreach ($svcServices as $svcRow) {
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <p class="tul-gallery__empty">Sin documentos cargados.</p>
+                        <p class="tul-gallery__empty">Aún no se han subido documentos. Usa el área de carga para agregar archivos.</p>
                     <?php endif; ?>
                 </div>
 
