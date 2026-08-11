@@ -27,6 +27,7 @@
             this.bindStep4Costs();
             this.bindStep5Finance();
             this.bindTramiteActions();
+            this.bindDocumentPreviews();
         },
 
         // ------------------------------------------------------------------
@@ -71,6 +72,120 @@
                     data.append('status_id', '20');
                     self.runTramiteAction(concludeBtn, concludeBtn.getAttribute('data-tul-url'), data, 'Trámite concluido.');
                 });
+            }
+        },
+
+        // ------------------------------------------------------------------
+        // Document Preview Lightbox
+        // ------------------------------------------------------------------
+
+        /**
+         * Intercepts clicks on gallery document links and opens a lightbox
+         * preview instead of navigating/downloading.
+         *
+         * Supported previews:
+         *   - Images (jpg, jpeg, png, gif, webp, svg) → <img>
+         *   - PDF → <iframe>
+         *   - Other → fallback with download button
+         *
+         * XML and other binary types always fall back to download.
+         */
+        bindDocumentPreviews: function() {
+            var self = this;
+            var lightbox = document.getElementById('tulLightbox');
+            var titleEl = document.getElementById('tulLightboxTitle');
+            var bodyEl = document.getElementById('tulLightboxBody');
+            var downloadBtn = document.getElementById('tulLightboxDownload');
+            var closeBtn = document.getElementById('tulLightboxClose');
+
+            if (!lightbox) return;
+
+            // Delegate: intercept clicks on any .tul-gallery__item-link
+            document.addEventListener('click', function(e) {
+                var link = e.target.closest('.tul-gallery__item-link');
+                if (!link) return;
+
+                var href = link.getAttribute('href');
+                if (!href || href === '#') return;
+
+                var fileName = link.textContent.trim() || decodeURIComponent(href.split('/').pop().split('?')[0]);
+                var ext = (fileName.split('.').pop() || '').toLowerCase();
+
+                var isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].indexOf(ext) !== -1;
+                var isPdf = ext === 'pdf';
+
+                // Non-previewable types: let the browser handle normally (download)
+                if (!isImage && !isPdf && ext !== '') {
+                    // For truly non-previewable types open fallback in lightbox
+                    if (['xml', 'doc', 'docx', 'xls', 'xlsx', 'zip', 'rar'].indexOf(ext) !== -1) {
+                        // Just let it download normally — don't intercept
+                        return;
+                    }
+                }
+
+                e.preventDefault();
+
+                // Update header
+                titleEl.textContent = fileName;
+                downloadBtn.href = href;
+                downloadBtn.setAttribute('download', fileName);
+
+                // Build body content
+                bodyEl.innerHTML = '';
+
+                if (isImage) {
+                    var img = document.createElement('img');
+                    img.className = 'tul-lightbox__img';
+                    img.src = href;
+                    img.alt = fileName;
+                    bodyEl.appendChild(img);
+                } else if (isPdf) {
+                    var iframe = document.createElement('iframe');
+                    iframe.className = 'tul-lightbox__iframe';
+                    iframe.src = href;
+                    iframe.title = fileName;
+                    bodyEl.appendChild(iframe);
+                } else {
+                    // Fallback for other previewable-ish types
+                    var fallback = document.createElement('div');
+                    fallback.className = 'tul-lightbox__fallback';
+                    fallback.innerHTML =
+                        '<div class="tul-lightbox__fallback-icon">📄</div>' +
+                        '<div class="tul-lightbox__fallback-name">' + self.escapeHtml(fileName) + '</div>' +
+                        '<div class="tul-lightbox__fallback-hint">Vista previa no disponible para este tipo de archivo.</div>';
+                    bodyEl.appendChild(fallback);
+                }
+
+                lightbox.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Close on button click
+            closeBtn.addEventListener('click', function() {
+                self.closeLightbox(lightbox, bodyEl);
+            });
+
+            // Close on backdrop click
+            lightbox.addEventListener('click', function(e) {
+                if (e.target === lightbox) {
+                    self.closeLightbox(lightbox, bodyEl);
+                }
+            });
+
+            // Close on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && lightbox.classList.contains('is-open')) {
+                    self.closeLightbox(lightbox, bodyEl);
+                }
+            });
+        },
+
+        closeLightbox: function(lightbox, bodyEl) {
+            lightbox.classList.remove('is-open');
+            document.body.style.overflow = '';
+            // Clear body so iframes stop loading when closed
+            if (bodyEl) {
+                bodyEl.innerHTML = '';
             }
         },
 

@@ -65,7 +65,7 @@ if (!function_exists('format_date_ymd')) {
      *
      * @param mixed  $value    Raw date/datetime value from the DB
      * @param string $fallback Text to return when the value is empty/null
-     * @return string Date in Y-m-d format or fallback
+     * @return string Date in d/m/Y format or fallback
      */
     function format_date_ymd($value, string $fallback = 'N/A'): string
     {
@@ -92,14 +92,14 @@ if (!function_exists('format_date_ymd')) {
                 $dateTime = $dateTime->setTimezone($timezone);
             }
         } catch (\Throwable $e) {
-            // If parsing fails, try to extract just the date portion
+            // If parsing fails, try to reformat the date portion
             $raw = trim((string) $value);
-            if (preg_match('/^(\d{4}-\d{2}-\d{2})/', $raw, $m)) {
-                return $m[1];
+            if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $raw, $m)) {
+                return $m[3] . '/' . $m[2] . '/' . $m[1];
             }
             return $raw;
         }
 
-        return $dateTime->format('Y-m-d');
+        return $dateTime->format('d/m/Y');
     }
 }

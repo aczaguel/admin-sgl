@@ -34,8 +34,12 @@ $tul_tipo = $tul_t['tipo_principal_label'] ?? 'Sin tipo';
 $tul_status = $tul_t['tra_status_label'] ?? 'Sin estatus';
 $tul_cliente = $tul_t['cliente_name'] ?? 'Sin cliente';
 $tul_gestor = $tul_t['gestor_name'] ?? 'Sin asignar';
-$tul_createdAt = isset($tul_t['created_at']) && $tul_t['created_at'] ? substr((string) $tul_t['created_at'], 0, 10) : '—';
-$tul_startedAt = isset($tul_t['started_at']) && $tul_t['started_at'] ? substr((string) $tul_t['started_at'], 0, 10) : 'Pendiente';
+$tul_createdAt = isset($tul_t['created_at']) && $tul_t['created_at']
+    ? date('d/m/Y', strtotime((string) $tul_t['created_at']))
+    : '—';
+$tul_startedAt = isset($tul_t['started_at']) && $tul_t['started_at']
+    ? date('d/m/Y', strtotime((string) $tul_t['started_at']))
+    : 'Pendiente';
 $tul_asociados = [];
 foreach (($tul_t['associated_service_rows'] ?? []) as $tul_row) {
     $lbl = trim((string) ($tul_row['label'] ?? ''));
@@ -197,6 +201,25 @@ $tul_canConclude = has_permission('important_concluir_tramite', $tul_perms, $tul
             </div>
         </div>
     <?php endif; ?>
+</div>
+
+<!-- Document preview lightbox (shared across all steps) -->
+<div class="tul-lightbox" id="tulLightbox" role="dialog" aria-modal="true" aria-label="Vista previa del documento">
+    <div class="tul-lightbox__dialog">
+        <div class="tul-lightbox__header">
+            <span class="tul-lightbox__title" id="tulLightboxTitle"></span>
+            <div class="tul-lightbox__actions">
+                <a class="tul-lightbox__btn tul-lightbox__btn--download" id="tulLightboxDownload" href="#" download>
+                    ⬇ Descargar
+                </a>
+                <button class="tul-lightbox__btn tul-lightbox__btn--close" id="tulLightboxClose" type="button">
+                    ✕ Cerrar
+                </button>
+            </div>
+        </div>
+        <div class="tul-lightbox__body" id="tulLightboxBody">
+        </div>
+    </div>
 </div>
 
 <script src="<?= base_url('/public/assets/src/js/tramite_unified.js') ?>?v=20250619q"></script>

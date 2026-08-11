@@ -327,7 +327,9 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 	$routes->post('flotillas/preview', 'Flotillas::preview');
 	$routes->post('flotillas/import', 'Flotillas::store');
 
-	$routes->get('tramitesn/update/(:num)', 'Tramitesn::update/$1');
+	$routes->get('tramitesn/update/(:num)', static function (int $id) {
+		return redirect()->to(site_url('deskapp/tramitesn/unified-layout?tramite_id=' . $id));
+	});
 	$routes->post('tramitesn/update/(:num)', 'Tramitesn::update/$1');
 	$routes->get('tramitesn/single_evidencias/(:num)', 'Tramitesn::single_evidencias/$1');
 	$routes->post('tramitesn/single_evidencias/(:num)', 'Tramitesn::single_evidencias/$1');

@@ -1085,12 +1085,7 @@ class Tramitesn extends Tramites
                 ],
             ];
 
-            $bitacoraDb = $this->_getDbData();
-            if (!is_object($bitacoraDb) || !method_exists($bitacoraDb, 'table') || !method_exists($bitacoraDb, 'insertID')) {
-                throw new \RuntimeException('La conexión legacy de bitácora no está disponible.');
-            }
-
-            $bitacoraDb->table('bitacora')->insert([
+            $db->table('bitacora')->insert([
                 'tipo' => 'insert',
                 'origen' => self::PROTOTYPE_STEP4_NOTE_ORIGIN,
                 'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
@@ -1099,9 +1094,9 @@ class Tramitesn extends Tramites
                 'user_id' => $userId,
                 'status' => 1,
             ]);
-            $insertId = (int) $bitacoraDb->insertID();
+            $insertId = (int) $db->insertID();
 
-            $insertedRow = $bitacoraDb->table('bitacora')
+            $insertedRow = $db->table('bitacora')
                 ->select('bitacora.id, bitacora.cambios, bitacora.created_at, bitacora.user_id, users.firstname, users.midname, users.lastname')
                 ->join('users', 'users.id = bitacora.user_id', 'left')
                 ->where('bitacora.id', $insertId)
@@ -1257,12 +1252,7 @@ class Tramitesn extends Tramites
                 ],
             ];
 
-            $bitacoraDb = $this->_getDbData();
-            if (!is_object($bitacoraDb) || !method_exists($bitacoraDb, 'table') || !method_exists($bitacoraDb, 'insertID')) {
-                throw new \RuntimeException('La conexión legacy de bitácora no está disponible.');
-            }
-
-            $bitacoraDb->table('bitacora')->insert([
+            $db->table('bitacora')->insert([
                 'tipo' => 'insert',
                 'origen' => self::PROTOTYPE_STEP5_NOTE_ORIGIN,
                 'folio_tramite' => (string) ($tramiteRow['folio'] ?? ''),
@@ -1271,9 +1261,9 @@ class Tramitesn extends Tramites
                 'user_id' => $userId,
                 'status' => 1,
             ]);
-            $insertId = (int) $bitacoraDb->insertID();
+            $insertId = (int) $db->insertID();
 
-            $insertedRow = $bitacoraDb->table('bitacora')
+            $insertedRow = $db->table('bitacora')
                 ->select('bitacora.id, bitacora.cambios, bitacora.created_at, bitacora.user_id, users.firstname, users.midname, users.lastname')
                 ->join('users', 'users.id = bitacora.user_id', 'left')
                 ->where('bitacora.id', $insertId)
@@ -4394,7 +4384,7 @@ class Tramitesn extends Tramites
             $db = ConfigDatabase::connect();
             $db2 = $this->_getDbData();
             $tramite = $db->table('tramite')
-                ->select('id, folio, contrato, tra_status_id, cli_directo_id, cli_directo_ejecutivo_id, entidad_id, tra_tipos_id, unidad, serie, placas, observaciones, empresa_gestora_id, gestor_id, derechos_tramite, derechos_pago_sitio, derechos_vigencia, derechos_revol_cliente, derechos_refer_banc, costo_tramite, deposito_gestor, col_a_favor, num_factura_gestor, pago_gestor_st_id, status_doctos_gestor, impuesto_gestoria, gestoria_comision, costo_paqueteria, gestor_total_pago, reembolso_status_id, cobro_status_id, id_give_cliente, numero_factura, numero_refactura, evidencia_cobro_txt, costo_pago_cliente, comision_derechos')
+                ->select('id, folio, contrato, tra_status_id, cli_directo_id, cli_directo_ejecutivo_id, entidad_id, tra_tipos_id, unidad, serie, placas, observaciones, empresa_gestora_id, gestor_id, derechos_tramite, derechos_pago_sitio, derechos_vigencia, derechos_revol_cliente, derechos_refer_banc, costo_tramite, deposito_gestor, col_a_favor, num_factura_gestor, pago_gestor_st_id, status_doctos_gestor, impuesto_gestoria, gestoria_comision, costo_paqueteria, gestor_total_pago, reembolso_status_id, cobro_status_id, id_give_cliente, numero_factura, numero_refactura, evidencia_cobro_txt, costo_pago_cliente, comision_derechos, created_at, started_at')
                 ->where('id', $id)
                 ->get()
                 ->getRowArray();
@@ -4657,6 +4647,8 @@ class Tramitesn extends Tramites
                 'entidad_name' => $entidadNombre,
                 'tipo_principal_label' => $tipoPrincipalLabel,
                 'principal_tipo_id' => (int) ($tramite['tra_tipos_id'] ?? 0),
+                'created_at' => (string) ($tramite['created_at'] ?? ''),
+                'started_at' => (string) ($tramite['started_at'] ?? ''),
                 'step1_complete' => !empty($tramite['contrato']) && !empty($tramite['entidad_id']),
                 'linked_service_badges' => $linkedServiceBadges,
                 'associated_service_rows' => $associatedServiceRows,

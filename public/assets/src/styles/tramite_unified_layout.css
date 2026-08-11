@@ -176,7 +176,7 @@ body.tul-no-floating-menu .main-container {
 
 .tul-container .tul-three-rail {
     display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 2fr 1.5fr 1fr;
     gap: 12px;
 }
 
@@ -1227,7 +1227,7 @@ body.tul-no-floating-menu .main-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 2px 16px;
+    padding: 2px 10px;
     min-width: 0;
     flex: 1 1 0;
     overflow: hidden;
@@ -1239,17 +1239,17 @@ body.tul-no-floating-menu .main-container {
 }
 
 .tul-detailbar__label {
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     color: rgba(255, 255, 255, 0.65);
     margin-bottom: 1px;
     white-space: nowrap;
 }
 
 .tul-detailbar__value {
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
     color: #fff;
     overflow: hidden;
@@ -1772,4 +1772,156 @@ body #main-content > .tul-container,
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box;
+}
+
+/* ============================================================
+   DOCUMENT PREVIEW LIGHTBOX
+   ============================================================ */
+
+.tul-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    background: rgba(0, 0, 0, 0.82);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.tul-lightbox.is-open {
+    display: flex;
+}
+
+.tul-lightbox__dialog {
+    position: relative;
+    background: #1e293b;
+    border-radius: 10px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    max-width: 92vw;
+    max-height: 92vh;
+    width: 860px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tul-lightbox__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #0f172a;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+    gap: 10px;
+    min-width: 0;
+}
+
+.tul-lightbox__title {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.tul-lightbox__actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.tul-lightbox__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1.4;
+    transition: background 150ms ease;
+}
+
+.tul-lightbox__btn--download {
+    background: #2563eb;
+    color: #fff;
+}
+
+.tul-lightbox__btn--download:hover {
+    background: #1d4ed8;
+    color: #fff;
+}
+
+.tul-lightbox__btn--close {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.8);
+}
+
+.tul-lightbox__btn--close:hover {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+.tul-lightbox__body {
+    flex: 1 1 auto;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: 12px;
+}
+
+/* Image preview */
+.tul-lightbox__img {
+    max-width: 100%;
+    max-height: calc(92vh - 80px);
+    object-fit: contain;
+    border-radius: 4px;
+    display: block;
+}
+
+/* PDF / iframe preview */
+.tul-lightbox__iframe {
+    width: 100%;
+    height: calc(92vh - 80px);
+    min-height: 400px;
+    border: none;
+    border-radius: 4px;
+    background: #fff;
+}
+
+/* Fallback for non-previewable files */
+.tul-lightbox__fallback {
+    text-align: center;
+    color: rgba(255,255,255,0.7);
+    padding: 40px 20px;
+}
+
+.tul-lightbox__fallback-icon {
+    font-size: 56px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.tul-lightbox__fallback-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 6px;
+    word-break: break-all;
+}
+
+.tul-lightbox__fallback-hint {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 16px;
 }
