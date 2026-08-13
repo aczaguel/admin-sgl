@@ -304,6 +304,55 @@ if (!function_exists('file_download_url')) {
     }
 }
 
+if (!function_exists('file_inline_url')) {
+    /**
+     * Resolve a browser URL that forces inline rendering (Content-Disposition: inline).
+     * Used for PDFs so the browser displays them inline instead of downloading.
+     * Falls back to file_url() for local driver (same-origin inline rendering works by default).
+     *
+     * @param string   $storedValue Raw DB value (bare filename, relative key, or absolute URL).
+     * @param string   $category    e.g. "documentostatus", "pago_gestor".
+     * @param int|null $id          Tramite id for per-id categories.
+     * @param int      $ttl         Presigned TTL (seconds) when the active driver is s3.
+     *
+     * @return string Inline URL for the stored file, or '' when unresolvable.
+     */
+    function file_inline_url(string $storedValue, string $category = '', ?int $id = null, int $ttl = 300): string
+    {
+        if (trim($storedValue) === '') {
+            return '';
+        }
+
+        try {
+            $key = keyFromStored($storedValue, $category, $id);
+            if ($key === '') {
+                return '';
+            }
+
+            $storage = service('fileStorage');
+            // Use inlineUrl() if the driver supports it (S3), otherwise fall back to url()
+            if (method_exists($storage, 'inlineUrl')) {
+                return (string) $storage->inlineUrl($key, $ttl);
+            }
+
+            return (string) $storage->url($key, $ttl);
+        } catch (\Throwable $e) {
+            log_message(
+                'error',
+                'file_inline_url: could not resolve inline URL for [{value}] (category={category}, id={id}): {message}',
+                [
+                    'value'    => $storedValue,
+                    'category' => $category,
+                    'id'       => $id ?? 'null',
+                    'message'  => $e->getMessage(),
+                ]
+            );
+
+            return '';
+        }
+    }
+}
+
 if (!function_exists('avatar_url')) {
     /**
      * Resolve a browser URL for a user avatar value, preserving legacy behavior.

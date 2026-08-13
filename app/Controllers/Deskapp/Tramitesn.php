@@ -747,12 +747,16 @@ class Tramitesn extends Tramites
                             static function (string $f): array {
                                 // XML forces a download (browsers render raw XML
                                 // inline); everything else keeps the inline URL.
-                                $isXml = strtolower((string) pathinfo($f, PATHINFO_EXTENSION)) === 'xml';
+                                $fileExt = strtolower((string) pathinfo($f, PATHINFO_EXTENSION));
+                                $isXml = $fileExt === 'xml';
+                                $isPdf = $fileExt === 'pdf';
                                 return [
                                     'name' => $f,
                                     'url' => $isXml
                                         ? file_download_url($f, 'documentostatus')
-                                        : file_url($f, 'documentostatus'),
+                                        : ($isPdf
+                                            ? file_inline_url($f, 'documentostatus')
+                                            : file_url($f, 'documentostatus')),
                                     'is_image' => is_image_filename($f),
                                 ];
                             },
@@ -4360,11 +4364,15 @@ class Tramitesn extends Tramites
                 // XML files force a download (Content-Disposition: attachment)
                 // because browsers render raw XML inline; other files keep the
                 // normal inline URL.
-                $isXml = $file !== '' && strtolower((string) pathinfo($file, PATHINFO_EXTENSION)) === 'xml';
+                $ext = $file !== '' ? strtolower((string) pathinfo($file, PATHINFO_EXTENSION)) : '';
+                $isXml = $ext === 'xml';
+                $isPdf = $ext === 'pdf';
                 $entry['url'] = $file !== ''
                     ? ($isXml
                         ? file_download_url($file, $category, $tramiteId)
-                        : file_url($file, $category, $tramiteId))
+                        : ($isPdf
+                            ? file_inline_url($file, $category, $tramiteId)
+                            : file_url($file, $category, $tramiteId)))
                     : '';
                 $entry['is_image'] = $file !== '' ? is_image_filename($file) : false;
                 $expanded[] = $entry;

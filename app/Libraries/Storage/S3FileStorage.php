@@ -122,6 +122,45 @@ final class S3FileStorage implements FileStorage
     }
 
     /**
+     * Presigned GetObject URL that forces inline rendering via
+     * ResponseContentDisposition=inline. Used for browser-previewable files
+     * (PDFs) so the browser displays them inline instead of downloading.
+     * Same TTL rules as url().
+     */
+    public function inlineUrl(string $key, int $ttlSeconds = 300): string
+    {
+        if ($ttlSeconds <= 0 || $ttlSeconds > self::MAX_PRESIGN_TTL) {
+            log_message(
+                'error',
+                'S3 inlineUrl rejected: ttl ' . $ttlSeconds . ' out of range (0, ' . self::MAX_PRESIGN_TTL . '] for key ' . $key
+            );
+
+            return '';
+        }
+
+        try {
+            $this->assertKey($key);
+
+            $name = preg_replace('/["\r\n]+/', '', basename($key));
+
+            $cmd = $this->client->getCommand('GetObject', [
+                'Bucket'                     => $this->bucket,
+                'Key'                        => $key,
+                'ResponseContentDisposition' => 'inline; filename="' . $name . '"',
+                'ResponseContentType'        => 'application/pdf',
+            ]);
+
+            return (string) $this->client
+                ->createPresignedRequest($cmd, '+' . $ttlSeconds . ' seconds')
+                ->getUri();
+        } catch (\Throwable $e) {
+            log_message('error', 'S3 inlineUrl failed for ' . $key . ': ' . $e->getMessage());
+
+            return '';
+        }
+    }
+
+    /**
      * Presigned GetObject URL that forces download via
      * ResponseContentDisposition=attachment. Same TTL rules as url().
      */
