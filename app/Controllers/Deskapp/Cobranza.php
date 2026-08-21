@@ -186,6 +186,167 @@ class Cobranza extends BaseController
             ->with($result['success'] ? 'success' : 'error', $result['message'] ?? 'No se pudo confirmar el pago.');
     }
 
+    public function exportarPendientes()
+    {
+        [$session, $roles, $perms, $userId, $accessResponse] = $this->requireCobranzaAccess();
+        if ($accessResponse !== null) {
+            return $accessResponse;
+        }
+
+        $requestedClienteId = $this->request->getGet('cliente_id');
+        $tenantFilterSql = get_tramite_filter_sql($userId, 'tramite', $requestedClienteId);
+
+        // Fetch all items without pagination
+        $allDashboard = $this->dashboardService->buildDashboard($userId, $tenantFilterSql, [
+            'bucket'   => $this->request->getGet('bucket') ?: 'all',
+            'q'        => $this->request->getGet('q') ?: '',
+            'per_page' => 9999,
+            'page'     => 1,
+        ]);
+        $items = $allDashboard['items'] ?? [];
+
+        $filename = 'cobranza_pendientes_' . date('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control'       => 'no-cache, no-store, must-revalidate',
+            'Pragma'              => 'no-cache',
+            'Expires'             => '0',
+        ];
+
+        $columns = [
+            'Folio', 'Cliente', 'Contrato', 'Unidad',
+            'Ejecutivo interno', 'Ejecutivo cliente',
+            'Etapa', 'Días antigüedad', 'Última actividad',
+            'Archivos evidencia', 'Estatus cobro', 'URL trámite',
+        ];
+
+        ob_start();
+        $out = fopen('php://output', 'w');
+        // UTF-8 BOM for Excel compatibility
+        fputs($out, "\xEF\xBB\xBF");
+        fputcsv($out, $columns);
+
+        foreach ($items as $item) {
+            fputcsv($out, [
+                $item['folio']                    ?? '',
+                $item['cliente_nombre']            ?? '',
+                $item['contrato']                 ?? '',
+                $item['unidad']                   ?? '',
+                $item['owner_name']               ?? '',
+                $item['cliente_ejecutivo_nombre']  ?? '',
+                $item['stage_label']              ?? '',
+                $item['aging_days']               ?? 0,
+                $item['latest_evidence_at']       ?? $item['updated_at'] ?? '',
+                ($item['evidence_total'] ?? 0) . ' archivo(s)',
+                $item['cobro_status_nombre']      ?? '',
+                $item['tramite_url']              ?? '',
+            ]);
+        }
+
+        fclose($out);
+        $csv = ob_get_clean();
+
+        $response = Services::response();
+        foreach ($headers as $key => $value) {
+            $response->setHeader($key, $value);
+        }
+
+        return $response->setBody($csv);
+    }
+
+    public function exportarPorPeriodo()
+    {
+        [$session, $roles, $perms, $userId, $accessResponse] = $this->requireCobranzaAccess();
+        if ($accessResponse !== null) {
+            return $accessResponse;
+        }
+
+        $fechaInicio = trim((string) ($this->request->getGet('fecha_inicio') ?? ''));
+        $fechaFin    = trim((string) ($this->request->getGet('fecha_fin') ?? ''));
+        $requestedClienteId = $this->request->getGet('cliente_id');
+        $tenantFilterSql = get_tramite_filter_sql($userId, 'tramite', $requestedClienteId);
+
+        // Fetch all items without pagination
+        $allDashboard = $this->dashboardService->buildDashboard($userId, $tenantFilterSql, [
+            'per_page' => 9999,
+            'page'     => 1,
+        ]);
+        $items = $allDashboard['items'] ?? [];
+
+        // Filter by date range if provided (using created_at of the tramite)
+        if ($fechaInicio !== '') {
+            $items = array_filter($items, static function (array $item) use ($fechaInicio): bool {
+                $date = $item['tramite_created_at'] ?? $item['created_at'] ?? '';
+                return $date !== '' && substr($date, 0, 10) >= $fechaInicio;
+            });
+        }
+        if ($fechaFin !== '') {
+            $items = array_filter($items, static function (array $item) use ($fechaFin): bool {
+                $date = $item['tramite_created_at'] ?? $item['created_at'] ?? '';
+                return $date !== '' && substr($date, 0, 10) <= $fechaFin;
+            });
+        }
+
+        $label = ($fechaInicio !== '' || $fechaFin !== '')
+            ? ($fechaInicio ?: 'inicio') . '_al_' . ($fechaFin ?: 'hoy')
+            : 'todo';
+        $filename = 'cobranza_periodo_' . $label . '_' . date('Ymd_His') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control'       => 'no-cache, no-store, must-revalidate',
+            'Pragma'              => 'no-cache',
+            'Expires'             => '0',
+        ];
+
+        $columns = [
+            'Folio', 'Cliente', 'Contrato', 'Unidad',
+            'Ejecutivo interno', 'Ejecutivo cliente',
+            'Etapa', 'Días antigüedad', 'Fecha creación trámite',
+            'Última actividad', 'Archivos evidencia',
+            'Monto prometido', 'Fecha promesa',
+            'Estatus cobro', 'URL trámite',
+        ];
+
+        ob_start();
+        $out = fopen('php://output', 'w');
+        fputs($out, "\xEF\xBB\xBF");
+        fputcsv($out, $columns);
+
+        foreach ($items as $item) {
+            fputcsv($out, [
+                $item['folio']                    ?? '',
+                $item['cliente_nombre']            ?? '',
+                $item['contrato']                 ?? '',
+                $item['unidad']                   ?? '',
+                $item['owner_name']               ?? '',
+                $item['cliente_ejecutivo_nombre']  ?? '',
+                $item['stage_label']              ?? '',
+                $item['aging_days']               ?? 0,
+                substr((string) ($item['tramite_created_at'] ?? $item['created_at'] ?? ''), 0, 10),
+                $item['latest_evidence_at']       ?? $item['updated_at'] ?? '',
+                ($item['evidence_total'] ?? 0) . ' archivo(s)',
+                $item['monto_prometido']          ?? '',
+                $item['fecha_promesa']            ?? '',
+                $item['cobro_status_nombre']      ?? '',
+                $item['tramite_url']              ?? '',
+            ]);
+        }
+
+        fclose($out);
+        $csv = ob_get_clean();
+
+        $response = Services::response();
+        foreach ($headers as $key => $value) {
+            $response->setHeader($key, $value);
+        }
+
+        return $response->setBody($csv);
+    }
+
     private function renderDashboard(?int $selectedTramiteId = null)
     {
         [$session, $roles, $perms, $userId, $accessResponse] = $this->requireCobranzaAccess();

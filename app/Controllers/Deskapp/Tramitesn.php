@@ -1415,12 +1415,7 @@ class Tramitesn extends Tramites
             $data['session'] = \Config\Services::session();
             $data['username'] = $session->get('user_name');
             $myid = $session->get('id');
-            $currentBucket = $this->resolveAttentionListBucket((string) $this->request->getGet('bucket'));
             [$roles, $perms] = $this->normalizeRolesPermsFromSession();
-            $trackedStatusIds = $this->getAttentionTrackedStatusIds();
-            $attentionSummary = $this->buildAttentionListSummary((int) $myid);
-            $attentionUrls = $this->buildAttentionListUrls((array) $this->request->getGet());
-            $attentionMeta = $this->resolveAttentionListMeta($currentBucket);
 
             $tramite_crud = $this->_getGroceryCrudEnterprise();
 
@@ -1429,12 +1424,6 @@ class Tramitesn extends Tramites
 
             $filterSql = get_tramite_filter_sql($myid);
             $tramite_crud->where($filterSql);
-
-            if ($currentBucket === 'normal') {
-                $tramite_crud->where($this->buildAttentionBucketSql('normal'));
-            } else {
-                $tramite_crud->where($this->buildAttentionBucketSql($currentBucket));
-            }
 
             $tramite_crud->unsetAdd();
             $tramite_crud->unsetEdit();
@@ -1481,77 +1470,41 @@ class Tramitesn extends Tramites
             $tramite_crud->setRelation('user_id', 'users', '{firstname} {midname} {lastname}');
             $tramite_crud->displayAs('user_id', 'Ejecutivo');
 
-            $tramite_crud->callbackColumn('started_at', function ($value, $row) use ($trackedStatusIds, $self) {
-                $daysData = $self->classifyAttentionBucket(
-                    (int) ($row->tra_status_id ?? 0),
-                    isset($row->ent_municipio_id) ? (int) $row->ent_municipio_id : null,
-                    $row->started_at ?? null,
-                    $row->created_at ?? null,
-                    $trackedStatusIds
-                );
-                $diasDiferencia = $daysData['days'];
-                if ($diasDiferencia === null) {
+            $tramite_crud->callbackColumn('started_at', function ($value, $row) {
+                if (empty($value)) {
                     return '<span class="background-gris">Sin fecha</span>';
                 }
-
-                $claseVioleta = 'background-violeta';
-                $claseGris = 'background-gris';
-                $claseAzulClaro = 'background-azul-claro';
-                $claseAzul = 'background-azul';
-                $claseAzulCobroCliente = 'background-azul-cobro-cliente';
-
-                if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR || $row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
-                    if ($row->tra_status_id == SGL_TRA_STATUS_PAGO_GESTOR) {
-                        $clase = $claseAzulClaro;
-                    }
-                    $txt_generar_factura = '';
-
-                    $traCobroClienteModel = new TraCobroClienteModel();
-                    $registrosCobroCliente = $traCobroClienteModel->getByTramiteId($row->id);
-
-                    $traEvidenciasFinalesModel = new TraEvidenciasFinalesModel();
-                    $registrosEvidenciasFinales = $traEvidenciasFinalesModel->getByTramiteId($row->id);
-
-                    if (count($registrosCobroCliente) > 0 || count($registrosEvidenciasFinales) > 0) {
-                        $txt_generar_factura = 'Facturar';
-                    }
-
-                    if ($row->tra_status_id == SGL_TRA_STATUS_COBRO_CLIENTE) {
-                        $clase = $claseAzulCobroCliente;
-                        return '<span class="' . $clase . '">' . $txt_generar_factura . '</span>';
-                    }
-                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CANCELADO) {
-                    $clase = $claseGris;
-                } elseif ($row->tra_status_id == SGL_TRA_STATUS_CONCLUIDO) {
-                    $clase = $claseAzul;
-                } else {
-                    $clase = $self->resolveAttentionTrackedPresentation($daysData)['class'];
+                $days = (int) floor((time() - strtotime((string) $value)) / 86400);
+                $statusId = (int) ($row->tra_status_id ?? 0);
+                if ($statusId === SGL_TRA_STATUS_COBRO_CLIENTE) {
+                    return '<span class="background-azul-cobro-cliente">Cobro</span>';
                 }
-
-                $arrFilter = [SGL_TRA_STATUS_CONCLUIDO, SGL_TRA_STATUS_CANCELADO, SGL_TRA_STATUS_PAGO_GESTOR, SGL_TRA_STATUS_COBRO_CLIENTE];
-                if (!in_array($row->tra_status_id, $arrFilter, true)) {
-                    if ($daysData['tracked']) {
-                        $label = $daysData['bucket'] === 'vencido' ? 'Vencido' : 'Normal';
-
-                        return '<span class="' . $clase . '">' . $label . ' · ' . $diasDiferencia . ' días</span>';
-                    }
-
-                    return '<span class="' . $clase . '">' . $diasDiferencia . ' días</span>';
+                if ($statusId === SGL_TRA_STATUS_PAGO_GESTOR) {
+                    return '<span class="background-azul-claro">Pago Gestor</span>';
                 }
-
-                return '<span class="' . $clase . '"></span>';
+                if ($statusId === SGL_TRA_STATUS_CONCLUIDO) {
+                    return '<span class="background-azul">Concluido</span>';
+                }
+                if ($statusId === SGL_TRA_STATUS_CANCELADO) {
+                    return '<span class="background-gris">Cancelado</span>';
+                }
+                return '<span class="background-verde">' . $days . ' días</span>';
             });
-            $tramite_crud->callbackColumn('cobro_status_id', function ($value, $row) use ($trackedStatusIds, $self) {
-                $daysData = $self->classifyAttentionBucket(
-                    (int) ($row->tra_status_id ?? 0),
-                    isset($row->ent_municipio_id) ? (int) $row->ent_municipio_id : null,
-                    $row->started_at ?? null,
-                    $row->created_at ?? null,
-                    $trackedStatusIds
-                );
-                $presentation = $self->resolveAttentionPresentation($daysData, (int) ($row->tra_status_id ?? 0));
-
-                return '<span class="' . esc($presentation['class']) . '">' . esc($presentation['label']) . '</span>';
+            $tramite_crud->callbackColumn('cobro_status_id', function ($value, $row) {
+                $statusId = (int) ($row->tra_status_id ?? 0);
+                if ($statusId === SGL_TRA_STATUS_COBRO_CLIENTE) {
+                    return '<span class="background-azul-cobro-cliente">Cobro cliente</span>';
+                }
+                if ($statusId === SGL_TRA_STATUS_PAGO_GESTOR) {
+                    return '<span class="background-azul-claro">Pago gestor</span>';
+                }
+                if ($statusId === SGL_TRA_STATUS_CONCLUIDO) {
+                    return '<span class="background-azul">Concluido</span>';
+                }
+                if ($statusId === SGL_TRA_STATUS_CANCELADO) {
+                    return '<span class="background-gris">Cancelado</span>';
+                }
+                return '<span class="background-verde">En flujo</span>';
             });
 
             $tramite_crud->fields([
@@ -1599,14 +1552,8 @@ class Tramitesn extends Tramites
             $tramite_salida = $tramite_crud->render();
 
             $salida_total = array_merge((array)$tramite_salida, $data);
-            $salida_total['title'] = $attentionMeta['title'];
-            $salida_total['description'] = $attentionMeta['description'];
-            $salida_total['header_badge_label'] = $attentionMeta['badge_label'] ?? null;
-            $salida_total['header_badge_tone'] = $attentionMeta['badge_tone'] ?? 'normal';
-            $salida_total['pre_output_html'] = view('deskapp/extra-pages/tramites_attention_toolbar', array_merge($attentionUrls, [
-                'summary' => $attentionSummary,
-                'mode' => $currentBucket,
-            ]));
+            $salida_total['title'] = 'Trámites';
+            $salida_total['description'] = 'Listado operativo de trámites.';
             helper(['permissions']);
             [$rolesAcl, $permsAcl] = session_roles_perms($session ?? session());
             $salida_total['insert_button_url'] = can_create_tramite($rolesAcl, $permsAcl) ? '/public/deskapp/tramites/add' : '';

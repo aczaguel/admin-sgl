@@ -970,6 +970,45 @@ $cobranzaSchemaReady = !empty($cobranza_schema_ready);
         </div>
     </form>
 
+    <div class="cobranza-toolbar cobranza-panel" style="padding: 12px 22px;">
+        <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap; width:100%;">
+            <strong style="font-size:13px; color:#374151;">📥 Exportar</strong>
+            <a href="<?= esc(site_url('deskapp/cobranza/exportar/pendientes') . ($active_cliente_id ? '?cliente_id=' . (int) $active_cliente_id : '')) ?>"
+               class="cobranza-btn is-secondary" style="height:36px; padding:0 14px; font-size:12px;">
+                ↓ Cobranza pendiente (CSV)
+            </a>
+            <span style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <input type="date" id="exp-fecha-inicio" placeholder="Fecha inicio"
+                       style="height:36px; border-radius:8px; border:1px solid #d1d5db; padding:0 10px; font-size:12px;">
+                <input type="date" id="exp-fecha-fin" placeholder="Fecha fin"
+                       style="height:36px; border-radius:8px; border:1px solid #d1d5db; padding:0 10px; font-size:12px;">
+                <a href="<?= esc(site_url('deskapp/cobranza/exportar/periodo')) ?>" id="exp-periodo-link"
+                   class="cobranza-btn is-secondary" style="height:36px; padding:0 14px; font-size:12px;">
+                    ↓ Por período (CSV)
+                </a>
+            </span>
+        </div>
+    </div>
+    <script>
+    (function() {
+        var inicio = document.getElementById('exp-fecha-inicio');
+        var fin = document.getElementById('exp-fecha-fin');
+        var link = document.getElementById('exp-periodo-link');
+        var base = '<?= site_url('deskapp/cobranza/exportar/periodo') ?>';
+        var clienteId = '<?= (int) ($active_cliente_id ?? 0) ?>';
+        function updateLink() {
+            var params = [];
+            if (inicio && inicio.value) params.push('fecha_inicio=' + inicio.value);
+            if (fin && fin.value) params.push('fecha_fin=' + fin.value);
+            if (clienteId && clienteId !== '0') params.push('cliente_id=' + clienteId);
+            link.href = base + (params.length ? '?' + params.join('&') : '');
+        }
+        if (inicio) inicio.addEventListener('change', updateLink);
+        if (fin) fin.addEventListener('change', updateLink);
+        updateLink();
+    })();
+    </script>
+
     <section class="cobranza-main">
         <div class="cobranza-panel">
             <div class="cobranza-list-header">

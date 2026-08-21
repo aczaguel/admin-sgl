@@ -32,3 +32,8 @@ output "rds_endpoint" {
   value       = try(module.rds[0].endpoint, null)
   sensitive   = true
 }
+
+output "scheduler_lambda_name" {
+  description = "Name of the EC2 start/stop scheduler Lambda."
+  value       = module.scheduler.lambda_name
+}

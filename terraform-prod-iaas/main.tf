@@ -207,3 +207,11 @@ resource "aws_vpc_security_group_ingress_rule" "prod_rds_from_iaas_app" {
     ManagedBy = "terraform-prod-iaas"
   }
 }
+
+# ---- EC2 Scheduler (start 08:00 / stop 20:00 CDMX, every day) ---------------
+module "scheduler" {
+  source      = "./modules/scheduler"
+  instance_id = module.compute.instance_id
+  name_prefix = "sgl-prod-iaas"
+  enabled     = true
+}
