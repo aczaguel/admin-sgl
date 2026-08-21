@@ -403,6 +403,8 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 	$routes->post('/deskapp/cobranza/expediente/(:num)/promesas', 'Deskapp/Cobranza::registrarPromesa/$1');
 	$routes->post('/deskapp/cobranza/expediente/(:num)/pagos', 'Deskapp/Cobranza::registrarPago/$1');
 	$routes->post('/deskapp/cobranza/expediente/(:num)/pagos/(:num)/confirmar', 'Deskapp/Cobranza::confirmarPago/$1/$2');
+	$routes->get('cobranza/exportar/pendientes', 'Cobranza::exportarPendientes');
+	$routes->get('cobranza/exportar/periodo', 'Cobranza::exportarPorPeriodo');
 });
 
 
