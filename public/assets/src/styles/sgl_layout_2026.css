@@ -1314,3 +1314,74 @@ body.sgl-sidebar-collapsed .left-side-bar[data-sidebar-version="2026-04-06-1"] .
 .left-side-bar[data-sidebar-version="2026-04-06-1"] .close-sidebar:hover {
     color: #ffffff;
 }
+
+/* ============================================================
+   ZOOM & VIEWPORT RESILIENCE FIXES
+   Prevents the fixed header and sidebar from overlapping content
+   or getting "stuck" when the browser zoom level changes.
+   ============================================================ */
+
+/* Use min-height instead of fixed height so the header
+   expands if content wraps at narrow/zoomed viewports. */
+body.sgl-theme-2026 .header,
+body[data-layout-theme="sgl-2026"] .header {
+    height: auto !important;
+    min-height: 70px;
+}
+
+body.sgl-theme-2026 .header-left,
+body.sgl-theme-2026 .header-right,
+body[data-layout-theme="sgl-2026"] .header-left,
+body[data-layout-theme="sgl-2026"] .header-right {
+    height: auto !important;
+    min-height: 70px;
+}
+
+/* Sidebar: cap height to viewport so it never overflows
+   and ensure scroll when content exceeds the screen. */
+body.sgl-theme-2026 .left-side-bar,
+body[data-layout-theme="sgl-2026"] .left-side-bar {
+    max-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Main container: use dvh units where supported so the
+   padding-top adapts when the virtual keyboard or zoom
+   changes the effective viewport height. */
+body.sgl-theme-2026 .main-container,
+body[data-layout-theme="sgl-2026"] .main-container {
+    min-height: 100dvh;
+}
+
+/* Prevent the ribbon-layout main-container top padding from
+   being a fixed pixel value. Use clamp so it scales gracefully. */
+@media (min-width: 1301px) {
+    body.sgl-ribbon-layout.sgl-theme-2026 .main-container,
+    body.sgl-ribbon-layout[data-layout-theme="sgl-2026"] .main-container {
+        padding-top: clamp(80px, calc(var(--sgl-header-offset) + 14px), 200px) !important;
+    }
+}
+
+@media (max-width: 1300px) {
+    body.sgl-ribbon-layout.sgl-theme-2026 .main-container,
+    body.sgl-ribbon-layout[data-layout-theme="sgl-2026"] .main-container {
+        padding-top: clamp(60px, calc(var(--sgl-header-offset) + 8px), 180px) !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    body.sgl-ribbon-layout.sgl-theme-2026 .main-container,
+    body.sgl-ribbon-layout[data-layout-theme="sgl-2026"] .main-container {
+        padding-top: clamp(60px, calc(var(--sgl-header-offset) + 6px), 180px) !important;
+    }
+}
+
+/* Ensure the sidebar's menu-block can scroll independently
+   rather than extending the page. */
+body.sgl-theme-2026 .left-side-bar .menu-block,
+body[data-layout-theme="sgl-2026"] .left-side-bar .menu-block {
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
