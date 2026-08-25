@@ -3260,6 +3260,13 @@ class Tramites extends BaseController
 
         $this->updateCobrarClienteFlag($db, (int) $tramiteId);
 
+        // Si es un comprobante de evidencias finales (step 3 del nuevo flujo),
+        // avanzar el status al canónico de ese step. forward-only: no hace nada si ya está en step 3+.
+        $evidenciasFinalesTypes = ['tramite_recibido', 'acuse_recibo_cliente'];
+        if (in_array($comprobanteFinal, $evidenciasFinalesTypes, true)) {
+            $this->updateTramiteStatus((int) $tramiteId, SGL_TRA_STATUS_EVIDENCIAS_FINALES);
+        }
+
         return $this->response->setJSON([
             'success' => true,
             'message' => 'Archivo subido y registro creado correctamente',
@@ -4628,7 +4635,6 @@ class Tramites extends BaseController
     public function updateTramiteStatus($id, $newStatus){
         $db = \Config\Database::connect();
         $builder = $db->table('tramite');
-        // $builder = $this->db->table('tramite'); // Cambia 'tramite' por el nombre real de tu tabla
         $tramite_base = $builder->getWhere(['id' => $id])->getRowArray();
 
         if (!$tramite_base) {
@@ -4638,18 +4644,43 @@ class Tramites extends BaseController
             return ['success' => false, 'message' => 'El trámite está concluido o cancelado.'];
         }
 
-        // Define el flujo de estados válidos
-        $arr_status = [22, 25, 26, 27, 23, 28, 20, 21];
+        /**
+         * Mapa de new_format_step por status ID.
+         * Múltiples IDs históricos comparten el mismo step de negocio.
+         * El status canónico de cada step es el que se escribe en tra_status_id.
+         *
+         * new_format_step 1  → canónico 11  (miembros: 24, 11, 29)
+         * new_format_step 2  → canónico 22  (miembros: 22, 25, 26, 27)
+         * new_format_step 3  → canónico 30  (miembros: 30)
+         * new_format_step 4  → canónico 23  (miembros: 23)
+         * new_format_step 5  → canónico 28  (miembros: 28)
+         * new_format_step 10 → locked       (miembros: 20, 21)
+         */
+        $statusToStep = [
+            24 => 1,  // SOLICITUD
+            11 => 1,  // RECOLECCION DE DCTOS
+            29 => 1,  // Cotizacion
+            22 => 2,  // DCTOS COMPLETOS
+            25 => 2,  // Pago de Derechos (cotizacion)
+            26 => 2,  // Linea de Captura
+            27 => 2,  // Pago de Derechos (documentos)
+            30 => 3,  // Evidencias Finales (subidas, pendiente aprobación)
+            31 => 4,  // Evidencias Aprobadas — llave de apertura fase financiera
+            23 => 4,  // Pago a Gestor (paralelo con cobro cliente)
+            28 => 5,  // Cobro a Cliente → conclusión
+            20 => 10, // CONCLUIDO
+            21 => 10, // CANCELADO
+        ];
 
-        // Obtener la posición del estado actual y el nuevo estado en el flujo
-        $currentStatusIndex = array_search($tramite_base['tra_status_id'], $arr_status);
-        $newStatusIndex = array_search($newStatus, $arr_status);
+        $currentStatusId = (int) ($tramite_base['tra_status_id'] ?? 0);
+        $currentStep = $statusToStep[$currentStatusId] ?? 0;
+        $newStep = $statusToStep[$newStatus] ?? 0;
 
-        if ($newStatusIndex !== false && $newStatusIndex >= $currentStatusIndex) {
-            $oldStatus = $tramite_base['tra_status_id'];
-            $data = ['tra_status_id' => $newStatus];
+        // Solo avanzar si el nuevo step es mayor al actual (forward-only)
+        if ($newStep > 0 && $newStep > $currentStep) {
+            $oldStatus = $currentStatusId;
             $builder->where('id', $id);
-            $builder->update($data);
+            $builder->update(['tra_status_id' => $newStatus]);
 
             // AUDITORÍA: Registrar cambio de estatus
             log_tramite_status_change($id, $oldStatus, $newStatus);
@@ -4657,8 +4688,8 @@ class Tramites extends BaseController
             return ['success' => true, 'message' => 'Estado actualizado correctamente'];
         }
 
-        // Si el nuevo estado es anterior, no hacer nada
-        return null; // Opcionalmente puedes omitir esta línea si no necesitas retorno
+        // El tramite ya está en este step o uno posterior — no retroceder
+        return ['success' => false, 'message' => 'El trámite ya está en este paso o uno posterior.'];
     }
 
     private function denyReadonlyStep4Mutation(int $tramiteId, array $roles, array $perms)

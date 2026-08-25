@@ -42,7 +42,12 @@ $docs                 = $prototypeStep2Form['docs'] ?? [];
 $currentStep          = (int) ($prototypeStep2Form['currentStep'] ?? 0);
 $isApprovedLock       = !empty($prototypeStep2Form['isApprovedLock']);
 $isLockedStatus       = !empty($prototypeStep2Form['isLockedStatus']);
-$postApprovalStage    = $currentStep > 3 || $isApprovedLock;
+// currentStatusId is set by the controller — use it to detect that the tramite
+// advanced to Evidencias Finales (30), Evidencias Aprobadas (31), or beyond.
+$currentStatusId      = (int) ($prototypeStep2Form['currentStatusId'] ?? 0);
+$postApprovalStage    = $currentStep > 3
+    || $isApprovedLock
+    || in_array($currentStatusId, [30, 31, 23, 28, 20, 21], true);
 $showApproveButton    = $canApprove && !$postApprovalStage && !$isLockedStatus;
 
 // --- Vigencia computation ---
@@ -323,7 +328,7 @@ $approveUrl         = '/deskapp/tramites/autorizar';
                         <span class="tul-approval-card__icon"><i class="icon-check-circle"></i></span>
                         <div>
                             <h4 class="tul-approval-card__title">Listo para aprobar</h4>
-                            <p class="tul-approval-card__copy">Gestor y derechos capturados. Al aprobar, el trámite pasa a la fase financiera (Pago a Gestor y Cobro a Cliente).</p>
+                            <p class="tul-approval-card__copy">Gestor y derechos capturados. Al aprobar, el trámite avanza al paso de Evidencias Finales.</p>
                         </div>
                     </div>
                     <form
@@ -335,7 +340,7 @@ $approveUrl         = '/deskapp/tramites/autorizar';
                     >
                         <input type="hidden" name="<?= esc($csrfName, 'attr') ?>" value="<?= esc($csrfHash, 'attr') ?>">
                         <input type="hidden" name="tramite_id" value="<?= (int) $tramiteId ?>">
-                        <input type="hidden" name="status_id" value="23">
+                        <input type="hidden" name="status_id" value="30">
                         <button type="submit" class="tul-btn tul-btn--approve" data-tul-save-btn>
                             <i class="icon-check"></i> Aprobar trámite
                         </button>
@@ -345,8 +350,8 @@ $approveUrl         = '/deskapp/tramites/autorizar';
                 <div class="tul-approval-status tul-approval-status--done">
                     <span class="tul-approval-status__icon"><i class="icon-check-circle"></i></span>
                     <div>
-                        <h4 class="tul-rail__title">Trámite autorizado</h4>
-                        <p class="tul-rail__info">El trámite ya fue autorizado y avanzó a la fase financiera.</p>
+                        <h4 class="tul-rail__title">Trámite aprobado</h4>
+                        <p class="tul-rail__info">El trámite fue aprobado y avanzó al paso de Evidencias Finales.</p>
                     </div>
                 </div>
             <?php elseif ($isLockedStatus): ?>

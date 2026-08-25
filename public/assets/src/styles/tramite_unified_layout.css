@@ -385,6 +385,121 @@ body.tul-no-floating-menu .main-container {
 }
 
 /* ============================================================
+   CONFIRM MODAL (tul-confirm)
+   Reemplaza window.confirm() nativo con un diálogo estilizado.
+   ============================================================ */
+
+.tul-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(15, 23, 42, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    backdrop-filter: blur(2px);
+    animation: tulConfirmFadeIn 0.15s ease;
+}
+
+@keyframes tulConfirmFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.tul-confirm-dialog {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.10);
+    max-width: 420px;
+    width: 100%;
+    padding: 28px 28px 22px;
+    animation: tulConfirmSlideIn 0.18s ease;
+    border-top: 4px solid #0f766e;
+}
+
+@keyframes tulConfirmSlideIn {
+    from { transform: translateY(-10px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+}
+
+.tul-confirm-dialog__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #d1fae5;
+    color: #065f46;
+    font-size: 22px;
+    margin: 0 auto 16px;
+}
+
+.tul-confirm-dialog__icon--warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.tul-confirm-dialog__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2933;
+    text-align: center;
+    margin: 0 0 8px;
+}
+
+.tul-confirm-dialog__body {
+    font-size: 13px;
+    color: #6b7280;
+    text-align: center;
+    margin: 0 0 24px;
+    line-height: 1.5;
+}
+
+.tul-confirm-dialog__actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.tul-confirm-dialog__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: background 0.16s, transform 0.1s;
+}
+
+.tul-confirm-dialog__btn:active {
+    transform: scale(0.97);
+}
+
+.tul-confirm-dialog__btn--confirm {
+    background: #0f766e;
+    color: #fff;
+}
+
+.tul-confirm-dialog__btn--confirm:hover {
+    background: #0d6561;
+}
+
+.tul-confirm-dialog__btn--cancel {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.tul-confirm-dialog__btn--cancel:hover {
+    background: #e5e7eb;
+}
+
+/* ============================================================
    NOTIFICATION CONTAINER
    ============================================================ */
 

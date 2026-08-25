@@ -16,6 +16,19 @@
  		$db = \Config\Database::connect();
  		$model = new UserModel();
  		$session = session();
+
+		// Solo redirigir al dashboard de cliente si es usuario exclusivamente cliente
+		// (sin roles internos). Usuarios con roles internos que también están en
+		// cliente_user (ejecutivos asignados a clientes) deben ver el dashboard normal.
+		$userClient = $session->get('user_client');
+		if (!empty($userClient['is_client'])) {
+			$effectiveRoles = $session->get('user_roles') ?? [];
+			$isOnlyClient = $this->_isClientOnlyUser($effectiveRoles);
+			if ($isOnlyClient) {
+				return redirect()->to(site_url('deskapp/clientes/cdashboard'));
+			}
+		}
+
  		$data['username'] = $session->get('user_name');
  		$data['session'] = \Config\Services::session();
 		$userId = $session->get('id');
@@ -213,4 +226,31 @@
         ];
     }
  	
+	/**
+	 * Devuelve true si los roles del usuario son exclusivamente de cliente.
+	 */
+	private function _isClientOnlyUser(array $roles): bool
+	{
+		if (empty($roles)) {
+			return false;
+		}
+
+		$internalRolePatterns = [
+			'admin', 'super admin', 'superadmin', 'ejecutivo', 'gestor',
+			'gerente', 'manager', 'operador', 'supervisor', 'debug',
+			'staff', 'empleado', 'interno',
+		];
+
+		foreach ($roles as $role) {
+			$roleLower = strtolower(trim((string) $role));
+			foreach ($internalRolePatterns as $pattern) {
+				if (strpos($roleLower, $pattern) !== false) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
  }

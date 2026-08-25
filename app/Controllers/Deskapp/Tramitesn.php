@@ -2507,23 +2507,9 @@ class Tramitesn extends Tramites
                 throw new \Exception('No se pudo actualizar el trámite.');
             }
 
-            $targetStatus = null;
-            $hasGestor = !empty($data['empresa_gestora_id']) && !empty($data['gestor_id']);
-            $hasDerechosBase = !empty($data['derechos_tramite'])
-                && !empty($data['derechos_pago_sitio'])
-                && !empty($data['derechos_vigencia']);
-            $hasDerechosBanc = !empty($data['derechos_revol_cliente'])
-                && !empty($data['derechos_refer_banc']);
-
-            if ($hasGestor) {
-                $targetStatus = SGL_TRA_STATUS_PAGO_DERECHOS_COTIZACION;
-            }
-            if ($hasDerechosBase) {
-                $targetStatus = SGL_TRA_STATUS_PAGO_DERECHOS_LINEA_CAPTURA;
-            }
-            if ($hasDerechosBanc) {
-                $targetStatus = SGL_TRA_STATUS_PAGO_DERECHOS_DOCUMENTOS;
-            }
+            // Step 1 form save → advance to canonical step-1 status (forward-only).
+            // updateTramiteStatus() won't do anything if the tramite is already at step 2+.
+            $targetStatus = SGL_TRA_STATUS_RECOLECCION_DCTOS;
 
             $statusUpdatedTo = (int) ($existingTramite['tra_status_id'] ?? 0);
             if ($targetStatus !== null) {
@@ -2646,7 +2632,8 @@ class Tramitesn extends Tramites
                 ]);
             }
 
-            $this->updateTramiteStatus($id, SGL_TRA_STATUS_PAGO_DERECHOS_COTIZACION);
+            // Step 2: gestor assigned → advance to DCTOS_COMPLETOS (22)
+            $this->updateTramiteStatus($id, SGL_TRA_STATUS_DCTOS_COMPLETOS);
 
             $data = $this->request->getPost();
             $csrfName = csrf_token();
@@ -3448,6 +3435,9 @@ class Tramitesn extends Tramites
         $prototypeStep3Form = [
             'canUpload' => false,
             'canDelete' => false,
+            'canAprobarEvidencias' => false,
+            'evidenciasAprobadas' => false,
+            'aprobarEvidenciasUrl' => '',
             'blockedReason' => null,
             'deleteBlockedReason' => null,
             'csrfName' => csrf_token(),
@@ -3929,6 +3919,32 @@ class Tramitesn extends Tramites
             $prototypeStep3Form['canUpload'] = $canUploadDropzoneEvidenciasFinales;
             $prototypeStep3Form['canDelete'] = $canUploadDropzoneEvidenciasFinales
                 && has_permission('quick_action_evidencias_finales_delete', $perms, $roles);
+
+            // Aprobar evidencias finales:
+            // El permiso de APROBAR es completamente independiente del permiso de SUBIR archivos.
+            // Solo requiere: acceso al trámite + permiso específico + ambas docs presentes + no aprobado + no locked.
+            $tul_traStatusIdForApproval = (int) ($prototypeReadOnlyTramite['tra_status_id'] ?? 0);
+            $evidenciasYaAprobadas = in_array($tul_traStatusIdForApproval, [
+                SGL_TRA_STATUS_EVIDENCIAS_APROBADAS, // 31
+                SGL_TRA_STATUS_PAGO_GESTOR,          // 23
+                SGL_TRA_STATUS_COBRO_CLIENTE,        // 28
+                SGL_TRA_STATUS_CONCLUIDO,            // 20
+                SGL_TRA_STATUS_CANCELADO,            // 21
+            ], true);
+            $prototypeStep3Form['evidenciasAprobadas'] = $evidenciasYaAprobadas;
+            // El botón aparece cuando:
+            // 1. El usuario tiene acceso al trámite
+            // 2. Tiene el permiso aprobar_evidencias_finales
+            // 3. Ambas evidencias están subidas (tramite_recibido + acuse_recibo_cliente)
+            // 4. El status NO es ya 31 o superior (no retroceder)
+            // 5. El trámite no está concluido/cancelado
+            $prototypeStep3Form['canAprobarEvidencias'] = $hasTenantAccess
+                && has_permission('aprobar_evidencias_finales', $perms, $roles)
+                && !empty($prototypeReadOnlyTramite['has_tramite_recibido'])
+                && !empty($prototypeReadOnlyTramite['has_acuse_recibo'])
+                && !$evidenciasYaAprobadas
+                && !$isLocked;
+            $prototypeStep3Form['aprobarEvidenciasUrl'] = site_url('/deskapp/tramitesn/aprobar_evidencias/' . $prototypeTramiteId);
             if (!$prototypeStep3Form['canUpload']) {
                 if (!$hasTenantAccess) {
                     $prototypeStep3Form['blockedReason'] = 'Este tramite demo no pertenece a tu contexto de acceso actual. El prototipo puede verse, pero no subir evidencias sobre ese expediente.';
@@ -4009,6 +4025,312 @@ class Tramitesn extends Tramites
     {
         $this->_unifiedLayoutMode = true;
         return $this->prototipo_layout(null);
+    }
+
+    /**
+     * Client-facing read-only unified layout — shows only steps 1-3.
+     * Accessible via /deskapp/clientes/ver/{id} for the client role.
+     * Steps 4 (Pago a Gestor) and 5 (Cobro a Cliente) are hidden.
+     */
+    public function unified_client()
+    {
+        helper(['permissions', 'acl_guard', 'cliente_filter']);
+
+        if ($resp = acl_require_login('/deskapp/auth/login', 'Sesión expirada.', false)) {
+            return $resp;
+        }
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        $tramiteId = (int) ($this->request->getGet('tramite_id') ?? 0);
+        if ($tramiteId <= 0) {
+            return redirect()->to('/deskapp/clientes/tramites')->with('error', 'ID de trámite inválido.');
+        }
+
+        // Tenant access check
+        if (!acl_has_tramite_tenant_access($tramiteId, $userId, $roles)) {
+            return redirect()->to('/deskapp/clientes/tramites')->with('error', 'No tienes acceso a este trámite.');
+        }
+
+        // Load the tramite data using the existing prototype loader
+        $this->_unifiedLayoutMode = false; // we'll render ourselves
+        $prototypeReadOnlyTramite = $this->loadPrototypeReadOnlyTramite($tramiteId);
+
+        if (empty($prototypeReadOnlyTramite)) {
+            return redirect()->to('/deskapp/clientes/tramites')->with('error', 'Trámite no encontrado.');
+        }
+
+        // Build minimal view data — everything read-only, steps 4 and 5 hidden
+        $csrfName = csrf_token();
+        $csrfHash = csrf_hash();
+
+        $viewData = [
+            'title' => 'Detalle del Trámite',
+            'prototypeTramiteId' => $tramiteId,
+            'prototypeReadOnlyTramite' => $prototypeReadOnlyTramite,
+            'prototypeCanApproveStep2' => false,
+
+            // Step 1 — read only
+            'prototypeStep1Form' => [
+                'canEdit' => false,
+                'blockedReason' => null,
+                'csrfName' => $csrfName,
+                'csrfHash' => $csrfHash,
+                'urls' => [
+                    'updateSave' => '',
+                    'getEjecutivosByClienteIdBase' => '',
+                ],
+                'options' => [
+                    'cliente' => [],
+                    'ejecutivo' => [],
+                    'entidad' => [],
+                ],
+                'values' => [
+                    'folio' => (string) ($prototypeReadOnlyTramite['folio'] ?? ''),
+                    'cli_directo_id' => (int) ($prototypeReadOnlyTramite['cli_directo_id'] ?? 0),
+                    'cli_directo_ejecutivo_id' => (int) ($prototypeReadOnlyTramite['cli_directo_ejecutivo_id'] ?? 0),
+                    'contrato' => (string) ($prototypeReadOnlyTramite['contrato'] ?? ''),
+                    'unidad' => (string) ($prototypeReadOnlyTramite['fields']['unidad'] ?? ''),
+                    'serie' => (string) ($prototypeReadOnlyTramite['fields']['serie'] ?? ''),
+                    'placas' => (string) ($prototypeReadOnlyTramite['fields']['placas'] ?? ''),
+                    'entidad_id' => (int) ($prototypeReadOnlyTramite['entidad_id'] ?? 0),
+                    'observaciones' => (string) ($prototypeReadOnlyTramite['fields']['observaciones'] ?? ''),
+                    'current_step' => 1,
+                ],
+            ],
+
+            // Step 1 services — read only
+            'prototypeStep1ServicesForm' => [
+                'canManageBase' => false,
+                'canEditPrincipal' => false,
+                'canEditAsociado' => false,
+                'canDeleteAsociado' => false,
+                'blockedReason' => null,
+                'csrfName' => $csrfName,
+                'csrfHash' => $csrfHash,
+                'urls' => ['principalUpdate' => '', 'add' => '', 'update' => '', 'delete' => ''],
+                'tramiteId' => $tramiteId,
+                'principalTipoId' => (int) ($prototypeReadOnlyTramite['principal_tipo_id'] ?? 0),
+                'options' => ['traTipos' => []],
+                'services' => $prototypeReadOnlyTramite['service_rows_raw'] ?? [],
+            ],
+
+            // Step 1 docs — view only, no upload/delete
+            'prototypeStep1DocsForm' => [
+                'canView' => true,
+                'canUpload' => false,
+                'canDelete' => false,
+                'blockedReason' => null,
+                'deleteBlockedReason' => null,
+                'csrfName' => $csrfName,
+                'csrfHash' => $csrfHash,
+                'tramiteId' => $tramiteId,
+                'urls' => ['upload' => '', 'delete' => ''],
+                'options' => [
+                    'documentTypes' => [],
+                    'documentTypeMeta' => [],
+                ],
+                'documents' => $prototypeReadOnlyTramite['step1_documents'] ?? [],
+                'summary' => $prototypeReadOnlyTramite['step1_doc_summary'] ?? ['requiredTotal' => 0, 'uploadedRequired' => 0, 'uploadedTotal' => 0],
+            ],
+
+            // Step 2 — read only
+            'prototypeStep2Form' => [
+                'canEdit' => false,
+                'canUploadDocs' => false,
+                'canDeleteDocs' => false,
+                'currentStatusId' => (int) ($prototypeReadOnlyTramite['tra_status_id'] ?? 0),
+                'currentStep' => 0,
+                'isApprovedLock' => true,
+                'isLockedStatus' => false,
+                'blockedReason' => null,
+                'docsBlockedReason' => null,
+                'deleteBlockedReason' => null,
+                'csrfName' => $csrfName,
+                'csrfHash' => $csrfHash,
+                'urls' => ['updateGestorSave' => '', 'updateDerechosSave' => '', 'getGestoresByEmpresaIdBase' => '', 'uploadDoc' => '', 'deleteDoc' => '', 'authorize' => '', 'afterApprove' => ''],
+                'approvalStatusId' => 23,
+                'tramiteId' => $tramiteId,
+                'options' => [
+                    'empresaGestora' => [],
+                    'gestor' => [],
+                    'derechosPagoSitio' => ['online' => 'En Línea', 'ventanilla' => 'En Ventanilla'],
+                    'derechosRevolCliente' => ['revolvente' => 'Fondo Revolvente', 'cliente' => 'Pago Cliente'],
+                ],
+                'values' => [
+                    'empresa_gestora_id' => (int) ($prototypeReadOnlyTramite['empresa_gestora_id'] ?? 0),
+                    'gestor_id' => (int) ($prototypeReadOnlyTramite['gestor_id'] ?? 0),
+                    'derechos_tramite' => (string) ($prototypeReadOnlyTramite['fields']['derechos_tramite'] ?? ''),
+                    'derechos_pago_sitio' => (string) ($prototypeReadOnlyTramite['fields']['derechos_pago_sitio'] ?? ''),
+                    'derechos_vigencia' => (string) ($prototypeReadOnlyTramite['fields']['derechos_vigencia'] ?? ''),
+                    'derechos_revol_cliente' => (string) ($prototypeReadOnlyTramite['fields']['derechos_revol_cliente'] ?? ''),
+                    'derechos_refer_banc' => (string) ($prototypeReadOnlyTramite['fields']['derechos_refer_banc'] ?? ''),
+                ],
+                'docs' => !empty($prototypeReadOnlyTramite['pago_derechos_docs']) ? $this->expandDocEntries($prototypeReadOnlyTramite['pago_derechos_docs'], 'pago_derechos', $tramiteId) : [],
+            ],
+
+            // Step 3 — view only
+            'prototypeStep3Form' => [
+                'canUpload' => false,
+                'canDelete' => false,
+                'blockedReason' => null,
+                'deleteBlockedReason' => null,
+                'csrfName' => $csrfName,
+                'csrfHash' => $csrfHash,
+                'urls' => ['upload' => '', 'delete' => '', 'openPagoGestor' => ''],
+                'tramiteId' => $tramiteId,
+                'options' => ['comprobanteFinal' => ['tramite_recibido' => 'Trámite Entregado', 'acuse_recibo_cliente' => 'Acuse de Recibo']],
+                'docs' => !empty($prototypeReadOnlyTramite['evidence_docs_raw']) ? $this->expandDocEntries($prototypeReadOnlyTramite['evidence_docs_raw'], 'pago_gestor', $tramiteId) : [],
+                'hasTramiteRecibido' => !empty($prototypeReadOnlyTramite['has_tramite_recibido']),
+                'hasAcuseRecibo' => !empty($prototypeReadOnlyTramite['has_acuse_recibo']),
+            ],
+
+            // Evidence / bitácora — view only
+            'prototypeEvidenceForm' => [
+                'canView' => true,
+                'canAdd' => false,
+                'blockedReason' => null,
+                'csrfName' => $csrfName,
+                'csrfHash' => $csrfHash,
+                'tramiteId' => $tramiteId,
+                'urls' => ['create' => ''],
+                'items' => $prototypeReadOnlyTramite['process_notes'] ?? [],
+            ],
+
+            // Steps 4 and 5 — hidden in client view (empty/locked)
+            'prototypeStep4Form' => ['canView' => false, 'canEdit' => false, 'canUploadDocs' => false, 'canDeleteDocs' => false, 'blockedReason' => null, 'uploadBlockedReason' => null, 'deleteBlockedReason' => null, 'csrfName' => $csrfName, 'csrfHash' => $csrfHash, 'tramiteId' => $tramiteId, 'url' => '', 'urls' => ['upload' => '', 'delete' => '', 'getServiceCosts' => '', 'updateServiceCost' => ''], 'options' => ['pagoGestorStatus' => [], 'statusDoctosGestor' => [], 'reembolsoStatus' => [], 'comprobanteFinal' => []], 'docs' => [], 'values' => []],
+            'prototypeStep4NotesForm' => ['canView' => false, 'canAdd' => false, 'blockedReason' => null, 'csrfName' => $csrfName, 'csrfHash' => $csrfHash, 'tramiteId' => $tramiteId, 'urls' => ['create' => ''], 'items' => []],
+            'prototypeStep5Form' => ['canView' => false, 'canEdit' => false, 'canUploadDocs' => false, 'canDeleteDocs' => false, 'blockedReason' => null, 'uploadBlockedReason' => null, 'deleteBlockedReason' => null, 'csrfName' => $csrfName, 'csrfHash' => $csrfHash, 'tramiteId' => $tramiteId, 'url' => '', 'urls' => [], 'options' => ['cobroStatus' => [], 'cobroCorrecto' => []], 'docs' => [], 'values' => []],
+            'prototypeStep5NotesForm' => ['canView' => false, 'canAdd' => false, 'blockedReason' => null, 'csrfName' => $csrfName, 'csrfHash' => $csrfHash, 'tramiteId' => $tramiteId, 'urls' => ['create' => ''], 'items' => []],
+
+            // Gate flags: show steps 1-3, lock steps 4-5
+            'tulStep3Locked' => false,
+            'tulStep3LockReason' => '',
+            'tulFinanceLocked' => true,
+            'tulFinanceLockReason' => 'La información financiera no está disponible en la vista de cliente.',
+        ];
+
+        return view('deskapp/tramite_unified/index_client', ['viewData' => $viewData]);
+    }
+
+    /**
+     * Aprueba las evidencias finales del paso 3.
+     *
+     * Requiere permiso `aprobar_evidencias_finales`.
+     * Solo avanza si ambas evidencias (tramite_recibido + acuse_recibo_cliente) están subidas.
+     * Avanza el status a SGL_TRA_STATUS_EVIDENCIAS_APROBADAS (31), desbloqueando la fase financiera.
+     */
+    public function aprobarEvidencias(int $tramiteId = 0)
+    {
+        helper(['permissions', 'cliente_filter', 'acl_guard']);
+
+        if ($resp = acl_require_login(null, 'Sesión expirada.', true)) {
+            return $resp;
+        }
+
+        $session = session();
+        $userId = (int) ($session->get('id') ?? 0);
+        [$roles, $perms] = $this->normalizeRolesPermsFromSession();
+
+        $tramiteId = $tramiteId > 0 ? $tramiteId : (int) ($this->request->uri->getSegment(4) ?? 0);
+        if ($tramiteId <= 0) {
+            return $this->response->setStatusCode(400)->setJSON([
+                'success' => false,
+                'message' => 'ID de trámite inválido.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        if ($resp = acl_require_tramite_tenant_access($tramiteId, $userId, $roles, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        if ($resp = acl_require_permission('aprobar_evidencias_finales', $roles, $perms, 'Acceso denegado.', null, 403, true)) {
+            return $resp;
+        }
+
+        $db = \Config\Database::connect();
+        $tramiteRow = $db->table('tramite')
+            ->select('id, folio, tra_status_id')
+            ->where('id', $tramiteId)
+            ->get()
+            ->getRowArray();
+
+        if (empty($tramiteRow)) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'success' => false,
+                'message' => 'Trámite no encontrado.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        if ($this->isLockedStatusId((int) ($tramiteRow['tra_status_id'] ?? 0))) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => 'El trámite está concluido o cancelado.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        // Verificar que ambas evidencias estén subidas
+        $evidenceDocs = $db->table('tra_pago_gestor')
+            ->select('comprobante_final')
+            ->where('tramite_id', $tramiteId)
+            ->where('status', 1)
+            ->get()
+            ->getResultArray();
+
+        $hasTramiteRecibido = false;
+        $hasAcuseRecibo = false;
+        foreach ($evidenceDocs as $doc) {
+            $tipo = (string) ($doc['comprobante_final'] ?? '');
+            if ($tipo === 'tramite_recibido') $hasTramiteRecibido = true;
+            if ($tipo === 'acuse_recibo_cliente') $hasAcuseRecibo = true;
+        }
+
+        if (!$hasTramiteRecibido || !$hasAcuseRecibo) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'success' => false,
+                'message' => 'Se requieren ambas evidencias (Trámite Recibido y Acuse de Recibo) antes de aprobar.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        // Avanzar status a 31 (forward-only)
+        $result = $this->updateTramiteStatus($tramiteId, SGL_TRA_STATUS_EVIDENCIAS_APROBADAS);
+
+        if (empty($result['success'])) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'success' => false,
+                'message' => $result['message'] ?? 'No se pudo avanzar el estatus.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
+        // Bitácora
+        try {
+            $db2 = $this->_getDbData();
+            $bitacoraModel = new \App\Models\BitacoraModel($db2);
+            $bitacoraModel->insert([
+                'id' => null,
+                'tipo' => 'update',
+                'origen' => 'tramite',
+                'tramite_id' => $tramiteId,
+                'cambios' => json_encode(['tra_status_id' => ['valor_original' => $tramiteRow['tra_status_id'], 'valor_nuevo' => SGL_TRA_STATUS_EVIDENCIAS_APROBADAS]]),
+                'user_id' => $userId,
+            ], 'bitacora');
+        } catch (\Throwable $e) {
+            log_message('error', 'Error bitácora en aprobarEvidencias: ' . $e->getMessage());
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => 'Evidencias aprobadas. La fase financiera está desbloqueada.',
+            'new_status_id' => SGL_TRA_STATUS_EVIDENCIAS_APROBADAS,
+            'csrfHash' => csrf_hash(),
+        ]);
     }
 
     public function upload_step1_doc($tramiteId = null)

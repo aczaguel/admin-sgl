@@ -305,8 +305,14 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 	$routes->get('clientes/tramites', 'ClienteTramites::index');
 	$routes->post('clientes/tramites', 'ClienteTramites::index');
 	$routes->get('clientes/tramites/data', 'ClienteTramites::data');
-	$routes->get('clientes/ver/(:num)', 'ClienteTramites::show/$1');
+	$routes->get('clientes/cdashboard', 'DashboardCliente::cdashboard');
+	$routes->get('clientes/cdashboard_data', 'DashboardCliente::cdashboardData');
+	$routes->get('clientes/ver/(:num)', static function (int $id) {
+		return redirect()->to(site_url('deskapp/tramitesn/unified-client?tramite_id=' . $id));
+	});
 	$routes->post('clientes/ver/(:num)', 'ClienteTramites::show/$1');
+	$routes->get('tramitesn/unified-client', 'Tramitesn::unified_client');
+	$routes->post('tramitesn/aprobar_evidencias/(:num)', 'Tramitesn::aprobarEvidencias/$1');
 	// Trámites - Nuevo flujo (Tramitesn)
 	$routes->get('tramitesn', 'Tramitesn::tramite');
 	$routes->get('tramitesn/tramite', 'Tramitesn::tramite');

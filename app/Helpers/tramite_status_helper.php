@@ -33,6 +33,7 @@ if (!function_exists('tramite_status_catalog')) {
             SGL_TRA_STATUS_PAGO_DERECHOS_DOCUMENTOS => ['tra_status' => 'Pago de Derechos', 'descripcion' => 'Listado de documentos de pagos', 'step' => 3],
             SGL_TRA_STATUS_COBRO_CLIENTE => ['tra_status' => 'Cobro a Cliente', 'descripcion' => 'Paso final cobro a cliente', 'step' => 5],
             SGL_TRA_STATUS_COTIZACION => ['tra_status' => 'Cotizacion', 'descripcion' => 'Se guarda solo como cotizacion', 'step' => null],
+            SGL_TRA_STATUS_EVIDENCIAS_FINALES => ['tra_status' => 'Evidencias Finales', 'descripcion' => 'Comprobantes de entrega al cliente', 'step' => 4],
         ];
     }
 }

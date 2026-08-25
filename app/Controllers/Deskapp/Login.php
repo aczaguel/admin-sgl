@@ -108,8 +108,15 @@
 
 					$clients_by_user = $model->obtenerClientesPorUsuario($data['id']);
 					$session->set('clients_by_user', $clients_by_user);
-					// print_r($clients_by_user);die();
-					// var_dump($session->get('user_roles'));die();
+
+					// Redirigir a dashboard según rol:
+					// Solo va al dashboard de cliente si is_client=true Y no tiene otros roles
+					// que impliquen acceso interno (Admin, Ejecutivo, etc.)
+					$effectiveRoles = $session->get('user_roles') ?? [];
+					$isOnlyClient = !empty($user_client['is_client']) && $this->_isClientOnlyUser($effectiveRoles);
+					if ($isOnlyClient) {
+						return redirect()->to(site_url('deskapp/clientes/cdashboard'));
+					}
 	                return redirect()->to('./deskapp/dashboard');
 
 	            }else{
@@ -123,4 +130,36 @@
 	    }
 
 	   
+	/**
+	 * Devuelve true si los roles del usuario son exclusivamente de cliente
+	 * (sin roles internos como Admin, Super Admin, Ejecutivo, etc.)
+	 *
+	 * Un usuario es "solo cliente" cuando NO tiene ningún rol que implique
+	 * acceso al sistema interno. Se considera cliente exclusivo si no tiene
+	 * ningún rol reconocido como interno.
+	 */
+	private function _isClientOnlyUser(array $roles): bool
+	{
+		if (empty($roles)) {
+			return false;
+		}
+
+		// Roles que indican acceso interno — cualquiera de estos excluye el redirect a cdashboard
+		$internalRolePatterns = [
+			'admin', 'super admin', 'superadmin', 'ejecutivo', 'gestor',
+			'gerente', 'manager', 'operador', 'supervisor', 'debug',
+			'staff', 'empleado', 'interno',
+		];
+
+		foreach ($roles as $role) {
+			$roleLower = strtolower(trim((string) $role));
+			foreach ($internalRolePatterns as $pattern) {
+				if (strpos($roleLower, $pattern) !== false) {
+					return false; // Tiene al menos un rol interno → dashboard normal
+				}
+			}
+		}
+
+		return true; // Solo tiene roles que no son internos → dashboard cliente
+	}
     }

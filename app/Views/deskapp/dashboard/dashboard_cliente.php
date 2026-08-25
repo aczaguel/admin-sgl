@@ -359,6 +359,18 @@
         color: var(--cd-muted);
         text-align: center;
     }
+
+    .client-dashboard .summary-tile-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .client-dashboard .summary-tile-link:hover .summary-tile {
+        border-color: var(--cd-accent-2);
+        transform: translateY(-2px);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
 </style>
 
 <?= $this->endSection() ?>
@@ -495,6 +507,7 @@
                     </div>
                 </div>
                 <div class="col-md-3 mb-20">
+                    <a href="/deskapp/tramitesn/tramite?pendiente_pago=1" class="summary-tile-link">
                     <div class="summary-tile is-orange">
                         <div class="tile-row">
                             <div>
@@ -503,9 +516,41 @@
                                 <span id="facturasMonto">$0</span>
                                 <div class="tile-meta">
                                     <span class="tile-kpi"><i class="fas fa-receipt"></i> Monto total</span>
+                                    <span class="tile-kpi"><i class="fas fa-arrow-right"></i> Ver facturas pendientes</span>
                                 </div>
                             </div>
                             <div class="tile-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                        </div>
+                    </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 mb-30">
+                    <div class="card-box pd-20">
+                        <div class="section-title">
+                            <h4 class="h4 text-blue"><i class="fas fa-history"></i> Trámites recientes</h4>
+                            <a href="/deskapp/clientes/tramites" class="btn btn-sm btn-outline-primary" id="btnVerTodos">
+                                <i class="fas fa-list"></i> Ver todos mis trámites
+                            </a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm" id="tablaRecientes">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Folio</th>
+                                        <th>Tipo</th>
+                                        <th>Cliente</th>
+                                        <th>Estatus</th>
+                                        <th>Última actualización</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                            <div class="empty-state" id="emptyRecientes" style="display:none;">Sin trámites recientes.</div>
                         </div>
                     </div>
                 </div>
@@ -651,6 +696,42 @@
                             <div class="empty-state" id="emptyClientes" style="display:none;">Sin datos para los filtros actuales.</div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 mb-30">
+                    <div class="card-box pd-20">
+                        <div class="section-title">
+                            <h4 class="h4 text-blue"><i class="fas fa-exclamation-triangle text-warning"></i> Trámites más urgentes</h4>
+                            <span class="refresh-note">Sin movimiento &gt; 7 días</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm" id="tablaUrgentes">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Folio</th>
+                                        <th>Tipo</th>
+                                        <th>Cliente</th>
+                                        <th>Estatus</th>
+                                        <th>Días sin movimiento</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                            <div class="empty-state" id="emptyUrgentes" style="display:none;">Sin trámites urgentes.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-20">
+                <div class="col-md-12 text-center">
+                    <a href="/deskapp/clientes/tramites" class="btn btn-primary btn-lg">
+                        <i class="fas fa-list-alt"></i> Ver todos mis trámites
+                    </a>
                 </div>
             </div>
 
@@ -912,6 +993,61 @@
         updateTable('tablaTipos', 'emptyTipos', data.atorados_por_tipo || [], 'tipo');
         updateTable('tablaEstados', 'emptyEstados', data.atorados_por_estado || [], 'estado');
         updateTable('tablaClientes', 'emptyClientes', data.atorados_por_cliente || [], 'cliente');
+
+        // Recent tramites
+        const tablaRecientesBody = document.querySelector('#tablaRecientes tbody');
+        const emptyRecientes = document.getElementById('emptyRecientes');
+        if (tablaRecientesBody) {
+            tablaRecientesBody.innerHTML = '';
+            const recientes = data.recent_tramites || [];
+            if (recientes.length === 0) {
+                if (emptyRecientes) emptyRecientes.style.display = 'block';
+            } else {
+                if (emptyRecientes) emptyRecientes.style.display = 'none';
+                recientes.forEach((row, i) => {
+                    const fecha = row.created_at || '';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${i + 1}</td>
+                        <td><strong>${row.folio || '—'}</strong></td>
+                        <td>${row.tipo_tramite || '—'}</td>
+                        <td>${row.razon_social || '—'}</td>
+                        <td><span class="badge badge-pill badge-light">${row.tra_status || '—'}</span></td>
+                        <td>${fecha ? new Date(fecha).toLocaleDateString('es-MX') : '—'}</td>
+                        <td><a href="/deskapp/tramitesn/unified-client?tramite_id=${row.id}" class="btn btn-xs btn-primary"><i class="fas fa-eye"></i> Ver</a></td>
+                    `;
+                    tablaRecientesBody.appendChild(tr);
+                });
+            }
+        }
+
+        // Urgentes
+        const tablaUrgentesBody = document.querySelector('#tablaUrgentes tbody');
+        const emptyUrgentes = document.getElementById('emptyUrgentes');
+        if (tablaUrgentesBody) {
+            tablaUrgentesBody.innerHTML = '';
+            const urgentes = data.atorados_urgentes || [];
+            if (urgentes.length === 0) {
+                if (emptyUrgentes) emptyUrgentes.style.display = 'block';
+            } else {
+                if (emptyUrgentes) emptyUrgentes.style.display = 'none';
+                urgentes.forEach((row, i) => {
+                    const dias = safeInt(row.dias_sin_movimiento || 0);
+                    const diasClass = dias >= 30 ? 'text-danger font-weight-bold' : dias >= 14 ? 'text-warning font-weight-bold' : '';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${i + 1}</td>
+                        <td><strong>${row.folio || '—'}</strong></td>
+                        <td>${row.tipo_tramite || '—'}</td>
+                        <td>${row.razon_social || '—'}</td>
+                        <td><span class="badge badge-pill badge-light">${row.tra_status || '—'}</span></td>
+                        <td><span class="${diasClass}">${dias} días</span></td>
+                        <td><a href="/deskapp/tramitesn/unified-client?tramite_id=${row.id}" class="btn btn-xs btn-warning"><i class="fas fa-eye"></i> Ver</a></td>
+                    `;
+                    tablaUrgentesBody.appendChild(tr);
+                });
+            }
+        }
 
         setChipState('ok');
         lastUpdate.innerHTML = `<i class="fas fa-sync"></i> Actualizado ${formatNow()}`;

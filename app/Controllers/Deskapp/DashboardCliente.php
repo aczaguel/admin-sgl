@@ -141,6 +141,47 @@ class DashboardCliente extends BaseController
         return view('deskapp/dashboard/dashboard_cliente', $data);
     }
 
+    public function cdashboard()
+    {
+        if ($resp = $this->requireClienteAccess()) {
+            return $resp;
+        }
+
+        $userId = (int) $this->session->get('id');
+
+        $data = [
+            'session'          => \Config\Services::session(),
+            'username'         => $this->session->get('user_name'),
+            'cli_directo_list' => $this->getCliDirectoList($userId),
+            'tipos_list'       => $this->getTiposList(),
+            'filters'          => $this->getFiltersFromRequest(),
+        ];
+
+        return view('deskapp/dashboard/cdashboard', $data);
+    }
+
+    public function cdashboardData()
+    {
+        if ($resp = $this->requireClienteAccess()) {
+            return $resp;
+        }
+
+        $userId  = (int) $this->session->get('id');
+        $filters = $this->getFiltersFromRequest();
+
+        $data = [
+            'resumen'              => $this->dashboardModel->getClienteResumen($filters, $userId),
+            'distribucion_estatus' => $this->dashboardModel->getClienteDistribucionEstatus($filters, $userId),
+            'tramites_por_mes'     => $this->dashboardModel->getClienteTramitesPorMes($filters, $userId),
+            'tramites_por_tipo'    => $this->dashboardModel->getClienteTramitesPorTipoProcesoVsConcluido(10, $filters, $userId),
+            'facturas_pendientes'  => $this->dashboardModel->getClienteFacturasPendientes($filters, $userId),
+            'recent_tramites'      => $this->dashboardModel->getClienteRecentTramites(8, $filters, $userId),
+            'concluidos_periodos'  => $this->dashboardModel->getClienteConcluidosPorPeriodos($filters, $userId),
+        ];
+
+        return $this->response->setJSON($data);
+    }
+
     public function data()
     {
         if ($resp = $this->requireClienteAccess()) {
@@ -160,6 +201,8 @@ class DashboardCliente extends BaseController
             'resumen' => $this->dashboardModel->getClienteResumen($filters, $userId),
             'concluidos_periodos' => $this->dashboardModel->getClienteConcluidosPorPeriodos($filters, $userId),
             'tramites_por_tipo' => $this->dashboardModel->getClienteTramitesPorTipoProcesoVsConcluido(10, $filters, $userId),
+            'recent_tramites' => $this->dashboardModel->getClienteRecentTramites(10, $filters, $userId),
+            'atorados_urgentes' => $this->dashboardModel->getClienteAtoradosUrgentes(5, $filters, $userId),
         ];
 
         return $this->response->setJSON($data);

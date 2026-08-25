@@ -80,7 +80,17 @@ $tul_gateEvidencias = $tul_stepActual >= 3;
 // Fase financiera (pasos 4-5): visible cuando el estatus alcanzó el paso 4 o
 // posterior. Ya no exige los registros de evidencias (tramite_recibido/acuse),
 // que son parte de la maquinaria nueva inexistente en trámites históricos.
-$tul_gateFinanciera = $tul_stepActual >= 4;
+// Fase financiera se desbloquea cuando:
+// - el new_format_step ya llegó a 4+ (trámites históricos que pasaron por el flujo viejo), O
+// - el status es específicamente 31 (Evidencias Aprobadas), 23, 28, 20, 21
+$tul_gateFinanciera = $tul_stepActual >= 4
+    || in_array($tul_traStatusId, [
+        SGL_TRA_STATUS_EVIDENCIAS_APROBADAS,
+        SGL_TRA_STATUS_PAGO_GESTOR,
+        SGL_TRA_STATUS_COBRO_CLIENTE,
+        SGL_TRA_STATUS_CONCLUIDO,
+        SGL_TRA_STATUS_CANCELADO,
+    ], true);
 
 $viewData['tulStep3Locked'] = !$tul_gateEvidencias;
 $viewData['tulStep3LockReason'] = 'Las evidencias finales se habilitan cuando el trámite avanza a esta etapa.';
@@ -222,6 +232,115 @@ $tul_canConclude = has_permission('important_concluir_tramite', $tul_perms, $tul
     </div>
 </div>
 
+<script>
+(function() {
+    /**
+     * TUL Confirm Modal — reemplaza window.confirm() con un diálogo estilizado.
+     * @param {object} options
+     * @param {string} options.title
+     * @param {string} options.body
+     * @param {string} [options.confirmText]
+     * @param {string} [options.cancelText]
+     * @param {string} [options.icon]        - 'check' | 'warning' (default: 'check')
+     * @returns {Promise<boolean>}
+     */
+    function tulConfirm(options) {
+        return new Promise(function(resolve) {
+            var overlay = document.createElement('div');
+            overlay.className = 'tul-confirm-overlay';
+
+            var iconClass = options.icon === 'warning' ? 'tul-confirm-dialog__icon--warning' : '';
+            var iconGlyph = options.icon === 'warning' ? '⚠' : '✓';
+
+            overlay.innerHTML = [
+                '<div class="tul-confirm-dialog" role="dialog" aria-modal="true">',
+                '  <div class="tul-confirm-dialog__icon ' + iconClass + '">' + iconGlyph + '</div>',
+                '  <h3 class="tul-confirm-dialog__title">' + (options.title || '¿Confirmar?') + '</h3>',
+                '  <p class="tul-confirm-dialog__body">' + (options.body || '') + '</p>',
+                '  <div class="tul-confirm-dialog__actions">',
+                '    <button type="button" class="tul-confirm-dialog__btn tul-confirm-dialog__btn--cancel" data-action="cancel">' + (options.cancelText || 'Cancelar') + '</button>',
+                '    <button type="button" class="tul-confirm-dialog__btn tul-confirm-dialog__btn--confirm" data-action="confirm">' + (options.confirmText || 'Confirmar') + '</button>',
+                '  </div>',
+                '</div>'
+            ].join('');
+
+            document.body.appendChild(overlay);
+
+            // Focus the confirm button for keyboard accessibility
+            var confirmBtn = overlay.querySelector('[data-action="confirm"]');
+            if (confirmBtn) confirmBtn.focus();
+
+            function cleanup(result) {
+                overlay.style.animation = 'tulConfirmFadeIn 0.12s ease reverse';
+                setTimeout(function() {
+                    if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                }, 120);
+                resolve(result);
+            }
+
+            overlay.addEventListener('click', function(ev) {
+                var action = ev.target.closest('[data-action]');
+                if (action) cleanup(action.dataset.action === 'confirm');
+                else if (ev.target === overlay) cleanup(false); // click fuera cierra
+            });
+
+            // Escape key closes
+            document.addEventListener('keydown', function onKey(ev) {
+                if (ev.key === 'Escape') { cleanup(false); document.removeEventListener('keydown', onKey); }
+                if (ev.key === 'Enter') { cleanup(true); document.removeEventListener('keydown', onKey); }
+            });
+        });
+    }
+
+    // Handler for [data-tul-aprobar-evidencias] button
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-tul-aprobar-evidencias]');
+        if (!btn) return;
+        e.preventDefault();
+
+        tulConfirm({
+            title: 'Aprobar Evidencias Finales',
+            body: 'Confirma que las evidencias son correctas. Esta acción desbloqueará la fase financiera (Pago a Gestor y Cobro a Cliente).',
+            confirmText: '✓ Aprobar',
+            cancelText: 'Cancelar',
+            icon: 'check'
+        }).then(function(confirmed) {
+            if (!confirmed) return;
+
+            var url      = btn.dataset.tulUrl;
+            var csrfName = btn.dataset.csrfName;
+            var csrfHash = btn.dataset.csrfHash;
+
+            btn.disabled = true;
+            btn.textContent = 'Aprobando...';
+
+            var formData = new FormData();
+            formData.append(csrfName, csrfHash);
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData,
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'No se pudo aprobar. Intenta de nuevo.');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="icon-check"></i> Aprobar Evidencias Finales';
+                }
+            })
+            .catch(function() {
+                alert('Error de red. Intenta de nuevo.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="icon-check"></i> Aprobar Evidencias Finales';
+            });
+        });
+    });
+})();
+</script>
 <script src="<?= base_url('/public/assets/src/js/tramite_unified.js') ?>?v=20250619q"></script>
 
 <?= $this->endSection() ?>

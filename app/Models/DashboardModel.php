@@ -733,6 +733,46 @@ class DashboardModel extends Model
     }
 
     /**
+     * Distribución de trámites por estado/estatus para donut chart.
+     */
+    public function getClienteDistribucionEstatus(array $filters, $userId = null): array
+    {
+        [$where, $params] = $this->buildClienteDashboardFilter($filters, $userId, 't');
+        $query = "
+            SELECT
+                ts.tra_status AS label,
+                COUNT(*) AS total
+            FROM tramite t
+            LEFT JOIN tra_status ts ON t.tra_status_id = ts.id
+            WHERE $where
+            GROUP BY t.tra_status_id, ts.tra_status
+            ORDER BY total DESC
+        ";
+        return $this->db->query($query, $params)->getResultArray();
+    }
+
+    /**
+     * Trámites ingresados por mes (últimos 12 meses) para área chart.
+     */
+    public function getClienteTramitesPorMes(array $filters, $userId = null): array
+    {
+        [$where, $params] = $this->buildClienteDashboardFilter($filters, $userId, 't');
+        $query = "
+            SELECT
+                DATE_FORMAT(t.created_at, '%Y-%m') AS mes,
+                DATE_FORMAT(t.created_at, '%b %Y') AS mes_label,
+                COUNT(*) AS total,
+                SUM(CASE WHEN t.tra_status_id = 20 THEN 1 ELSE 0 END) AS concluidos
+            FROM tramite t
+            WHERE $where
+            AND t.created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+            GROUP BY DATE_FORMAT(t.created_at, '%Y-%m')
+            ORDER BY mes ASC
+        ";
+        return $this->db->query($query, $params)->getResultArray();
+    }
+
+    /**
      * Tipos de servicio atorados (sin movimiento > 7 dias) con filtros.
      */
     public function getClienteAtoradosPorTipoServicio($limit = 10, array $filters = [], $userId = null)
@@ -805,6 +845,74 @@ class DashboardModel extends Model
             AND $dias > 7
             GROUP BY c.id, cliente
             ORDER BY total DESC
+            LIMIT $limit
+        ";
+
+        return $this->db->query($query, $params)->getResultArray();
+    }
+
+    /**
+     * Trámites recientes para dashboard cliente.
+     *
+     * Ordena por created_at DESC para mostrar los últimos ingresos/actualizaciones.
+     * Aplica filtros de contexto y multi-tenancy por usuario.
+     */
+    public function getClienteRecentTramites(int $limit, array $filters, $userId = null): array
+    {
+        $limit = max(1, $limit);
+        [$where, $params] = $this->buildClienteDashboardFilter($filters, $userId, 't');
+
+        $query = "
+            SELECT
+                t.id,
+                t.folio,
+                t.created_at,
+                t.started_at,
+                COALESCE(tt.tipo_tramite, 'Sin tipo') as tipo_tramite,
+                ts.tra_status,
+                cd.razon_social
+            FROM tramite t
+            LEFT JOIN tra_tipos tt ON t.tra_tipos_id = tt.id
+            LEFT JOIN tra_status ts ON t.tra_status_id = ts.id
+            LEFT JOIN cli_directo cd ON t.cli_directo_id = cd.id
+            WHERE $where
+            ORDER BY t.created_at DESC
+            LIMIT $limit
+        ";
+
+        return $this->db->query($query, $params)->getResultArray();
+    }
+
+    /**
+     * Trámites individuales atorados (sin movimiento > 7 días) para lista urgente.
+     *
+     * Devuelve registros individuales con enlace directo, a diferencia de los métodos
+     * agregados (getClienteAtoradosPorTipoServicio, etc.).
+     */
+    public function getClienteAtoradosUrgentes(int $limit, array $filters, $userId = null): array
+    {
+        $limit = max(1, $limit);
+        [$where, $params] = $this->buildClienteDashboardFilter($filters, $userId, 't');
+        $dias = "DATEDIFF(CURDATE(), COALESCE(t.started_at, t.created_at))";
+
+        $query = "
+            SELECT
+                t.id,
+                t.folio,
+                t.created_at,
+                t.started_at,
+                COALESCE(tt.tipo_tramite, 'Sin tipo') as tipo_tramite,
+                ts.tra_status,
+                cd.razon_social,
+                $dias as dias_sin_movimiento
+            FROM tramite t
+            LEFT JOIN tra_tipos tt ON t.tra_tipos_id = tt.id
+            LEFT JOIN tra_status ts ON t.tra_status_id = ts.id
+            LEFT JOIN cli_directo cd ON t.cli_directo_id = cd.id
+            WHERE $where
+            AND t.tra_status_id NOT IN (20, 21)
+            AND $dias > 7
+            ORDER BY dias_sin_movimiento DESC
             LIMIT $limit
         ";
 

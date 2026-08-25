@@ -1,3 +1,51 @@
+<style>
+.tul-approved-ribbon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(90deg, #d1fae5, #ecfdf5);
+    border: 1px solid #6ee7b7;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #065f46;
+    font-weight: 700;
+    font-size: 13px;
+    margin-top: 12px;
+}
+.tul-btn--aprobar-evidencias {
+    width: 100%;
+    margin-top: 12px;
+    background: #0f766e;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.18s;
+}
+.tul-btn--aprobar-evidencias:hover {
+    background: #0d6561;
+}
+.tul-gate-badge--waiting {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    color: #92400e;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+</style>
 <?php
 /**
  * Step 3 Partial — Evidencias Finales
@@ -31,6 +79,13 @@ $evidenceCanView = !empty($prototypeEvidenceForm['canView']);
 $evidenceCanAdd  = !empty($prototypeEvidenceForm['canAdd']);
 $evidenceItems   = $prototypeEvidenceForm['items'] ?? [];
 $evidenceUrls    = $prototypeEvidenceForm['urls'] ?? [];
+
+// --- Approve button data ---
+$canAprobarEvidencias = !empty($prototypeStep3Form['canAprobarEvidencias']);
+$evidenciasAprobadas  = !empty($prototypeStep3Form['evidenciasAprobadas']);
+$aprobarUrl           = (string) ($prototypeStep3Form['aprobarEvidenciasUrl'] ?? '');
+$csrfName             = $prototypeStep3Form['csrfName'] ?? csrf_token();
+$csrfHash             = $prototypeStep3Form['csrfHash'] ?? csrf_hash();
 
 // --- Endpoint URLs ---
 $uploadUrl = base_url('deskapp/tramitesn/upload_pago_gestor/' . $tramiteId);
@@ -93,6 +148,28 @@ $tulLockReason = (string) ($tulStep3LockReason ?? '');
             <?php else: ?>
                 <div class="tul-gate-badge tul-gate-badge--pending">
                     <i class="icon-info"></i> Cierre documental pendiente
+                </div>
+            <?php endif; ?>
+
+            <?php if ($evidenciasAprobadas): ?>
+                <div class="tul-approved-ribbon">
+                    <i class="icon-check-circle"></i>
+                    <span>Evidencias aprobadas — fase financiera desbloqueada</span>
+                </div>
+            <?php elseif ($canAprobarEvidencias): ?>
+                <button
+                    type="button"
+                    class="tul-btn tul-btn--approve tul-btn--aprobar-evidencias"
+                    data-tul-aprobar-evidencias
+                    data-tul-tramite-id="<?= (int) $tramiteId ?>"
+                    data-tul-url="<?= esc($aprobarUrl, 'attr') ?>"
+                    data-csrf-name="<?= esc($csrfName, 'attr') ?>"
+                    data-csrf-hash="<?= esc($csrfHash, 'attr') ?>">
+                    <i class="icon-check"></i> Aprobar Evidencias Finales
+                </button>
+            <?php elseif ($hasTramiteRecibido && $hasAcuseRecibo): ?>
+                <div class="tul-gate-badge tul-gate-badge--waiting">
+                    <i class="icon-clock"></i> Pendiente de aprobación por supervisor
                 </div>
             <?php endif; ?>
         </div>

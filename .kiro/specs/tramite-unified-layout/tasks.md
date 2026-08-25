@@ -97,19 +97,70 @@ Tasks derived from `list_of_requirements.md`. Covers functional fixes, UX improv
   - [x] 18.4 Compact detailbar font (8px labels, 11px values, 10px padding)
   - [x] 18.5 Filter document gallery to only show uploaded documents
 
-### Multi-tenant (Nexter)
+### Client-Facing View
 
-- [ ] 19. Configure Nexter as a tenant in the existing multi-tenancy system
-  - [ ] 19.1 Create `cliente` record for Nexter
-  - [ ] 19.2 Assign Nexter's cli_directo records with cliente_id = nexter_id
-  - [ ] 19.3 Create Nexter user accounts and assign in cliente_user table
-  - [ ] 19.4 Verify filter isolation (Nexter users only see their tramites)
+- [x] 19. Client read-only unified layout (uclient) — steps 1-3 only
+  - [x] 19.1 Add `unified_client()` method to Tramitesn controller with full read-only view data
+  - [x] 19.2 Create `app/Views/deskapp/tramite_unified/index_client.php` (steps 1-3, no financials, no actions)
+  - [x] 19.3 Add route `GET deskapp/clientes/ver/(:num)` → redirect to `tramitesn/unified-client?tramite_id={id}`
+  - [x] 19.4 Add route `GET tramitesn/unified-client` → `Tramitesn::unified_client`
+
+### Performance & CSS Fixes
+
+- [x] 21. Remove attention bucket toolbar and heavy SQL queries from tramite list
+  - [x] 21.1 Remove buildAttentionBucketSql() WHERE clause from renderTramiteList()
+  - [x] 21.2 Remove getAttentionTrackedStatusIds() and buildAttentionListSummary() calls
+  - [x] 21.3 Simplify started_at and cobro_status_id callbacks to O(1) status checks
+  - [x] 21.4 Remove pre_output_html toolbar view from salida_total
+
+- [x] 22. CSS zoom and sidebar responsiveness fixes
+  - [x] 22.1 Add height:auto + min-height to .header and .header-left/.header-right
+  - [x] 22.2 Add max-height:100vh + overflow-y:auto to .left-side-bar
+  - [x] 22.3 Use clamp() for ribbon-layout main-container padding-top
+  - [x] 22.4 Add max-height + overflow to .left-side-bar .menu-block
+
+- [x] 23. Fix GroceryCRUD export (ob_start removal)
+  - [x] 23.1 Remove ob_start() callback from Events.php pre_system event that blocked binary file downloads
+
+### Cobranza Reports
+
+- [x] 24. CSV export reports for cobranza
+  - [x] 24.1 Add exportarPendientes() method to Cobranza controller
+  - [x] 24.2 Add exportarPorPeriodo() method with date range filter
+  - [x] 24.3 Add export routes: GET deskapp/cobranza/exportar/pendientes and /periodo
+  - [x] 24.4 Add export toolbar with date pickers to cobranza/index.php view
+  - [x] 24.5 Fix 404: remove duplicate /deskapp/ prefix from routes inside group
+
+### Dashboard Cliente Analysis
+
+- [ ] 25. Improve client dashboard (/deskapp/clientes/dashboard)
+  - [x] 25.1 Analyze current dashboard — identified missing: tramites list, alerts with links, navigation CTA
+  - [ ] 25.2 Add "recent tramites" section with link to unified-client view
+  - [ ] 25.3 Add urgent/atorados mini-list with direct links per tramite
+  - [ ] 25.4 Add "Ver todos mis trámites" CTA button
+  - [ ] 25.5 Link facturas pendientes tile to filtered tramites list
+
+### External API (REST)
+
+- [ ] 26. REST API for external app consumption
+  - [ ] 26.1 Design auth strategy — API key or Bearer token stored in `api_tokens` table (user_id, token, scopes, expires_at)
+  - [ ] 26.2 Create `ApiAuthFilter` middleware — validates `Authorization: Bearer {token}` header on all `/api/v2/*` routes
+  - [ ] 26.3 `GET /api/v2/tramites` — paginated list with filters: status, tipo, cliente, fecha_inicio, fecha_fin
+  - [ ] 26.4 `GET /api/v2/tramites/{id}` — full tramite detail including current status, new_format_step, folio, tipo, cliente, gestor
+  - [ ] 26.5 `POST /api/v2/tramites/{id}/status` — advance status to canonical step (body: `{"step": 2}`); uses same forward-only logic as updateTramiteStatus()
+  - [ ] 26.6 `GET /api/v2/tramites/{id}/status` — returns current `tra_status_id`, `new_format_step`, step label, and status history
+  - [ ] 26.7 `GET /api/v2/tramites/{id}/documents` — list uploaded documents per category with presigned URLs
+  - [ ] 26.8 `GET /api/v2/clientes` — list of cli_directo scoped to the token's user permissions
+  - [ ] 26.9 `GET /api/v2/catalogos/statuses` — returns full status catalog with new_format_step grouping
+  - [ ] 26.10 Add routes in Routes.php under `group('api/v2', ...)` with `ApiAuthFilter`
+  - [ ] 26.11 Return consistent JSON envelope: `{"data": ..., "meta": {...}, "error": null}`
+  - [ ] 26.12 Document all endpoints in `API_EXTERNA.md` at project root (curl examples + Postman collection JSON)
 
 ### Pending Push to Production
 
 - [ ] 20. Push and deploy all pending local changes
-  - [ ] 20.1 Push: datetime format DD/MM/YYYY, detailbar dates, grid/overflow CSS, lightbox, PDF inline, scheduler module
-  - [ ] 20.2 Run `terraform apply` for scheduler
+  - [ ] 20.1 Push all accumulated local changes to repo and deploy to EC2
+  - [ ] 20.2 Run `terraform apply` for scheduler module
   - [ ] 20.3 Run `php spark migrate` for bank reference column extension
 
 ---
@@ -121,8 +172,10 @@ Tasks derived from `list_of_requirements.md`. Covers functional fixes, UX improv
   "waves": [
     { "id": 0, "tasks": ["1", "3", "4", "5", "10", "11", "12"] },
     { "id": 1, "tasks": ["2", "13", "14", "15", "16", "17", "18"] },
-    { "id": 2, "tasks": ["20"] },
-    { "id": 3, "tasks": ["6", "7", "8", "9", "19"] }
+    { "id": 2, "tasks": ["19", "21", "22", "23", "24"] },
+    { "id": 3, "tasks": ["20", "25"] },
+    { "id": 4, "tasks": ["6", "7", "8", "9"] },
+    { "id": 5, "tasks": ["26"] }
   ]
 }
 ```
