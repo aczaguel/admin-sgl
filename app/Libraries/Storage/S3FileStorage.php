@@ -91,7 +91,7 @@ final class S3FileStorage implements FileStorage
      * presigned URL — when $ttlSeconds is out of range: <= 0 (Requirement 2.7)
      * or > 604800 seconds (Requirement 2.8).
      */
-    public function url(string $key, int $ttlSeconds = 300): string
+    public function url(string $key, int $ttlSeconds = 3600): string
     {
         // Out-of-range TTL: error indication ('') with no presigned URL.
         if ($ttlSeconds <= 0 || $ttlSeconds > self::MAX_PRESIGN_TTL) {
@@ -127,7 +127,7 @@ final class S3FileStorage implements FileStorage
      * (PDFs) so the browser displays them inline instead of downloading.
      * Same TTL rules as url().
      */
-    public function inlineUrl(string $key, int $ttlSeconds = 300): string
+    public function inlineUrl(string $key, int $ttlSeconds = 3600): string
     {
         if ($ttlSeconds <= 0 || $ttlSeconds > self::MAX_PRESIGN_TTL) {
             log_message(
@@ -164,7 +164,7 @@ final class S3FileStorage implements FileStorage
      * Presigned GetObject URL that forces download via
      * ResponseContentDisposition=attachment. Same TTL rules as url().
      */
-    public function downloadUrl(string $key, int $ttlSeconds = 300, string $downloadName = ''): string
+    public function downloadUrl(string $key, int $ttlSeconds = 3600, string $downloadName = ''): string
     {
         if ($ttlSeconds <= 0 || $ttlSeconds > self::MAX_PRESIGN_TTL) {
             log_message(

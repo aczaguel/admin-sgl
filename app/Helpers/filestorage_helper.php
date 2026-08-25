@@ -225,7 +225,7 @@ if (!function_exists('file_url')) {
      *
      * @return string Browser URL for the stored file, or '' when the value is empty/unresolvable.
      */
-    function file_url(string $storedValue, string $category = '', ?int $id = null, int $ttl = 300): string
+    function file_url(string $storedValue, string $category = '', ?int $id = null, int $ttl = 3600): string
     {
         // Empty / whitespace-only: short-circuit WITHOUT touching normalizer or service.
         if (trim($storedValue) === '') {
@@ -274,7 +274,7 @@ if (!function_exists('file_download_url')) {
      *
      * @return string Download URL for the stored file, or '' when unresolvable.
      */
-    function file_download_url(string $storedValue, string $category = '', ?int $id = null, int $ttl = 300): string
+    function file_download_url(string $storedValue, string $category = '', ?int $id = null, int $ttl = 3600): string
     {
         if (trim($storedValue) === '') {
             return '';
@@ -317,7 +317,7 @@ if (!function_exists('file_inline_url')) {
      *
      * @return string Inline URL for the stored file, or '' when unresolvable.
      */
-    function file_inline_url(string $storedValue, string $category = '', ?int $id = null, int $ttl = 300): string
+    function file_inline_url(string $storedValue, string $category = '', ?int $id = null, int $ttl = 3600): string
     {
         if (trim($storedValue) === '') {
             return '';
@@ -456,7 +456,7 @@ if (!function_exists('file_url_map')) {
      *
      * @return array<string,string> Map of storedValue => browser URL ('' when unresolvable).
      */
-    function file_url_map(array $storedValues, string $category = '', ?int $id = null, int $ttl = 300): array
+    function file_url_map(array $storedValues, string $category = '', ?int $id = null, int $ttl = 3600): array
     {
         $map = [];
         foreach ($storedValues as $value) {
@@ -489,7 +489,7 @@ if (!function_exists('file_url_list')) {
      *
      * @return array<int,array{name:string,url:string}> Ordered list of resolved entries.
      */
-    function file_url_list(array $storedValues, string $category = '', ?int $id = null, int $ttl = 300): array
+    function file_url_list(array $storedValues, string $category = '', ?int $id = null, int $ttl = 3600): array
     {
         $list = [];
         foreach ($storedValues as $value) {
