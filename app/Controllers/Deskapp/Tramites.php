@@ -3759,7 +3759,7 @@ class Tramites extends BaseController
                 ]);
             }
 
-            $this->updateTramiteStatus($id, 25);
+            $this->updateTramiteStatus($id, SGL_TRA_STATUS_DCTOS_COMPLETOS);
 
             // Preparar datos
             $data = $this->request->getPost();
@@ -3803,7 +3803,7 @@ class Tramites extends BaseController
             $log = [
                 "tramite_id" => (int)$id,
                 "user_id" => (int)$myid,
-                "tra_status_id" => 22
+                "tra_status_id" => SGL_TRA_STATUS_DCTOS_COMPLETOS,
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
@@ -4046,7 +4046,7 @@ class Tramites extends BaseController
             $log = [
                 "tramite_id"    => (int)$id,
                 "user_id"       => (int)$myid,
-                "tra_status_id" => 22
+                "tra_status_id" => SGL_TRA_STATUS_PAGO_DERECHOS_LINEA_CAPTURA,
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
@@ -4170,7 +4170,7 @@ class Tramites extends BaseController
             $log = [
                 "tramite_id"    => (int)$id,
                 "user_id"       => (int)$myid,
-                "tra_status_id" => 22
+                "tra_status_id" => SGL_TRA_STATUS_PAGO_DERECHOS_DOCUMENTOS,
             ];
             $tra_user_log->insert($log, 'tra_user_log');
 
@@ -4622,7 +4622,7 @@ class Tramites extends BaseController
         $log = [
             'tramite_id' => $tramiteId,
             'user_id' => $userId,
-            'tra_status_id' => 22,
+            'tra_status_id' => SGL_TRA_STATUS_COBRO_CLIENTE,
         ];
 
         $traUserLog->insert($log, 'tra_user_log');
