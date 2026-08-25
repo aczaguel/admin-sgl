@@ -1385,3 +1385,58 @@ body[data-layout-theme="sgl-2026"] .left-side-bar .menu-block {
     overflow-y: auto;
     overflow-x: hidden;
 }
+
+/* ============================================================
+   STATIC HEADER & SIDEBAR — menú fijo (no flotante)
+   El menú y la barra lateral se desplazan con la página en lugar
+   de quedarse fijos sobreponiendo el contenido del trámite.
+   Se aplica globalmente al tema SGL para todos los usuarios.
+   ============================================================ */
+
+body.sgl-theme-2026 .header,
+body[data-layout-theme="sgl-2026"] .header {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    z-index: auto !important;
+}
+
+body.sgl-theme-2026 .left-side-bar,
+body[data-layout-theme="sgl-2026"] .left-side-bar {
+    position: static !important;
+    top: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* Without a fixed header, the main-container no longer needs top padding
+   to clear it. Reset to 0 so content starts flush. */
+body.sgl-theme-2026 .main-container,
+body[data-layout-theme="sgl-2026"] .main-container {
+    padding-top: 0 !important;
+}
+
+/* Ribbon layout: same reset */
+@media (min-width: 1301px) {
+    body.sgl-ribbon-layout.sgl-theme-2026 .main-container,
+    body.sgl-ribbon-layout[data-layout-theme="sgl-2026"] .main-container {
+        padding-top: 0 !important;
+    }
+}
+
+@media (max-width: 1300px) {
+    body.sgl-ribbon-layout.sgl-theme-2026 .main-container,
+    body.sgl-ribbon-layout[data-layout-theme="sgl-2026"] .main-container {
+        padding-top: 0 !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    body.sgl-ribbon-layout.sgl-theme-2026 .main-container,
+    body.sgl-ribbon-layout[data-layout-theme="sgl-2026"] .main-container {
+        padding-top: 0 !important;
+    }
+}
