@@ -2303,3 +2303,36 @@ body.sgl-ribbon-layout .header .sgl-ribbon-nav {
         width: 100%;
     }
 }
+
+/* ============================================================
+   STATIC HEADER & SIDEBAR — menú fijo (no flotante)
+   Override must live here (after @import) to win against
+   vendors/styles/style.css which sets position:fixed on .header
+   ============================================================ */
+
+.header {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    z-index: 1 !important;
+}
+
+.left-side-bar {
+    position: static !important;
+    top: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    float: left;
+}
+
+/* Reset main-container padding since header no longer floats */
+.main-container {
+    padding-top: 0 !important;
+}
+
+body.sgl-ribbon-layout .main-container {
+    padding-top: 0 !important;
+}
