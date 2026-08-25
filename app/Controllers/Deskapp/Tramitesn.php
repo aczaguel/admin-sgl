@@ -1677,6 +1677,16 @@ class Tramitesn extends Tramites
             return 0;
         }
 
+        $currentStatus = (int) ($tramiteRow['tra_status_id'] ?? 0);
+
+        // Solo sincronizar si el trámite ya está en la fase de pago a gestor (23) o
+        // cobro a cliente (28). Si está en evidencias finales (30) o cualquier status
+        // anterior, este sync NO debe tocar el status — el upload de documentos de
+        // evidencias finales usa el mismo endpoint y no debe auto-avanzar el trámite.
+        if ($currentStatus < SGL_TRA_STATUS_PAGO_GESTOR) {
+            return $currentStatus;
+        }
+
         if ($forcedPagoGestorStatusId !== null) {
             $tramiteRow['pago_gestor_st_id'] = $forcedPagoGestorStatusId;
         }
@@ -1684,7 +1694,6 @@ class Tramitesn extends Tramites
         $targetStatus = $this->isReadyForCobroCliente($tramiteRow)
             ? SGL_TRA_STATUS_COBRO_CLIENTE
             : SGL_TRA_STATUS_PAGO_GESTOR;
-        $currentStatus = (int) ($tramiteRow['tra_status_id'] ?? 0);
 
         if ($currentStatus !== $targetStatus) {
             $this->updateTramiteStatus($tramiteId, $targetStatus);
@@ -3723,8 +3732,14 @@ class Tramitesn extends Tramites
                 }
             }
 
+            // Gate: el botón "Aprobar trámite" solo aparece cuando el gestor está
+            // asignado (step2_complete) Y los derechos base están llenos (step3_complete).
+            $prototypeStep2DataComplete = !empty($prototypeReadOnlyTramite['step2_complete'])
+                && !empty($prototypeReadOnlyTramite['step3_complete']);
+
             $prototypeCanApproveStep2 = has_permission('important_pasar_a_pagos', $perms, $roles)
                 && $stepActual <= 3
+                && $prototypeStep2DataComplete
                 && puede_editar_modulo($roles, $traStatusId, 'boton_aprobar_tramite', $reembolsoStatusId, $cobroStatusId, 3);
 
             $canSectionPagoGestor = has_permission('section_pago_gestor', $perms, $roles);
