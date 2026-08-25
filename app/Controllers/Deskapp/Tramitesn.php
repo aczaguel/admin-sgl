@@ -1679,11 +1679,14 @@ class Tramitesn extends Tramites
 
         $currentStatus = (int) ($tramiteRow['tra_status_id'] ?? 0);
 
-        // Solo sincronizar si el trámite ya está en la fase de pago a gestor (23) o
-        // cobro a cliente (28). Si está en evidencias finales (30) o cualquier status
-        // anterior, este sync NO debe tocar el status — el upload de documentos de
-        // evidencias finales usa el mismo endpoint y no debe auto-avanzar el trámite.
-        if ($currentStatus < SGL_TRA_STATUS_PAGO_GESTOR) {
+        // Solo sincronizar si el trámite ya está EXACTAMENTE en la fase de
+        // pago a gestor (23) o cobro a cliente (28). Cualquier otro status
+        // — incluyendo evidencias finales (30) y evidencias aprobadas (31) —
+        // no debe ser modificado por este sync. El status 30 es numéricamente
+        // mayor que 23, por eso se usa una allowlist explícita en lugar de
+        // una comparación de rango.
+        $syncAllowedStatuses = [SGL_TRA_STATUS_PAGO_GESTOR, SGL_TRA_STATUS_COBRO_CLIENTE];
+        if (!in_array($currentStatus, $syncAllowedStatuses, true)) {
             return $currentStatus;
         }
 
