@@ -4114,9 +4114,10 @@ class Tramitesn extends Tramites
             'prototypeReadOnlyTramite' => $prototypeReadOnlyTramite,
             'prototypeCanApproveStep2' => false,
 
-            // Step 1 — read only
+            // Step 1 — always read only in client view
             'prototypeStep1Form' => [
                 'canEdit' => false,
+                'isApprovedLock' => true,
                 'blockedReason' => null,
                 'csrfName' => $csrfName,
                 'csrfHash' => $csrfHash,
@@ -4140,6 +4141,11 @@ class Tramitesn extends Tramites
                     'entidad_id' => (int) ($prototypeReadOnlyTramite['entidad_id'] ?? 0),
                     'observaciones' => (string) ($prototypeReadOnlyTramite['fields']['observaciones'] ?? ''),
                     'current_step' => 1,
+                    // Resolved labels for tul-ro-card display
+                    'cliente_name' => (string) ($prototypeReadOnlyTramite['cliente_name'] ?? ''),
+                    'ejecutivo_name' => (string) ($prototypeReadOnlyTramite['ejecutivo_name'] ?? ''),
+                    'entidad_name' => (string) ($prototypeReadOnlyTramite['entidad_name'] ?? ''),
+                    'tipo_principal_label' => (string) ($prototypeReadOnlyTramite['tipo_principal_label'] ?? ''),
                 ],
             ],
 
