@@ -87,6 +87,8 @@ defined('SGL_TRA_STATUS_LOCKED_IDS') || define('SGL_TRA_STATUS_LOCKED_IDS', [
 ]);
 
 defined('SGL_TRA_STATUS_POST_APPROVAL_IDS') || define('SGL_TRA_STATUS_POST_APPROVAL_IDS', [
+	SGL_TRA_STATUS_EVIDENCIAS_FINALES,   // 30 — gestor entregó evidencias, pasos 1-3 ya no son editables
+	SGL_TRA_STATUS_EVIDENCIAS_APROBADAS, // 31 — supervisor aprobó, fase financiera desbloqueada
 	SGL_TRA_STATUS_PAGO_GESTOR,
 	SGL_TRA_STATUS_COBRO_CLIENTE,
 	SGL_TRA_STATUS_CONCLUIDO,
