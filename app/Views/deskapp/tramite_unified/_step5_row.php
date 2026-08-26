@@ -31,6 +31,9 @@ $notesItems   = $prototypeStep5NotesForm['items'] ?? [];
 // Form values
 $values = $prototypeStep5Form['values'] ?? [];
 
+// Client mode: when 'full', render clean read-only cards instead of disabled form
+$tulClienteMode = $tulClienteMode ?? 'admin';
+
 // Options
 $cobroStatusOptions   = $prototypeStep5Form['options']['cobroStatus'] ?? [];
 $cobroCorrectoOptions = $prototypeStep5Form['options']['cobroCorrecto'] ?? [];
@@ -65,8 +68,42 @@ $notesUrl   = '/deskapp/tramitesn/prototype_step5_notes_add/' . $tramiteId;
         <?php elseif ($canView): ?>
         <div class="tul-three-rail">
 
-            <!-- Carril izquierdo: Formulario de cobro -->
+            <!-- Carril izquierdo: Formulario de cobro / Vista cliente -->
             <div class="tul-rail tul-rail--form" data-rail="form">
+                <?php if ($tulClienteMode === 'full'): ?>
+                <!-- MODO CLIENTE: cards etiqueta+valor, sin form -->
+                <?php
+                    $cobroStatusLabel = $cobroStatusOptions[$values['cobro_status_id'] ?? ''] ?? ($values['cobro_status_id'] ? 'ID '.$values['cobro_status_id'] : 'N/A');
+                    $totalTramite = ($values['costo_total'] ?? '0.00') !== '0.00' ? $values['costo_total'] : 'N/A';
+                    $eviTxt = trim((string) ($values['evidencia_cobro_txt'] ?? ''));
+                ?>
+                <div class="tul-ro-card">
+                    <div class="tul-ro-card__row">
+                        <span class="tul-ro-card__label">Estatus de cobro</span>
+                        <span class="tul-ro-card__value"><?= esc($cobroStatusLabel) ?></span>
+                    </div>
+                    <div class="tul-ro-card__row">
+                        <span class="tul-ro-card__label">Número de factura</span>
+                        <span class="tul-ro-card__value"><?= esc((string) ($values['numero_factura'] ?? '') ?: 'N/A') ?></span>
+                    </div>
+                    <div class="tul-ro-card__row">
+                        <span class="tul-ro-card__label">Número de refactura</span>
+                        <span class="tul-ro-card__value"><?= esc((string) ($values['numero_refactura'] ?? '') ?: 'N/A') ?></span>
+                    </div>
+                    <div class="tul-ro-card__row">
+                        <span class="tul-ro-card__label">Total del trámite</span>
+                        <span class="tul-ro-card__value"><?= esc($totalTramite) ?></span>
+                    </div>
+                    <?php if ($eviTxt !== ''): ?>
+                    <div class="tul-ro-card__row tul-ro-card__row--wide">
+                        <span class="tul-ro-card__label">Evidencia de cobro</span>
+                        <span class="tul-ro-card__value"><?= esc($eviTxt) ?></span>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
+                <?php else: ?>
+                <!-- MODO ADMIN -->
                 <?php if (!$canEdit && $blockedReason): ?>
                     <div class="tul-blocked-notice"><?= esc($blockedReason) ?></div>
                 <?php endif; ?>
@@ -137,11 +174,12 @@ $notesUrl   = '/deskapp/tramitesn/prototype_step5_notes_add/' . $tramiteId;
 
                     <div class="tul-form-feedback" data-tul-feedback hidden></div>
                 </form>
+                <?php endif; // end cliente/admin mode ?>
             </div>
 
             <!-- Carril centro: Documentos de cobro (upload / gallery / delete) -->
             <div class="tul-rail tul-rail--docs" data-rail="docs">
-                <?php if ($canUploadDocs): ?>
+                <?php if ($canUploadDocs && $tulClienteMode !== 'full'): ?>
                     <div class="tul-dropzone" data-tul-dropzone data-tul-step="5" data-tul-upload-url="<?= esc($uploadUrl, 'attr') ?>">
                         <input type="hidden" name="<?= esc($csrfName, 'attr') ?>" value="<?= esc($csrfHash, 'attr') ?>">
 
@@ -166,7 +204,7 @@ $notesUrl   = '/deskapp/tramitesn/prototype_step5_notes_add/' . $tramiteId;
                             <button type="button" class="tul-btn tul-btn--primary" data-tul-upload-btn>Subir evidencia</button>
                         </div>
                     </div>
-                <?php elseif ($uploadBlockedReason): ?>
+                <?php elseif ($uploadBlockedReason && $tulClienteMode !== 'full'): ?>
                     <div class="tul-blocked-notice"><?= esc($uploadBlockedReason) ?></div>
                 <?php endif; ?>
 
