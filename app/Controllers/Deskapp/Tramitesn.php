@@ -749,12 +749,12 @@ class Tramitesn extends Tramites
                                 // inline); everything else keeps the inline URL.
                                 $fileExt = strtolower((string) pathinfo($f, PATHINFO_EXTENSION));
                                 $isXml = $fileExt === 'xml';
-                                $isPdf = $fileExt === 'pdf';
+                                $isPreviewable2 = in_array($fileExt, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'tiff', 'tif'], true);
                                 return [
                                     'name' => $f,
                                     'url' => $isXml
                                         ? file_download_url($f, 'documentostatus')
-                                        : ($isPdf
+                                        : ($isPreviewable2
                                             ? file_inline_url($f, 'documentostatus')
                                             : file_url($f, 'documentostatus')),
                                     'is_image' => is_image_filename($f),
@@ -4735,10 +4735,11 @@ class Tramitesn extends Tramites
                 $ext = $file !== '' ? strtolower((string) pathinfo($file, PATHINFO_EXTENSION)) : '';
                 $isXml = $ext === 'xml';
                 $isPdf = $ext === 'pdf';
+                $isPreviewable = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'tiff', 'tif'], true);
                 $entry['url'] = $file !== ''
                     ? ($isXml
                         ? file_download_url($file, $category, $tramiteId)
-                        : ($isPdf
+                        : ($isPreviewable
                             ? file_inline_url($file, $category, $tramiteId)
                             : file_url($file, $category, $tramiteId)))
                     : '';

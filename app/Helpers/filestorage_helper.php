@@ -331,8 +331,22 @@ if (!function_exists('file_inline_url')) {
 
             $storage = service('fileStorage');
             // Use inlineUrl() if the driver supports it (S3), otherwise fall back to url()
+            // Pass content type so S3 serves the correct MIME (images need image/jpeg etc.)
             if (method_exists($storage, 'inlineUrl')) {
-                return (string) $storage->inlineUrl($key, $ttl);
+                $ext = strtolower((string) pathinfo($key, PATHINFO_EXTENSION));
+                $mimeMap = [
+                    'pdf'  => 'application/pdf',
+                    'jpg'  => 'image/jpeg',
+                    'jpeg' => 'image/jpeg',
+                    'png'  => 'image/png',
+                    'gif'  => 'image/gif',
+                    'webp' => 'image/webp',
+                    'svg'  => 'image/svg+xml',
+                    'tiff' => 'image/tiff',
+                    'tif'  => 'image/tiff',
+                ];
+                $contentType = $mimeMap[$ext] ?? '';
+                return (string) $storage->inlineUrl($key, $ttl, $contentType);
             }
 
             return (string) $storage->url($key, $ttl);

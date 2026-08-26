@@ -127,7 +127,7 @@ final class S3FileStorage implements FileStorage
      * (PDFs) so the browser displays them inline instead of downloading.
      * Same TTL rules as url().
      */
-    public function inlineUrl(string $key, int $ttlSeconds = 3600): string
+    public function inlineUrl(string $key, int $ttlSeconds = 3600, string $contentType = ''): string
     {
         if ($ttlSeconds <= 0 || $ttlSeconds > self::MAX_PRESIGN_TTL) {
             log_message(
@@ -147,7 +147,14 @@ final class S3FileStorage implements FileStorage
                 'Bucket'                     => $this->bucket,
                 'Key'                        => $key,
                 'ResponseContentDisposition' => 'inline; filename="' . $name . '"',
-                'ResponseContentType'        => 'application/pdf',
+                'ResponseContentType'        => (function(string $k, string $ct): string {
+                    if ($ct !== '') { return $ct; }
+                    $e = strtolower((string) pathinfo($k, PATHINFO_EXTENSION));
+                    return ['pdf'=>'application/pdf','jpg'=>'image/jpeg','jpeg'=>'image/jpeg',
+                            'png'=>'image/png','gif'=>'image/gif','webp'=>'image/webp',
+                            'svg'=>'image/svg+xml','tiff'=>'image/tiff','tif'=>'image/tiff',
+                    ][$e] ?? 'application/octet-stream';
+                })($key, $contentType),
             ]);
 
             return (string) $this->client
