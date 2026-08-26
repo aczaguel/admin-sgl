@@ -97,159 +97,143 @@ $approveUrl         = '/deskapp/tramites/autorizar';
     <div class="tul-three-rail">
         <!-- Carril izquierdo: Formularios (Gestor + Derechos) -->
         <div class="tul-rail tul-rail--form" data-rail="form">
-            <?php if (!$canEdit && $blockedReason !== ''): ?>
-                <div class="tul-blocked-notice"><?= esc($blockedReason) ?></div>
-            <?php endif; ?>
 
-            <!-- Gestor Assignment Form -->
-            <form
-                data-tul-save
-                data-tul-step="2"
-                data-tul-url="<?= esc($gestorSaveUrl, 'attr') ?>"
-                data-tul-gestores-url="<?= esc($gestoresByEmpresa, 'attr') ?>"
-                data-tul-reload
-                <?php if (!$canEdit): ?> data-tul-readonly<?php endif; ?>
-            >
-                <input type="hidden" name="<?= esc($csrfName, 'attr') ?>" value="<?= esc($csrfHash, 'attr') ?>">
-
-                <fieldset class="tul-fieldset">
-                    <legend class="tul-fieldset__legend">Asignación de Gestor</legend>
-
-                    <div class="tul-field-group">
-                        <div class="tul-field">
-                            <label class="tul-label" for="tul_step2_empresa_gestora">Empresa gestora</label>
-                            <select
-                                class="tul-input"
-                                id="tul_step2_empresa_gestora"
-                                name="empresa_gestora_id"
-                                <?= !$canEdit ? ' disabled' : '' ?>
-                            >
-                                <option value="">Seleccione una empresa</option>
-                                <?php foreach (($options['empresaGestora'] ?? []) as $optVal => $optLabel): ?>
-                                    <option value="<?= esc((string) $optVal, 'attr') ?>"<?= (string) $optVal === (string) ($values['empresa_gestora_id'] ?? '') ? ' selected' : '' ?>><?= esc((string) $optLabel) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <div class="tul-field">
-                            <label class="tul-label" for="tul_step2_gestor">Gestor</label>
-                            <select
-                                class="tul-input"
-                                id="tul_step2_gestor"
-                                name="gestor_id"
-                                <?= !$canEdit ? ' disabled' : '' ?>
-                            >
-                                <option value="">Seleccione un gestor</option>
-                                <?php foreach (($options['gestor'] ?? []) as $optVal => $optLabel): ?>
-                                    <option value="<?= esc((string) $optVal, 'attr') ?>"<?= (string) $optVal === (string) ($values['gestor_id'] ?? '') ? ' selected' : '' ?>><?= esc((string) $optLabel) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <span class="tul-field-help">La lista de gestores depende de la empresa seleccionada.</span>
-                        </div>
+            <?php if ($isApprovedLock): ?>
+                <!-- READ-ONLY MODE -->
+                <div class="tul-ro-card">
+                    <div class="tul-ro-card__row">
+                        <span class="tul-ro-card__label">Empresa gestora</span>
+                        <span class="tul-ro-card__value"><?= esc((string) ($values['empresa_gestora_name'] ?? '—')) ?></span>
                     </div>
-
-                    <?php if ($canEdit): ?>
-                        <div class="tul-btn-row">
-                            <button type="submit" class="tul-btn tul-btn--primary" data-tul-save-btn>Guardar Gestor</button>
-                        </div>
-                    <?php endif; ?>
-                </fieldset>
-            </form>
-
-            <!-- Derechos Payment Form -->
-            <form
-                data-tul-save
-                data-tul-step="2"
-                data-tul-url="<?= esc($derechosSaveUrl, 'attr') ?>"
-                data-tul-reload
-                <?php if (!$canEdit): ?> data-tul-readonly<?php endif; ?>
-            >
-                <input type="hidden" name="<?= esc($csrfName, 'attr') ?>" value="<?= esc($csrfHash, 'attr') ?>">
-
-                <fieldset class="tul-fieldset">
-                    <legend class="tul-fieldset__legend">Pago de Derechos</legend>
-
-                    <div class="tul-field-group">
-                        <div class="tul-field">
-                            <label class="tul-label" for="tul_step2_derechos_tramite">Monto pago de derechos</label>
-                            <input
-                                class="tul-input"
-                                id="tul_step2_derechos_tramite"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                name="derechos_tramite"
-                                value="<?= esc((string) ($values['derechos_tramite'] ?? ''), 'attr') ?>"
-                                <?= !$canEdit ? ' disabled' : '' ?>
-                            >
-                        </div>
-
-                        <div class="tul-field">
-                            <label class="tul-label" for="tul_step2_derechos_pago_sitio">Pago</label>
-                            <select
-                                class="tul-input"
-                                id="tul_step2_derechos_pago_sitio"
-                                name="derechos_pago_sitio"
-                                <?= !$canEdit ? ' disabled' : '' ?>
-                            >
-                                <option value="">Seleccione una opción</option>
-                                <?php foreach (($options['derechosPagoSitio'] ?? []) as $optVal => $optLabel): ?>
-                                    <option value="<?= esc((string) $optVal, 'attr') ?>"<?= (string) $optVal === (string) ($values['derechos_pago_sitio'] ?? '') ? ' selected' : '' ?>><?= esc((string) $optLabel) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <div class="tul-field<?= $vigenciaIsUrgent ? ' tul-field--urgent' : '' ?>">
-                            <label class="tul-label" for="tul_step2_derechos_vigencia">Fecha vigencia</label>
-                            <input
-                                class="tul-input"
-                                id="tul_step2_derechos_vigencia"
-                                type="datetime-local"
-                                name="derechos_vigencia"
-                                value="<?= esc($vigenciaInputValue, 'attr') ?>"
-                                <?= !$canEdit ? ' disabled' : '' ?>
-                            >
-                            <?php if ($vigenciaWarningText !== ''): ?>
-                                <span class="tul-field-warning"><?= esc($vigenciaWarningText) ?></span>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="tul-field">
-                            <label class="tul-label" for="tul_step2_derechos_revol_cliente">Forma de pago</label>
-                            <select
-                                class="tul-input"
-                                id="tul_step2_derechos_revol_cliente"
-                                name="derechos_revol_cliente"
-                                <?= !$canEdit ? ' disabled' : '' ?>
-                            >
-                                <option value="">Seleccione una opción</option>
-                                <?php foreach (($options['derechosRevolCliente'] ?? []) as $optVal => $optLabel): ?>
-                                    <option value="<?= esc((string) $optVal, 'attr') ?>"<?= (string) $optVal === (string) ($values['derechos_revol_cliente'] ?? '') ? ' selected' : '' ?>><?= esc((string) $optLabel) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-
-                        <div class="tul-field tul-field--wide">
-                            <label class="tul-label" for="tul_step2_derechos_refer_banc">Referencia bancaria</label>
-                            <input
-                                class="tul-input"
-                                id="tul_step2_derechos_refer_banc"
-                                type="text"
-                                name="derechos_refer_banc"
-                                maxlength="100"
-                                value="<?= esc((string) ($values['derechos_refer_banc'] ?? ''), 'attr') ?>"
-                                <?= !$canEdit ? ' disabled' : '' ?>
-                            >
-                        </div>
+                    <div class="tul-ro-card__row">
+                        <span class="tul-ro-card__label">Gestor</span>
+                        <span class="tul-ro-card__value"><?= esc((string) ($values['gestor_name'] ?? '—')) ?></span>
                     </div>
+                </div>
+                <div class="tul-ro-card" style="margin-top:12px">
+                    <div class="tul-ro-card__row">
+                        <span class="tul-ro-card__label">Monto pago de derechos</span>
+                        <span class="tul-ro-card__value"><?= esc((string) ($values['derechos_tramite'] ?? '—')) ?></span>
+                    </div>
+                    <div class="tul-ro-card__row">
+                        <span class="tul-ro-card__label">Pago</span>
+                        <span class="tul-ro-card__value"><?= esc((string) ($values['derechos_pago_sitio_label'] ?? $values['derechos_pago_sitio'] ?? '—')) ?></span>
+                    </div>
+                    <div class="tul-ro-card__row">
+                        <span class="tul-ro-card__label">Fecha vigencia</span>
+                        <span class="tul-ro-card__value"><?= esc((string) ($values['derechos_vigencia'] ?? '—')) ?></span>
+                    </div>
+                    <div class="tul-ro-card__row">
+                        <span class="tul-ro-card__label">Forma de pago</span>
+                        <span class="tul-ro-card__value"><?= esc((string) ($values['derechos_revol_cliente_label'] ?? $values['derechos_revol_cliente'] ?? '—')) ?></span>
+                    </div>
+                    <div class="tul-ro-card__row">
+                        <span class="tul-ro-card__label">Referencia bancaria</span>
+                        <span class="tul-ro-card__value"><?= esc((string) ($values['derechos_refer_banc'] ?? '—')) ?></span>
+                    </div>
+                </div>
 
-                    <?php if ($canEdit): ?>
-                        <div class="tul-btn-row">
-                            <button type="submit" class="tul-btn tul-btn--primary" data-tul-save-btn>Guardar Derechos</button>
+            <?php else: ?>
+                <?php if (!$canEdit && $blockedReason !== ''): ?>
+                    <div class="tul-blocked-notice"><?= esc($blockedReason) ?></div>
+                <?php endif; ?>
+
+                <!-- Gestor Assignment Form -->
+                <form
+                    data-tul-save
+                    data-tul-step="2"
+                    data-tul-url="<?= esc($gestorSaveUrl, 'attr') ?>"
+                    data-tul-gestores-url="<?= esc($gestoresByEmpresa, 'attr') ?>"
+                    data-tul-reload
+                    <?php if (!$canEdit): ?> data-tul-readonly<?php endif; ?>
+                >
+                    <input type="hidden" name="<?= esc($csrfName, 'attr') ?>" value="<?= esc($csrfHash, 'attr') ?>">
+                    <fieldset class="tul-fieldset">
+                        <legend class="tul-fieldset__legend">Asignación de Gestor</legend>
+                        <div class="tul-field-group">
+                            <div class="tul-field">
+                                <label class="tul-label" for="tul_step2_empresa_gestora">Empresa gestora</label>
+                                <select class="tul-input" id="tul_step2_empresa_gestora" name="empresa_gestora_id"<?= !$canEdit ? ' disabled' : '' ?>>
+                                    <option value="">Seleccione una empresa</option>
+                                    <?php foreach (($options['empresaGestora'] ?? []) as $optVal => $optLabel): ?>
+                                        <option value="<?= esc((string) $optVal, 'attr') ?>"<?= (string) $optVal === (string) ($values['empresa_gestora_id'] ?? '') ? ' selected' : '' ?>><?= esc((string) $optLabel) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="tul-field">
+                                <label class="tul-label" for="tul_step2_gestor">Gestor</label>
+                                <select class="tul-input" id="tul_step2_gestor" name="gestor_id"<?= !$canEdit ? ' disabled' : '' ?>>
+                                    <option value="">Seleccione un gestor</option>
+                                    <?php foreach (($options['gestor'] ?? []) as $optVal => $optLabel): ?>
+                                        <option value="<?= esc((string) $optVal, 'attr') ?>"<?= (string) $optVal === (string) ($values['gestor_id'] ?? '') ? ' selected' : '' ?>><?= esc((string) $optLabel) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <span class="tul-field-help">La lista de gestores depende de la empresa seleccionada.</span>
+                            </div>
                         </div>
-                    <?php endif; ?>
-                </fieldset>
-            </form>
+                        <?php if ($canEdit): ?>
+                            <div class="tul-btn-row">
+                                <button type="submit" class="tul-btn tul-btn--primary" data-tul-save-btn>Guardar Gestor</button>
+                            </div>
+                        <?php endif; ?>
+                    </fieldset>
+                </form>
+
+                <!-- Derechos Payment Form -->
+                <form
+                    data-tul-save
+                    data-tul-step="2"
+                    data-tul-url="<?= esc($derechosSaveUrl, 'attr') ?>"
+                    data-tul-reload
+                    <?php if (!$canEdit): ?> data-tul-readonly<?php endif; ?>
+                >
+                    <input type="hidden" name="<?= esc($csrfName, 'attr') ?>" value="<?= esc($csrfHash, 'attr') ?>">
+                    <fieldset class="tul-fieldset">
+                        <legend class="tul-fieldset__legend">Pago de Derechos</legend>
+                        <div class="tul-field-group">
+                            <div class="tul-field">
+                                <label class="tul-label" for="tul_step2_derechos_tramite">Monto pago de derechos</label>
+                                <input class="tul-input" id="tul_step2_derechos_tramite" type="number" step="0.01" min="0" name="derechos_tramite" value="<?= esc((string) ($values['derechos_tramite'] ?? ''), 'attr') ?>"<?= !$canEdit ? ' disabled' : '' ?>>
+                            </div>
+                            <div class="tul-field">
+                                <label class="tul-label" for="tul_step2_derechos_pago_sitio">Pago</label>
+                                <select class="tul-input" id="tul_step2_derechos_pago_sitio" name="derechos_pago_sitio"<?= !$canEdit ? ' disabled' : '' ?>>
+                                    <option value="">Seleccione una opción</option>
+                                    <?php foreach (($options['derechosPagoSitio'] ?? []) as $optVal => $optLabel): ?>
+                                        <option value="<?= esc((string) $optVal, 'attr') ?>"<?= (string) $optVal === (string) ($values['derechos_pago_sitio'] ?? '') ? ' selected' : '' ?>><?= esc((string) $optLabel) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="tul-field<?= $vigenciaIsUrgent ? ' tul-field--urgent' : '' ?>">
+                                <label class="tul-label" for="tul_step2_derechos_vigencia">Fecha vigencia</label>
+                                <input class="tul-input" id="tul_step2_derechos_vigencia" type="datetime-local" name="derechos_vigencia" value="<?= esc($vigenciaInputValue, 'attr') ?>"<?= !$canEdit ? ' disabled' : '' ?>>
+                                <?php if ($vigenciaWarningText !== ''): ?>
+                                    <span class="tul-field-warning"><?= esc($vigenciaWarningText) ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="tul-field">
+                                <label class="tul-label" for="tul_step2_derechos_revol_cliente">Forma de pago</label>
+                                <select class="tul-input" id="tul_step2_derechos_revol_cliente" name="derechos_revol_cliente"<?= !$canEdit ? ' disabled' : '' ?>>
+                                    <option value="">Seleccione una opción</option>
+                                    <?php foreach (($options['derechosRevolCliente'] ?? []) as $optVal => $optLabel): ?>
+                                        <option value="<?= esc((string) $optVal, 'attr') ?>"<?= (string) $optVal === (string) ($values['derechos_revol_cliente'] ?? '') ? ' selected' : '' ?>><?= esc((string) $optLabel) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="tul-field tul-field--wide">
+                                <label class="tul-label" for="tul_step2_derechos_refer_banc">Referencia bancaria</label>
+                                <input class="tul-input" id="tul_step2_derechos_refer_banc" type="text" name="derechos_refer_banc" maxlength="100" value="<?= esc((string) ($values['derechos_refer_banc'] ?? ''), 'attr') ?>"<?= !$canEdit ? ' disabled' : '' ?>>
+                            </div>
+                        </div>
+                        <?php if ($canEdit): ?>
+                            <div class="tul-btn-row">
+                                <button type="submit" class="tul-btn tul-btn--primary" data-tul-save-btn>Guardar Derechos</button>
+                            </div>
+                        <?php endif; ?>
+                    </fieldset>
+                </form>
+
+            <?php endif; // end isApprovedLock / edit mode ?>
         </div>
 
         <!-- Carril centro: Comprobantes (Upload + Galería) -->

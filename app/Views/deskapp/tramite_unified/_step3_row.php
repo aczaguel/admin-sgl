@@ -176,7 +176,7 @@ $tulLockReason = (string) ($tulStep3LockReason ?? '');
 
         <!-- Carril centro: Dropzones de evidencia y galería -->
         <div class="tul-rail tul-rail--docs" data-rail="docs">
-            <?php if ($canUpload): ?>
+            <?php if ($canUpload && !$evidenciasAprobadas): ?>
                 <!-- Dropzone: Trámite Recibido -->
                 <div class="tul-dropzone"
                      data-tul-dropzone
@@ -206,7 +206,7 @@ $tulLockReason = (string) ($tulStep3LockReason ?? '');
                     </div>
                     <div class="tul-dropzone__progress" data-tul-upload-progress hidden></div>
                 </div>
-            <?php endif; ?>
+            <?php endif; // end canUpload && !evidenciasAprobadas ?>
 
             <!-- Galería de documentos cargados -->
             <div class="tul-gallery" data-tul-gallery data-tul-step="3">

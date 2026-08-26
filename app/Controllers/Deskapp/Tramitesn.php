@@ -3325,6 +3325,7 @@ class Tramitesn extends Tramites
         ];
         $prototypeStep1Form = [
             'canEdit' => false,
+            'isApprovedLock' => false,
             'blockedReason' => null,
             'csrfName' => csrf_token(),
             'csrfHash' => csrf_hash(),
@@ -3348,6 +3349,11 @@ class Tramitesn extends Tramites
                 'entidad_id' => (int) ($prototypeReadOnlyTramite['entidad_id'] ?? 0),
                 'observaciones' => (string) ($prototypeReadOnlyTramite['fields']['observaciones'] ?? ''),
                 'current_step' => 1,
+                // Resolved display labels for read-only mode
+                'cliente_name' => (string) ($prototypeReadOnlyTramite['cliente_name'] ?? ''),
+                'ejecutivo_name' => (string) ($prototypeReadOnlyTramite['ejecutivo_name'] ?? ''),
+                'entidad_name' => (string) ($prototypeReadOnlyTramite['entidad_name'] ?? ''),
+                'tipo_principal_label' => (string) ($prototypeReadOnlyTramite['tipo_principal_label'] ?? ''),
             ],
         ];
         $prototypeStep1ServicesForm = [
@@ -3446,6 +3452,11 @@ class Tramitesn extends Tramites
                 'derechos_vigencia' => (string) ($prototypeReadOnlyTramite['fields']['derechos_vigencia'] ?? ''),
                 'derechos_revol_cliente' => (string) ($prototypeReadOnlyTramite['fields']['derechos_revol_cliente'] ?? ''),
                 'derechos_refer_banc' => (string) ($prototypeReadOnlyTramite['fields']['derechos_refer_banc'] ?? ''),
+                // Resolved display labels for read-only mode
+                'empresa_gestora_name' => (string) ($prototypeReadOnlyTramite['empresa_gestora_name'] ?? ''),
+                'gestor_name' => (string) ($prototypeReadOnlyTramite['gestor_name'] ?? ''),
+                'derechos_pago_sitio_label' => (string) ($prototypeReadOnlyTramite['fields']['derechos_pago_sitio_label'] ?? ''),
+                'derechos_revol_cliente_label' => (string) ($prototypeReadOnlyTramite['fields']['derechos_revol_cliente_label'] ?? ''),
             ],
             'docs' => !empty($prototypeReadOnlyTramite['pago_derechos_docs']) && is_array($prototypeReadOnlyTramite['pago_derechos_docs'])
                 ? $this->expandDocEntries($prototypeReadOnlyTramite['pago_derechos_docs'], 'pago_derechos', $prototypeTramiteId)
@@ -3628,6 +3639,7 @@ class Tramitesn extends Tramites
                 && $canWriteDatosTramite
                 && !$approvedLock
                 && !$isLocked;
+            $prototypeStep1Form['isApprovedLock'] = $approvedLock || $isLocked;
 
             if (!$prototypeStep1Form['canEdit']) {
                 if (!$hasTenantAccess) {
