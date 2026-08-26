@@ -116,11 +116,24 @@ if ($tul_gateEvidencias) {
     </div>
 </div>
 
+<?php
+$tul_clienteMode = $viewData['tulClienteMode'] ?? 'light';
+?>
 <div class="tul-container">
     <!-- Fase Operativa: Pasos 1-3 (expandidos, solo lectura) -->
     <?= view('deskapp/tramite_unified/_step1_row', $viewData) ?>
     <?= view('deskapp/tramite_unified/_step2_row', $viewData) ?>
     <?= view('deskapp/tramite_unified/_step3_row', $viewData) ?>
+
+    <?php if ($tul_clienteMode === 'full'): ?>
+    <!-- Paso 5 — Cobro y cierre (solo visible para Cliente Full) -->
+    <script>document.addEventListener('DOMContentLoaded',function(){var s=document.querySelector('[data-step-row="5"]');if(s){s.classList.add('is-expanded');var b=s.querySelector('[data-accordion-body]');if(b)b.removeAttribute('aria-hidden');}});</script>
+    <?php
+    // Pass tulFinanceLocked=false so step 5 renders expanded for the client
+    $step5ViewData = array_merge($viewData, ['tulFinanceLocked' => false, 'tulFinanceLockReason' => '']);
+    echo view('deskapp/tramite_unified/_step5_row', $step5ViewData);
+    ?>
+    <?php endif; ?>
 </div>
 
 <!-- Document preview lightbox (shared across all steps) -->

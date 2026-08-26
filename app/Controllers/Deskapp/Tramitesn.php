@@ -4099,6 +4099,11 @@ class Tramitesn extends Tramites
             return redirect()->to('/deskapp/clientes/tramites')->with('error', 'Trámite no encontrado.');
         }
 
+        // Determine client mode:
+        //   'light' = pasos 1-3 only (default, rol "Cliente")
+        //   'full'  = pasos 1-3 + paso 5 cobro y cierre (rol "Cliente Full")
+        $clienteMode = is_cliente_full($roles) ? 'full' : 'light';
+
         // Build minimal view data — everything read-only, steps 4 and 5 hidden
         $csrfName = csrf_token();
         $csrfHash = csrf_hash();
@@ -4236,17 +4241,58 @@ class Tramitesn extends Tramites
                 'items' => $prototypeReadOnlyTramite['process_notes'] ?? [],
             ],
 
-            // Steps 4 and 5 — hidden in client view (empty/locked)
+            // Step 4 — always hidden for clients (internal financial step)
             'prototypeStep4Form' => ['canView' => false, 'canEdit' => false, 'canUploadDocs' => false, 'canDeleteDocs' => false, 'blockedReason' => null, 'uploadBlockedReason' => null, 'deleteBlockedReason' => null, 'csrfName' => $csrfName, 'csrfHash' => $csrfHash, 'tramiteId' => $tramiteId, 'url' => '', 'urls' => ['upload' => '', 'delete' => '', 'getServiceCosts' => '', 'updateServiceCost' => ''], 'options' => ['pagoGestorStatus' => [], 'statusDoctosGestor' => [], 'reembolsoStatus' => [], 'comprobanteFinal' => []], 'docs' => [], 'values' => []],
             'prototypeStep4NotesForm' => ['canView' => false, 'canAdd' => false, 'blockedReason' => null, 'csrfName' => $csrfName, 'csrfHash' => $csrfHash, 'tramiteId' => $tramiteId, 'urls' => ['create' => ''], 'items' => []],
-            'prototypeStep5Form' => ['canView' => false, 'canEdit' => false, 'canUploadDocs' => false, 'canDeleteDocs' => false, 'blockedReason' => null, 'uploadBlockedReason' => null, 'deleteBlockedReason' => null, 'csrfName' => $csrfName, 'csrfHash' => $csrfHash, 'tramiteId' => $tramiteId, 'url' => '', 'urls' => [], 'options' => ['cobroStatus' => [], 'cobroCorrecto' => []], 'docs' => [], 'values' => []],
+
+            // Step 5 — visible for Cliente Full, hidden for Cliente Light
+            'prototypeStep5Form' => $clienteMode === 'full' ? [
+                'canView' => true,
+                'canEdit' => false,
+                'canUploadDocs' => false,
+                'canDeleteDocs' => false,
+                'blockedReason' => null,
+                'uploadBlockedReason' => null,
+                'deleteBlockedReason' => null,
+                'csrfName' => $csrfName,
+                'csrfHash' => $csrfHash,
+                'tramiteId' => $tramiteId,
+                'url' => '',
+                'urls' => ['getFiles' => '', 'upload' => '', 'delete' => ''],
+                'options' => [
+                    'cobroStatus' => [],
+                    'cobroCorrecto' => [
+                        'parcial' => 'Cobro parcial',
+                        'completo' => 'Cobro completo',
+                        'otro' => 'Otro soporte',
+                    ],
+                ],
+                'docs' => !empty($prototypeReadOnlyTramite['cobro_cliente_docs_raw'])
+                    ? $this->expandDocEntries($prototypeReadOnlyTramite['cobro_cliente_docs_raw'], 'cobro_cliente', $tramiteId)
+                    : [],
+                'values' => [
+                    'id_give_cliente' => (string) ($prototypeReadOnlyTramite['fields']['id_give_cliente'] ?? ''),
+                    'numero_factura' => (string) ($prototypeReadOnlyTramite['fields']['numero_factura'] ?? ''),
+                    'numero_refactura' => (string) ($prototypeReadOnlyTramite['fields']['numero_refactura'] ?? ''),
+                    'cobro_status_id' => (int) ($prototypeReadOnlyTramite['cobro_status_id'] ?? 0),
+                    'evidencia_cobro_txt' => (string) ($prototypeReadOnlyTramite['fields']['evidencia_cobro_txt'] ?? ''),
+                    'costo_gestoria' => (string) ($prototypeReadOnlyTramite['fields']['costo_gestoria'] ?? '0.00'),
+                    'costo_gestoria_hidden' => (string) ($prototypeReadOnlyTramite['fields']['costo_gestoria'] ?? '0.00'),
+                    'costo_pago_cliente' => (string) ($prototypeReadOnlyTramite['fields']['costo_pago_cliente'] ?? '0'),
+                    'comision_derechos' => (string) ($prototypeReadOnlyTramite['fields']['comision_derechos'] ?? '0'),
+                    'iva' => (string) ($prototypeReadOnlyTramite['fields']['iva'] ?? '0.00'),
+                    'costo_total' => (string) ($prototypeReadOnlyTramite['fields']['costo_total'] ?? '0.00'),
+                ],
+            ] : ['canView' => false, 'canEdit' => false, 'canUploadDocs' => false, 'canDeleteDocs' => false, 'blockedReason' => null, 'uploadBlockedReason' => null, 'deleteBlockedReason' => null, 'csrfName' => $csrfName, 'csrfHash' => $csrfHash, 'tramiteId' => $tramiteId, 'url' => '', 'urls' => [], 'options' => ['cobroStatus' => [], 'cobroCorrecto' => []], 'docs' => [], 'values' => []],
+
             'prototypeStep5NotesForm' => ['canView' => false, 'canAdd' => false, 'blockedReason' => null, 'csrfName' => $csrfName, 'csrfHash' => $csrfHash, 'tramiteId' => $tramiteId, 'urls' => ['create' => ''], 'items' => []],
 
-            // Gate flags: show steps 1-3, lock steps 4-5
+            // Gate flags
             'tulStep3Locked' => false,
             'tulStep3LockReason' => '',
-            'tulFinanceLocked' => true,
+            'tulFinanceLocked' => $clienteMode !== 'full',
             'tulFinanceLockReason' => 'La información financiera no está disponible en la vista de cliente.',
+            'tulClienteMode' => $clienteMode,
         ];
 
         return view('deskapp/tramite_unified/index_client', ['viewData' => $viewData]);

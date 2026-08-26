@@ -620,6 +620,19 @@ if (! function_exists('is_client')) {
     }
 }
 
+if (! function_exists('is_cliente_full')) {
+    /**
+     * Returns true when the user has the "Cliente Full" role.
+     * Cliente Full sees steps 1-3 + step 5 (cobro y cierre) but NOT step 4 (pago a gestor).
+     * Cliente Light (plain "Cliente") sees only steps 1-3.
+     */
+    function is_cliente_full($roles): bool
+    {
+        $roles = normalize_permission_list($roles);
+        return in_array('Cliente Full', $roles, true);
+    }
+}
+
 if (! function_exists('is_starter')) {
     function is_starter($roles)
     {

@@ -149,7 +149,7 @@
 			'admin', 'super admin', 'superadmin', 'ejecutivo', 'gestor',
 			'gerente', 'manager', 'operador', 'supervisor', 'debug',
 			'staff', 'empleado', 'interno',
-			'closer', 'authorizer', 'coordinador', 'cobranza',
+			'closer', 'authorizer', 'coordinador', 'cobranza', 'cliente full',
 		];
 
 		foreach ($roles as $role) {
