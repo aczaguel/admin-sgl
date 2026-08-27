@@ -2316,6 +2316,18 @@ body.sgl-ribbon-layout .header .sgl-ribbon-nav {
     left: auto !important;
     width: 100% !important;
     z-index: 1 !important;
+    /* Allow dropdowns to overflow above the content below */
+    overflow: visible !important;
+}
+
+/* Dropdowns inside the header must float above the page content.
+   The header itself is static (scrolls with page) but its popups need
+   a high z-index to appear on top of the next section. */
+.header .dropdown-menu,
+.header .user-info-dropdown .dropdown-menu,
+.header .dashboard-setting .dropdown-menu {
+    z-index: 9050 !important;
+    position: absolute !important;
 }
 
 .left-side-bar {
