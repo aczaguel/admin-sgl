@@ -4190,7 +4190,7 @@ class Tramitesn extends Tramites
                 'canUploadDocs' => false,
                 'canDeleteDocs' => false,
                 'currentStatusId' => (int) ($prototypeReadOnlyTramite['tra_status_id'] ?? 0),
-                'currentStep' => 0,
+                'currentStep' => (int) ($prototypeReadOnlyTramite['new_format_step'] ?? 0),
                 'isApprovedLock' => true,
                 'isLockedStatus' => false,
                 'blockedReason' => null,
@@ -4215,6 +4215,11 @@ class Tramitesn extends Tramites
                     'derechos_vigencia' => (string) ($prototypeReadOnlyTramite['fields']['derechos_vigencia'] ?? ''),
                     'derechos_revol_cliente' => (string) ($prototypeReadOnlyTramite['fields']['derechos_revol_cliente'] ?? ''),
                     'derechos_refer_banc' => (string) ($prototypeReadOnlyTramite['fields']['derechos_refer_banc'] ?? ''),
+                    // Resolved labels for tul-ro-card
+                    'empresa_gestora_name' => (string) ($prototypeReadOnlyTramite['empresa_gestora_name'] ?? ''),
+                    'gestor_name' => (string) ($prototypeReadOnlyTramite['gestor_name'] ?? ''),
+                    'derechos_pago_sitio_label' => (string) ($prototypeReadOnlyTramite['fields']['derechos_pago_sitio_label'] ?? ''),
+                    'derechos_revol_cliente_label' => (string) ($prototypeReadOnlyTramite['fields']['derechos_revol_cliente_label'] ?? ''),
                 ],
                 'docs' => !empty($prototypeReadOnlyTramite['pago_derechos_docs']) ? $this->expandDocEntries($prototypeReadOnlyTramite['pago_derechos_docs'], 'pago_derechos', $tramiteId) : [],
             ],
@@ -4223,6 +4228,16 @@ class Tramitesn extends Tramites
             'prototypeStep3Form' => [
                 'canUpload' => false,
                 'canDelete' => false,
+                'canAprobarEvidencias' => false,
+                // Show correct approved state based on actual tramite status
+                'evidenciasAprobadas' => in_array((int) ($prototypeReadOnlyTramite['tra_status_id'] ?? 0), [
+                    SGL_TRA_STATUS_EVIDENCIAS_APROBADAS,
+                    SGL_TRA_STATUS_PAGO_GESTOR,
+                    SGL_TRA_STATUS_COBRO_CLIENTE,
+                    SGL_TRA_STATUS_CONCLUIDO,
+                    SGL_TRA_STATUS_CANCELADO,
+                ], true),
+                'aprobarEvidenciasUrl' => '',
                 'blockedReason' => null,
                 'deleteBlockedReason' => null,
                 'csrfName' => $csrfName,
@@ -4291,7 +4306,16 @@ class Tramitesn extends Tramites
                 ],
             ] : ['canView' => false, 'canEdit' => false, 'canUploadDocs' => false, 'canDeleteDocs' => false, 'blockedReason' => null, 'uploadBlockedReason' => null, 'deleteBlockedReason' => null, 'csrfName' => $csrfName, 'csrfHash' => $csrfHash, 'tramiteId' => $tramiteId, 'url' => '', 'urls' => [], 'options' => ['cobroStatus' => [], 'cobroCorrecto' => []], 'docs' => [], 'values' => []],
 
-            'prototypeStep5NotesForm' => ['canView' => false, 'canAdd' => false, 'blockedReason' => null, 'csrfName' => $csrfName, 'csrfHash' => $csrfHash, 'tramiteId' => $tramiteId, 'urls' => ['create' => ''], 'items' => []],
+            'prototypeStep5NotesForm' => [
+                'canView' => $clienteMode === 'full',
+                'canAdd' => false,
+                'blockedReason' => null,
+                'csrfName' => $csrfName,
+                'csrfHash' => $csrfHash,
+                'tramiteId' => $tramiteId,
+                'urls' => ['create' => ''],
+                'items' => $clienteMode === 'full' ? $this->getPrototypeStep5Notes($tramiteId) : [],
+            ],
 
             // Gate flags
             'tulStep3Locked' => false,
