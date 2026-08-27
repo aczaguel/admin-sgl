@@ -1156,8 +1156,8 @@ class Tramitesn extends Tramites
         $canQuickAction = has_permission('quick_action_bitacora', $perms, $roles);
         $canAdd = $canQuickAction && has_permission('quick_action_bitacora_add', $perms, $roles);
         $canAccessCobroCliente = can_access_cobro_cliente_surface($roles, $perms);
-        $canEditCobroCliente = can_edit_cobro_cliente_surface($roles, $perms);
-        if (!$canAdd || !$canAccessCobroCliente || !$canEditCobroCliente) {
+        // Notes only require access (not edit permission) to the cobro surface
+        if (!$canAdd || !$canAccessCobroCliente) {
             return acl_deny('Acceso denegado.', 403, null, true);
         }
 
@@ -1199,10 +1199,16 @@ class Tramitesn extends Tramites
             ]);
         }
 
-        if (!puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', (int) ($tramiteRow['reembolso_status_id'] ?? 0), (int) ($tramiteRow['cobro_status_id'] ?? 0), 5)) {
+        // Notes (bitácora) use a lighter gate than document uploads:
+        // allow adding notes when the tramite can be viewed in step 5,
+        // not only when uploads are permitted. Uploads need 'upload_cobro_cliente'
+        // but notes should be allowed whenever the step is visible and not locked.
+        $step5Viewable = puede_editar_modulo($roles, $traStatusId, 'upload_cobro_cliente', (int) ($tramiteRow['reembolso_status_id'] ?? 0), (int) ($tramiteRow['cobro_status_id'] ?? 0), 5)
+            || in_array($traStatusId, [SGL_TRA_STATUS_COBRO_CLIENTE, SGL_TRA_STATUS_PAGO_GESTOR, SGL_TRA_STATUS_EVIDENCIAS_APROBADAS, SGL_TRA_STATUS_EVIDENCIAS_FINALES], true);
+        if (!$step5Viewable) {
             return $this->response->setStatusCode(409)->setJSON([
                 'success' => false,
-                'message' => 'Cobro a cliente no está editable para este estatus y este perfil.',
+                'message' => 'Cobro a cliente no está accesible para agregar notas en este estatus.',
                 'csrfHash' => csrf_hash(),
             ]);
         }
