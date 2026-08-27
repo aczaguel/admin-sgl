@@ -378,10 +378,7 @@ class Tramitesn extends Tramites
                 return array_map(fn (array $row): array => $this->buildPrototypeEvidenceItem($row), $rows);
             }
 
-            $bitacoraDb = $this->_getDbData();
-            if (!is_object($bitacoraDb) || !method_exists($bitacoraDb, 'tableExists') || !$bitacoraDb->tableExists('bitacora')) {
-                return [];
-            }
+            $bitacoraDb = ConfigDatabase::connect();
 
             $rows = $bitacoraDb->table('bitacora')
                 ->select('bitacora.id, bitacora.cambios, bitacora.created_at, bitacora.user_id, users.firstname, users.midname, users.lastname')
@@ -446,10 +443,7 @@ class Tramitesn extends Tramites
                 return array_map(fn (array $row): array => $this->buildPrototypeEvidenceItem($row), $rows);
             }
 
-            $bitacoraDb = $this->_getDbData();
-            if (!is_object($bitacoraDb) || !method_exists($bitacoraDb, 'tableExists') || !$bitacoraDb->tableExists('bitacora')) {
-                return [];
-            }
+            $bitacoraDb = ConfigDatabase::connect();
 
             $rows = $bitacoraDb->table('bitacora')
                 ->select('bitacora.id, bitacora.cambios, bitacora.created_at, bitacora.user_id, users.firstname, users.midname, users.lastname')
