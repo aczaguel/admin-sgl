@@ -618,3 +618,6 @@ if (file_exists(APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php'))
 {
 	require APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php';
 }
+
+// File inline preview proxy
+$routes->get('/deskapp/file/preview', 'Deskapp/FilePreview::inline', ['filter' => 'auth']);
