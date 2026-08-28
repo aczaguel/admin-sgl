@@ -60,15 +60,21 @@ class FilePreview extends BaseController
             ];
             $mime = $mimeMap[$ext] ?? 'application/octet-stream';
 
-            // S3 driver: redirect to presigned inline URL (no PHP streaming)
+            // S3 driver: redirect to presigned URL with inline disposition
             if (method_exists($storage, 'inlineUrl')) {
-                $url = $storage->inlineUrl($key, 3600, $mime);
+                // Try inline first, fall back to regular url() which we know works
+                $url = '';
+                try {
+                    $url = $storage->inlineUrl($key, 3600, $mime);
+                } catch (\Throwable $inlineErr) {
+                    log_message('warning', 'FilePreview: inlineUrl threw [' . $inlineErr->getMessage() . '] for key=[' . $key . '], trying url()');
+                }
                 if ($url === '') {
-                    log_message('error', 'FilePreview: inlineUrl returned empty for key=[' . $key . '] category=[' . $category . '] id=[' . $id . ']');
-                    // Fallback: try regular url() before giving up
+                    log_message('info', 'FilePreview: falling back to url() for key=[' . $key . ']');
                     $url = $storage->url($key, 3600);
                 }
                 if ($url === '') {
+                    log_message('error', 'FilePreview: both inlineUrl and url() returned empty for key=[' . $key . ']');
                     return $this->response->setStatusCode(404)->setBody('File not found: ' . esc($key));
                 }
                 return redirect()->to($url);
@@ -77,6 +83,7 @@ class FilePreview extends BaseController
             // Local driver: stream file with inline header
             $localPath = FCPATH . 'assets/uploads/' . ltrim($key, '/');
             if (!is_file($localPath)) {
+                log_message('error', 'FilePreview: local file not found at [' . $localPath . ']');
                 return $this->response->setStatusCode(404)->setBody('File not found');
             }
 
@@ -88,8 +95,8 @@ class FilePreview extends BaseController
                 ->setHeader('X-Content-Type-Options', 'nosniff')
                 ->setBody(file_get_contents($localPath));
         } catch (\Throwable $e) {
-            log_message('error', 'FilePreview::inline error for [' . $storedValue . ']: ' . $e->getMessage());
-            return $this->response->setStatusCode(500)->setBody('Error');
+            log_message('error', 'FilePreview::inline error for [' . $storedValue . ']: ' . $e->getMessage() . ' trace: ' . $e->getTraceAsString());
+            return $this->response->setStatusCode(500)->setBody('Error: ' . $e->getMessage());
         }
     }
 }
