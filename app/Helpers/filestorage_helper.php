@@ -330,10 +330,9 @@ if (!function_exists('file_inline_url')) {
             }
 
             // Use the proxy endpoint so the browser always gets Content-Disposition: inline
-            // regardless of driver (local or S3). This is the most reliable approach
-            // because S3 presigned URLs with ResponseContentDisposition can be ignored
-            // by some browsers when loaded inside an iframe.
-            $params = ['key' => $key];
+            // Pass the original storedValue + category + id so the proxy can resolve
+            // the correct S3 key itself (avoids double-encoding issues with slashes).
+            $params = ['file' => $storedValue];
             if ($category !== '') {
                 $params['category'] = $category;
             }

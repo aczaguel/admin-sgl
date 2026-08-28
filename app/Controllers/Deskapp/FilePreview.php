@@ -8,10 +8,12 @@ use App\Controllers\BaseController;
  * FilePreview — serves stored files with Content-Disposition: inline
  * so the browser renders them instead of downloading.
  *
- * GET /deskapp/file/preview?key=<encoded_key>&category=<cat>[&id=<int>]
+ * GET /deskapp/file/preview?file=<storedValue>&category=<cat>[&id=<int>]
  *
- * For S3: redirects to a presigned inlineUrl (avoids streaming through PHP).
- * For local: streams the file directly with correct Content-Type + inline header.
+ * Accepts the raw stored value (bare filename) + category + optional id,
+ * resolves the canonical key via keyFromStored(), then:
+ * - S3:    redirects to a presigned inlineUrl (PHP doesn't stream the file)
+ * - Local: streams the file with Content-Disposition: inline + correct MIME
  */
 class FilePreview extends BaseController
 {
@@ -23,20 +25,26 @@ class FilePreview extends BaseController
             return $resp;
         }
 
-        $key      = trim((string) ($this->request->getGet('key') ?? ''));
-        $category = trim((string) ($this->request->getGet('category') ?? ''));
-        $id       = (int) ($this->request->getGet('id') ?? 0);
+        $storedValue = trim((string) ($this->request->getGet('file') ?? ''));
+        $category    = trim((string) ($this->request->getGet('category') ?? ''));
+        $id          = (int) ($this->request->getGet('id') ?? 0);
 
-        if ($key === '') {
-            return $this->response->setStatusCode(400)->setBody('Missing key');
+        if ($storedValue === '') {
+            return $this->response->setStatusCode(400)->setBody('Missing file');
         }
 
-        // Security: reject traversal
-        if (strpos($key, '..') !== false || strpos($key, "\0") !== false) {
-            return $this->response->setStatusCode(400)->setBody('Invalid key');
+        // Security: reject traversal in the raw value
+        if (strpos($storedValue, '..') !== false || strpos($storedValue, "\0") !== false) {
+            return $this->response->setStatusCode(400)->setBody('Invalid file');
         }
 
         try {
+            // Resolve canonical key the same way as file_inline_url/file_url
+            $key = keyFromStored($storedValue, $category, $id > 0 ? $id : null);
+            if ($key === '') {
+                return $this->response->setStatusCode(400)->setBody('Unresolvable file');
+            }
+
             $storage = service('fileStorage');
             $ext     = strtolower((string) pathinfo($key, PATHINFO_EXTENSION));
             $mimeMap = [
@@ -75,7 +83,7 @@ class FilePreview extends BaseController
                 ->setHeader('X-Content-Type-Options', 'nosniff')
                 ->setBody(file_get_contents($localPath));
         } catch (\Throwable $e) {
-            log_message('error', 'FilePreview::inline error: ' . $e->getMessage());
+            log_message('error', 'FilePreview::inline error for [' . $storedValue . ']: ' . $e->getMessage());
             return $this->response->setStatusCode(500)->setBody('Error');
         }
     }
