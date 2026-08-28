@@ -77,6 +77,7 @@ class FilePreview extends BaseController
                     log_message('error', 'FilePreview: both inlineUrl and url() returned empty for key=[' . $key . ']');
                     return $this->response->setStatusCode(404)->setBody('File not found: ' . esc($key));
                 }
+                log_message('info', 'FilePreview: redirecting key=[' . $key . '] to url=[' . substr($url, 0, 80) . '...]');
                 return redirect()->to($url);
             }
 
