@@ -64,7 +64,12 @@ class FilePreview extends BaseController
             if (method_exists($storage, 'inlineUrl')) {
                 $url = $storage->inlineUrl($key, 3600, $mime);
                 if ($url === '') {
-                    return $this->response->setStatusCode(404)->setBody('File not found');
+                    log_message('error', 'FilePreview: inlineUrl returned empty for key=[' . $key . '] category=[' . $category . '] id=[' . $id . ']');
+                    // Fallback: try regular url() before giving up
+                    $url = $storage->url($key, 3600);
+                }
+                if ($url === '') {
+                    return $this->response->setStatusCode(404)->setBody('File not found: ' . esc($key));
                 }
                 return redirect()->to($url);
             }
