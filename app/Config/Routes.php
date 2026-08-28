@@ -312,6 +312,7 @@ $routes->group('deskapp', ['namespace' => 'App\\Controllers\\Deskapp', 'filter' 
 	});
 	$routes->post('clientes/ver/(:num)', 'ClienteTramites::show/$1');
 	$routes->get('tramitesn/unified-client', 'Tramitesn::unified_client');
+	$routes->get('file/preview', 'FilePreview::inline');
 	$routes->post('tramitesn/aprobar_evidencias/(:num)', 'Tramitesn::aprobarEvidencias/$1');
 	// Trámites - Nuevo flujo (Tramitesn)
 	$routes->get('tramitesn', 'Tramitesn::tramite');
@@ -619,5 +620,3 @@ if (file_exists(APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php'))
 	require APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php';
 }
 
-// File inline preview proxy
-$routes->get('/deskapp/file/preview', 'Deskapp/FilePreview::inline', ['filter' => 'auth']);
