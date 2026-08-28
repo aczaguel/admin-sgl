@@ -1324,7 +1324,7 @@ body.tul-no-floating-menu .main-container {
 .tul-detailbar {
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 200;
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
@@ -2103,4 +2103,18 @@ body #main-content > .tul-container,
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.08));
     border-color: rgba(16, 185, 129, 0.3);
     color: #065f46;
+}
+
+
+/* ============================================================
+   HEADER DROPDOWN Z-INDEX FIX (client view)
+   Ensure header dropdowns (user menu, notifications) float
+   above the sticky tul-detailbar.
+   ============================================================ */
+
+.header .dropdown-menu,
+.header-right .dropdown-menu,
+.user-info-dropdown .dropdown-menu,
+.dashboard-setting .dropdown-menu {
+    z-index: 9050 !important;
 }
