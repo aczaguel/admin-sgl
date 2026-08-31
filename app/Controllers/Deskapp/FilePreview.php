@@ -42,10 +42,11 @@ class FilePreview extends BaseController
             // Resolve canonical key the same way as file_inline_url/file_url
             $key = keyFromStored($storedValue, $category, $id > 0 ? $id : null);
             if ($key === '') {
-                return $this->response->setStatusCode(400)->setBody('Unresolvable file');
+                return $this->response->setStatusCode(400)->setBody('Unresolvable file: storedValue=[' . $storedValue . '] category=[' . $category . '] id=[' . $id . ']');
             }
 
             $storage = service('fileStorage');
+            $driverClass = get_class($storage);
             $ext     = strtolower((string) pathinfo($key, PATHINFO_EXTENSION));
             $mimeMap = [
                 'pdf'  => 'application/pdf',
@@ -74,8 +75,8 @@ class FilePreview extends BaseController
                     $url = $storage->url($key, 3600);
                 }
                 if ($url === '') {
-                    log_message('error', 'FilePreview: both inlineUrl and url() returned empty for key=[' . $key . ']');
-                    return $this->response->setStatusCode(404)->setBody('File not found: ' . esc($key));
+                    log_message('error', 'FilePreview: both inlineUrl and url() returned empty for key=[' . $key . '] driver=[' . $driverClass . ']');
+                    return $this->response->setStatusCode(404)->setBody('File not found: key=[' . esc($key) . '] driver=[' . esc($driverClass) . ']');
                 }
                 log_message('info', 'FilePreview: redirecting key=[' . $key . '] to url=[' . substr($url, 0, 80) . '...]');
                 return redirect()->to($url);
@@ -85,7 +86,7 @@ class FilePreview extends BaseController
             $localPath = FCPATH . 'assets/uploads/' . ltrim($key, '/');
             if (!is_file($localPath)) {
                 log_message('error', 'FilePreview: local file not found at [' . $localPath . ']');
-                return $this->response->setStatusCode(404)->setBody('File not found');
+                return $this->response->setStatusCode(404)->setBody('Local file not found: key=[' . esc($key) . '] path=[' . esc($localPath) . '] driver=[' . esc($driverClass) . ']');
             }
 
             $name = basename($key);
