@@ -232,6 +232,36 @@ final class S3FileStorage implements FileStorage
      * True if an object exists at $key. Returns false (never raises) for a
      * key that was never written or when the key is invalid.
      */
+    /**
+     * Fetch the raw object body from S3 for streaming through PHP.
+     * Returns the body string, or null on failure.
+     */
+    public function getObject(string $key): ?string
+    {
+        if ($key === '') {
+            return null;
+        }
+
+        try {
+            $this->assertKey($key);
+
+            $result = $this->client->getObject([
+                'Bucket' => $this->bucket,
+                'Key'    => $key,
+            ]);
+
+            $body = $result['Body'] ?? null;
+            if ($body === null) {
+                return null;
+            }
+
+            return (string) $body;
+        } catch (\Throwable $e) {
+            log_message('error', 'S3 getObject failed for ' . $key . ': ' . $e->getMessage());
+            return null;
+        }
+    }
+
     public function exists(string $key): bool
     {
         try {
