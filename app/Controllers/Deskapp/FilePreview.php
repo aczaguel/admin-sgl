@@ -63,8 +63,10 @@ class FilePreview extends BaseController
             if (method_exists($storage, 'getObject')) {
                 $body = $storage->getObject($key);
                 if ($body === null || $body === false || $body === '') {
-                    log_message('error', 'FilePreview: getObject returned empty for key=[' . $key . ']');
-                    return $this->response->setStatusCode(404)->setBody('File not found');
+                    log_message('error', 'FilePreview: getObject returned empty for key=[' . $key . '] bucket=[' . (method_exists($storage, 'getBucket') ? $storage->getBucket() : 'unknown') . ']');
+                    // Check if regular url works for debugging
+                    $testUrl = method_exists($storage, 'url') ? substr($storage->url($key, 60), 0, 120) : 'no url method';
+                    return $this->response->setStatusCode(404)->setBody('File not found: key=[' . esc($key) . '] testUrl=[' . esc($testUrl) . ']');
                 }
                 return $this->response
                     ->setHeader('Content-Type', $mime)
