@@ -243,4 +243,17 @@ final class FileStorageService implements FileStorage
     {
         return $this->driver->exists($key);
     }
+
+    /**
+     * Fetch raw object body for streaming through PHP.
+     * Delegates to the active driver if it supports getObject().
+     */
+    public function getObject(string $key): ?string
+    {
+        if (method_exists($this->driver, 'getObject')) {
+            return $this->driver->getObject($key);
+        }
+
+        return null;
+    }
 }
