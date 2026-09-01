@@ -329,27 +329,16 @@ if (!function_exists('file_inline_url')) {
                 return '';
             }
 
-            $storage = service('fileStorage');
-            // Use inlineUrl() if the driver supports it (S3), otherwise fall back to url()
-            // Pass content type so S3 serves the correct MIME (images need image/jpeg etc.)
-            if (method_exists($storage, 'inlineUrl')) {
-                $ext = strtolower((string) pathinfo($key, PATHINFO_EXTENSION));
-                $mimeMap = [
-                    'pdf'  => 'application/pdf',
-                    'jpg'  => 'image/jpeg',
-                    'jpeg' => 'image/jpeg',
-                    'png'  => 'image/png',
-                    'gif'  => 'image/gif',
-                    'webp' => 'image/webp',
-                    'svg'  => 'image/svg+xml',
-                    'tiff' => 'image/tiff',
-                    'tif'  => 'image/tiff',
-                ];
-                $contentType = $mimeMap[$ext] ?? '';
-                return (string) $storage->inlineUrl($key, $ttl, $contentType);
+            // Route through the PHP proxy so Content-Disposition: inline is
+            // always set by PHP — S3 object metadata can override ResponseContentDisposition.
+            $params = ['file' => $storedValue];
+            if ($category !== '') {
+                $params['category'] = $category;
             }
-
-            return (string) $storage->url($key, $ttl);
+            if ($id !== null && $id > 0) {
+                $params['id'] = $id;
+            }
+            return base_url('/deskapp/file/preview?' . http_build_query($params));
         } catch (\Throwable $e) {
             log_message(
                 'error',
