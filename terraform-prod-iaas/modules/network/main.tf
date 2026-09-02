@@ -86,6 +86,16 @@ resource "aws_vpc_security_group_ingress_rule" "app_http" {
   cidr_ipv4         = each.value
 }
 
+# BookStack documentation portal — port 8090
+resource "aws_vpc_security_group_ingress_rule" "app_bookstack" {
+  security_group_id = aws_security_group.app.id
+  description       = "BookStack documentation portal"
+  ip_protocol       = "tcp"
+  from_port         = 8090
+  to_port           = 8090
+  cidr_ipv4         = "0.0.0.0/0"
+}
+
 # NOTE: There is intentionally NO ingress rule for TCP 22 (SSH). Operator shell
 # access is provided exclusively through SSM Session Manager (Requirement 7.1).
 
