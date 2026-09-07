@@ -3961,13 +3961,20 @@ class Tramitesn extends Tramites
             // El permiso de APROBAR es completamente independiente del permiso de SUBIR archivos.
             // Solo requiere: acceso al trámite + permiso específico + ambas docs presentes + no aprobado + no locked.
             $tul_traStatusIdForApproval = (int) ($prototypeReadOnlyTramite['tra_status_id'] ?? 0);
-            $evidenciasYaAprobadas = in_array($tul_traStatusIdForApproval, [
-                SGL_TRA_STATUS_EVIDENCIAS_APROBADAS, // 31
-                SGL_TRA_STATUS_PAGO_GESTOR,          // 23
-                SGL_TRA_STATUS_COBRO_CLIENTE,        // 28
-                SGL_TRA_STATUS_CONCLUIDO,            // 20
-                SGL_TRA_STATUS_CANCELADO,            // 21
-            ], true);
+            // Evidencias se consideran "ya aprobadas" solo si:
+            // 1. El status es EVIDENCIAS_APROBADAS (31) — aprobación explícita, O
+            // 2. El status es 23/28/20/21 Y además hay ambas evidencias subidas.
+            // Esto evita ocultar los dropzones en trámites legacy que llegaron a
+            // Pago a Gestor sin haber subido evidencias (no pasaron por el flujo nuevo).
+            $tul_hasEvidencias = !empty($prototypeReadOnlyTramite['has_tramite_recibido'])
+                && !empty($prototypeReadOnlyTramite['has_acuse_recibo']);
+            $evidenciasYaAprobadas = $tul_traStatusIdForApproval === SGL_TRA_STATUS_EVIDENCIAS_APROBADAS
+                || (in_array($tul_traStatusIdForApproval, [
+                    SGL_TRA_STATUS_PAGO_GESTOR,   // 23
+                    SGL_TRA_STATUS_COBRO_CLIENTE, // 28
+                    SGL_TRA_STATUS_CONCLUIDO,     // 20
+                    SGL_TRA_STATUS_CANCELADO,     // 21
+                ], true) && $tul_hasEvidencias);
             $prototypeStep3Form['evidenciasAprobadas'] = $evidenciasYaAprobadas;
             // El botón aparece cuando:
             // 1. El usuario tiene acceso al trámite
