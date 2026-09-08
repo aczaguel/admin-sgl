@@ -2985,6 +2985,21 @@ class Tramitesn extends Tramites
                 'csrfHash' => csrf_hash(),
             ]);
         }
+
+        // Gate: Paso 4 requiere evidencias aprobadas o estar ya en status 23+
+        $step4Allowed = in_array($traStatusId, [
+            SGL_TRA_STATUS_EVIDENCIAS_APROBADAS,
+            SGL_TRA_STATUS_PAGO_GESTOR,
+            SGL_TRA_STATUS_COBRO_CLIENTE,
+        ], true);
+        if (!$step4Allowed) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'success' => false,
+                'message' => 'El Paso 4 requiere que las evidencias finales estén aprobadas.',
+                'csrfHash' => csrf_hash(),
+            ]);
+        }
+
         if (!$canKeepStep4Editable && !puede_editar_modulo($roles, $traStatusId, 'editar_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4)) {
             return acl_deny('Acceso denegado.', 403, null, true);
         }
@@ -3806,7 +3821,20 @@ class Tramitesn extends Tramites
             $canUploadDropzonePagoGestorDocumentos = $canUploadPagoGestor
                 && has_permission('can_upload_dropzone_pago_gestor_documentos', $perms, $roles);
             $step4ReadOnly = $this->isLockedStatusId($traStatusId);
-            $canEditPagoGestor = $myid > 0
+            // Gate: el Paso 4 solo es accesible cuando las evidencias están aprobadas
+            // (status 31+) o el trámite ya estaba en Pago a Gestor antes del nuevo flujo.
+            // Esto evita que se registre el pago al gestor antes de que el gestor
+            // haya entregado el trámite al cliente.
+            $step4GateOpen = in_array($traStatusId, [
+                SGL_TRA_STATUS_EVIDENCIAS_APROBADAS, // 31 — aprobación explícita
+                SGL_TRA_STATUS_PAGO_GESTOR,          // 23 — ya estaba en este paso
+                SGL_TRA_STATUS_COBRO_CLIENTE,        // 28
+                SGL_TRA_STATUS_CONCLUIDO,            // 20
+                SGL_TRA_STATUS_CANCELADO,            // 21
+            ], true);
+
+            $canEditPagoGestor = $step4GateOpen
+                && $myid > 0
                 && acl_has_tramite_tenant_access($prototypeTramiteId, $myid, $roles, $perms)
                 && can_edit_tramite($roles, $perms)
                 && has_permission('section_pago_gestor', $perms, $roles)
@@ -3815,10 +3843,9 @@ class Tramitesn extends Tramites
                 && ($canKeepStep4Editable || puede_editar_modulo($roles, $traStatusId, 'editar_pago_gestor', $reembolsoStatusId, $cobroStatusId, 4));
 
             $prototypeStep4Form['canEdit'] = $canEditPagoGestor;
-            // canView is read-only: gated by tenant access only so historical
-            // tramites are always viewable. Editing still requires section perms.
-            $prototypeStep4Form['canView'] = $hasTenantAccess;
-            $prototypeStep4Form['canUploadDocs'] = $canUploadDropzonePagoGestorDocumentos;
+            // canView shows the section but locked when gate is closed
+            $prototypeStep4Form['canView'] = $hasTenantAccess && $step4GateOpen;
+            $prototypeStep4Form['canUploadDocs'] = $step4GateOpen && $canUploadDropzonePagoGestorDocumentos;
             $prototypeStep4Form['canDeleteDocs'] = $canUploadDropzonePagoGestorDocumentos
                 && has_permission('quick_action_pago_gestor_delete', $perms, $roles);
             $prototypeStep4NotesForm['canView'] = $hasTenantAccess && $canSectionPagoGestor;
@@ -3826,7 +3853,9 @@ class Tramitesn extends Tramites
                 && $canSectionPagoGestor
                 && $canAddBitacora;
             if (!$canEditPagoGestor) {
-                if (!($myid > 0 && acl_has_tramite_tenant_access($prototypeTramiteId, $myid, $roles, $perms))) {
+                if (!$step4GateOpen) {
+                    $prototypeStep4Form['blockedReason'] = 'El Paso 4 requiere que las evidencias finales hayan sido aprobadas. Suba y apruebe las evidencias del Paso 3 primero.';
+                } elseif (!($myid > 0 && acl_has_tramite_tenant_access($prototypeTramiteId, $myid, $roles, $perms))) {
                     $prototypeStep4Form['blockedReason'] = 'Este tramite no pertenece a tu contexto de acceso actual para editar Pago a gestor.';
                 } elseif (!can_edit_tramite($roles, $perms)) {
                     $prototypeStep4Form['blockedReason'] = 'Tu perfil no tiene permiso general para editar tramites.';
