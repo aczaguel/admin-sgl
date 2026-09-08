@@ -17,11 +17,21 @@ aws ssm start-session --target i-09e1859ef730d6b7b
 ```bash
 # Conectarse al EC2
 aws ssm start-session --target i-09e1859ef730d6b7b
+```
 
-# En el EC2:
+Una vez dentro del EC2, ejecutar todo en un solo comando:
+
+```bash
+cd /opt/sgl && git pull origin chore/php82-diagnostic && docker compose restart app && docker compose exec app php spark cache:clear
+```
+
+O paso a paso:
+
+```bash
 cd /opt/sgl
-git pull
-docker compose --env-file .env restart
+git pull origin chore/php82-diagnostic
+docker compose restart app
+docker compose exec app php spark cache:clear
 ```
 
 ---
