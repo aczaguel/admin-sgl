@@ -2,10 +2,12 @@
 namespace App\Models;
 
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 use Laminas\Db\Sql\Sql;
 
 class TraUserLogModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'tra_user_log';
     protected $primaryKey = 'id';
     protected $allowedFields = [

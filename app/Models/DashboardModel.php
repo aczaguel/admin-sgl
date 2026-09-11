@@ -5,6 +5,7 @@ use CodeIgniter\Model;
 
 class DashboardModel extends Model
 {
+    use SharedAdapter;
     protected $db;
     protected $clienteIdFilter = null;
 

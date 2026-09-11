@@ -1,10 +1,12 @@
 <?php
 namespace App\Models;
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 use Laminas\Db\Sql\Sql;
 use Laminas\Db\ResultSet\ResultSet;
 class UserCompModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'users';
     protected $primaryKey = 'id';
     protected $allowedFields = [

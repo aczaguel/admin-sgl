@@ -7486,21 +7486,10 @@ class Tramites extends BaseController
     }
 
     protected function _getDbData() {
-        $db = (new ConfigDatabase())->default;
-        return [
-            'adapter' => [
-                'driver' => 'mysqli',
-                'host'     => $db['hostname'],
-                'database' => $db['database'],
-                'username' => $db['username'],
-                'password' => $db['password'],
-                'charset' => 'utf8',
-                // FR-01: Sync MySQL session timezone with PHP (America/Mexico_City)
-                'driver_options' => [
-                    MYSQLI_INIT_COMMAND => "SET time_zone = '-06:00'",
-                ],
-            ]
-        ];
+        // Return a cached config so GroceryCrud models reuse the same Laminas
+        // Adapter instead of opening a new MySQL connection per model instance.
+        // Prevents #1040 "Too many connections" under concurrent load.
+        return \App\Libraries\DbAdapterFactory::getDbConfig();
     }
     protected function _getGroceryCrudEnterprise($bootstrap = true, $jquery = true) {
         $db = $this->_getDbData();

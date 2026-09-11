@@ -1,10 +1,12 @@
 <?php
 namespace App\Models;
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 use Laminas\Db\Sql\Sql;
 
 class EmpresaGestoraModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'ges_empresa_gestora';
     protected $primaryKey = 'id';
     protected $allowedFields = [

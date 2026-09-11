@@ -32,6 +32,7 @@ use CodeIgniter\Model;
  */
 class UserModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'users';
     protected $allowedFields = ['username','firstname','midname','lastname','email','phone','avatar','password','status','created_at','updated_at'];
 

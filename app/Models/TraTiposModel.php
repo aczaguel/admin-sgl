@@ -1,10 +1,12 @@
 <?php
 namespace App\Models;
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 use Laminas\Db\Sql\Sql;
 
 class TraTiposModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'tra_tipos';
     protected $primaryKey = 'id';
     protected $allowedFields = ['tipo_tramite', 'descripcion', 'created_at', 'updated_at', 'user_id'];

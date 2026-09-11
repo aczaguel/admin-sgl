@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 
 class BitacoraModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'bitacora';
     protected $primaryKey = 'id';
     protected $allowedFields = [

@@ -1,10 +1,12 @@
 <?php
 namespace App\Models;
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 use Laminas\Db\Sql\Sql;
 
 class UserRolesModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'us_user_roles';
     protected $primaryKey = 'id';
     protected $allowedFields = [

@@ -1,10 +1,12 @@
 <?php
 namespace App\Models;
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 use Laminas\Db\Sql\Sql;
 
 class PagoGestorStatusModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'pago_gestor_status';
     protected $primaryKey = 'id';
     protected $allowedFields = [

@@ -1,10 +1,12 @@
 <?php
 namespace App\Models;
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 use Laminas\Db\Sql\Sql;
 
 class ClienteDirectoEjecutivoModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'cli_directo_ejecutivo';
     protected $primaryKey = 'id';
     protected $allowedFields = [

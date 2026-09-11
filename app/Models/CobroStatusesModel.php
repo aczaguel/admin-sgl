@@ -1,10 +1,12 @@
 <?php
 namespace App\Models;
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 use Laminas\Db\Sql\Sql;
 
 class CobroStatusesModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'cobro_statuses';
     protected $primaryKey = 'id';
     protected $allowedFields = [

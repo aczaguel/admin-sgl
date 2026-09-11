@@ -1,10 +1,12 @@
 <?php
 namespace App\Models;
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 use Laminas\Db\Sql\Sql;
 
 class EntMunicipioModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'rel_ent_municipio';
     protected $primaryKey = 'ent_municipality_id';
     protected $allowedFields = ['ent_municipality', 'id_entity', 'id_municipality', 'ent_municipality_id'];

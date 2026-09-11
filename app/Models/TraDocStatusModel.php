@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 
 class TraDocStatusModel extends Model
 {
+    use SharedAdapter;
     protected $table = 'tra_doc_status';
     protected $primaryKey = 'id';
     protected $allowedFields = [

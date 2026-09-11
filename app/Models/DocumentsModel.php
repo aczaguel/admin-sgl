@@ -2,9 +2,11 @@
 //DocumentsModel.php
 
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 use GroceryCrud\Core\Model\ModelFieldType;
 
 class DocumentsModel extends Model {
+    use SharedAdapter;
 
     protected $ci;
     protected $db;

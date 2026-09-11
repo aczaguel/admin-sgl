@@ -1,9 +1,11 @@
 <?php
 namespace App\Models;
 use GroceryCrud\Core\Model;
+use App\Models\Traits\SharedAdapter;
 use Laminas\Db\Sql\Sql;
 
 class TramiteAfterInsert extends Model {
+    use SharedAdapter;
     public function updateFolioTramite($tramiteId, $cli_directo_id) {
        
         if (!is_numeric($tramiteId)) {
