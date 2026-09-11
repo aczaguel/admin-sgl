@@ -289,6 +289,7 @@ $approveUrl         = '/deskapp/tramites/autorizar';
                                     data-tul-delete-url="<?= esc($deleteUrl, 'attr') ?>"
                                     data-tul-doc-id="<?= esc($docId, 'attr') ?>"
                                     data-tul-doc-file="<?= esc($docFile, 'attr') ?>"
+                                    data-tul-tramite-id="<?= (int) $tramiteId ?>"
                                     title="Eliminar comprobante"
                                 >&times;</button>
                             <?php endif; ?>
