@@ -8,7 +8,6 @@ use Laminas\Db\Adapter\Adapter;
 
 class TraTramiteAsociadoModel extends Model
 {
-    use SharedAdapter;
     protected $table = 'tra_tramite_asociado';
     protected $primaryKey = 'id';
     protected $allowedFields = ['tramite_id', 'tra_tipos_id', 'created_at', 'updated_at'];

@@ -5,7 +5,6 @@ use CodeIgniter\Model;
 
 class TraEvidenciasFinalesModel extends Model
 {
-    use SharedAdapter;
     protected $table = 'tra_evidencias_finales';
     protected $primaryKey = 'id';
     protected $returnType = 'array';

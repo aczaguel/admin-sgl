@@ -6,7 +6,6 @@ use CodeIgniter\Model;
 
 class NotificationModel extends Model
 {
-    use SharedAdapter;
     protected $table = 'notifications';
     protected $primaryKey = 'id';
     protected $allowedFields = [

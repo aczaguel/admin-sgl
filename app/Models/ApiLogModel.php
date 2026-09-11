@@ -5,7 +5,6 @@ use CodeIgniter\Model;
 
 class ApiLogModel extends Model
 {
-    use SharedAdapter;
     protected $table = 'api_logs';
     protected $primaryKey = 'id';
     protected $allowedFields = [

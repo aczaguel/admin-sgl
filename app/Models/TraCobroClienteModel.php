@@ -5,7 +5,6 @@ use CodeIgniter\Model;
 
 class TraCobroClienteModel extends Model
 {
-    use SharedAdapter;
     protected $table = 'tra_cobro_cliente';
     protected $primaryKey = 'id';
     protected $returnType = 'array';
