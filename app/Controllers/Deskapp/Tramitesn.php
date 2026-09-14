@@ -4794,14 +4794,16 @@ class Tramitesn extends Tramites
                 // normal inline URL.
                 $ext = $file !== '' ? strtolower((string) pathinfo($file, PATHINFO_EXTENSION)) : '';
                 $isXml = $ext === 'xml';
-                $isPdf = $ext === 'pdf';
                 $isPreviewable = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'tiff', 'tif'], true);
+                // Legacy docs may override the category (e.g. stored in 'evidencias/' on S3)
+                $resolvedCategory = !empty($entry['_legacy_category']) ? (string) $entry['_legacy_category'] : $category;
+                $resolvedId = ($resolvedCategory === $category) ? $tramiteId : null;
                 $entry['url'] = $file !== ''
                     ? ($isXml
-                        ? file_download_url($file, $category, $tramiteId)
+                        ? file_download_url($file, $resolvedCategory, $resolvedId)
                         : ($isPreviewable
-                            ? file_inline_url($file, $category, $tramiteId)
-                            : file_url($file, $category, $tramiteId)))
+                            ? file_inline_url($file, $resolvedCategory, $resolvedId)
+                            : file_url($file, $resolvedCategory, $resolvedId)))
                     : '';
                 $entry['is_image'] = $file !== '' ? is_image_filename($file) : false;
                 $expanded[] = $entry;
@@ -5037,6 +5039,41 @@ class Tramitesn extends Tramites
                     'file' => $file,
                     'comprobante_final' => $tipo,
                 ];
+            }
+
+            // Legacy fallback: tramites created before the new flow stored
+            // evidence docs in tra_evidencias_finales instead of tra_pago_gestor.
+            // If no evidence docs were found in tra_pago_gestor, check there.
+            if (empty($evidenceDocs) && $db->tableExists('tra_evidencias_finales')) {
+                $legacyRows = $db->table('tra_evidencias_finales')
+                    ->select('id, file')
+                    ->where('tramite_id', $id)
+                    ->where('status', 1)
+                    ->orderBy('id', 'ASC')
+                    ->get()
+                    ->getResultArray();
+
+                foreach ($legacyRows as $legacyRow) {
+                    $legacyFile = trim((string) ($legacyRow['file'] ?? ''));
+                    if ($legacyFile === '') {
+                        continue;
+                    }
+                    // We cannot tell which is tramite_recibido vs acuse_recibo from
+                    // the legacy table — mark the first as tramite_recibido and
+                    // the second as acuse_recibo_cliente so the gate logic works.
+                    $legacyTipo = !$hasTramiteRecibido ? 'tramite_recibido' : 'acuse_recibo_cliente';
+                    if ($legacyTipo === 'tramite_recibido') {
+                        $hasTramiteRecibido = true;
+                    } else {
+                        $hasAcuseRecibo = true;
+                    }
+                    $evidenceDocs[] = $legacyFile;
+                    $evidenceDocsRaw[] = [
+                        'file' => $legacyFile,
+                        'comprobante_final' => $legacyTipo,
+                        '_legacy_category' => 'evidencias', // stored in evidencias/ on S3
+                    ];
+                }
             }
 
             foreach ($cobroClienteRows as $row) {
