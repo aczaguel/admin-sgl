@@ -172,16 +172,40 @@ $tul_canConclude = has_permission('important_concluir_tramite', $tul_perms, $tul
     <!-- Fase Operativa: Pasos 1-3 (expandidos) -->
     <?= view('deskapp/tramite_unified/_step1_row', $viewData) ?>
     <?= view('deskapp/tramite_unified/_step2_row', $viewData) ?>
-    <?= view('deskapp/tramite_unified/_step3_row', $viewData) ?>
 
+    <?php
+    // Paso 3 — Evidencias Finales: visible cuando el usuario tiene acceso a pago gestor
+    // o cuando el gate de evidencias está abierto (el trámite ya pasó por ese step).
+    $tul_showStep3 = !empty($viewData['prototypeStep3Form']['canUpload'])
+        || !empty($viewData['prototypeStep3Form']['canDelete'])
+        || !empty($viewData['prototypeStep3Form']['canAprobarEvidencias'])
+        || !empty($viewData['prototypeStep3Form']['evidenciasAprobadas'])
+        || $tul_gateEvidencias;
+    ?>
+    <?php if ($tul_showStep3): ?>
+        <?= view('deskapp/tramite_unified/_step3_row', $viewData) ?>
+    <?php endif; ?>
+
+    <?php
+    // Divisor y pasos financieros: solo si el usuario puede ver al menos uno de ellos
+    $tul_showStep4 = !empty($viewData['prototypeStep4Form']['canView']);
+    $tul_showStep5 = !empty($viewData['prototypeStep5Form']['canView']);
+    $tul_showFinanciera = $tul_showStep4 || $tul_showStep5;
+    ?>
+    <?php if ($tul_showFinanciera): ?>
     <!-- Divisor de fase -->
     <div class="tul-phase-divider">
         <span class="tul-phase-divider__label">Fase Financiera</span>
     </div>
 
     <!-- Fase Financiera: Pasos 4-5 (colapsados en acordeón) -->
-    <?= view('deskapp/tramite_unified/_step4_row', $viewData) ?>
-    <?= view('deskapp/tramite_unified/_step5_row', $viewData) ?>
+    <?php if ($tul_showStep4): ?>
+        <?= view('deskapp/tramite_unified/_step4_row', $viewData) ?>
+    <?php endif; ?>
+    <?php if ($tul_showStep5): ?>
+        <?= view('deskapp/tramite_unified/_step5_row', $viewData) ?>
+    <?php endif; ?>
+    <?php endif; ?>
 
     <?php if ($tul_canCancel || $tul_canConclude): ?>
         <div class="tul-actions-bar">
